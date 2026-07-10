@@ -1,0 +1,422 @@
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
+
+export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.5"
+  }
+  public: {
+    Tables: {
+      notifications: {
+        Row: {
+          created_at: string
+          cuerpo: string | null
+          data: Json | null
+          id: string
+          link: string | null
+          read: boolean
+          tipo: string
+          titulo: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          cuerpo?: string | null
+          data?: Json | null
+          id?: string
+          link?: string | null
+          read?: boolean
+          tipo: string
+          titulo: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          cuerpo?: string | null
+          data?: Json | null
+          id?: string
+          link?: string | null
+          read?: boolean
+          tipo?: string
+          titulo?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          apellidos: string
+          avatar_url: string | null
+          ciudad: string | null
+          created_at: string
+          descripcion: string | null
+          email: string
+          fecha_nacimiento: string | null
+          id: string
+          idioma: string
+          mano_dominante: string | null
+          nivel: string | null
+          nombre: string
+          onboarding_completed: boolean
+          posicion: string | null
+          preferred_role: Database["public"]["Enums"]["preferred_role"] | null
+          telefono: string | null
+          updated_at: string
+        }
+        Insert: {
+          apellidos?: string
+          avatar_url?: string | null
+          ciudad?: string | null
+          created_at?: string
+          descripcion?: string | null
+          email: string
+          fecha_nacimiento?: string | null
+          id: string
+          idioma?: string
+          mano_dominante?: string | null
+          nivel?: string | null
+          nombre?: string
+          onboarding_completed?: boolean
+          posicion?: string | null
+          preferred_role?: Database["public"]["Enums"]["preferred_role"] | null
+          telefono?: string | null
+          updated_at?: string
+        }
+        Update: {
+          apellidos?: string
+          avatar_url?: string | null
+          ciudad?: string | null
+          created_at?: string
+          descripcion?: string | null
+          email?: string
+          fecha_nacimiento?: string | null
+          id?: string
+          idioma?: string
+          mano_dominante?: string | null
+          nivel?: string | null
+          nombre?: string
+          onboarding_completed?: boolean
+          posicion?: string | null
+          preferred_role?: Database["public"]["Enums"]["preferred_role"] | null
+          telefono?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      team_invitations: {
+        Row: {
+          created_at: string
+          id: string
+          invited_by: string
+          invited_user_id: string
+          mensaje: string | null
+          responded_at: string | null
+          role: Database["public"]["Enums"]["team_role"]
+          status: Database["public"]["Enums"]["invitation_status"]
+          team_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          invited_by: string
+          invited_user_id: string
+          mensaje?: string | null
+          responded_at?: string | null
+          role?: Database["public"]["Enums"]["team_role"]
+          status?: Database["public"]["Enums"]["invitation_status"]
+          team_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          invited_by?: string
+          invited_user_id?: string
+          mensaje?: string | null
+          responded_at?: string | null
+          role?: Database["public"]["Enums"]["team_role"]
+          status?: Database["public"]["Enums"]["invitation_status"]
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_invitations_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_members: {
+        Row: {
+          id: string
+          joined_at: string
+          role: Database["public"]["Enums"]["team_role"]
+          status: Database["public"]["Enums"]["member_status"]
+          team_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string
+          role?: Database["public"]["Enums"]["team_role"]
+          status?: Database["public"]["Enums"]["member_status"]
+          team_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string
+          role?: Database["public"]["Enums"]["team_role"]
+          status?: Database["public"]["Enums"]["member_status"]
+          team_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teams: {
+        Row: {
+          categoria: string | null
+          ciudad: string | null
+          color_primario: string | null
+          color_secundario: string | null
+          created_at: string
+          deporte: string | null
+          descripcion: string | null
+          id: string
+          instalacion: string | null
+          logo_url: string | null
+          nombre: string
+          owner_id: string
+          updated_at: string
+        }
+        Insert: {
+          categoria?: string | null
+          ciudad?: string | null
+          color_primario?: string | null
+          color_secundario?: string | null
+          created_at?: string
+          deporte?: string | null
+          descripcion?: string | null
+          id?: string
+          instalacion?: string | null
+          logo_url?: string | null
+          nombre: string
+          owner_id: string
+          updated_at?: string
+        }
+        Update: {
+          categoria?: string | null
+          ciudad?: string | null
+          color_primario?: string | null
+          color_secundario?: string | null
+          created_at?: string
+          deporte?: string | null
+          descripcion?: string | null
+          id?: string
+          instalacion?: string | null
+          logo_url?: string | null
+          nombre?: string
+          owner_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_team_manager: {
+        Args: { _team_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_team_member: {
+        Args: { _team_id: string; _user_id: string }
+        Returns: boolean
+      }
+    }
+    Enums: {
+      app_role: "admin" | "user"
+      invitation_status: "pendiente" | "aceptada" | "rechazada"
+      member_status: "pendiente" | "activo" | "expulsado"
+      preferred_role: "capitan" | "jugador"
+      team_role: "capitan" | "entrenador" | "delegado" | "jugador"
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+}
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {
+      app_role: ["admin", "user"],
+      invitation_status: ["pendiente", "aceptada", "rechazada"],
+      member_status: ["pendiente", "activo", "expulsado"],
+      preferred_role: ["capitan", "jugador"],
+      team_role: ["capitan", "entrenador", "delegado", "jugador"],
+    },
+  },
+} as const
