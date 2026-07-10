@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/miembros")({
-  component: Miembros;
+  component: Miembros,
 });
 
 function Miembros() {
