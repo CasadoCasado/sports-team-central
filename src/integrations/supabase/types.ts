@@ -14,16 +14,277 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      notifications: {
+        Row: {
+          created_at: string
+          cuerpo: string | null
+          data: Json | null
+          id: string
+          link: string | null
+          read: boolean
+          tipo: string
+          titulo: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          cuerpo?: string | null
+          data?: Json | null
+          id?: string
+          link?: string | null
+          read?: boolean
+          tipo: string
+          titulo: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          cuerpo?: string | null
+          data?: Json | null
+          id?: string
+          link?: string | null
+          read?: boolean
+          tipo?: string
+          titulo?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          apellidos: string
+          avatar_url: string | null
+          ciudad: string | null
+          created_at: string
+          descripcion: string | null
+          email: string
+          fecha_nacimiento: string | null
+          id: string
+          idioma: string
+          mano_dominante: string | null
+          nivel: string | null
+          nombre: string
+          onboarding_completed: boolean
+          posicion: string | null
+          preferred_role: Database["public"]["Enums"]["preferred_role"] | null
+          telefono: string | null
+          updated_at: string
+        }
+        Insert: {
+          apellidos?: string
+          avatar_url?: string | null
+          ciudad?: string | null
+          created_at?: string
+          descripcion?: string | null
+          email: string
+          fecha_nacimiento?: string | null
+          id: string
+          idioma?: string
+          mano_dominante?: string | null
+          nivel?: string | null
+          nombre?: string
+          onboarding_completed?: boolean
+          posicion?: string | null
+          preferred_role?: Database["public"]["Enums"]["preferred_role"] | null
+          telefono?: string | null
+          updated_at?: string
+        }
+        Update: {
+          apellidos?: string
+          avatar_url?: string | null
+          ciudad?: string | null
+          created_at?: string
+          descripcion?: string | null
+          email?: string
+          fecha_nacimiento?: string | null
+          id?: string
+          idioma?: string
+          mano_dominante?: string | null
+          nivel?: string | null
+          nombre?: string
+          onboarding_completed?: boolean
+          posicion?: string | null
+          preferred_role?: Database["public"]["Enums"]["preferred_role"] | null
+          telefono?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      team_invitations: {
+        Row: {
+          created_at: string
+          id: string
+          invited_by: string
+          invited_user_id: string
+          mensaje: string | null
+          responded_at: string | null
+          role: Database["public"]["Enums"]["team_role"]
+          status: Database["public"]["Enums"]["invitation_status"]
+          team_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          invited_by: string
+          invited_user_id: string
+          mensaje?: string | null
+          responded_at?: string | null
+          role?: Database["public"]["Enums"]["team_role"]
+          status?: Database["public"]["Enums"]["invitation_status"]
+          team_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          invited_by?: string
+          invited_user_id?: string
+          mensaje?: string | null
+          responded_at?: string | null
+          role?: Database["public"]["Enums"]["team_role"]
+          status?: Database["public"]["Enums"]["invitation_status"]
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_invitations_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_members: {
+        Row: {
+          id: string
+          joined_at: string
+          role: Database["public"]["Enums"]["team_role"]
+          status: Database["public"]["Enums"]["member_status"]
+          team_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string
+          role?: Database["public"]["Enums"]["team_role"]
+          status?: Database["public"]["Enums"]["member_status"]
+          team_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string
+          role?: Database["public"]["Enums"]["team_role"]
+          status?: Database["public"]["Enums"]["member_status"]
+          team_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teams: {
+        Row: {
+          categoria: string | null
+          ciudad: string | null
+          color_primario: string | null
+          color_secundario: string | null
+          created_at: string
+          deporte: string | null
+          descripcion: string | null
+          id: string
+          instalacion: string | null
+          logo_url: string | null
+          nombre: string
+          owner_id: string
+          updated_at: string
+        }
+        Insert: {
+          categoria?: string | null
+          ciudad?: string | null
+          color_primario?: string | null
+          color_secundario?: string | null
+          created_at?: string
+          deporte?: string | null
+          descripcion?: string | null
+          id?: string
+          instalacion?: string | null
+          logo_url?: string | null
+          nombre: string
+          owner_id: string
+          updated_at?: string
+        }
+        Update: {
+          categoria?: string | null
+          ciudad?: string | null
+          color_primario?: string | null
+          color_secundario?: string | null
+          created_at?: string
+          deporte?: string | null
+          descripcion?: string | null
+          id?: string
+          instalacion?: string | null
+          logo_url?: string | null
+          nombre?: string
+          owner_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_team_manager: {
+        Args: { _team_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_team_member: {
+        Args: { _team_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
+      invitation_status: "pendiente" | "aceptada" | "rechazada"
+      member_status: "pendiente" | "activo" | "expulsado"
+      preferred_role: "capitan" | "jugador"
+      team_role: "capitan" | "entrenador" | "delegado" | "jugador"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +411,12 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+      invitation_status: ["pendiente", "aceptada", "rechazada"],
+      member_status: ["pendiente", "activo", "expulsado"],
+      preferred_role: ["capitan", "jugador"],
+      team_role: ["capitan", "entrenador", "delegado", "jugador"],
+    },
   },
 } as const
