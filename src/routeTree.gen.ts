@@ -9,38 +9,287 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedResultadosRouteImport } from './routes/_authenticated/resultados'
+import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
+import { Route as AuthenticatedPagosRouteImport } from './routes/_authenticated/pagos'
+import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
+import { Route as AuthenticatedNotificacionesRouteImport } from './routes/_authenticated/notificaciones'
+import { Route as AuthenticatedMiembrosRouteImport } from './routes/_authenticated/miembros'
+import { Route as AuthenticatedMiEquipoRouteImport } from './routes/_authenticated/mi-equipo'
+import { Route as AuthenticatedInicioRouteImport } from './routes/_authenticated/inicio'
+import { Route as AuthenticatedGaleriaRouteImport } from './routes/_authenticated/galeria'
+import { Route as AuthenticatedEstadisticasRouteImport } from './routes/_authenticated/estadisticas'
+import { Route as AuthenticatedEntrenamientosRouteImport } from './routes/_authenticated/entrenamientos'
+import { Route as AuthenticatedEncuestasRouteImport } from './routes/_authenticated/encuestas'
+import { Route as AuthenticatedDocumentosRouteImport } from './routes/_authenticated/documentos'
+import { Route as AuthenticatedConvocatoriasRouteImport } from './routes/_authenticated/convocatorias'
+import { Route as AuthenticatedComunicacionesRouteImport } from './routes/_authenticated/comunicaciones'
+import { Route as AuthenticatedCompeticionesRouteImport } from './routes/_authenticated/competiciones'
+import { Route as AuthenticatedCalendarioRouteImport } from './routes/_authenticated/calendario'
 
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedResultadosRoute = AuthenticatedResultadosRouteImport.update({
+  id: '/resultados',
+  path: '/resultados',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPerfilRoute = AuthenticatedPerfilRouteImport.update({
+  id: '/perfil',
+  path: '/perfil',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPagosRoute = AuthenticatedPagosRouteImport.update({
+  id: '/pagos',
+  path: '/pagos',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedNotificacionesRoute =
+  AuthenticatedNotificacionesRouteImport.update({
+    id: '/notificaciones',
+    path: '/notificaciones',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedMiembrosRoute = AuthenticatedMiembrosRouteImport.update({
+  id: '/miembros',
+  path: '/miembros',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedMiEquipoRoute = AuthenticatedMiEquipoRouteImport.update({
+  id: '/mi-equipo',
+  path: '/mi-equipo',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedInicioRoute = AuthenticatedInicioRouteImport.update({
+  id: '/inicio',
+  path: '/inicio',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedGaleriaRoute = AuthenticatedGaleriaRouteImport.update({
+  id: '/galeria',
+  path: '/galeria',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedEstadisticasRoute =
+  AuthenticatedEstadisticasRouteImport.update({
+    id: '/estadisticas',
+    path: '/estadisticas',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedEntrenamientosRoute =
+  AuthenticatedEntrenamientosRouteImport.update({
+    id: '/entrenamientos',
+    path: '/entrenamientos',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedEncuestasRoute = AuthenticatedEncuestasRouteImport.update({
+  id: '/encuestas',
+  path: '/encuestas',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedDocumentosRoute = AuthenticatedDocumentosRouteImport.update({
+  id: '/documentos',
+  path: '/documentos',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedConvocatoriasRoute =
+  AuthenticatedConvocatoriasRouteImport.update({
+    id: '/convocatorias',
+    path: '/convocatorias',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedComunicacionesRoute =
+  AuthenticatedComunicacionesRouteImport.update({
+    id: '/comunicaciones',
+    path: '/comunicaciones',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedCompeticionesRoute =
+  AuthenticatedCompeticionesRouteImport.update({
+    id: '/competiciones',
+    path: '/competiciones',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedCalendarioRoute = AuthenticatedCalendarioRouteImport.update({
+  id: '/calendario',
+  path: '/calendario',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/calendario': typeof AuthenticatedCalendarioRoute
+  '/competiciones': typeof AuthenticatedCompeticionesRoute
+  '/comunicaciones': typeof AuthenticatedComunicacionesRoute
+  '/convocatorias': typeof AuthenticatedConvocatoriasRoute
+  '/documentos': typeof AuthenticatedDocumentosRoute
+  '/encuestas': typeof AuthenticatedEncuestasRoute
+  '/entrenamientos': typeof AuthenticatedEntrenamientosRoute
+  '/estadisticas': typeof AuthenticatedEstadisticasRoute
+  '/galeria': typeof AuthenticatedGaleriaRoute
+  '/inicio': typeof AuthenticatedInicioRoute
+  '/mi-equipo': typeof AuthenticatedMiEquipoRoute
+  '/miembros': typeof AuthenticatedMiembrosRoute
+  '/notificaciones': typeof AuthenticatedNotificacionesRoute
+  '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/pagos': typeof AuthenticatedPagosRoute
+  '/perfil': typeof AuthenticatedPerfilRoute
+  '/resultados': typeof AuthenticatedResultadosRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/calendario': typeof AuthenticatedCalendarioRoute
+  '/competiciones': typeof AuthenticatedCompeticionesRoute
+  '/comunicaciones': typeof AuthenticatedComunicacionesRoute
+  '/convocatorias': typeof AuthenticatedConvocatoriasRoute
+  '/documentos': typeof AuthenticatedDocumentosRoute
+  '/encuestas': typeof AuthenticatedEncuestasRoute
+  '/entrenamientos': typeof AuthenticatedEntrenamientosRoute
+  '/estadisticas': typeof AuthenticatedEstadisticasRoute
+  '/galeria': typeof AuthenticatedGaleriaRoute
+  '/inicio': typeof AuthenticatedInicioRoute
+  '/mi-equipo': typeof AuthenticatedMiEquipoRoute
+  '/miembros': typeof AuthenticatedMiembrosRoute
+  '/notificaciones': typeof AuthenticatedNotificacionesRoute
+  '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/pagos': typeof AuthenticatedPagosRoute
+  '/perfil': typeof AuthenticatedPerfilRoute
+  '/resultados': typeof AuthenticatedResultadosRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/_authenticated/calendario': typeof AuthenticatedCalendarioRoute
+  '/_authenticated/competiciones': typeof AuthenticatedCompeticionesRoute
+  '/_authenticated/comunicaciones': typeof AuthenticatedComunicacionesRoute
+  '/_authenticated/convocatorias': typeof AuthenticatedConvocatoriasRoute
+  '/_authenticated/documentos': typeof AuthenticatedDocumentosRoute
+  '/_authenticated/encuestas': typeof AuthenticatedEncuestasRoute
+  '/_authenticated/entrenamientos': typeof AuthenticatedEntrenamientosRoute
+  '/_authenticated/estadisticas': typeof AuthenticatedEstadisticasRoute
+  '/_authenticated/galeria': typeof AuthenticatedGaleriaRoute
+  '/_authenticated/inicio': typeof AuthenticatedInicioRoute
+  '/_authenticated/mi-equipo': typeof AuthenticatedMiEquipoRoute
+  '/_authenticated/miembros': typeof AuthenticatedMiembrosRoute
+  '/_authenticated/notificaciones': typeof AuthenticatedNotificacionesRoute
+  '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
+  '/_authenticated/pagos': typeof AuthenticatedPagosRoute
+  '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
+  '/_authenticated/resultados': typeof AuthenticatedResultadosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/calendario'
+    | '/competiciones'
+    | '/comunicaciones'
+    | '/convocatorias'
+    | '/documentos'
+    | '/encuestas'
+    | '/entrenamientos'
+    | '/estadisticas'
+    | '/galeria'
+    | '/inicio'
+    | '/mi-equipo'
+    | '/miembros'
+    | '/notificaciones'
+    | '/onboarding'
+    | '/pagos'
+    | '/perfil'
+    | '/resultados'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/auth'
+    | '/calendario'
+    | '/competiciones'
+    | '/comunicaciones'
+    | '/convocatorias'
+    | '/documentos'
+    | '/encuestas'
+    | '/entrenamientos'
+    | '/estadisticas'
+    | '/galeria'
+    | '/inicio'
+    | '/mi-equipo'
+    | '/miembros'
+    | '/notificaciones'
+    | '/onboarding'
+    | '/pagos'
+    | '/perfil'
+    | '/resultados'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/_authenticated/calendario'
+    | '/_authenticated/competiciones'
+    | '/_authenticated/comunicaciones'
+    | '/_authenticated/convocatorias'
+    | '/_authenticated/documentos'
+    | '/_authenticated/encuestas'
+    | '/_authenticated/entrenamientos'
+    | '/_authenticated/estadisticas'
+    | '/_authenticated/galeria'
+    | '/_authenticated/inicio'
+    | '/_authenticated/mi-equipo'
+    | '/_authenticated/miembros'
+    | '/_authenticated/notificaciones'
+    | '/_authenticated/onboarding'
+    | '/_authenticated/pagos'
+    | '/_authenticated/perfil'
+    | '/_authenticated/resultados'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +297,175 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/resultados': {
+      id: '/_authenticated/resultados'
+      path: '/resultados'
+      fullPath: '/resultados'
+      preLoaderRoute: typeof AuthenticatedResultadosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/perfil': {
+      id: '/_authenticated/perfil'
+      path: '/perfil'
+      fullPath: '/perfil'
+      preLoaderRoute: typeof AuthenticatedPerfilRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/pagos': {
+      id: '/_authenticated/pagos'
+      path: '/pagos'
+      fullPath: '/pagos'
+      preLoaderRoute: typeof AuthenticatedPagosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/onboarding': {
+      id: '/_authenticated/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof AuthenticatedOnboardingRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/notificaciones': {
+      id: '/_authenticated/notificaciones'
+      path: '/notificaciones'
+      fullPath: '/notificaciones'
+      preLoaderRoute: typeof AuthenticatedNotificacionesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/miembros': {
+      id: '/_authenticated/miembros'
+      path: '/miembros'
+      fullPath: '/miembros'
+      preLoaderRoute: typeof AuthenticatedMiembrosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/mi-equipo': {
+      id: '/_authenticated/mi-equipo'
+      path: '/mi-equipo'
+      fullPath: '/mi-equipo'
+      preLoaderRoute: typeof AuthenticatedMiEquipoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/inicio': {
+      id: '/_authenticated/inicio'
+      path: '/inicio'
+      fullPath: '/inicio'
+      preLoaderRoute: typeof AuthenticatedInicioRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/galeria': {
+      id: '/_authenticated/galeria'
+      path: '/galeria'
+      fullPath: '/galeria'
+      preLoaderRoute: typeof AuthenticatedGaleriaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/estadisticas': {
+      id: '/_authenticated/estadisticas'
+      path: '/estadisticas'
+      fullPath: '/estadisticas'
+      preLoaderRoute: typeof AuthenticatedEstadisticasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/entrenamientos': {
+      id: '/_authenticated/entrenamientos'
+      path: '/entrenamientos'
+      fullPath: '/entrenamientos'
+      preLoaderRoute: typeof AuthenticatedEntrenamientosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/encuestas': {
+      id: '/_authenticated/encuestas'
+      path: '/encuestas'
+      fullPath: '/encuestas'
+      preLoaderRoute: typeof AuthenticatedEncuestasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/documentos': {
+      id: '/_authenticated/documentos'
+      path: '/documentos'
+      fullPath: '/documentos'
+      preLoaderRoute: typeof AuthenticatedDocumentosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/convocatorias': {
+      id: '/_authenticated/convocatorias'
+      path: '/convocatorias'
+      fullPath: '/convocatorias'
+      preLoaderRoute: typeof AuthenticatedConvocatoriasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/comunicaciones': {
+      id: '/_authenticated/comunicaciones'
+      path: '/comunicaciones'
+      fullPath: '/comunicaciones'
+      preLoaderRoute: typeof AuthenticatedComunicacionesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/competiciones': {
+      id: '/_authenticated/competiciones'
+      path: '/competiciones'
+      fullPath: '/competiciones'
+      preLoaderRoute: typeof AuthenticatedCompeticionesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/calendario': {
+      id: '/_authenticated/calendario'
+      path: '/calendario'
+      fullPath: '/calendario'
+      preLoaderRoute: typeof AuthenticatedCalendarioRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedCalendarioRoute: typeof AuthenticatedCalendarioRoute
+  AuthenticatedCompeticionesRoute: typeof AuthenticatedCompeticionesRoute
+  AuthenticatedComunicacionesRoute: typeof AuthenticatedComunicacionesRoute
+  AuthenticatedConvocatoriasRoute: typeof AuthenticatedConvocatoriasRoute
+  AuthenticatedDocumentosRoute: typeof AuthenticatedDocumentosRoute
+  AuthenticatedEncuestasRoute: typeof AuthenticatedEncuestasRoute
+  AuthenticatedEntrenamientosRoute: typeof AuthenticatedEntrenamientosRoute
+  AuthenticatedEstadisticasRoute: typeof AuthenticatedEstadisticasRoute
+  AuthenticatedGaleriaRoute: typeof AuthenticatedGaleriaRoute
+  AuthenticatedInicioRoute: typeof AuthenticatedInicioRoute
+  AuthenticatedMiEquipoRoute: typeof AuthenticatedMiEquipoRoute
+  AuthenticatedMiembrosRoute: typeof AuthenticatedMiembrosRoute
+  AuthenticatedNotificacionesRoute: typeof AuthenticatedNotificacionesRoute
+  AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
+  AuthenticatedPagosRoute: typeof AuthenticatedPagosRoute
+  AuthenticatedPerfilRoute: typeof AuthenticatedPerfilRoute
+  AuthenticatedResultadosRoute: typeof AuthenticatedResultadosRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedCalendarioRoute: AuthenticatedCalendarioRoute,
+  AuthenticatedCompeticionesRoute: AuthenticatedCompeticionesRoute,
+  AuthenticatedComunicacionesRoute: AuthenticatedComunicacionesRoute,
+  AuthenticatedConvocatoriasRoute: AuthenticatedConvocatoriasRoute,
+  AuthenticatedDocumentosRoute: AuthenticatedDocumentosRoute,
+  AuthenticatedEncuestasRoute: AuthenticatedEncuestasRoute,
+  AuthenticatedEntrenamientosRoute: AuthenticatedEntrenamientosRoute,
+  AuthenticatedEstadisticasRoute: AuthenticatedEstadisticasRoute,
+  AuthenticatedGaleriaRoute: AuthenticatedGaleriaRoute,
+  AuthenticatedInicioRoute: AuthenticatedInicioRoute,
+  AuthenticatedMiEquipoRoute: AuthenticatedMiEquipoRoute,
+  AuthenticatedMiembrosRoute: AuthenticatedMiembrosRoute,
+  AuthenticatedNotificacionesRoute: AuthenticatedNotificacionesRoute,
+  AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
+  AuthenticatedPagosRoute: AuthenticatedPagosRoute,
+  AuthenticatedPerfilRoute: AuthenticatedPerfilRoute,
+  AuthenticatedResultadosRoute: AuthenticatedResultadosRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
