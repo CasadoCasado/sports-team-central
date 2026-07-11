@@ -29,6 +29,7 @@ import { Route as AuthenticatedConvocatoriasRouteImport } from './routes/_authen
 import { Route as AuthenticatedComunicacionesRouteImport } from './routes/_authenticated/comunicaciones'
 import { Route as AuthenticatedCompeticionesRouteImport } from './routes/_authenticated/competiciones'
 import { Route as AuthenticatedCalendarioRouteImport } from './routes/_authenticated/calendario'
+import { Route as AuthenticatedEventosIdRouteImport } from './routes/_authenticated/eventos.$id'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -135,6 +136,11 @@ const AuthenticatedCalendarioRoute = AuthenticatedCalendarioRouteImport.update({
   path: '/calendario',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedEventosIdRoute = AuthenticatedEventosIdRouteImport.update({
+  id: '/eventos/$id',
+  path: '/eventos/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -156,6 +162,7 @@ export interface FileRoutesByFullPath {
   '/pagos': typeof AuthenticatedPagosRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/resultados': typeof AuthenticatedResultadosRoute
+  '/eventos/$id': typeof AuthenticatedEventosIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -177,6 +184,7 @@ export interface FileRoutesByTo {
   '/pagos': typeof AuthenticatedPagosRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/resultados': typeof AuthenticatedResultadosRoute
+  '/eventos/$id': typeof AuthenticatedEventosIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -200,6 +208,7 @@ export interface FileRoutesById {
   '/_authenticated/pagos': typeof AuthenticatedPagosRoute
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
   '/_authenticated/resultados': typeof AuthenticatedResultadosRoute
+  '/_authenticated/eventos/$id': typeof AuthenticatedEventosIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -223,6 +232,7 @@ export interface FileRouteTypes {
     | '/pagos'
     | '/perfil'
     | '/resultados'
+    | '/eventos/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -244,6 +254,7 @@ export interface FileRouteTypes {
     | '/pagos'
     | '/perfil'
     | '/resultados'
+    | '/eventos/$id'
   id:
     | '__root__'
     | '/'
@@ -266,6 +277,7 @@ export interface FileRouteTypes {
     | '/_authenticated/pagos'
     | '/_authenticated/perfil'
     | '/_authenticated/resultados'
+    | '/_authenticated/eventos/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -416,6 +428,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCalendarioRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/eventos/$id': {
+      id: '/_authenticated/eventos/$id'
+      path: '/eventos/$id'
+      fullPath: '/eventos/$id'
+      preLoaderRoute: typeof AuthenticatedEventosIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -437,6 +456,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPagosRoute: typeof AuthenticatedPagosRoute
   AuthenticatedPerfilRoute: typeof AuthenticatedPerfilRoute
   AuthenticatedResultadosRoute: typeof AuthenticatedResultadosRoute
+  AuthenticatedEventosIdRoute: typeof AuthenticatedEventosIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -457,6 +477,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPagosRoute: AuthenticatedPagosRoute,
   AuthenticatedPerfilRoute: AuthenticatedPerfilRoute,
   AuthenticatedResultadosRoute: AuthenticatedResultadosRoute,
+  AuthenticatedEventosIdRoute: AuthenticatedEventosIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

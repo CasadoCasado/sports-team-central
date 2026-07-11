@@ -1,0 +1,282 @@
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useSession } from "@/hooks/use-session";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import type { Database } from "@/integrations/supabase/types";
+
+type EventType = Database["public"]["Enums"]["event_type"];
+
+export type EventFormValues = {
+  id?: string;
+  tipo: EventType;
+  titulo: string;
+  descripcion: string;
+  fecha_inicio: string;
+  fecha_fin: string;
+  ubicacion: string;
+  rival: string;
+  es_local: boolean;
+  competition_id: string | null;
+  requiere_convocatoria: boolean;
+  convocatoria_cierra_en: string;
+};
+
+const emptyValues = (): EventFormValues => ({
+  tipo: "entrenamiento",
+  titulo: "",
+  descripcion: "",
+  fecha_inicio: "",
+  fecha_fin: "",
+  ubicacion: "",
+  rival: "",
+  es_local: true,
+  competition_id: null,
+  requiere_convocatoria: false,
+  convocatoria_cierra_en: "",
+});
+
+export function EventFormDialog({
+  open,
+  onOpenChange,
+  teamId,
+  initial,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  teamId: string;
+  initial?: Partial<EventFormValues>;
+}) {
+  const { t } = useTranslation();
+  const { user } = useSession();
+  const qc = useQueryClient();
+  const [values, setValues] = useState<EventFormValues>({ ...emptyValues(), ...initial });
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (open) setValues({ ...emptyValues(), ...initial });
+  }, [open, initial]);
+
+  const { data: competitions } = useQuery({
+    queryKey: ["competitions", teamId],
+    enabled: !!teamId && open,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("competitions")
+        .select("id, nombre")
+        .eq("team_id", teamId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const save = useMutation({
+    mutationFn: async () => {
+      if (!user) throw new Error("No user");
+      if (!values.titulo.trim()) throw new Error(t("auth.required"));
+      if (!values.fecha_inicio) throw new Error(t("auth.required"));
+      const payload = {
+        team_id: teamId,
+        tipo: values.tipo,
+        titulo: values.titulo.trim(),
+        descripcion: values.descripcion.trim() || null,
+        fecha_inicio: new Date(values.fecha_inicio).toISOString(),
+        fecha_fin: values.fecha_fin ? new Date(values.fecha_fin).toISOString() : null,
+        ubicacion: values.ubicacion.trim() || null,
+        rival: values.rival.trim() || null,
+        es_local: values.tipo === "partido" ? values.es_local : null,
+        competition_id: values.competition_id,
+        requiere_convocatoria: values.requiere_convocatoria,
+        convocatoria_cierra_en: values.convocatoria_cierra_en
+          ? new Date(values.convocatoria_cierra_en).toISOString()
+          : null,
+        created_by: user.id,
+      };
+      if (values.id) {
+        const { error } = await supabase.from("events").update(payload).eq("id", values.id);
+        if (error) throw error;
+        return { updated: true };
+      }
+      const { error } = await supabase.from("events").insert(payload);
+      if (error) throw error;
+      return { updated: false };
+    },
+    onSuccess: (r) => {
+      toast.success(r.updated ? t("events.updated") : t("events.created"));
+      qc.invalidateQueries({ queryKey: ["events"] });
+      onOpenChange(false);
+    },
+    onError: (e: Error) => toast.error(e.message || t("common.error")),
+    onSettled: () => setSaving(false),
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>{values.id ? t("events.edit") : t("events.create")}</DialogTitle>
+        </DialogHeader>
+        <form
+          className="space-y-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            setSaving(true);
+            save.mutate();
+          }}
+        >
+          <div>
+            <Label>{t("events.tipo")}</Label>
+            <Select
+              value={values.tipo}
+              onValueChange={(v) => setValues((s) => ({ ...s, tipo: v as EventType }))}
+            >
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {(["entrenamiento", "partido", "reunion", "otro"] as EventType[]).map((tp) => (
+                  <SelectItem key={tp} value={tp}>{t(`events.types.${tp}`)}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label>{t("events.titulo")}</Label>
+            <Input
+              value={values.titulo}
+              onChange={(e) => setValues((s) => ({ ...s, titulo: e.target.value }))}
+              required
+              maxLength={120}
+            />
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <Label>{t("events.fechaInicio")}</Label>
+              <Input
+                type="datetime-local"
+                value={values.fecha_inicio}
+                onChange={(e) => setValues((s) => ({ ...s, fecha_inicio: e.target.value }))}
+                required
+              />
+            </div>
+            <div>
+              <Label>{t("events.fechaFin")}</Label>
+              <Input
+                type="datetime-local"
+                value={values.fecha_fin}
+                onChange={(e) => setValues((s) => ({ ...s, fecha_fin: e.target.value }))}
+              />
+            </div>
+          </div>
+          <div>
+            <Label>{t("events.ubicacion")}</Label>
+            <Input
+              value={values.ubicacion}
+              onChange={(e) => setValues((s) => ({ ...s, ubicacion: e.target.value }))}
+              maxLength={200}
+            />
+          </div>
+          {values.tipo === "partido" && (
+            <>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <Label>{t("events.rival")}</Label>
+                  <Input
+                    value={values.rival}
+                    onChange={(e) => setValues((s) => ({ ...s, rival: e.target.value }))}
+                    maxLength={100}
+                  />
+                </div>
+                <div>
+                  <Label>{t("events.competicion")}</Label>
+                  <Select
+                    value={values.competition_id ?? "none"}
+                    onValueChange={(v) =>
+                      setValues((s) => ({ ...s, competition_id: v === "none" ? null : v }))
+                    }
+                  >
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">{t("events.sinCompeticion")}</SelectItem>
+                      {competitions?.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>{c.nombre}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="flex items-center justify-between rounded-md border border-border p-3">
+                <Label htmlFor="es_local" className="cursor-pointer">{t("events.esLocal")}</Label>
+                <Switch
+                  id="es_local"
+                  checked={values.es_local}
+                  onCheckedChange={(v) => setValues((s) => ({ ...s, es_local: v }))}
+                />
+              </div>
+            </>
+          )}
+          <div className="flex items-center justify-between rounded-md border border-border p-3">
+            <Label htmlFor="req_conv" className="cursor-pointer">{t("events.requiereConvocatoria")}</Label>
+            <Switch
+              id="req_conv"
+              checked={values.requiere_convocatoria}
+              onCheckedChange={(v) => setValues((s) => ({ ...s, requiere_convocatoria: v }))}
+            />
+          </div>
+          {values.requiere_convocatoria && (
+            <div>
+              <Label>{t("events.cierreConvocatoria")}</Label>
+              <Input
+                type="datetime-local"
+                value={values.convocatoria_cierra_en}
+                onChange={(e) =>
+                  setValues((s) => ({ ...s, convocatoria_cierra_en: e.target.value }))
+                }
+              />
+            </div>
+          )}
+          <div>
+            <Label>{t("events.descripcion")}</Label>
+            <Textarea
+              value={values.descripcion}
+              onChange={(e) => setValues((s) => ({ ...s, descripcion: e.target.value }))}
+              rows={3}
+              maxLength={800}
+            />
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              {t("common.cancel")}
+            </Button>
+            <Button
+              type="submit"
+              disabled={saving}
+              className="bg-primary text-primary-foreground uppercase tracking-widest font-bold hover:opacity-90"
+            >
+              {values.id ? t("common.save") : t("common.create")}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
