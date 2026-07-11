@@ -14,6 +14,245 @@ export type Database = {
   }
   public: {
     Tables: {
+      competitions: {
+        Row: {
+          created_at: string
+          created_by: string
+          descripcion: string | null
+          id: string
+          nombre: string
+          team_id: string
+          temporada: string | null
+          tipo: Database["public"]["Enums"]["competition_type"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          descripcion?: string | null
+          id?: string
+          nombre: string
+          team_id: string
+          temporada?: string | null
+          tipo?: Database["public"]["Enums"]["competition_type"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          descripcion?: string | null
+          id?: string
+          nombre?: string
+          team_id?: string
+          temporada?: string | null
+          tipo?: Database["public"]["Enums"]["competition_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "competitions_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_responses: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          notas: string | null
+          responded_at: string | null
+          status: Database["public"]["Enums"]["response_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          notas?: string | null
+          responded_at?: string | null
+          status?: Database["public"]["Enums"]["response_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          notas?: string | null
+          responded_at?: string | null
+          status?: Database["public"]["Enums"]["response_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_responses_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          competition_id: string | null
+          convocatoria_cierra_en: string | null
+          created_at: string
+          created_by: string
+          descripcion: string | null
+          es_local: boolean | null
+          fecha_fin: string | null
+          fecha_inicio: string
+          id: string
+          requiere_convocatoria: boolean
+          resultado_local: number | null
+          resultado_visitante: number | null
+          rival: string | null
+          team_id: string
+          tipo: Database["public"]["Enums"]["event_type"]
+          titulo: string
+          ubicacion: string | null
+          updated_at: string
+        }
+        Insert: {
+          competition_id?: string | null
+          convocatoria_cierra_en?: string | null
+          created_at?: string
+          created_by: string
+          descripcion?: string | null
+          es_local?: boolean | null
+          fecha_fin?: string | null
+          fecha_inicio: string
+          id?: string
+          requiere_convocatoria?: boolean
+          resultado_local?: number | null
+          resultado_visitante?: number | null
+          rival?: string | null
+          team_id: string
+          tipo?: Database["public"]["Enums"]["event_type"]
+          titulo: string
+          ubicacion?: string | null
+          updated_at?: string
+        }
+        Update: {
+          competition_id?: string | null
+          convocatoria_cierra_en?: string | null
+          created_at?: string
+          created_by?: string
+          descripcion?: string | null
+          es_local?: boolean | null
+          fecha_fin?: string | null
+          fecha_inicio?: string
+          id?: string
+          requiere_convocatoria?: boolean
+          resultado_local?: number | null
+          resultado_visitante?: number | null
+          rival?: string | null
+          team_id?: string
+          tipo?: Database["public"]["Enums"]["event_type"]
+          titulo?: string
+          ubicacion?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_competition_id_fkey"
+            columns: ["competition_id"]
+            isOneToOne: false
+            referencedRelation: "competitions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lineup_positions: {
+        Row: {
+          created_at: string
+          es_titular: boolean
+          id: string
+          lineup_id: string
+          orden: number
+          posicion: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          es_titular?: boolean
+          id?: string
+          lineup_id: string
+          orden?: number
+          posicion?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          es_titular?: boolean
+          id?: string
+          lineup_id?: string
+          orden?: number
+          posicion?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lineup_positions_lineup_id_fkey"
+            columns: ["lineup_id"]
+            isOneToOne: false
+            referencedRelation: "lineups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lineups: {
+        Row: {
+          created_at: string
+          created_by: string
+          event_id: string
+          formacion: string | null
+          id: string
+          notas: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          event_id: string
+          formacion?: string | null
+          id?: string
+          notas?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          event_id?: string
+          formacion?: string | null
+          id?: string
+          notas?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lineups_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: true
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string
@@ -281,9 +520,12 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
+      competition_type: "liga" | "copa" | "torneo" | "amistoso"
+      event_type: "entrenamiento" | "partido" | "reunion" | "otro"
       invitation_status: "pendiente" | "aceptada" | "rechazada"
       member_status: "pendiente" | "activo" | "expulsado"
       preferred_role: "capitan" | "jugador"
+      response_status: "convocado" | "confirmado" | "rechazado" | "duda"
       team_role: "capitan" | "entrenador" | "delegado" | "jugador"
     }
     CompositeTypes: {
@@ -413,9 +655,12 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      competition_type: ["liga", "copa", "torneo", "amistoso"],
+      event_type: ["entrenamiento", "partido", "reunion", "otro"],
       invitation_status: ["pendiente", "aceptada", "rechazada"],
       member_status: ["pendiente", "activo", "expulsado"],
       preferred_role: ["capitan", "jugador"],
+      response_status: ["convocado", "confirmado", "rechazado", "duda"],
       team_role: ["capitan", "entrenador", "delegado", "jugador"],
     },
   },

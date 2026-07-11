@@ -13,7 +13,7 @@ import { Toaster } from "sonner";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
-import "@/i18n";
+import i18n from "@/i18n";
 
 function NotFoundComponent() {
   return (
@@ -129,12 +129,27 @@ function RootComponent() {
   const router = useRouter();
 
   useEffect(() => {
+    const saved = localStorage.getItem("i18nextLng");
+    const detected =
+      saved && (saved.startsWith("en") || saved.startsWith("es"))
+        ? saved.startsWith("en")
+          ? "en"
+          : "es"
+        : navigator.language.startsWith("en")
+        ? "en"
+        : "es";
+    if (detected !== i18n.language) i18n.changeLanguage(detected);
+    const persist = (lng: string) => localStorage.setItem("i18nextLng", lng);
+    i18n.on("languageChanged", persist);
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
       router.invalidate();
       if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
     });
-    return () => sub.subscription.unsubscribe();
+    return () => {
+      i18n.off("languageChanged", persist);
+      sub.subscription.unsubscribe();
+    };
   }, [router, queryClient]);
 
   return (
