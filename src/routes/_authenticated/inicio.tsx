@@ -1,10 +1,21 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { Shield, Users, Calendar, Bell, ClipboardList, Vote } from "lucide-react";
+import {
+  Shield,
+  Calendar,
+  Bell,
+  Vote,
+  MapPin,
+  Clock,
+  MessagesSquare,
+  ClipboardList,
+  Trophy,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/use-profile";
 import { useSession } from "@/hooks/use-session";
+import { eventTypeStyles } from "@/lib/events";
 
 export const Route = createFileRoute("/_authenticated/inicio")({
   component: Inicio,
@@ -29,6 +40,10 @@ function Inicio() {
     },
   });
 
+  const teamIds = (teams ?? [])
+    .map((t) => t.team_id)
+    .filter(Boolean) as string[];
+
   const { data: pendingInvites } = useQuery({
     queryKey: ["my-invitations-count", user?.id],
     enabled: !!user,
@@ -38,6 +53,53 @@ function Inicio() {
         .select("id", { count: "exact", head: true })
         .eq("invited_user_id", user!.id)
         .eq("status", "pendiente");
+      if (error) throw error;
+      return count ?? 0;
+    },
+  });
+
+  const { data: upcoming } = useQuery({
+    queryKey: ["dash-upcoming", teamIds.join(",")],
+    enabled: teamIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("events")
+        .select("id, titulo, tipo, fecha_inicio, ubicacion, rival, es_local, team:team_id(nombre)")
+        .in("team_id", teamIds)
+        .gte("fecha_inicio", new Date().toISOString())
+        .order("fecha_inicio", { ascending: true })
+        .limit(5);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const { data: myPending } = useQuery({
+    queryKey: ["dash-my-pending", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("event_responses")
+        .select("id, event:event_id(id, titulo, tipo, fecha_inicio, ubicacion)")
+        .eq("user_id", user!.id)
+        .eq("status", "convocado")
+        .limit(5);
+      if (error) throw error;
+      return (data ?? [])
+        .map((r) => (Array.isArray(r.event) ? r.event[0] : r.event))
+        .filter((e) => e && new Date(e.fecha_inicio) >= new Date());
+    },
+  });
+
+  const { data: unreadNotifs } = useQuery({
+    queryKey: ["unread-notifs", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("notifications")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user!.id)
+        .eq("read", false);
       if (error) throw error;
       return count ?? 0;
     },
@@ -80,10 +142,138 @@ function Inicio() {
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <StatCard icon={<Shield />} label={t("nav.miEquipo")} value={teams?.length ?? 0} to="/mi-equipo" />
-        <StatCard icon={<Bell />} label={t("notifications.title")} value={pendingInvites ?? 0} to="/notificaciones" />
-        <StatCard icon={<Calendar />} label={t("nav.calendario")} value="—" to="/calendario" />
-        <StatCard icon={<Vote />} label={t("nav.encuestas")} value="—" to="/encuestas" />
+        <StatCard icon={<Bell />} label={t("notifications.title")} value={(pendingInvites ?? 0) + (unreadNotifs ?? 0)} to="/notificaciones" />
+        <StatCard icon={<ClipboardList />} label={t("dashboard.pendingCallups")} value={myPending?.length ?? 0} to="/convocatorias" />
+        <StatCard icon={<Calendar />} label={t("dashboard.upcomingEvents")} value={upcoming?.length ?? 0} to="/calendario" />
       </div>
+
+      {hasTeam && (
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* Upcoming events */}
+          <div>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-display text-xl font-bold uppercase tracking-tight">
+                {t("dashboard.upcomingEvents")}
+              </h2>
+              <Link
+                to="/calendario"
+                className="text-[10px] font-bold uppercase tracking-widest text-primary hover:underline"
+              >
+                {t("dashboard.viewAll")}
+              </Link>
+            </div>
+            <div className="space-y-2">
+              {(upcoming?.length ?? 0) === 0 ? (
+                <div className="surface-card p-6 text-center text-sm text-muted-foreground">
+                  {t("events.empty")}
+                </div>
+              ) : (
+                upcoming!.map((e) => {
+                  const style = eventTypeStyles[e.tipo as keyof typeof eventTypeStyles];
+                  const team = Array.isArray(e.team) ? e.team[0] : e.team;
+                  return (
+                    <Link
+                      key={e.id}
+                      to="/eventos/$id"
+                      params={{ id: e.id }}
+                      className="surface-card group flex items-center gap-4 p-4 transition-colors hover:border-primary/40"
+                    >
+                      <div className={`flex size-12 flex-col items-center justify-center rounded-md border ${style.badge}`}>
+                        <span className="text-xs font-bold">
+                          {new Date(e.fecha_inicio).toLocaleDateString([], { day: "numeric" })}
+                        </span>
+                        <span className="text-[9px] uppercase tracking-widest">
+                          {new Date(e.fecha_inicio).toLocaleDateString([], { month: "short" })}
+                        </span>
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className={`size-2 rounded-full ${style.dot}`} />
+                          <p className="truncate text-sm font-bold">
+                            {e.tipo === "partido" && e.rival
+                              ? `${e.es_local ? team?.nombre : e.rival} vs ${e.es_local ? e.rival : team?.nombre}`
+                              : e.titulo}
+                          </p>
+                        </div>
+                        <div className="mt-1 flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
+                          <span className="inline-flex items-center gap-1">
+                            <Clock className="size-3" />
+                            {new Date(e.fecha_inicio).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                          </span>
+                          {e.ubicacion && (
+                            <span className="inline-flex items-center gap-1">
+                              <MapPin className="size-3" />
+                              <span className="truncate max-w-[160px]">{e.ubicacion}</span>
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
+          {/* Pending callups + quick actions */}
+          <div className="space-y-6">
+            <div>
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-display text-xl font-bold uppercase tracking-tight">
+                  {t("dashboard.pendingCallups")}
+                </h2>
+                <Link
+                  to="/convocatorias"
+                  className="text-[10px] font-bold uppercase tracking-widest text-primary hover:underline"
+                >
+                  {t("dashboard.viewAll")}
+                </Link>
+              </div>
+              {(myPending?.length ?? 0) === 0 ? (
+                <div className="surface-card p-6 text-center text-sm text-muted-foreground">
+                  {t("callups.empty")}
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {myPending!.map((e) => (
+                    <Link
+                      key={e!.id}
+                      to="/eventos/$id"
+                      params={{ id: e!.id }}
+                      className="surface-card flex items-center gap-3 p-4 transition-colors hover:border-primary/40"
+                    >
+                      <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+                        <ClipboardList className="size-4" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-bold">{e!.titulo}</p>
+                        <p className="text-[11px] text-muted-foreground">
+                          {new Date(e!.fecha_inicio).toLocaleString([], { dateStyle: "short", timeStyle: "short" })}
+                        </p>
+                      </div>
+                      <span className="rounded-full border border-amber-400/40 bg-amber-400/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-amber-300">
+                        {t("callups.pending")}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <h2 className="text-display mb-4 text-xl font-bold uppercase tracking-tight">
+                {t("dashboard.quickAccess")}
+              </h2>
+              <div className="grid grid-cols-2 gap-3">
+                <QuickLink to="/comunicaciones" icon={<MessagesSquare />} label={t("nav.comunicaciones")} />
+                <QuickLink to="/estadisticas" icon={<Trophy />} label={t("nav.estadisticas")} />
+                <QuickLink to="/entrenamientos" icon={<Calendar />} label={t("nav.entrenamientos")} />
+                <QuickLink to="/encuestas" icon={<Vote />} label={t("nav.encuestas")} />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {hasTeam && (
         <div>
@@ -101,7 +291,11 @@ function Inicio() {
                   className="surface-card group flex items-start gap-4 p-5 transition-colors hover:border-primary/40"
                 >
                   <div className="flex size-12 items-center justify-center rounded-md bg-primary/10 text-primary">
-                    <Shield className="size-6" />
+                    {team.logo_url ? (
+                      <img src={team.logo_url} alt="" className="size-12 rounded-md object-cover" />
+                    ) : (
+                      <Shield className="size-6" />
+                    )}
                   </div>
                   <div className="min-w-0">
                     <p className="text-display truncate text-lg font-bold">{team.nombre}</p>
@@ -146,6 +340,20 @@ function StatCard({
           {label}
         </p>
       </div>
+    </Link>
+  );
+}
+
+function QuickLink({ to, icon, label }: { to: string; icon: React.ReactNode; label: string }) {
+  return (
+    <Link
+      to={to}
+      className="surface-card flex items-center gap-3 p-4 transition-colors hover:border-primary/40"
+    >
+      <div className="flex size-9 items-center justify-center rounded-md bg-primary/10 text-primary [&>svg]:size-4">
+        {icon}
+      </div>
+      <span className="text-sm font-bold">{label}</span>
     </Link>
   );
 }

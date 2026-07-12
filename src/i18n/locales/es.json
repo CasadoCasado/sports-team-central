@@ -127,7 +127,11 @@
   "dashboard": {
     "welcome": "Bienvenido, {{name}}",
     "welcomeSubtitle": "Aquí tienes el resumen de tu actividad.",
-    "noTeamAlert": "Todavía no perteneces a ningún equipo activo."
+    "noTeamAlert": "Todavía no perteneces a ningún equipo activo.",
+    "upcomingEvents": "Próximos eventos",
+    "pendingCallups": "Convocatorias pendientes",
+    "viewAll": "Ver todo",
+    "quickAccess": "Acceso rápido"
   },
   "events": {
     "title": "Eventos",
@@ -241,5 +245,45 @@
     "optional": "Opcional",
     "all": "Todos",
     "noTeamSelected": "Selecciona o crea un equipo para empezar"
+  },
+  "chat": {
+    "title": "Comunicaciones",
+    "subtitle": "Chatea con tu equipo en tiempo real.",
+    "channels": "Canales",
+    "newChannel": "Nuevo canal",
+    "channelName": "Nombre del canal",
+    "channelCreated": "Canal creado",
+    "staffOnly": "Solo Staff",
+    "empty": "Aún no hay mensajes. ¡Sé el primero!",
+    "selectChannel": "Selecciona un canal para empezar",
+    "placeholder": "Mensaje en #{{channel}}",
+    "unknownUser": "Usuario",
+    "deleteConfirm": "¿Borrar este mensaje?"
+  },
+  "stats": {
+    "title": "Estadísticas",
+    "subtitle": "Rendimiento del equipo y tu asistencia personal.",
+    "team": "Equipo",
+    "personal": "Personal",
+    "matchesPlayed": "Partidos jugados",
+    "winRate": "% Victorias",
+    "goalsFor": "Goles a favor",
+    "goalsAgainst": "Goles en contra",
+    "wins": "Victorias",
+    "draws": "Empates",
+    "losses": "Derrotas",
+    "recentResults": "Últimos resultados",
+    "attendanceRate": "% Asistencia",
+    "confirmed": "Confirmados",
+    "rejected": "Rechazados",
+    "doubt": "Dudas",
+    "pending": "Pendientes",
+    "matchesCalled": "Partidos convocado",
+    "trainingsCalled": "Entrenamientos convocado",
+    "totalTrainings": "{{count}} entrenamientos totales"
+  },
+  "results": {
+    "empty": "Aún no hay partidos jugados",
+    "notPlayed": "Sin resultado"
   }
 }

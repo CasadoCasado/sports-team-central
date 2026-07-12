@@ -14,6 +14,92 @@ export type Database = {
   }
   public: {
     Tables: {
+      chat_channels: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          nombre: string
+          scope: Database["public"]["Enums"]["channel_scope"]
+          team_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          nombre: string
+          scope?: Database["public"]["Enums"]["channel_scope"]
+          team_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          nombre?: string
+          scope?: Database["public"]["Enums"]["channel_scope"]
+          team_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_channels_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_messages: {
+        Row: {
+          channel_id: string
+          contenido: string
+          created_at: string
+          edited: boolean
+          id: string
+          reply_to_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          channel_id: string
+          contenido: string
+          created_at?: string
+          edited?: boolean
+          id?: string
+          reply_to_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          channel_id?: string
+          contenido?: string
+          created_at?: string
+          edited?: boolean
+          id?: string
+          reply_to_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "chat_channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_messages_reply_to_id_fkey"
+            columns: ["reply_to_id"]
+            isOneToOne: false
+            referencedRelation: "chat_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       competitions: {
         Row: {
           created_at: string
@@ -520,6 +606,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
+      channel_scope: "general" | "staff" | "custom"
       competition_type: "liga" | "copa" | "torneo" | "amistoso"
       event_type: "entrenamiento" | "partido" | "reunion" | "otro"
       invitation_status: "pendiente" | "aceptada" | "rechazada"
@@ -655,6 +742,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      channel_scope: ["general", "staff", "custom"],
       competition_type: ["liga", "copa", "torneo", "amistoso"],
       event_type: ["entrenamiento", "partido", "reunion", "otro"],
       invitation_status: ["pendiente", "aceptada", "rechazada"],

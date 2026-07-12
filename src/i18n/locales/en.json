@@ -127,7 +127,11 @@
   "dashboard": {
     "welcome": "Welcome, {{name}}",
     "welcomeSubtitle": "Here's a summary of your activity.",
-    "noTeamAlert": "You don't belong to any active team yet."
+    "noTeamAlert": "You don't belong to any active team yet.",
+    "upcomingEvents": "Upcoming events",
+    "pendingCallups": "Pending call-ups",
+    "viewAll": "View all",
+    "quickAccess": "Quick access"
   },
   "events": {
     "title": "Events",
@@ -241,5 +245,45 @@
     "optional": "Optional",
     "all": "All",
     "noTeamSelected": "Pick or create a team to start"
+  },
+  "chat": {
+    "title": "Communications",
+    "subtitle": "Chat with your team in real time.",
+    "channels": "Channels",
+    "newChannel": "New channel",
+    "channelName": "Channel name",
+    "channelCreated": "Channel created",
+    "staffOnly": "Staff only",
+    "empty": "No messages yet. Be the first!",
+    "selectChannel": "Select a channel to start",
+    "placeholder": "Message in #{{channel}}",
+    "unknownUser": "User",
+    "deleteConfirm": "Delete this message?"
+  },
+  "stats": {
+    "title": "Statistics",
+    "subtitle": "Team performance and your personal attendance.",
+    "team": "Team",
+    "personal": "Personal",
+    "matchesPlayed": "Matches played",
+    "winRate": "Win rate",
+    "goalsFor": "Goals for",
+    "goalsAgainst": "Goals against",
+    "wins": "Wins",
+    "draws": "Draws",
+    "losses": "Losses",
+    "recentResults": "Recent results",
+    "attendanceRate": "Attendance rate",
+    "confirmed": "Confirmed",
+    "rejected": "Rejected",
+    "doubt": "Doubtful",
+    "pending": "Pending",
+    "matchesCalled": "Matches called",
+    "trainingsCalled": "Trainings called",
+    "totalTrainings": "{{count}} total trainings"
+  },
+  "results": {
+    "empty": "No matches played yet",
+    "notPlayed": "No result"
   }
 }
