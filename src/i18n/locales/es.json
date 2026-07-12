@@ -127,7 +127,11 @@
   "dashboard": {
     "welcome": "Bienvenido, {{name}}",
     "welcomeSubtitle": "Aquí tienes el resumen de tu actividad.",
-    "noTeamAlert": "Todavía no perteneces a ningún equipo activo."
+    "noTeamAlert": "Todavía no perteneces a ningún equipo activo.",
+    "upcomingEvents": "Próximos eventos",
+    "pendingCallups": "Convocatorias pendientes",
+    "viewAll": "Ver todo",
+    "quickAccess": "Acceso rápido"
   },
   "events": {
     "title": "Eventos",
