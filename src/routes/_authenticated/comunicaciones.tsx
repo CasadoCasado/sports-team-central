@@ -1,10 +1,408 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { PlaceholderPage } from "./placeholder";
+import { toast } from "sonner";
+import { Hash, Lock, Plus, Send, Trash2, Users, X } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useSession } from "@/hooks/use-session";
+import { useActiveTeam } from "@/hooks/use-active-team";
+import { TeamPicker } from "@/components/team-picker";
+import { EmptyTeamState } from "@/components/empty-team-state";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/comunicaciones")({
-  component: () => {
-    const { t } = useTranslation();
-    return <PlaceholderPage title={t("nav.comunicaciones")} />;
-  },
+  component: Comunicaciones,
 });
+
+type Channel = {
+  id: string;
+  team_id: string;
+  nombre: string;
+  scope: "general" | "staff" | "custom";
+};
+
+type Message = {
+  id: string;
+  channel_id: string;
+  user_id: string;
+  contenido: string;
+  edited: boolean;
+  created_at: string;
+};
+
+function Comunicaciones() {
+  const { t } = useTranslation();
+  const { active, isManager } = useActiveTeam();
+  const teamId = active?.team.id;
+
+  const { data: channels } = useQuery({
+    queryKey: ["chat-channels", teamId],
+    enabled: !!teamId,
+    queryFn: async (): Promise<Channel[]> => {
+      const { data, error } = await supabase
+        .from("chat_channels")
+        .select("id, team_id, nombre, scope")
+        .eq("team_id", teamId!)
+        .order("scope")
+        .order("created_at");
+      if (error) throw error;
+      return (data ?? []) as Channel[];
+    },
+  });
+
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!channels?.length) return;
+    if (!selectedId || !channels.find((c) => c.id === selectedId)) {
+      setSelectedId(channels[0].id);
+    }
+  }, [channels, selectedId]);
+
+  const selected = channels?.find((c) => c.id === selectedId) ?? null;
+
+  if (!active) return <EmptyTeamState />;
+
+  return (
+    <div className="mx-auto flex h-[calc(100vh-9rem)] max-w-7xl flex-col gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-display text-3xl font-black tracking-tight">
+            {t("chat.title")}
+          </h1>
+          <p className="text-sm text-muted-foreground">{t("chat.subtitle")}</p>
+        </div>
+        <TeamPicker />
+      </div>
+
+      <div className="flex min-h-0 flex-1 gap-4">
+        <aside className="surface-card flex w-64 shrink-0 flex-col overflow-hidden">
+          <div className="flex items-center justify-between border-b border-border px-4 py-3">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+              {t("chat.channels")}
+            </span>
+            {isManager && teamId && (
+              <NewChannelDialog teamId={teamId} />
+            )}
+          </div>
+          <div className="flex-1 overflow-y-auto p-2">
+            {channels?.map((c) => (
+              <button
+                key={c.id}
+                onClick={() => setSelectedId(c.id)}
+                className={cn(
+                  "flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors",
+                  selectedId === c.id
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-card hover:text-foreground",
+                )}
+              >
+                {c.scope === "staff" ? (
+                  <Lock className="size-3.5 shrink-0" />
+                ) : c.scope === "general" ? (
+                  <Users className="size-3.5 shrink-0" />
+                ) : (
+                  <Hash className="size-3.5 shrink-0" />
+                )}
+                <span className="truncate font-medium">{c.nombre}</span>
+              </button>
+            ))}
+          </div>
+        </aside>
+
+        <section className="surface-card flex min-w-0 flex-1 flex-col overflow-hidden">
+          {selected ? (
+            <ChannelView channel={selected} isManager={isManager} />
+          ) : (
+            <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
+              {t("chat.selectChannel")}
+            </div>
+          )}
+        </section>
+      </div>
+    </div>
+  );
+}
+
+function NewChannelDialog({ teamId }: { teamId: string }) {
+  const { t } = useTranslation();
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [nombre, setNombre] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  async function create(e: React.FormEvent) {
+    e.preventDefault();
+    if (!nombre.trim()) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase.from("chat_channels").insert({
+        team_id: teamId,
+        nombre: nombre.trim(),
+        scope: "custom",
+      });
+      if (error) throw error;
+      toast.success(t("chat.channelCreated"));
+      setNombre("");
+      setOpen(false);
+      qc.invalidateQueries({ queryKey: ["chat-channels", teamId] });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("common.error"));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <button
+          className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-card hover:text-foreground"
+          aria-label={t("chat.newChannel")}
+        >
+          <Plus className="size-4" />
+        </button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t("chat.newChannel")}</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={create} className="space-y-4">
+          <div>
+            <Label htmlFor="channel-name">{t("chat.channelName")}</Label>
+            <Input
+              id="channel-name"
+              value={nombre}
+              onChange={(e) => setNombre(e.target.value)}
+              maxLength={50}
+              autoFocus
+            />
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+              {t("common.cancel")}
+            </Button>
+            <Button
+              type="submit"
+              disabled={saving}
+              className="bg-primary text-primary-foreground uppercase tracking-widest font-bold"
+            >
+              {t("common.create")}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function ChannelView({ channel, isManager }: { channel: Channel; isManager: boolean }) {
+  const { t } = useTranslation();
+  const { user } = useSession();
+  const qc = useQueryClient();
+
+  const messagesKey = useMemo(() => ["chat-messages", channel.id] as const, [channel.id]);
+
+  const { data: messages } = useQuery({
+    queryKey: messagesKey,
+    queryFn: async (): Promise<Message[]> => {
+      const { data, error } = await supabase
+        .from("chat_messages")
+        .select("id, channel_id, user_id, contenido, edited, created_at")
+        .eq("channel_id", channel.id)
+        .order("created_at", { ascending: true })
+        .limit(200);
+      if (error) throw error;
+      return (data ?? []) as Message[];
+    },
+  });
+
+  const userIds = useMemo(
+    () => Array.from(new Set((messages ?? []).map((m) => m.user_id))),
+    [messages],
+  );
+
+  const { data: profiles } = useQuery({
+    queryKey: ["chat-profiles", userIds.sort().join(",")],
+    enabled: userIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, nombre, apellidos, avatar_url")
+        .in("id", userIds);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const profileMap = useMemo(() => {
+    const map = new Map<string, { nombre: string | null; apellidos: string | null; avatar_url: string | null }>();
+    (profiles ?? []).forEach((p) => map.set(p.id, p));
+    return map;
+  }, [profiles]);
+
+  // Realtime subscription
+  useEffect(() => {
+    const ch = supabase
+      .channel(`chat:${channel.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "chat_messages", filter: `channel_id=eq.${channel.id}` },
+        () => {
+          qc.invalidateQueries({ queryKey: messagesKey });
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(ch);
+    };
+  }, [channel.id, messagesKey, qc]);
+
+  // Auto-scroll to bottom on new messages
+  const scrollRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [messages?.length, channel.id]);
+
+  const [text, setText] = useState("");
+  const [sending, setSending] = useState(false);
+
+  async function send(e: React.FormEvent) {
+    e.preventDefault();
+    const content = text.trim();
+    if (!content || !user) return;
+    setSending(true);
+    try {
+      const { error } = await supabase.from("chat_messages").insert({
+        channel_id: channel.id,
+        user_id: user.id,
+        contenido: content,
+      });
+      if (error) throw error;
+      setText("");
+      qc.invalidateQueries({ queryKey: messagesKey });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("common.error"));
+    } finally {
+      setSending(false);
+    }
+  }
+
+  async function remove(id: string) {
+    if (!confirm(t("chat.deleteConfirm"))) return;
+    const { error } = await supabase.from("chat_messages").delete().eq("id", id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    qc.invalidateQueries({ queryKey: messagesKey });
+  }
+
+  return (
+    <>
+      <header className="flex items-center gap-2 border-b border-border px-5 py-3">
+        {channel.scope === "staff" ? (
+          <Lock className="size-4 text-primary" />
+        ) : channel.scope === "general" ? (
+          <Users className="size-4 text-primary" />
+        ) : (
+          <Hash className="size-4 text-primary" />
+        )}
+        <span className="text-display font-bold uppercase tracking-tight">{channel.nombre}</span>
+        {channel.scope === "staff" && (
+          <span className="ml-2 rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-primary">
+            {t("chat.staffOnly")}
+          </span>
+        )}
+      </header>
+
+      <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto px-5 py-4">
+        {(messages?.length ?? 0) === 0 ? (
+          <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+            {t("chat.empty")}
+          </div>
+        ) : (
+          messages!.map((m, i) => {
+            const prev = messages![i - 1];
+            const sameAuthor = prev && prev.user_id === m.user_id &&
+              new Date(m.created_at).getTime() - new Date(prev.created_at).getTime() < 5 * 60 * 1000;
+            const p = profileMap.get(m.user_id);
+            const name = `${p?.nombre ?? ""} ${p?.apellidos ?? ""}`.trim() || t("chat.unknownUser");
+            const initials = ((p?.nombre?.[0] ?? "") + (p?.apellidos?.[0] ?? "")).toUpperCase() || "?";
+            const own = m.user_id === user?.id;
+            const canDelete = own || isManager;
+            return (
+              <div key={m.id} className={cn("group flex gap-3", sameAuthor && "mt-0")}>
+                <div className="w-9 shrink-0">
+                  {!sameAuthor && (
+                    p?.avatar_url ? (
+                      <img src={p.avatar_url} alt="" className="size-9 rounded-full object-cover" />
+                    ) : (
+                      <div className="flex size-9 items-center justify-center rounded-full bg-card text-xs font-bold ring-1 ring-border">
+                        {initials}
+                      </div>
+                    )
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  {!sameAuthor && (
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-sm font-bold">{name}</span>
+                      <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                        {new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex items-start gap-2">
+                    <p className="flex-1 whitespace-pre-wrap break-words text-sm">{m.contenido}</p>
+                    {canDelete && (
+                      <button
+                        onClick={() => remove(m.id)}
+                        className="opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100"
+                        aria-label={t("common.delete")}
+                      >
+                        <Trash2 className="size-3.5" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      <form onSubmit={send} className="flex gap-2 border-t border-border p-3">
+        <Input
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder={t("chat.placeholder", { channel: channel.nombre })}
+          maxLength={2000}
+          className="flex-1"
+        />
+        <Button
+          type="submit"
+          disabled={sending || !text.trim()}
+          className="bg-primary text-primary-foreground uppercase tracking-widest font-bold"
+        >
+          <Send className="size-4" />
+        </Button>
+      </form>
+    </>
+  );
+}
+
+// Suppress unused import warning
+void X;
