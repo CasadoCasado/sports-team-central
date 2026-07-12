@@ -404,5 +404,3 @@ function ChannelView({ channel, isManager }: { channel: Channel; isManager: bool
   );
 }
 
-// Suppress unused import warning
-void X;
