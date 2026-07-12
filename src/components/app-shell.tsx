@@ -23,9 +23,12 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/use-profile";
+import { useSession } from "@/hooks/use-session";
 import { LangToggle } from "./lang-toggle";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 
 type NavItem = {
   to: string;
