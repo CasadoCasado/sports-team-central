@@ -41,7 +41,44 @@ export function AppShell({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { data: profile } = useProfile();
+  const { user } = useSession();
+  const qc = useQueryClient();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const { data: unreadCount } = useQuery({
+    queryKey: ["shell-unread", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const [{ count: notifCount }, { count: invCount }] = await Promise.all([
+        supabase
+          .from("notifications")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", user!.id)
+          .eq("read", false),
+        supabase
+          .from("team_invitations")
+          .select("id", { count: "exact", head: true })
+          .eq("invited_user_id", user!.id)
+          .eq("status", "pendiente"),
+      ]);
+      return (notifCount ?? 0) + (invCount ?? 0);
+    },
+  });
+
+  useEffect(() => {
+    if (!user) return;
+    const ch = supabase
+      .channel(`notif:${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
+        () => qc.invalidateQueries({ queryKey: ["shell-unread", user.id] }),
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(ch);
+    };
+  }, [user, qc]);
 
   const groups: { label: string; items: NavItem[] }[] = [
     {
