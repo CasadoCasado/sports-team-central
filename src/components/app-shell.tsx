@@ -217,6 +217,11 @@ export function AppShell({ children }: { children: ReactNode }) {
               aria-label={t("nav.notificaciones")}
             >
               <Bell className="size-4" />
+              {(unreadCount ?? 0) > 0 && (
+                <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+                  {unreadCount! > 9 ? "9+" : unreadCount}
+                </span>
+              )}
             </Link>
             <button
               onClick={signOut}
