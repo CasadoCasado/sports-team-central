@@ -93,23 +93,6 @@ function Trainings() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const signUp = useMutation({
-    mutationFn: async (eventId: string) => {
-      if (!user) return;
-      const { error } = await supabase.from("event_responses").insert({
-        event_id: eventId,
-        user_id: user.id,
-        status: "confirmado",
-        responded_at: new Date().toISOString(),
-      });
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success(t("callups.signedUp"));
-      qc.invalidateQueries({ queryKey: ["my-training-responses"] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
 
   if (!active) return <EmptyTeamState />;
 
