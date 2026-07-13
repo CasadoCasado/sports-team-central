@@ -143,6 +143,7 @@
     "myStatus": "My payment",
     "markPaid": "Mark as paid",
     "markedPaid": "Paid"
+  },
   "notifications": {
     "title": "Notifications",
     "empty": "No notifications",

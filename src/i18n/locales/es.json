@@ -144,6 +144,7 @@
     "markPaid": "Marcar como pagado",
     "markedPaid": "Pagado"
   },
+  },
   "notifications": {
     "title": "Notificaciones",
     "empty": "No tienes notificaciones",
