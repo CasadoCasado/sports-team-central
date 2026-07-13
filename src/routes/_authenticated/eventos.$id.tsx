@@ -167,7 +167,7 @@ function EventDetail() {
         )}
       </div>
 
-      {event.requiere_convocatoria && (
+      {(event.requiere_convocatoria || event.tipo === "entrenamiento") && (
         <CallupSection event={event} isManager={!!isManager} userId={user?.id ?? null} />
       )}
 
