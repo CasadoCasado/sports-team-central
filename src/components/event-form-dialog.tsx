@@ -93,6 +93,21 @@ export function EventFormDialog({
     },
   });
 
+  const { data: team } = useQuery({
+    queryKey: ["team-sport", teamId],
+    enabled: !!teamId && open,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("teams")
+        .select("deporte")
+        .eq("id", teamId)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+  const isPadel = team?.deporte === "padel";
+
   const save = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error("No user");
@@ -113,6 +128,10 @@ export function EventFormDialog({
         convocatoria_cierra_en: values.convocatoria_cierra_en
           ? new Date(values.convocatoria_cierra_en).toISOString()
           : null,
+        padel_num_pistas:
+          isPadel && values.tipo === "partido" && values.padel_num_pistas
+            ? values.padel_num_pistas
+            : null,
         created_by: user.id,
       };
       if (values.id) {
