@@ -23,6 +23,7 @@ import { Route as AuthenticatedInicioRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedGaleriaRouteImport } from './routes/_authenticated/galeria'
 import { Route as AuthenticatedEstadisticasRouteImport } from './routes/_authenticated/estadisticas'
 import { Route as AuthenticatedEntrenamientosRouteImport } from './routes/_authenticated/entrenamientos'
+import { Route as AuthenticatedEnfrentamientosRouteImport } from './routes/_authenticated/enfrentamientos'
 import { Route as AuthenticatedEncuestasRouteImport } from './routes/_authenticated/encuestas'
 import { Route as AuthenticatedDocumentosRouteImport } from './routes/_authenticated/documentos'
 import { Route as AuthenticatedConvocatoriasRouteImport } from './routes/_authenticated/convocatorias'
@@ -103,6 +104,12 @@ const AuthenticatedEntrenamientosRoute =
     path: '/entrenamientos',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedEnfrentamientosRoute =
+  AuthenticatedEnfrentamientosRouteImport.update({
+    id: '/enfrentamientos',
+    path: '/enfrentamientos',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedEncuestasRoute = AuthenticatedEncuestasRouteImport.update({
   id: '/encuestas',
   path: '/encuestas',
@@ -151,6 +158,7 @@ export interface FileRoutesByFullPath {
   '/convocatorias': typeof AuthenticatedConvocatoriasRoute
   '/documentos': typeof AuthenticatedDocumentosRoute
   '/encuestas': typeof AuthenticatedEncuestasRoute
+  '/enfrentamientos': typeof AuthenticatedEnfrentamientosRoute
   '/entrenamientos': typeof AuthenticatedEntrenamientosRoute
   '/estadisticas': typeof AuthenticatedEstadisticasRoute
   '/galeria': typeof AuthenticatedGaleriaRoute
@@ -173,6 +181,7 @@ export interface FileRoutesByTo {
   '/convocatorias': typeof AuthenticatedConvocatoriasRoute
   '/documentos': typeof AuthenticatedDocumentosRoute
   '/encuestas': typeof AuthenticatedEncuestasRoute
+  '/enfrentamientos': typeof AuthenticatedEnfrentamientosRoute
   '/entrenamientos': typeof AuthenticatedEntrenamientosRoute
   '/estadisticas': typeof AuthenticatedEstadisticasRoute
   '/galeria': typeof AuthenticatedGaleriaRoute
@@ -197,6 +206,7 @@ export interface FileRoutesById {
   '/_authenticated/convocatorias': typeof AuthenticatedConvocatoriasRoute
   '/_authenticated/documentos': typeof AuthenticatedDocumentosRoute
   '/_authenticated/encuestas': typeof AuthenticatedEncuestasRoute
+  '/_authenticated/enfrentamientos': typeof AuthenticatedEnfrentamientosRoute
   '/_authenticated/entrenamientos': typeof AuthenticatedEntrenamientosRoute
   '/_authenticated/estadisticas': typeof AuthenticatedEstadisticasRoute
   '/_authenticated/galeria': typeof AuthenticatedGaleriaRoute
@@ -221,6 +231,7 @@ export interface FileRouteTypes {
     | '/convocatorias'
     | '/documentos'
     | '/encuestas'
+    | '/enfrentamientos'
     | '/entrenamientos'
     | '/estadisticas'
     | '/galeria'
@@ -243,6 +254,7 @@ export interface FileRouteTypes {
     | '/convocatorias'
     | '/documentos'
     | '/encuestas'
+    | '/enfrentamientos'
     | '/entrenamientos'
     | '/estadisticas'
     | '/galeria'
@@ -266,6 +278,7 @@ export interface FileRouteTypes {
     | '/_authenticated/convocatorias'
     | '/_authenticated/documentos'
     | '/_authenticated/encuestas'
+    | '/_authenticated/enfrentamientos'
     | '/_authenticated/entrenamientos'
     | '/_authenticated/estadisticas'
     | '/_authenticated/galeria'
@@ -386,6 +399,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEntrenamientosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/enfrentamientos': {
+      id: '/_authenticated/enfrentamientos'
+      path: '/enfrentamientos'
+      fullPath: '/enfrentamientos'
+      preLoaderRoute: typeof AuthenticatedEnfrentamientosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/encuestas': {
       id: '/_authenticated/encuestas'
       path: '/encuestas'
@@ -445,6 +465,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedConvocatoriasRoute: typeof AuthenticatedConvocatoriasRoute
   AuthenticatedDocumentosRoute: typeof AuthenticatedDocumentosRoute
   AuthenticatedEncuestasRoute: typeof AuthenticatedEncuestasRoute
+  AuthenticatedEnfrentamientosRoute: typeof AuthenticatedEnfrentamientosRoute
   AuthenticatedEntrenamientosRoute: typeof AuthenticatedEntrenamientosRoute
   AuthenticatedEstadisticasRoute: typeof AuthenticatedEstadisticasRoute
   AuthenticatedGaleriaRoute: typeof AuthenticatedGaleriaRoute
@@ -466,6 +487,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedConvocatoriasRoute: AuthenticatedConvocatoriasRoute,
   AuthenticatedDocumentosRoute: AuthenticatedDocumentosRoute,
   AuthenticatedEncuestasRoute: AuthenticatedEncuestasRoute,
+  AuthenticatedEnfrentamientosRoute: AuthenticatedEnfrentamientosRoute,
   AuthenticatedEntrenamientosRoute: AuthenticatedEntrenamientosRoute,
   AuthenticatedEstadisticasRoute: AuthenticatedEstadisticasRoute,
   AuthenticatedGaleriaRoute: AuthenticatedGaleriaRoute,
