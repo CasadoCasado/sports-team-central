@@ -171,6 +171,16 @@ function EventDetail() {
         <CallupSection event={event} isManager={!!isManager} userId={user?.id ?? null} />
       )}
 
+      {event.tipo === "partido" && (
+        <MatchResultsSection
+          eventId={event.id}
+          teamId={event.team_id}
+          startISO={event.fecha_inicio}
+          padelNumPistas={event.padel_num_pistas}
+          isManager={!!isManager}
+        />
+      )}
+
       {editing && (
         <EventFormDialog
           open={editing}
