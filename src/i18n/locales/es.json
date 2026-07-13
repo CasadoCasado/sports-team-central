@@ -78,7 +78,15 @@
     "updated": "Equipo actualizado",
     "uploadLogo": "Subir logo",
     "descripcionPlaceholder": "Cuéntanos algo sobre tu equipo...",
-    "switchTeam": "Cambiar de equipo"
+    "switchTeam": "Cambiar de equipo",
+    "selectSport": "Selecciona un deporte",
+    "allSports": "Todos los deportes",
+    "discoverTitle": "Buscar equipos",
+    "discoverSubtitle": "Encuentra equipos por deporte y solicita unirte.",
+    "searchByName": "Buscar por nombre...",
+    "requestJoin": "Solicitar unirse",
+    "requestPending": "Solicitud enviada",
+    "requestSent": "Solicitud enviada"
   },
   "members": {
     "title": "Miembros",
@@ -152,7 +160,10 @@
     "accept": "Aceptar",
     "reject": "Rechazar",
     "accepted": "Invitación aceptada",
-    "rejected": "Invitación rechazada"
+    "rejected": "Invitación rechazada",
+    "joinRequests": "Solicitudes para unirse",
+    "joinRequestBody": "{{user}} quiere unirse a {{team}}",
+    "approve": "Aprobar"
   },
   "profile": {
     "title": "Perfil",
@@ -217,7 +228,9 @@
     "listView": "Lista",
     "prevMonth": "Mes anterior",
     "nextMonth": "Mes siguiente",
-    "backToCalendar": "Volver al calendario"
+    "backToCalendar": "Volver al calendario",
+    "padelPistas": "Nº de pistas de pádel",
+    "padelPistasHint": "Ej. 2"
   },
   "competitions": {
     "title": "Competiciones",
@@ -268,7 +281,20 @@
     "convocatoriaOpened": "Convocatoria creada",
     "playerAdded": "Jugador convocado",
     "playerRemoved": "Jugador retirado",
-    "closesAt": "Cierra el {{date}}"
+    "closesAt": "Cierra el {{date}}",
+    "subtitle": "Partidos y entrenamientos próximos de tus equipos.",
+    "signUp": "Apuntarme",
+    "signedUp": "Apuntado",
+    "withdraw": "Desapuntarme",
+    "withdrawn": "Te has desapuntado",
+    "signedUpList": "Apuntados",
+    "noSignedUp": "Todavía nadie se ha apuntado.",
+    "calledUp": "Convocado",
+    "youAreCalled": "Has sido convocado",
+    "padelAssign": "Asignación de pistas",
+    "pista": "Pista",
+    "pistas": "pistas",
+    "addPlayer": "Añadir jugador"
   },
   "common": {
     "loading": "Cargando...",
