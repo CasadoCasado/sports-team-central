@@ -97,7 +97,52 @@
     "typeToSearch": "Escribe al menos 2 caracteres",
     "noResults": "Sin resultados",
     "alreadyMember": "Ya es miembro",
-    "pending": "Invitación pendiente"
+    "pending": "Invitación pendiente",
+    "inviteAs": "Invitar como",
+    "roleUpdated": "Rol actualizado",
+    "removed": "Miembro eliminado",
+    "removeConfirm": "¿Eliminar a este miembro del equipo?"
+  },
+  "roles": {
+    "capitan": "Capitán",
+    "entrenador": "Entrenador",
+    "delegado": "Delegado",
+    "jugador": "Jugador"
+  },
+  "gallery": {
+    "subtitle": "Fotos y momentos del equipo.",
+    "upload": "Subir foto",
+    "uploaded": "Foto subida",
+    "deleted": "Foto eliminada",
+    "deleteConfirm": "¿Eliminar esta foto?",
+    "empty": "Aún no hay fotos. ¡Sube la primera!"
+  },
+  "documents": {
+    "subtitle": "Archivos y documentos del equipo.",
+    "upload": "Subir documento",
+    "uploaded": "Documento subido",
+    "deleted": "Documento eliminado",
+    "download": "Descargar",
+    "deleteConfirm": "¿Eliminar este documento?",
+    "empty": "Aún no hay documentos"
+  },
+  "fees": {
+    "subtitle": "Gestiona cuotas y pagos del equipo.",
+    "create": "Nueva cuota",
+    "created": "Cuota creada",
+    "deleted": "Cuota eliminada",
+    "deleteConfirm": "¿Eliminar esta cuota?",
+    "concept": "Concepto",
+    "amount": "Importe",
+    "dueDate": "Fecha límite",
+    "dueOn": "Vence el {{date}}",
+    "noDueDate": "Sin fecha límite",
+    "empty": "Aún no hay cuotas creadas",
+    "paid": "Pagado",
+    "pending": "Pendiente",
+    "myStatus": "Mi pago",
+    "markPaid": "Marcar como pagado",
+    "markedPaid": "Pagado"
   },
   "notifications": {
     "title": "Notificaciones",
