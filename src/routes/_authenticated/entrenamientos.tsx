@@ -1,11 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { format } from "date-fns";
 import { es as esLocale, enUS } from "date-fns/locale";
-import { Dumbbell, MapPin, Plus } from "lucide-react";
+import { Check, Dumbbell, MapPin, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useSession } from "@/hooks/use-session";
 import { useActiveTeam } from "@/hooks/use-active-team";
 import { TeamPicker } from "@/components/team-picker";
 import { EmptyTeamState } from "@/components/empty-team-state";
@@ -19,7 +21,9 @@ export const Route = createFileRoute("/_authenticated/entrenamientos")({
 function Trainings() {
   const { t, i18n } = useTranslation();
   const locale = i18n.language.startsWith("en") ? enUS : esLocale;
+  const { user } = useSession();
   const { active, isManager } = useActiveTeam();
+  const qc = useQueryClient();
   const [creating, setCreating] = useState(false);
   const now = useMemo(() => new Date().toISOString(), []);
 
@@ -29,13 +33,46 @@ function Trainings() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("events")
-        .select("id, titulo, fecha_inicio, ubicacion, descripcion")
+        .select("id, titulo, fecha_inicio, ubicacion, descripcion, requiere_convocatoria")
         .eq("team_id", active!.team_id)
         .eq("tipo", "entrenamiento")
         .order("fecha_inicio", { ascending: true });
       if (error) throw error;
       return data ?? [];
     },
+  });
+
+  const eventIds = (data ?? []).map((e) => e.id);
+  const { data: myResponses } = useQuery({
+    queryKey: ["my-training-responses", user?.id, eventIds.join(",")],
+    enabled: !!user && eventIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("event_responses")
+        .select("event_id")
+        .eq("user_id", user!.id)
+        .in("event_id", eventIds);
+      if (error) throw error;
+      return new Set((data ?? []).map((r) => r.event_id));
+    },
+  });
+
+  const signUp = useMutation({
+    mutationFn: async (eventId: string) => {
+      if (!user) return;
+      const { error } = await supabase.from("event_responses").insert({
+        event_id: eventId,
+        user_id: user.id,
+        status: "confirmado",
+        responded_at: new Date().toISOString(),
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success(t("callups.signedUp"));
+      qc.invalidateQueries({ queryKey: ["my-training-responses"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   if (!active) return <EmptyTeamState />;
@@ -71,29 +108,48 @@ function Trainings() {
           <p className="p-6 text-sm text-muted-foreground">{t("events.empty")}</p>
         )}
         <div className="divide-y divide-border">
-          {upcoming.map((e) => (
-            <Link
-              key={e.id}
-              to="/eventos/$id"
-              params={{ id: e.id }}
-              className="flex items-center gap-4 p-4 hover:bg-card"
-            >
-              <div className="flex size-10 items-center justify-center rounded-md bg-sky-400/10 text-sky-300 ring-1 ring-sky-400/30">
-                <Dumbbell className="size-5" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold">{e.titulo}</p>
-                <div className="mt-0.5 flex items-center gap-3 text-[11px] text-muted-foreground">
-                  <span>{format(new Date(e.fecha_inicio), "PPP HH:mm", { locale })}</span>
-                  {e.ubicacion && (
-                    <span className="inline-flex items-center gap-1 truncate">
-                      <MapPin className="size-3" /> {e.ubicacion}
+          {upcoming.map((e) => {
+            const signedUp = myResponses?.has(e.id);
+            return (
+              <div key={e.id} className="flex items-center gap-4 p-4 hover:bg-card">
+                <Link
+                  to="/eventos/$id"
+                  params={{ id: e.id }}
+                  className="flex flex-1 min-w-0 items-center gap-4"
+                >
+                  <div className="flex size-10 items-center justify-center rounded-md bg-sky-400/10 text-sky-300 ring-1 ring-sky-400/30">
+                    <Dumbbell className="size-5" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold">{e.titulo}</p>
+                    <div className="mt-0.5 flex items-center gap-3 text-[11px] text-muted-foreground">
+                      <span>{format(new Date(e.fecha_inicio), "PPP HH:mm", { locale })}</span>
+                      {e.ubicacion && (
+                        <span className="inline-flex items-center gap-1 truncate">
+                          <MapPin className="size-3" /> {e.ubicacion}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+                {e.requiere_convocatoria && !isManager && (
+                  signedUp ? (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-500/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-emerald-300">
+                      <Check className="size-3" /> {t("callups.signedUp")}
                     </span>
-                  )}
-                </div>
+                  ) : (
+                    <Button
+                      size="sm"
+                      onClick={() => signUp.mutate(e.id)}
+                      className="bg-primary text-primary-foreground uppercase text-[10px] font-bold tracking-widest hover:opacity-90"
+                    >
+                      {t("callups.signUp")}
+                    </Button>
+                  )
+                )}
               </div>
-            </Link>
-          ))}
+            );
+          })}
         </div>
       </section>
 

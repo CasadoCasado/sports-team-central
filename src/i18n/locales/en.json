@@ -78,7 +78,15 @@
     "updated": "Team updated",
     "uploadLogo": "Upload logo",
     "descripcionPlaceholder": "Tell us something about your team...",
-    "switchTeam": "Switch team"
+    "switchTeam": "Switch team",
+    "selectSport": "Select a sport",
+    "allSports": "All sports",
+    "discoverTitle": "Find teams",
+    "discoverSubtitle": "Search teams by sport and request to join.",
+    "searchByName": "Search by name...",
+    "requestJoin": "Request to join",
+    "requestPending": "Request sent",
+    "requestSent": "Request sent"
   },
   "members": {
     "title": "Members",
@@ -152,7 +160,10 @@
     "accept": "Accept",
     "reject": "Reject",
     "accepted": "Invite accepted",
-    "rejected": "Invite rejected"
+    "rejected": "Invite rejected",
+    "joinRequests": "Join requests",
+    "joinRequestBody": "{{user}} wants to join {{team}}",
+    "approve": "Approve"
   },
   "profile": {
     "title": "Profile",
@@ -217,7 +228,9 @@
     "listView": "List",
     "prevMonth": "Previous month",
     "nextMonth": "Next month",
-    "backToCalendar": "Back to calendar"
+    "backToCalendar": "Back to calendar",
+    "padelPistas": "Number of padel courts",
+    "padelPistasHint": "e.g. 2"
   },
   "competitions": {
     "title": "Competitions",
@@ -268,7 +281,20 @@
     "convocatoriaOpened": "Call-up created",
     "playerAdded": "Player called up",
     "playerRemoved": "Player removed",
-    "closesAt": "Closes on {{date}}"
+    "closesAt": "Closes on {{date}}",
+    "subtitle": "Upcoming matches and trainings from your teams.",
+    "signUp": "Sign me up",
+    "signedUp": "Signed up",
+    "withdraw": "Withdraw",
+    "withdrawn": "You have withdrawn",
+    "signedUpList": "Signed up",
+    "noSignedUp": "Nobody has signed up yet.",
+    "calledUp": "Called up",
+    "youAreCalled": "You have been called up",
+    "padelAssign": "Court assignments",
+    "pista": "Court",
+    "pistas": "courts",
+    "addPlayer": "Add player"
   },
   "common": {
     "loading": "Loading...",

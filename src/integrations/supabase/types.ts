@@ -191,9 +191,11 @@ export type Database = {
       event_responses: {
         Row: {
           created_at: string
+          es_convocado: boolean
           event_id: string
           id: string
           notas: string | null
+          padel_pista: number | null
           responded_at: string | null
           status: Database["public"]["Enums"]["response_status"]
           updated_at: string
@@ -201,9 +203,11 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          es_convocado?: boolean
           event_id: string
           id?: string
           notas?: string | null
+          padel_pista?: number | null
           responded_at?: string | null
           status?: Database["public"]["Enums"]["response_status"]
           updated_at?: string
@@ -211,9 +215,11 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          es_convocado?: boolean
           event_id?: string
           id?: string
           notas?: string | null
+          padel_pista?: number | null
           responded_at?: string | null
           status?: Database["public"]["Enums"]["response_status"]
           updated_at?: string
@@ -240,6 +246,7 @@ export type Database = {
           fecha_fin: string | null
           fecha_inicio: string
           id: string
+          padel_num_pistas: number | null
           requiere_convocatoria: boolean
           resultado_local: number | null
           resultado_visitante: number | null
@@ -260,6 +267,7 @@ export type Database = {
           fecha_fin?: string | null
           fecha_inicio: string
           id?: string
+          padel_num_pistas?: number | null
           requiere_convocatoria?: boolean
           resultado_local?: number | null
           resultado_visitante?: number | null
@@ -280,6 +288,7 @@ export type Database = {
           fecha_fin?: string | null
           fecha_inicio?: string
           id?: string
+          padel_num_pistas?: number | null
           requiere_convocatoria?: boolean
           resultado_local?: number | null
           resultado_visitante?: number | null
@@ -612,6 +621,7 @@ export type Database = {
       team_invitations: {
         Row: {
           created_at: string
+          es_solicitud: boolean
           id: string
           invited_by: string
           invited_user_id: string
@@ -623,6 +633,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          es_solicitud?: boolean
           id?: string
           invited_by: string
           invited_user_id: string
@@ -634,6 +645,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          es_solicitud?: boolean
           id?: string
           invited_by?: string
           invited_user_id?: string

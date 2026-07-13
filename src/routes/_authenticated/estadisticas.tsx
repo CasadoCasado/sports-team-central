@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { Trophy, Dumbbell, CheckCircle2, XCircle, HelpCircle, Percent, Target } from "lucide-react";
+import { Trophy, Dumbbell, CheckCircle2, XCircle, HelpCircle, Percent } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/hooks/use-session";
 import { useActiveTeam } from "@/hooks/use-active-team";
@@ -65,11 +65,10 @@ function Estadisticas() {
   );
   const trainings = (events ?? []).filter((e) => e.tipo === "entrenamiento");
 
-  let wins = 0, draws = 0, losses = 0, gf = 0, ga = 0;
+  let wins = 0, draws = 0, losses = 0;
   withResult.forEach((m) => {
     const own = m.es_local ? m.resultado_local! : m.resultado_visitante!;
     const opp = m.es_local ? m.resultado_visitante! : m.resultado_local!;
-    gf += own; ga += opp;
     if (own > opp) wins++;
     else if (own === opp) draws++;
     else losses++;
@@ -100,11 +99,9 @@ function Estadisticas() {
         <h2 className="text-[10px] font-bold uppercase tracking-widest text-primary">
           {t("stats.team")}
         </h2>
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-2">
           <BigStat icon={<Trophy />} label={t("stats.matchesPlayed")} value={withResult.length} />
           <BigStat icon={<Percent />} label={t("stats.winRate")} value={`${winPct}%`} accent />
-          <BigStat icon={<Target />} label={t("stats.goalsFor")} value={gf} />
-          <BigStat icon={<Target />} label={t("stats.goalsAgainst")} value={ga} />
         </div>
 
         <div className="surface-card grid grid-cols-3 divide-x divide-border">

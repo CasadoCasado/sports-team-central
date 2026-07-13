@@ -40,6 +40,7 @@ export type EventFormValues = {
   competition_id: string | null;
   requiere_convocatoria: boolean;
   convocatoria_cierra_en: string;
+  padel_num_pistas: number | null;
 };
 
 const emptyValues = (): EventFormValues => ({
@@ -54,6 +55,7 @@ const emptyValues = (): EventFormValues => ({
   competition_id: null,
   requiere_convocatoria: false,
   convocatoria_cierra_en: "",
+  padel_num_pistas: null,
 });
 
 export function EventFormDialog({
@@ -91,6 +93,21 @@ export function EventFormDialog({
     },
   });
 
+  const { data: team } = useQuery({
+    queryKey: ["team-sport", teamId],
+    enabled: !!teamId && open,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("teams")
+        .select("deporte")
+        .eq("id", teamId)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+  const isPadel = team?.deporte === "padel";
+
   const save = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error("No user");
@@ -111,6 +128,10 @@ export function EventFormDialog({
         convocatoria_cierra_en: values.convocatoria_cierra_en
           ? new Date(values.convocatoria_cierra_en).toISOString()
           : null,
+        padel_num_pistas:
+          isPadel && values.tipo === "partido" && values.padel_num_pistas
+            ? values.padel_num_pistas
+            : null,
         created_by: user.id,
       };
       if (values.id) {
@@ -232,6 +253,24 @@ export function EventFormDialog({
                   onCheckedChange={(v) => setValues((s) => ({ ...s, es_local: v }))}
                 />
               </div>
+              {isPadel && (
+                <div>
+                  <Label>{t("events.padelPistas")}</Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={20}
+                    value={values.padel_num_pistas ?? ""}
+                    onChange={(e) =>
+                      setValues((s) => ({
+                        ...s,
+                        padel_num_pistas: e.target.value ? Number(e.target.value) : null,
+                      }))
+                    }
+                    placeholder={t("events.padelPistasHint")}
+                  />
+                </div>
+              )}
             </>
           )}
           <div className="flex items-center justify-between rounded-md border border-border p-3">

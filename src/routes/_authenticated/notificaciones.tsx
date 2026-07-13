@@ -23,9 +23,39 @@ function Notificaciones() {
       const { data, error } = await supabase
         .from("team_invitations")
         .select(
-          "id, team_id, role, status, mensaje, created_at, teams:team_id(nombre, logo_url), inviter:invited_by(nombre, apellidos)",
+          "id, team_id, role, status, mensaje, created_at, es_solicitud, teams:team_id(nombre, logo_url), inviter:invited_by(nombre, apellidos)",
         )
         .eq("invited_user_id", user!.id)
+        .eq("status", "pendiente")
+        .eq("es_solicitud", false)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  // Join requests to teams the current user manages
+  const { data: joinRequests } = useQuery({
+    queryKey: ["join-requests", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      // Get teams where user is a manager
+      const { data: managed, error: mErr } = await supabase
+        .from("team_members")
+        .select("team_id")
+        .eq("user_id", user!.id)
+        .eq("status", "activo")
+        .in("role", ["capitan", "entrenador", "delegado"]);
+      if (mErr) throw mErr;
+      const teamIds = (managed ?? []).map((r) => r.team_id);
+      if (teamIds.length === 0) return [];
+      const { data, error } = await supabase
+        .from("team_invitations")
+        .select(
+          "id, team_id, invited_user_id, created_at, mensaje, teams:team_id(nombre), requester:invited_user_id(nombre, apellidos, email)",
+        )
+        .in("team_id", teamIds)
+        .eq("es_solicitud", true)
         .eq("status", "pendiente")
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -80,9 +110,84 @@ function Notificaciones() {
     }
   }
 
+  async function respondRequest(invId: string, teamId: string, requesterId: string, accept: boolean) {
+    try {
+      const { error } = await supabase
+        .from("team_invitations")
+        .update({
+          status: accept ? "aceptada" : "rechazada",
+          responded_at: new Date().toISOString(),
+        })
+        .eq("id", invId);
+      if (error) throw error;
+      if (accept) {
+        const { error: memErr } = await supabase.from("team_members").insert({
+          team_id: teamId,
+          user_id: requesterId,
+          role: "jugador",
+          status: "activo",
+        });
+        if (memErr && !memErr.message.includes("duplicate")) throw memErr;
+      }
+      toast.success(accept ? t("notifications.accepted") : t("notifications.rejected"));
+      qc.invalidateQueries({ queryKey: ["join-requests"] });
+      qc.invalidateQueries({ queryKey: ["team-members-count"] });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("common.error"));
+    }
+  }
+
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <h1 className="text-display text-3xl font-black tracking-tight">{t("notifications.title")}</h1>
+
+      {(joinRequests?.length ?? 0) > 0 && (
+        <div className="space-y-3">
+          <h2 className="text-[10px] font-bold uppercase tracking-widest text-primary">
+            {t("notifications.joinRequests")}
+          </h2>
+          {joinRequests!.map((req) => {
+            const team = Array.isArray(req.teams) ? req.teams[0] : req.teams;
+            const requester = Array.isArray(req.requester) ? req.requester[0] : req.requester;
+            return (
+              <div key={req.id} className="surface-card p-5">
+                <div className="flex items-start gap-4">
+                  <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <Bell className="size-5" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm">
+                      {t("notifications.joinRequestBody", {
+                        user: `${requester?.nombre ?? ""} ${requester?.apellidos ?? ""}`.trim() || requester?.email || "?",
+                        team: team?.nombre ?? "",
+                      })}
+                    </p>
+                    <div className="mt-3 flex gap-2">
+                      <Button
+                        size="sm"
+                        onClick={() => respondRequest(req.id, req.team_id, req.invited_user_id, true)}
+                        className="bg-primary text-primary-foreground uppercase text-[10px] font-bold tracking-widest hover:opacity-90"
+                      >
+                        <Check className="mr-1 size-3.5" />
+                        {t("notifications.approve")}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => respondRequest(req.id, req.team_id, req.invited_user_id, false)}
+                      >
+                        <X className="mr-1 size-3.5" />
+                        {t("notifications.reject")}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
 
       {(invitations?.length ?? 0) > 0 && (
         <div className="space-y-3">
