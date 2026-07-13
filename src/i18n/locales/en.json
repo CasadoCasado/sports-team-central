@@ -97,7 +97,52 @@
     "typeToSearch": "Type at least 2 characters",
     "noResults": "No results",
     "alreadyMember": "Already a member",
-    "pending": "Invite pending"
+    "pending": "Invite pending",
+    "inviteAs": "Invite as",
+    "roleUpdated": "Role updated",
+    "removed": "Member removed",
+    "removeConfirm": "Remove this member from the team?"
+  },
+  "roles": {
+    "capitan": "Captain",
+    "entrenador": "Coach",
+    "delegado": "Delegate",
+    "jugador": "Player"
+  },
+  "gallery": {
+    "subtitle": "Team photos and moments.",
+    "upload": "Upload photo",
+    "uploaded": "Photo uploaded",
+    "deleted": "Photo deleted",
+    "deleteConfirm": "Delete this photo?",
+    "empty": "No photos yet. Upload the first one!"
+  },
+  "documents": {
+    "subtitle": "Team files and documents.",
+    "upload": "Upload document",
+    "uploaded": "Document uploaded",
+    "deleted": "Document deleted",
+    "download": "Download",
+    "deleteConfirm": "Delete this document?",
+    "empty": "No documents yet"
+  },
+  "fees": {
+    "subtitle": "Manage team fees and payments.",
+    "create": "New fee",
+    "created": "Fee created",
+    "deleted": "Fee deleted",
+    "deleteConfirm": "Delete this fee?",
+    "concept": "Concept",
+    "amount": "Amount",
+    "dueDate": "Due date",
+    "dueOn": "Due on {{date}}",
+    "noDueDate": "No due date",
+    "empty": "No fees created yet",
+    "paid": "Paid",
+    "pending": "Pending",
+    "myStatus": "My payment",
+    "markPaid": "Mark as paid",
+    "markedPaid": "Paid"
   },
   "notifications": {
     "title": "Notifications",

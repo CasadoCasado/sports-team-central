@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Search, UserPlus, Users } from "lucide-react";
+import { Search, Trash2, UserPlus, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/hooks/use-session";
 import { Button } from "@/components/ui/button";
@@ -63,7 +63,35 @@ function Miembros() {
 
   const [searchBy, setSearchBy] = useState<"nombre" | "email">("nombre");
   const [query, setQuery] = useState("");
+  const [inviteRole, setInviteRole] = useState<"jugador" | "entrenador" | "delegado">("jugador");
   const debounced = useDebounced(query, 300);
+
+  const currentUserRole = managedTeams?.find((mt) => mt.team_id === selectedTeamId)?.role;
+  const canManageRoles = currentUserRole === "capitan";
+
+  async function changeRole(memberId: string, newRole: "capitan" | "entrenador" | "delegado" | "jugador") {
+    const { error } = await supabase
+      .from("team_members")
+      .update({ role: newRole })
+      .eq("id", memberId);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success(t("members.roleUpdated"));
+    qc.invalidateQueries({ queryKey: ["team-members-list"] });
+  }
+
+  async function removeMember(memberId: string) {
+    if (!confirm(t("members.removeConfirm"))) return;
+    const { error } = await supabase.from("team_members").delete().eq("id", memberId);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success(t("members.removed"));
+    qc.invalidateQueries({ queryKey: ["team-members-list"] });
+  }
 
   const { data: results, isFetching } = useQuery({
     queryKey: ["user-search", searchBy, debounced],
@@ -87,11 +115,10 @@ function Miembros() {
         team_id: selectedTeamId,
         invited_user_id: userId,
         invited_by: user.id,
-        role: "jugador",
+        role: inviteRole,
       });
       if (error) throw error;
 
-      // Create a notification for the invited user
       const team = managedTeams?.find((tt) => tt.team_id === selectedTeamId)?.team;
       await supabase.from("notifications").insert({
         user_id: userId,
@@ -166,9 +193,31 @@ function Miembros() {
                   </p>
                   <p className="text-xs text-muted-foreground">{p.email}</p>
                 </div>
-                <span className="rounded-md bg-primary/10 px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-primary">
-                  {m.role}
-                </span>
+                {canManageRoles && p.id !== user?.id ? (
+                  <>
+                    <select
+                      value={m.role}
+                      onChange={(e) => changeRole(m.id, e.target.value as "capitan" | "entrenador" | "delegado" | "jugador")}
+                      className="rounded-md border border-border bg-card px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-primary"
+                    >
+                      <option value="jugador">{t("roles.jugador")}</option>
+                      <option value="entrenador">{t("roles.entrenador")}</option>
+                      <option value="delegado">{t("roles.delegado")}</option>
+                      <option value="capitan">{t("roles.capitan")}</option>
+                    </select>
+                    <button
+                      onClick={() => removeMember(m.id)}
+                      className="rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                      aria-label={t("members.remove")}
+                    >
+                      <Trash2 className="size-4" />
+                    </button>
+                  </>
+                ) : (
+                  <span className="rounded-md bg-primary/10 px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-primary">
+                    {t(`roles.${m.role}`)}
+                  </span>
+                )}
               </div>
             );
           })}
@@ -187,7 +236,7 @@ function Miembros() {
           {t("members.search")}
         </h2>
 
-        <div className="mb-3 flex gap-4 text-sm">
+        <div className="mb-3 flex flex-wrap items-center gap-4 text-sm">
           <span className="text-muted-foreground">{t("members.searchBy")}:</span>
           <label className="flex cursor-pointer items-center gap-2">
             <input
@@ -207,6 +256,18 @@ function Miembros() {
             />
             {t("members.byEmail")}
           </label>
+          <div className="ml-auto flex items-center gap-2">
+            <span className="text-muted-foreground">{t("members.inviteAs")}:</span>
+            <select
+              value={inviteRole}
+              onChange={(e) => setInviteRole(e.target.value as "jugador" | "entrenador" | "delegado")}
+              className="rounded-md border border-border bg-card px-2 py-1 text-xs"
+            >
+              <option value="jugador">{t("roles.jugador")}</option>
+              <option value="entrenador">{t("roles.entrenador")}</option>
+              <option value="delegado">{t("roles.delegado")}</option>
+            </select>
+          </div>
         </div>
 
         <div className="relative">

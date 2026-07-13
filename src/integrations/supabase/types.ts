@@ -144,6 +144,50 @@ export type Database = {
           },
         ]
       }
+      documents: {
+        Row: {
+          category: string | null
+          created_at: string
+          filename: string
+          id: string
+          mime_type: string | null
+          size_bytes: number | null
+          storage_path: string
+          team_id: string
+          uploader_id: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          filename: string
+          id?: string
+          mime_type?: string | null
+          size_bytes?: number | null
+          storage_path: string
+          team_id: string
+          uploader_id: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          filename?: string
+          id?: string
+          mime_type?: string | null
+          size_bytes?: number | null
+          storage_path?: string
+          team_id?: string
+          uploader_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_responses: {
         Row: {
           created_at: string
@@ -256,6 +300,92 @@ export type Database = {
           },
           {
             foreignKeyName: "events_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fee_payments: {
+        Row: {
+          created_at: string
+          fee_id: string
+          id: string
+          notas: string | null
+          paid_at: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          fee_id: string
+          id?: string
+          notas?: string | null
+          paid_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          fee_id?: string
+          id?: string
+          notas?: string | null
+          paid_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fee_payments_fee_id_fkey"
+            columns: ["fee_id"]
+            isOneToOne: false
+            referencedRelation: "team_fees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gallery_items: {
+        Row: {
+          caption: string | null
+          created_at: string
+          event_id: string | null
+          id: string
+          storage_path: string
+          team_id: string
+          uploader_id: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          event_id?: string | null
+          id?: string
+          storage_path: string
+          team_id: string
+          uploader_id: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          event_id?: string | null
+          id?: string
+          storage_path?: string
+          team_id?: string
+          uploader_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gallery_items_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gallery_items_team_id_fkey"
             columns: ["team_id"]
             isOneToOne: false
             referencedRelation: "teams"
@@ -434,6 +564,50 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      team_fees: {
+        Row: {
+          amount: number
+          concepto: string
+          created_at: string
+          created_by: string
+          currency: string
+          due_date: string | null
+          id: string
+          team_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          concepto: string
+          created_at?: string
+          created_by: string
+          currency?: string
+          due_date?: string | null
+          id?: string
+          team_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          concepto?: string
+          created_at?: string
+          created_by?: string
+          currency?: string
+          due_date?: string | null
+          id?: string
+          team_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_fees_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       team_invitations: {
         Row: {
