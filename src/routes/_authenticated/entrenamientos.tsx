@@ -21,7 +21,9 @@ export const Route = createFileRoute("/_authenticated/entrenamientos")({
 function Trainings() {
   const { t, i18n } = useTranslation();
   const locale = i18n.language.startsWith("en") ? enUS : esLocale;
+  const { user } = useSession();
   const { active, isManager } = useActiveTeam();
+  const qc = useQueryClient();
   const [creating, setCreating] = useState(false);
   const now = useMemo(() => new Date().toISOString(), []);
 
@@ -31,13 +33,46 @@ function Trainings() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("events")
-        .select("id, titulo, fecha_inicio, ubicacion, descripcion")
+        .select("id, titulo, fecha_inicio, ubicacion, descripcion, requiere_convocatoria")
         .eq("team_id", active!.team_id)
         .eq("tipo", "entrenamiento")
         .order("fecha_inicio", { ascending: true });
       if (error) throw error;
       return data ?? [];
     },
+  });
+
+  const eventIds = (data ?? []).map((e) => e.id);
+  const { data: myResponses } = useQuery({
+    queryKey: ["my-training-responses", user?.id, eventIds.join(",")],
+    enabled: !!user && eventIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("event_responses")
+        .select("event_id")
+        .eq("user_id", user!.id)
+        .in("event_id", eventIds);
+      if (error) throw error;
+      return new Set((data ?? []).map((r) => r.event_id));
+    },
+  });
+
+  const signUp = useMutation({
+    mutationFn: async (eventId: string) => {
+      if (!user) return;
+      const { error } = await supabase.from("event_responses").insert({
+        event_id: eventId,
+        user_id: user.id,
+        status: "confirmado",
+        responded_at: new Date().toISOString(),
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success(t("callups.signedUp"));
+      qc.invalidateQueries({ queryKey: ["my-training-responses"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   if (!active) return <EmptyTeamState />;
