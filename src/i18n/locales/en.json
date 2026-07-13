@@ -87,7 +87,10 @@
     "searchByName": "Search by name...",
     "requestJoin": "Request to join",
     "requestPending": "Request sent",
-    "requestSent": "Request sent"
+    "requestSent": "Request sent",
+    "delete": "Delete team",
+    "deleted": "Team deleted",
+    "deleteConfirm": "Delete team \"{{name}}\"? All its data (members, events, messages, etc.) will be removed. This cannot be undone."
   },
   "members": {
     "title": "Members",

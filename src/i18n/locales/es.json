@@ -87,7 +87,10 @@
     "searchByName": "Buscar por nombre...",
     "requestJoin": "Solicitar unirse",
     "requestPending": "Solicitud enviada",
-    "requestSent": "Solicitud enviada"
+    "requestSent": "Solicitud enviada",
+    "delete": "Borrar equipo",
+    "deleted": "Equipo borrado",
+    "deleteConfirm": "¿Seguro que quieres borrar el equipo \"{{name}}\"? Se eliminarán todos sus datos (miembros, eventos, mensajes, etc.). Esta acción no se puede deshacer."
   },
   "members": {
     "title": "Miembros",
