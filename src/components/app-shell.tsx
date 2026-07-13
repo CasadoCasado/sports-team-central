@@ -125,6 +125,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="flex min-h-dvh bg-background text-foreground">
       {/* Sidebar */}
       <aside
+        id="main-sidebar"
         className={cn(
           "fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 flex-col border-r border-border bg-background/95 backdrop-blur transition-transform lg:sticky lg:top-0 lg:h-dvh lg:translate-x-0",
           mobileOpen ? "translate-x-0" : "-translate-x-full",
