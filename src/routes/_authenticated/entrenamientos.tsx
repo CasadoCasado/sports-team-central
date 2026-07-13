@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { es as esLocale, enUS } from "date-fns/locale";
-import { Check, Dumbbell, MapPin, Plus } from "lucide-react";
+import { Check, Dumbbell, MapPin, Plus, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/hooks/use-session";
 import { useActiveTeam } from "@/hooks/use-active-team";
@@ -43,18 +43,24 @@ function Trainings() {
   });
 
   const eventIds = (data ?? []).map((e) => e.id);
-  const { data: myResponses } = useQuery({
-    queryKey: ["my-training-responses", user?.id, eventIds.join(",")],
-    enabled: !!user && eventIds.length > 0,
+  const { data: responses } = useQuery({
+    queryKey: ["training-responses", active?.team_id, eventIds.join(",")],
+    enabled: eventIds.length > 0,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("event_responses")
-        .select("event_id")
-        .eq("user_id", user!.id)
+        .select("id, event_id, user_id")
         .in("event_id", eventIds);
       if (error) throw error;
-      return new Set((data ?? []).map((r) => r.event_id));
+      return data ?? [];
     },
+  });
+
+  const countsByEvent = new Map<string, number>();
+  const myRespByEvent = new Map<string, string>();
+  (responses ?? []).forEach((r) => {
+    countsByEvent.set(r.event_id, (countsByEvent.get(r.event_id) ?? 0) + 1);
+    if (r.user_id === user?.id) myRespByEvent.set(r.event_id, r.id);
   });
 
   const signUp = useMutation({
@@ -70,10 +76,23 @@ function Trainings() {
     },
     onSuccess: () => {
       toast.success(t("callups.signedUp"));
-      qc.invalidateQueries({ queryKey: ["my-training-responses"] });
+      qc.invalidateQueries({ queryKey: ["training-responses"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  const withdraw = useMutation({
+    mutationFn: async (respId: string) => {
+      const { error } = await supabase.from("event_responses").delete().eq("id", respId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success(t("callups.withdrawn"));
+      qc.invalidateQueries({ queryKey: ["training-responses"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
 
   if (!active) return <EmptyTeamState />;
 
@@ -109,7 +128,8 @@ function Trainings() {
         )}
         <div className="divide-y divide-border">
           {upcoming.map((e) => {
-            const signedUp = myResponses?.has(e.id);
+            const myRespId = myRespByEvent.get(e.id);
+            const count = countsByEvent.get(e.id) ?? 0;
             return (
               <div key={e.id} className="flex items-center gap-4 p-4 hover:bg-card">
                 <Link
@@ -129,23 +149,29 @@ function Trainings() {
                           <MapPin className="size-3" /> {e.ubicacion}
                         </span>
                       )}
+                      <span className="inline-flex items-center gap-1">
+                        <Users className="size-3" /> {count}
+                      </span>
                     </div>
                   </div>
                 </Link>
-                {e.requiere_convocatoria && !isManager && (
-                  signedUp ? (
-                    <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-500/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-emerald-300">
-                      <Check className="size-3" /> {t("callups.signedUp")}
-                    </span>
-                  ) : (
-                    <Button
-                      size="sm"
-                      onClick={() => signUp.mutate(e.id)}
-                      className="bg-primary text-primary-foreground uppercase text-[10px] font-bold tracking-widest hover:opacity-90"
-                    >
-                      {t("callups.signUp")}
-                    </Button>
-                  )
+                {myRespId ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => withdraw.mutate(myRespId)}
+                    className="uppercase text-[10px] font-bold tracking-widest"
+                  >
+                    <Check className="mr-1 size-3" /> {t("callups.withdraw")}
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    onClick={() => signUp.mutate(e.id)}
+                    className="bg-primary text-primary-foreground uppercase text-[10px] font-bold tracking-widest hover:opacity-90"
+                  >
+                    {t("callups.signUp")}
+                  </Button>
                 )}
               </div>
             );
