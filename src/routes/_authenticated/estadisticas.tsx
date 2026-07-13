@@ -100,11 +100,9 @@ function Estadisticas() {
         <h2 className="text-[10px] font-bold uppercase tracking-widest text-primary">
           {t("stats.team")}
         </h2>
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-2">
           <BigStat icon={<Trophy />} label={t("stats.matchesPlayed")} value={withResult.length} />
           <BigStat icon={<Percent />} label={t("stats.winRate")} value={`${winPct}%`} accent />
-          <BigStat icon={<Target />} label={t("stats.goalsFor")} value={gf} />
-          <BigStat icon={<Target />} label={t("stats.goalsAgainst")} value={ga} />
         </div>
 
         <div className="surface-card grid grid-cols-3 divide-x divide-border">
