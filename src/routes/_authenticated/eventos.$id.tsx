@@ -168,7 +168,7 @@ function EventDetail() {
       </div>
 
       {event.requiere_convocatoria && (
-        <CallupSection eventId={event.id} teamId={event.team_id} isManager={!!isManager} userId={user?.id ?? null} />
+        <CallupSection event={event} isManager={!!isManager} userId={user?.id ?? null} />
       )}
 
       {editing && (
