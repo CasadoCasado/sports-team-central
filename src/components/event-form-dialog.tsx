@@ -253,6 +253,24 @@ export function EventFormDialog({
                   onCheckedChange={(v) => setValues((s) => ({ ...s, es_local: v }))}
                 />
               </div>
+              {isPadel && (
+                <div>
+                  <Label>{t("events.padelPistas")}</Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={20}
+                    value={values.padel_num_pistas ?? ""}
+                    onChange={(e) =>
+                      setValues((s) => ({
+                        ...s,
+                        padel_num_pistas: e.target.value ? Number(e.target.value) : null,
+                      }))
+                    }
+                    placeholder={t("events.padelPistasHint")}
+                  />
+                </div>
+              )}
             </>
           )}
           <div className="flex items-center justify-between rounded-md border border-border p-3">
