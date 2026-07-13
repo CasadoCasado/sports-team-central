@@ -128,7 +128,8 @@ function Trainings() {
         )}
         <div className="divide-y divide-border">
           {upcoming.map((e) => {
-            const signedUp = myResponses?.has(e.id);
+            const myRespId = myRespByEvent.get(e.id);
+            const count = countsByEvent.get(e.id) ?? 0;
             return (
               <div key={e.id} className="flex items-center gap-4 p-4 hover:bg-card">
                 <Link
@@ -148,23 +149,29 @@ function Trainings() {
                           <MapPin className="size-3" /> {e.ubicacion}
                         </span>
                       )}
+                      <span className="inline-flex items-center gap-1">
+                        <Users className="size-3" /> {count}
+                      </span>
                     </div>
                   </div>
                 </Link>
-                {e.requiere_convocatoria && !isManager && (
-                  signedUp ? (
-                    <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-500/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-emerald-300">
-                      <Check className="size-3" /> {t("callups.signedUp")}
-                    </span>
-                  ) : (
-                    <Button
-                      size="sm"
-                      onClick={() => signUp.mutate(e.id)}
-                      className="bg-primary text-primary-foreground uppercase text-[10px] font-bold tracking-widest hover:opacity-90"
-                    >
-                      {t("callups.signUp")}
-                    </Button>
-                  )
+                {myRespId ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => withdraw.mutate(myRespId)}
+                    className="uppercase text-[10px] font-bold tracking-widest"
+                  >
+                    <Check className="mr-1 size-3" /> {t("callups.withdraw")}
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    onClick={() => signUp.mutate(e.id)}
+                    className="bg-primary text-primary-foreground uppercase text-[10px] font-bold tracking-widest hover:opacity-90"
+                  >
+                    {t("callups.signUp")}
+                  </Button>
                 )}
               </div>
             );
