@@ -629,3 +629,227 @@ function PlayerResponseForm({
     </div>
   );
 }
+
+type MatchResultRow = {
+  id?: string;
+  pista: number;
+  set1_local: number | null;
+  set1_visitante: number | null;
+  set2_local: number | null;
+  set2_visitante: number | null;
+  set3_local: number | null;
+  set3_visitante: number | null;
+};
+
+function MatchResultsSection({
+  eventId,
+  teamId,
+  startISO,
+  padelNumPistas,
+  isManager,
+}: {
+  eventId: string;
+  teamId: string;
+  startISO: string;
+  padelNumPistas: number | null;
+  isManager: boolean;
+}) {
+  const { t } = useTranslation();
+  const qc = useQueryClient();
+  const hasStarted = new Date(startISO).getTime() <= Date.now();
+
+  const { data: team } = useQuery({
+    queryKey: ["team-sport", teamId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("teams")
+        .select("deporte")
+        .eq("id", teamId)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+  const isPadel = team?.deporte === "padel";
+  const courtsCount = isPadel ? Math.max(1, padelNumPistas ?? 1) : 1;
+
+  const { data: existing } = useQuery({
+    queryKey: ["match-results", eventId],
+    enabled: hasStarted,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("match_results")
+        .select("*")
+        .eq("event_id", eventId)
+        .order("pista", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as MatchResultRow[];
+    },
+  });
+
+  const [rows, setRows] = useState<MatchResultRow[]>([]);
+  useEffect(() => {
+    const base: MatchResultRow[] = Array.from({ length: courtsCount }).map((_, i) => {
+      const found = existing?.find((r) => r.pista === i + 1);
+      return (
+        found ?? {
+          pista: i + 1,
+          set1_local: null,
+          set1_visitante: null,
+          set2_local: null,
+          set2_visitante: null,
+          set3_local: null,
+          set3_visitante: null,
+        }
+      );
+    });
+    setRows(base);
+  }, [existing, courtsCount]);
+
+  const save = useMutation({
+    mutationFn: async () => {
+      const payload = rows.map((r) => ({
+        event_id: eventId,
+        pista: r.pista,
+        set1_local: r.set1_local,
+        set1_visitante: r.set1_visitante,
+        set2_local: r.set2_local,
+        set2_visitante: r.set2_visitante,
+        set3_local: r.set3_local,
+        set3_visitante: r.set3_visitante,
+      }));
+      const { error } = await supabase
+        .from("match_results")
+        .upsert(payload, { onConflict: "event_id,pista" });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success(t("results.saved"));
+      qc.invalidateQueries({ queryKey: ["match-results", eventId] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  if (!hasStarted) {
+    return (
+      <div className="surface-card p-5 text-xs text-muted-foreground">
+        {t("results.notYetPlayed")}
+      </div>
+    );
+  }
+
+  const updateCell = (idx: number, key: keyof MatchResultRow, value: string) => {
+    setRows((prev) => {
+      const next = [...prev];
+      const num = value === "" ? null : Number(value);
+      next[idx] = { ...next[idx], [key]: Number.isNaN(num as number) ? null : num };
+      return next;
+    });
+  };
+
+  const NumInput = ({
+    value,
+    onChange,
+    disabled,
+  }: {
+    value: number | null;
+    onChange: (v: string) => void;
+    disabled?: boolean;
+  }) => (
+    <input
+      type="number"
+      min={0}
+      max={99}
+      inputMode="numeric"
+      value={value ?? ""}
+      onChange={(e) => onChange(e.target.value)}
+      disabled={disabled}
+      className="w-14 rounded-md border border-border bg-background px-2 py-1 text-center text-sm font-bold disabled:opacity-60"
+    />
+  );
+
+  return (
+    <div className="surface-card overflow-hidden">
+      <div className="border-b border-border p-5">
+        <h2 className="text-display text-lg font-bold uppercase tracking-tight">
+          {t("results.title")}
+        </h2>
+        <p className="text-[11px] text-muted-foreground">{t("results.subtitle")}</p>
+      </div>
+      <div className="space-y-4 p-5">
+        {rows.map((row, idx) => (
+          <div key={row.pista} className="rounded-md border border-border p-4">
+            {isPadel && (
+              <div className="mb-3 text-[10px] font-bold uppercase tracking-widest text-primary">
+                {t("results.pista")} {row.pista}
+              </div>
+            )}
+            {isPadel ? (
+              <div className="space-y-2">
+                <div className="grid grid-cols-[80px_repeat(3,1fr)] items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                  <span />
+                  <span className="text-center">{t("results.set")} 1</span>
+                  <span className="text-center">{t("results.set")} 2</span>
+                  <span className="text-center">{t("results.set")} 3</span>
+                </div>
+                {(["local", "visitante"] as const).map((side) => (
+                  <div key={side} className="grid grid-cols-[80px_repeat(3,1fr)] items-center gap-2">
+                    <span className="text-xs font-bold uppercase tracking-widest">
+                      {t(`results.${side}`)}
+                    </span>
+                    {[1, 2, 3].map((setNum) => {
+                      const key = `set${setNum}_${side}` as keyof MatchResultRow;
+                      return (
+                        <div key={setNum} className="flex justify-center">
+                          <NumInput
+                            value={row[key] as number | null}
+                            onChange={(v) => updateCell(idx, key, v)}
+                            disabled={!isManager}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex items-center justify-center gap-4">
+                <div className="text-center">
+                  <div className="mb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                    {t("results.local")}
+                  </div>
+                  <NumInput
+                    value={row.set1_local}
+                    onChange={(v) => updateCell(idx, "set1_local", v)}
+                    disabled={!isManager}
+                  />
+                </div>
+                <span className="text-display text-2xl font-black text-muted-foreground">:</span>
+                <div className="text-center">
+                  <div className="mb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                    {t("results.visitante")}
+                  </div>
+                  <NumInput
+                    value={row.set1_visitante}
+                    onChange={(v) => updateCell(idx, "set1_visitante", v)}
+                    disabled={!isManager}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+        {isManager && (
+          <div className="flex justify-end">
+            <Button
+              onClick={() => save.mutate()}
+              className="bg-primary text-primary-foreground uppercase tracking-widest font-bold hover:opacity-90"
+            >
+              {t("results.save")}
+            </Button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
