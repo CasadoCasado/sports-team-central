@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Shield, Upload, Users } from "lucide-react";
+import { Search, Shield, Upload, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/hooks/use-session";
 import { useProfile } from "@/hooks/use-profile";
@@ -11,13 +11,21 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { SPORTS, sportLabel } from "@/lib/sports";
 
 export const Route = createFileRoute("/_authenticated/mi-equipo")({
   component: MiEquipo,
 });
 
 function MiEquipo() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user } = useSession();
   const { data: profile } = useProfile();
   const qc = useQueryClient();
@@ -70,7 +78,7 @@ function MiEquipo() {
         owner_id: user.id,
         nombre: nombre.trim(),
         descripcion: descripcion.trim() || null,
-        deporte: deporte.trim() || null,
+        deporte: deporte || null,
         ciudad: ciudad.trim() || null,
         logo_url,
       });
@@ -134,8 +142,17 @@ function MiEquipo() {
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
-              <Label htmlFor="deporte">{t("team.deporte")}</Label>
-              <Input id="deporte" value={deporte} onChange={(e) => setDeporte(e.target.value)} maxLength={50} />
+              <Label>{t("team.deporte")}</Label>
+              <Select value={deporte} onValueChange={setDeporte}>
+                <SelectTrigger><SelectValue placeholder={t("team.selectSport")} /></SelectTrigger>
+                <SelectContent>
+                  {SPORTS.map((s) => (
+                    <SelectItem key={s.value} value={s.value}>
+                      {sportLabel(s.value, i18n.language)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <Label htmlFor="ciudad">{t("team.ciudad")}</Label>
@@ -177,8 +194,8 @@ function MiEquipo() {
 
   if (!hasTeams) {
     return (
-      <div className="mx-auto max-w-2xl">
-        <div className="surface-card flex flex-col items-center gap-4 p-12 text-center">
+      <div className="mx-auto max-w-3xl space-y-6">
+        <div className="surface-card flex flex-col items-center gap-4 p-10 text-center">
           <div className="flex size-16 items-center justify-center rounded-full bg-primary/10 text-primary">
             <Shield className="size-8" />
           </div>
@@ -193,6 +210,8 @@ function MiEquipo() {
             {t("team.create")}
           </Button>
         </div>
+
+        <TeamDiscovery />
       </div>
     );
   }
@@ -220,6 +239,133 @@ function MiEquipo() {
   );
 }
 
+function TeamDiscovery() {
+  const { t, i18n } = useTranslation();
+  const { user } = useSession();
+  const qc = useQueryClient();
+  const [sport, setSport] = useState<string>("all");
+  const [q, setQ] = useState("");
+
+  const { data: teams, isLoading } = useQuery({
+    queryKey: ["team-discovery", sport, q],
+    queryFn: async () => {
+      let query = supabase
+        .from("teams")
+        .select("id, nombre, logo_url, deporte, ciudad, descripcion")
+        .order("nombre")
+        .limit(30);
+      if (sport !== "all") query = query.eq("deporte", sport);
+      if (q.trim()) query = query.ilike("nombre", `%${q.trim()}%`);
+      const { data, error } = await query;
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const { data: pendingReqs } = useQuery({
+    queryKey: ["my-join-requests", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("team_invitations")
+        .select("team_id, status")
+        .eq("invited_user_id", user!.id)
+        .eq("es_solicitud", true)
+        .eq("status", "pendiente");
+      if (error) throw error;
+      return new Set((data ?? []).map((r) => r.team_id));
+    },
+  });
+
+  async function requestJoin(teamId: string) {
+    if (!user) return;
+    try {
+      const { error } = await supabase.from("team_invitations").insert({
+        team_id: teamId,
+        invited_user_id: user.id,
+        invited_by: user.id,
+        role: "jugador",
+        status: "pendiente",
+        es_solicitud: true,
+      });
+      if (error) throw error;
+      toast.success(t("team.requestSent"));
+      qc.invalidateQueries({ queryKey: ["my-join-requests"] });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("common.error"));
+    }
+  }
+
+  return (
+    <div className="surface-card p-6">
+      <h3 className="text-display text-xl font-bold">{t("team.discoverTitle")}</h3>
+      <p className="mt-1 text-sm text-muted-foreground">{t("team.discoverSubtitle")}</p>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_200px]">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder={t("team.searchByName")}
+            className="pl-9"
+          />
+        </div>
+        <Select value={sport} onValueChange={setSport}>
+          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t("team.allSports")}</SelectItem>
+            {SPORTS.map((s) => (
+              <SelectItem key={s.value} value={s.value}>
+                {sportLabel(s.value, i18n.language)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="mt-5 space-y-2">
+        {isLoading && <p className="text-xs text-muted-foreground">{t("common.loading")}</p>}
+        {!isLoading && (teams?.length ?? 0) === 0 && (
+          <p className="text-xs text-muted-foreground">{t("members.noResults")}</p>
+        )}
+        {teams?.map((tm) => {
+          const alreadyRequested = pendingReqs?.has(tm.id);
+          return (
+            <div
+              key={tm.id}
+              className="flex items-center gap-3 rounded-md border border-border bg-card p-3"
+            >
+              {tm.logo_url ? (
+                <img src={tm.logo_url} alt="" className="size-10 rounded object-cover" />
+              ) : (
+                <div className="flex size-10 items-center justify-center rounded bg-primary/10 text-primary">
+                  <Shield className="size-5" />
+                </div>
+              )}
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold">{tm.nombre}</p>
+                <p className="text-[11px] text-muted-foreground">
+                  {sportLabel(tm.deporte, i18n.language)}
+                  {tm.ciudad ? ` · ${tm.ciudad}` : ""}
+                </p>
+              </div>
+              <Button
+                size="sm"
+                disabled={alreadyRequested}
+                onClick={() => requestJoin(tm.id)}
+                className="bg-primary text-primary-foreground uppercase text-[10px] font-bold tracking-widest hover:opacity-90"
+              >
+                {alreadyRequested ? t("team.requestPending") : t("team.requestJoin")}
+              </Button>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function TeamCard({
   team,
   role,
@@ -234,7 +380,7 @@ function TeamCard({
   };
   role: string;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { data: members } = useQuery({
     queryKey: ["team-members-count", team.id],
     queryFn: async () => {
@@ -276,7 +422,7 @@ function TeamCard({
       )}
       <div className="grid grid-cols-3 divide-x divide-border">
         <MetaCell label={t("team.members")} value={String(members ?? 0)} icon={<Users className="size-4" />} />
-        <MetaCell label={t("team.deporte")} value={team.deporte || "—"} />
+        <MetaCell label={t("team.deporte")} value={sportLabel(team.deporte, i18n.language)} />
         <MetaCell label={t("team.ciudad")} value={team.ciudad || "—"} />
       </div>
     </div>
