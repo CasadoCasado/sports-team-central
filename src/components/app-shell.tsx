@@ -192,9 +192,11 @@ export function AppShell({ children }: { children: ReactNode }) {
       </aside>
 
       {mobileOpen && (
-        <div
+        <button
+          type="button"
           className="fixed inset-0 z-30 bg-black/60 lg:hidden"
           onClick={() => setMobileOpen(false)}
+          aria-label="Cerrar menú"
         />
       )}
 
