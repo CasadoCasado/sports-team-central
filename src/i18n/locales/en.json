@@ -359,6 +359,16 @@
   },
   "results": {
     "empty": "No matches played yet",
-    "notPlayed": "No result"
+    "notPlayed": "No result",
+    "title": "Results",
+    "subtitle": "Enter the match score",
+    "local": "Home",
+    "visitante": "Away",
+    "set": "Set",
+    "pista": "Court",
+    "singleScore": "Score",
+    "save": "Save results",
+    "saved": "Results saved",
+    "notYetPlayed": "The match has not been played yet"
   }
 }

@@ -478,6 +478,56 @@ export type Database = {
           },
         ]
       }
+      match_results: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          pista: number
+          set1_local: number | null
+          set1_visitante: number | null
+          set2_local: number | null
+          set2_visitante: number | null
+          set3_local: number | null
+          set3_visitante: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          pista?: number
+          set1_local?: number | null
+          set1_visitante?: number | null
+          set2_local?: number | null
+          set2_visitante?: number | null
+          set3_local?: number | null
+          set3_visitante?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          pista?: number
+          set1_local?: number | null
+          set1_visitante?: number | null
+          set2_local?: number | null
+          set2_visitante?: number | null
+          set3_local?: number | null
+          set3_visitante?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_results_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string
