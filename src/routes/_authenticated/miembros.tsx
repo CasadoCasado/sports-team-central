@@ -256,6 +256,18 @@ function Miembros() {
             />
             {t("members.byEmail")}
           </label>
+          <div className="ml-auto flex items-center gap-2">
+            <span className="text-muted-foreground">{t("members.inviteAs")}:</span>
+            <select
+              value={inviteRole}
+              onChange={(e) => setInviteRole(e.target.value as "jugador" | "entrenador" | "delegado")}
+              className="rounded-md border border-border bg-card px-2 py-1 text-xs"
+            >
+              <option value="jugador">{t("roles.jugador")}</option>
+              <option value="entrenador">{t("roles.entrenador")}</option>
+              <option value="delegado">{t("roles.delegado")}</option>
+            </select>
+          </div>
         </div>
 
         <div className="relative">
