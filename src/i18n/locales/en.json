@@ -369,6 +369,12 @@
     "singleScore": "Score",
     "save": "Save results",
     "saved": "Results saved",
-    "notYetPlayed": "The match has not been played yet"
+    "notYetPlayed": "The match has not been played yet",
+    "errPadelSet1": "Court {{pista}}: enter a valid Set 1 (0-7, no tie)",
+    "errPadelSet2": "Court {{pista}}: enter a valid Set 2 (0-7, no tie)",
+    "errPadelSet3Required": "Court {{pista}}: sets tied 1-1, Set 3 is required",
+    "errPadelSet3NotAllowed": "Court {{pista}}: Set 3 is not played when the match is 2-0",
+    "errScore": "Invalid score",
+    "errNoData": "Enter at least one result"
   }
 }

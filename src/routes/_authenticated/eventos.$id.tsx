@@ -706,6 +706,41 @@ function MatchResultsSection({
     setRows(base);
   }, [existing, courtsCount]);
 
+  const validate = (): string | null => {
+    const pairOk = (a: number | null, b: number | null, max: number) => {
+      if (a == null && b == null) return "empty";
+      if (a == null || b == null) return "incomplete";
+      if (a < 0 || b < 0 || a > max || b > max) return "range";
+      if (a === b) return "tie";
+      return "ok";
+    };
+    for (const r of rows) {
+      if (isPadel) {
+        const s1 = pairOk(r.set1_local, r.set1_visitante, 7);
+        const s2 = pairOk(r.set2_local, r.set2_visitante, 7);
+        const s3 = pairOk(r.set3_local, r.set3_visitante, 7);
+        if (s1 === "empty" && s2 === "empty" && s3 === "empty") continue;
+        if (s1 !== "ok") return t("results.errPadelSet1", { pista: r.pista });
+        if (s2 !== "ok") return t("results.errPadelSet2", { pista: r.pista });
+        const wins1 = (r.set1_local ?? 0) > (r.set1_visitante ?? 0) ? "L" : "V";
+        const wins2 = (r.set2_local ?? 0) > (r.set2_visitante ?? 0) ? "L" : "V";
+        const tied = wins1 !== wins2;
+        if (tied && s3 !== "ok") return t("results.errPadelSet3Required", { pista: r.pista });
+        if (!tied && s3 !== "empty") return t("results.errPadelSet3NotAllowed", { pista: r.pista });
+      } else {
+        const s = pairOk(r.set1_local, r.set1_visitante, 99);
+        if (s === "empty") continue;
+        if (s !== "ok") return t("results.errScore");
+      }
+    }
+    if (rows.every((r) =>
+      r.set1_local == null && r.set1_visitante == null &&
+      r.set2_local == null && r.set2_visitante == null &&
+      r.set3_local == null && r.set3_visitante == null
+    )) return t("results.errNoData");
+    return null;
+  };
+
   const save = useMutation({
     mutationFn: async () => {
       const payload = rows.map((r) => ({
@@ -713,10 +748,10 @@ function MatchResultsSection({
         pista: r.pista,
         set1_local: r.set1_local,
         set1_visitante: r.set1_visitante,
-        set2_local: r.set2_local,
-        set2_visitante: r.set2_visitante,
-        set3_local: r.set3_local,
-        set3_visitante: r.set3_visitante,
+        set2_local: isPadel ? r.set2_local : null,
+        set2_visitante: isPadel ? r.set2_visitante : null,
+        set3_local: isPadel ? r.set3_local : null,
+        set3_visitante: isPadel ? r.set3_visitante : null,
       }));
       const { error } = await supabase
         .from("match_results")
@@ -729,6 +764,16 @@ function MatchResultsSection({
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  const handleSave = () => {
+    const err = validate();
+    if (err) {
+      toast.error(err);
+      return;
+    }
+    save.mutate();
+  };
+
 
   if (!hasStarted) {
     return (
@@ -842,7 +887,7 @@ function MatchResultsSection({
         {isManager && (
           <div className="flex justify-end">
             <Button
-              onClick={() => save.mutate()}
+              onClick={handleSave}
               className="bg-primary text-primary-foreground uppercase tracking-widest font-bold hover:opacity-90"
             >
               {t("results.save")}

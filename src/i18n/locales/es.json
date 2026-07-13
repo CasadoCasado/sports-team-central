@@ -369,6 +369,12 @@
     "singleScore": "Marcador",
     "save": "Guardar resultados",
     "saved": "Resultados guardados",
-    "notYetPlayed": "El enfrentamiento aún no se ha disputado"
+    "notYetPlayed": "El enfrentamiento aún no se ha disputado",
+    "errPadelSet1": "Pista {{pista}}: introduce un Set 1 válido (0-7, sin empate)",
+    "errPadelSet2": "Pista {{pista}}: introduce un Set 2 válido (0-7, sin empate)",
+    "errPadelSet3Required": "Pista {{pista}}: sets 1-1, debes introducir el Set 3",
+    "errPadelSet3NotAllowed": "Pista {{pista}}: no se juega Set 3 si el partido está 2-0",
+    "errScore": "Marcador no válido",
+    "errNoData": "Introduce al menos un resultado"
   }
 }
