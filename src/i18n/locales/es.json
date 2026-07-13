@@ -224,7 +224,7 @@
     "empty": "No hay eventos programados",
     "types": {
       "entrenamiento": "Entrenamiento",
-      "partido": "Partido",
+      "partido": "Enfrentamiento",
       "reunion": "Reunión",
       "otro": "Otro"
     },
