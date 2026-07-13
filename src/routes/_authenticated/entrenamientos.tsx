@@ -108,29 +108,48 @@ function Trainings() {
           <p className="p-6 text-sm text-muted-foreground">{t("events.empty")}</p>
         )}
         <div className="divide-y divide-border">
-          {upcoming.map((e) => (
-            <Link
-              key={e.id}
-              to="/eventos/$id"
-              params={{ id: e.id }}
-              className="flex items-center gap-4 p-4 hover:bg-card"
-            >
-              <div className="flex size-10 items-center justify-center rounded-md bg-sky-400/10 text-sky-300 ring-1 ring-sky-400/30">
-                <Dumbbell className="size-5" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold">{e.titulo}</p>
-                <div className="mt-0.5 flex items-center gap-3 text-[11px] text-muted-foreground">
-                  <span>{format(new Date(e.fecha_inicio), "PPP HH:mm", { locale })}</span>
-                  {e.ubicacion && (
-                    <span className="inline-flex items-center gap-1 truncate">
-                      <MapPin className="size-3" /> {e.ubicacion}
+          {upcoming.map((e) => {
+            const signedUp = myResponses?.has(e.id);
+            return (
+              <div key={e.id} className="flex items-center gap-4 p-4 hover:bg-card">
+                <Link
+                  to="/eventos/$id"
+                  params={{ id: e.id }}
+                  className="flex flex-1 min-w-0 items-center gap-4"
+                >
+                  <div className="flex size-10 items-center justify-center rounded-md bg-sky-400/10 text-sky-300 ring-1 ring-sky-400/30">
+                    <Dumbbell className="size-5" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold">{e.titulo}</p>
+                    <div className="mt-0.5 flex items-center gap-3 text-[11px] text-muted-foreground">
+                      <span>{format(new Date(e.fecha_inicio), "PPP HH:mm", { locale })}</span>
+                      {e.ubicacion && (
+                        <span className="inline-flex items-center gap-1 truncate">
+                          <MapPin className="size-3" /> {e.ubicacion}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+                {e.requiere_convocatoria && !isManager && (
+                  signedUp ? (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-500/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-emerald-300">
+                      <Check className="size-3" /> {t("callups.signedUp")}
                     </span>
-                  )}
-                </div>
+                  ) : (
+                    <Button
+                      size="sm"
+                      onClick={() => signUp.mutate(e.id)}
+                      className="bg-primary text-primary-foreground uppercase text-[10px] font-bold tracking-widest hover:opacity-90"
+                    >
+                      {t("callups.signUp")}
+                    </Button>
+                  )
+                )}
               </div>
-            </Link>
-          ))}
+            );
+          })}
         </div>
       </section>
 
