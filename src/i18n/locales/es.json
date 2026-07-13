@@ -358,7 +358,17 @@
     "totalTrainings": "{{count}} entrenamientos totales"
   },
   "results": {
-    "empty": "Aún no hay partidos jugados",
-    "notPlayed": "Sin resultado"
+    "empty": "Aún no hay enfrentamientos jugados",
+    "notPlayed": "Sin resultado",
+    "title": "Resultados",
+    "subtitle": "Introduce el marcador del enfrentamiento",
+    "local": "Local",
+    "visitante": "Visitante",
+    "set": "Set",
+    "pista": "Pista",
+    "singleScore": "Marcador",
+    "save": "Guardar resultados",
+    "saved": "Resultados guardados",
+    "notYetPlayed": "El enfrentamiento aún no se ha disputado"
   }
 }
