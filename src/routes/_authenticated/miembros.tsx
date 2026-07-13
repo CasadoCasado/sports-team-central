@@ -63,7 +63,35 @@ function Miembros() {
 
   const [searchBy, setSearchBy] = useState<"nombre" | "email">("nombre");
   const [query, setQuery] = useState("");
+  const [inviteRole, setInviteRole] = useState<"jugador" | "entrenador" | "delegado">("jugador");
   const debounced = useDebounced(query, 300);
+
+  const currentUserRole = managedTeams?.find((mt) => mt.team_id === selectedTeamId)?.role;
+  const canManageRoles = currentUserRole === "capitan";
+
+  async function changeRole(memberId: string, newRole: "capitan" | "entrenador" | "delegado" | "jugador") {
+    const { error } = await supabase
+      .from("team_members")
+      .update({ role: newRole })
+      .eq("id", memberId);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success(t("members.roleUpdated"));
+    qc.invalidateQueries({ queryKey: ["team-members-list"] });
+  }
+
+  async function removeMember(memberId: string) {
+    if (!confirm(t("members.removeConfirm"))) return;
+    const { error } = await supabase.from("team_members").delete().eq("id", memberId);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success(t("members.removed"));
+    qc.invalidateQueries({ queryKey: ["team-members-list"] });
+  }
 
   const { data: results, isFetching } = useQuery({
     queryKey: ["user-search", searchBy, debounced],
@@ -87,11 +115,10 @@ function Miembros() {
         team_id: selectedTeamId,
         invited_user_id: userId,
         invited_by: user.id,
-        role: "jugador",
+        role: inviteRole,
       });
       if (error) throw error;
 
-      // Create a notification for the invited user
       const team = managedTeams?.find((tt) => tt.team_id === selectedTeamId)?.team;
       await supabase.from("notifications").insert({
         user_id: userId,
