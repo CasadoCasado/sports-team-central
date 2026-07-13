@@ -122,13 +122,15 @@ export function AppShell({ children }: { children: ReactNode }) {
     ((profile?.nombre?.[0] ?? "") + (profile?.apellidos?.[0] ?? "")).toUpperCase() || "U";
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground">
+    <div className="flex min-h-dvh bg-background text-foreground">
       {/* Sidebar */}
       <aside
+        id="main-sidebar"
         className={cn(
-          "fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 flex-col border-r border-border bg-background/95 backdrop-blur transition-transform lg:sticky lg:top-0 lg:h-screen lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 flex-col border-r border-border bg-background/95 backdrop-blur transition-transform lg:sticky lg:top-0 lg:h-dvh lg:translate-x-0",
           mobileOpen ? "translate-x-0" : "-translate-x-full",
         )}
+        aria-label="Navegación principal"
       >
         <div className="flex h-16 items-center gap-3 px-6">
           <div className="flex size-8 items-center justify-center rounded-md bg-primary">
@@ -191,9 +193,11 @@ export function AppShell({ children }: { children: ReactNode }) {
       </aside>
 
       {mobileOpen && (
-        <div
+        <button
+          type="button"
           className="fixed inset-0 z-30 bg-black/60 lg:hidden"
           onClick={() => setMobileOpen(false)}
+          aria-label="Cerrar menú"
         />
       )}
 
@@ -202,23 +206,26 @@ export function AppShell({ children }: { children: ReactNode }) {
         <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-border bg-background/80 px-4 backdrop-blur lg:px-8">
           <div className="flex items-center gap-3">
             <button
-              className="rounded-md border border-border p-2 lg:hidden"
+              type="button"
+              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-border p-2 lg:hidden"
               onClick={() => setMobileOpen((v) => !v)}
-              aria-label="Toggle menu"
+              aria-label={mobileOpen ? "Cerrar menú" : "Abrir menú"}
+              aria-expanded={mobileOpen}
+              aria-controls="main-sidebar"
             >
-              {mobileOpen ? <X className="size-4" /> : <Menu className="size-4" />}
+              {mobileOpen ? <X className="size-4" aria-hidden="true" /> : <Menu className="size-4" aria-hidden="true" />}
             </button>
           </div>
           <div className="flex items-center gap-3">
             <LangToggle />
             <Link
               to="/notificaciones"
-              className="relative rounded-md border border-border p-2 text-muted-foreground transition-colors hover:text-foreground"
-              aria-label={t("nav.notificaciones")}
+              className="relative inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-border p-2 text-muted-foreground transition-colors hover:text-foreground"
+              aria-label={`${t("nav.notificaciones")}${(unreadCount ?? 0) > 0 ? ` (${unreadCount} sin leer)` : ""}`}
             >
-              <Bell className="size-4" />
+              <Bell className="size-4" aria-hidden="true" />
               {(unreadCount ?? 0) > 0 && (
-                <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+                <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground" aria-hidden="true">
                   {unreadCount! > 9 ? "9+" : unreadCount}
                 </span>
               )}
