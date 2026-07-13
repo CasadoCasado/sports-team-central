@@ -189,6 +189,7 @@ function EventDetail() {
             competition_id: event.competition_id,
             requiere_convocatoria: event.requiere_convocatoria,
             convocatoria_cierra_en: toDateTimeLocal(event.convocatoria_cierra_en),
+            padel_num_pistas: event.padel_num_pistas,
           }}
         />
       )}
