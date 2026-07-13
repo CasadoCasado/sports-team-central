@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { format } from "date-fns";
 import { es as esLocale, enUS } from "date-fns/locale";
 import { ClipboardList, MapPin } from "lucide-react";
@@ -8,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/hooks/use-session";
 import { eventTypeStyles, type EventType } from "@/lib/events";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import type { Database } from "@/integrations/supabase/types";
 
 type ResponseStatus = Database["public"]["Enums"]["response_status"];
@@ -20,39 +22,94 @@ function MyCallups() {
   const { t, i18n } = useTranslation();
   const locale = i18n.language.startsWith("en") ? enUS : esLocale;
   const { user } = useSession();
+  const qc = useQueryClient();
 
-  const { data } = useQuery({
-    queryKey: ["my-callups", user?.id],
+  // My active team ids
+  const { data: teamIds } = useQuery({
+    queryKey: ["my-team-ids", user?.id],
     enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("team_members")
+        .select("team_id")
+        .eq("user_id", user!.id)
+        .eq("status", "activo");
+      if (error) throw error;
+      return (data ?? []).map((r) => r.team_id);
+    },
+  });
+
+  // All upcoming partido/entrenamiento events for my teams (that require callup)
+  const { data: events } = useQuery({
+    queryKey: ["upcoming-callup-events", teamIds?.join(",")],
+    enabled: !!teamIds && teamIds.length > 0,
     queryFn: async () => {
       const nowIso = new Date().toISOString();
       const { data, error } = await supabase
-        .from("event_responses")
-        .select(
-          "id, status, notas, events:event_id(id, tipo, titulo, fecha_inicio, ubicacion, rival, convocatoria_cierra_en)",
-        )
-        .eq("user_id", user!.id)
-        .order("responded_at", { ascending: false });
+        .from("events")
+        .select("id, tipo, titulo, fecha_inicio, ubicacion, rival, team_id, requiere_convocatoria")
+        .in("team_id", teamIds!)
+        .in("tipo", ["partido", "entrenamiento"])
+        .gte("fecha_inicio", nowIso)
+        .order("fecha_inicio", { ascending: true });
       if (error) throw error;
-      return (data ?? [])
-        .map((r) => ({
-          id: r.id,
-          status: r.status as ResponseStatus,
-          event: Array.isArray(r.events) ? r.events[0] : r.events,
-        }))
-        .filter((r) => r.event && r.event.fecha_inicio >= nowIso)
-        .sort((a, b) => a.event!.fecha_inicio.localeCompare(b.event!.fecha_inicio));
+      return (data ?? []).filter((e) => e.requiere_convocatoria);
     },
   });
+
+  // My existing responses for these events
+  const eventIds = (events ?? []).map((e) => e.id);
+  const { data: myResponses } = useQuery({
+    queryKey: ["my-responses-map", user?.id, eventIds.join(",")],
+    enabled: !!user && eventIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("event_responses")
+        .select("id, event_id, status, es_convocado")
+        .eq("user_id", user!.id)
+        .in("event_id", eventIds);
+      if (error) throw error;
+      const m = new Map<string, { id: string; status: ResponseStatus; es_convocado: boolean }>();
+      (data ?? []).forEach((r) =>
+        m.set(r.event_id, {
+          id: r.id,
+          status: r.status as ResponseStatus,
+          es_convocado: !!r.es_convocado,
+        }),
+      );
+      return m;
+    },
+  });
+
+  const signUp = useMutation({
+    mutationFn: async (eventId: string) => {
+      if (!user) return;
+      const { error } = await supabase.from("event_responses").insert({
+        event_id: eventId,
+        user_id: user.id,
+        status: "confirmado",
+        responded_at: new Date().toISOString(),
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success(t("callups.signedUp"));
+      qc.invalidateQueries({ queryKey: ["my-responses-map"] });
+      qc.invalidateQueries({ queryKey: ["my-callups"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const list = events ?? [];
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       <div>
         <h1 className="text-display text-3xl font-black tracking-tight">{t("nav.convocatorias")}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">{t("callups.title")}</p>
+        <p className="mt-1 text-sm text-muted-foreground">{t("callups.subtitle")}</p>
       </div>
 
-      {(data?.length ?? 0) === 0 ? (
+      {list.length === 0 ? (
         <div className="surface-card flex flex-col items-center gap-4 p-12 text-center">
           <div className="flex size-14 items-center justify-center rounded-full bg-primary/10 text-primary">
             <ClipboardList className="size-7" />
@@ -61,37 +118,49 @@ function MyCallups() {
         </div>
       ) : (
         <div className="surface-card divide-y divide-border overflow-hidden">
-          {data!.map((r) => {
-            const e = r.event!;
+          {list.map((e) => {
             const style = eventTypeStyles[e.tipo as EventType];
+            const mine = myResponses?.get(e.id);
             return (
-              <Link
-                key={r.id}
-                to="/eventos/$id"
-                params={{ id: e.id }}
-                className="flex items-center gap-4 p-4 hover:bg-card"
-              >
-                <div className={cn("flex size-12 flex-col items-center justify-center rounded-md ring-1", style.ring)}>
-                  <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                    {format(new Date(e.fecha_inicio), "MMM", { locale })}
+              <div key={e.id} className="flex items-center gap-4 p-4">
+                <Link
+                  to="/eventos/$id"
+                  params={{ id: e.id }}
+                  className="flex flex-1 min-w-0 items-center gap-4"
+                >
+                  <div className={cn("flex size-12 flex-col items-center justify-center rounded-md ring-1", style.ring)}>
+                    <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                      {format(new Date(e.fecha_inicio), "MMM", { locale })}
+                    </div>
+                    <div className="text-display text-lg font-black leading-none">
+                      {format(new Date(e.fecha_inicio), "d")}
+                    </div>
                   </div>
-                  <div className="text-display text-lg font-black leading-none">
-                    {format(new Date(e.fecha_inicio), "d")}
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold">{e.titulo}</p>
+                    <div className="mt-0.5 flex items-center gap-3 text-[11px] text-muted-foreground">
+                      <span>{format(new Date(e.fecha_inicio), "HH:mm")}</span>
+                      {e.ubicacion && (
+                        <span className="inline-flex items-center gap-1 truncate">
+                          <MapPin className="size-3" /> {e.ubicacion}
+                        </span>
+                      )}
+                      {e.rival && <span className="truncate">vs {e.rival}</span>}
+                    </div>
                   </div>
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold">{e.titulo}</p>
-                  <div className="mt-0.5 flex items-center gap-3 text-[11px] text-muted-foreground">
-                    <span>{format(new Date(e.fecha_inicio), "HH:mm")}</span>
-                    {e.ubicacion && (
-                      <span className="inline-flex items-center gap-1 truncate">
-                        <MapPin className="size-3" /> {e.ubicacion}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <StatusPill status={r.status} />
-              </Link>
+                </Link>
+                {mine ? (
+                  <StatusPill status={mine.status} convocado={mine.es_convocado} />
+                ) : (
+                  <Button
+                    size="sm"
+                    onClick={() => signUp.mutate(e.id)}
+                    className="bg-primary text-primary-foreground uppercase text-[10px] font-bold tracking-widest hover:opacity-90"
+                  >
+                    {t("callups.signUp")}
+                  </Button>
+                )}
+              </div>
             );
           })}
         </div>
@@ -107,11 +176,18 @@ const STATUS_STYLES: Record<ResponseStatus, string> = {
   convocado: "bg-muted text-muted-foreground border-border",
 };
 
-function StatusPill({ status }: { status: ResponseStatus }) {
+function StatusPill({ status, convocado }: { status: ResponseStatus; convocado: boolean }) {
   const { t } = useTranslation();
   return (
-    <span className={cn("rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest", STATUS_STYLES[status])}>
-      {t(`callups.response_${status}`)}
-    </span>
+    <div className="flex flex-col items-end gap-1">
+      <span className={cn("rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest", STATUS_STYLES[status])}>
+        {t(`callups.response_${status}`)}
+      </span>
+      {convocado && (
+        <span className="rounded-full border border-primary/40 bg-primary/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-primary">
+          ★ {t("callups.calledUp")}
+        </span>
+      )}
+    </div>
   );
 }
