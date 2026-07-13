@@ -23,9 +23,39 @@ function Notificaciones() {
       const { data, error } = await supabase
         .from("team_invitations")
         .select(
-          "id, team_id, role, status, mensaje, created_at, teams:team_id(nombre, logo_url), inviter:invited_by(nombre, apellidos)",
+          "id, team_id, role, status, mensaje, created_at, es_solicitud, teams:team_id(nombre, logo_url), inviter:invited_by(nombre, apellidos)",
         )
         .eq("invited_user_id", user!.id)
+        .eq("status", "pendiente")
+        .eq("es_solicitud", false)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  // Join requests to teams the current user manages
+  const { data: joinRequests } = useQuery({
+    queryKey: ["join-requests", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      // Get teams where user is a manager
+      const { data: managed, error: mErr } = await supabase
+        .from("team_members")
+        .select("team_id")
+        .eq("user_id", user!.id)
+        .eq("status", "activo")
+        .in("role", ["capitan", "entrenador", "delegado"]);
+      if (mErr) throw mErr;
+      const teamIds = (managed ?? []).map((r) => r.team_id);
+      if (teamIds.length === 0) return [];
+      const { data, error } = await supabase
+        .from("team_invitations")
+        .select(
+          "id, team_id, invited_user_id, created_at, mensaje, teams:team_id(nombre), requester:invited_user_id(nombre, apellidos, email)",
+        )
+        .in("team_id", teamIds)
+        .eq("es_solicitud", true)
         .eq("status", "pendiente")
         .order("created_at", { ascending: false });
       if (error) throw error;
