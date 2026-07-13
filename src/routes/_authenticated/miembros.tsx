@@ -236,7 +236,7 @@ function Miembros() {
           {t("members.search")}
         </h2>
 
-        <div className="mb-3 flex gap-4 text-sm">
+        <div className="mb-3 flex flex-wrap items-center gap-4 text-sm">
           <span className="text-muted-foreground">{t("members.searchBy")}:</span>
           <label className="flex cursor-pointer items-center gap-2">
             <input
