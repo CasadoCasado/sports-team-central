@@ -193,10 +193,31 @@ function Miembros() {
                   </p>
                   <p className="text-xs text-muted-foreground">{p.email}</p>
                 </div>
-                <span className="rounded-md bg-primary/10 px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-primary">
-                  {m.role}
-                </span>
-              </div>
+                {canManageRoles && p.id !== user?.id ? (
+                  <>
+                    <select
+                      value={m.role}
+                      onChange={(e) => changeRole(m.id, e.target.value as "capitan" | "entrenador" | "delegado" | "jugador")}
+                      className="rounded-md border border-border bg-card px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-primary"
+                    >
+                      <option value="jugador">{t("roles.jugador")}</option>
+                      <option value="entrenador">{t("roles.entrenador")}</option>
+                      <option value="delegado">{t("roles.delegado")}</option>
+                      <option value="capitan">{t("roles.capitan")}</option>
+                    </select>
+                    <button
+                      onClick={() => removeMember(m.id)}
+                      className="rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                      aria-label={t("members.remove")}
+                    >
+                      <Trash2 className="size-4" />
+                    </button>
+                  </>
+                ) : (
+                  <span className="rounded-md bg-primary/10 px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-primary">
+                    {t(`roles.${m.role}`)}
+                  </span>
+                )}
             );
           })}
           {(members?.length ?? 0) === 0 && (
