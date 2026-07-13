@@ -65,11 +65,10 @@ function Estadisticas() {
   );
   const trainings = (events ?? []).filter((e) => e.tipo === "entrenamiento");
 
-  let wins = 0, draws = 0, losses = 0, gf = 0, ga = 0;
+  let wins = 0, draws = 0, losses = 0;
   withResult.forEach((m) => {
     const own = m.es_local ? m.resultado_local! : m.resultado_visitante!;
     const opp = m.es_local ? m.resultado_visitante! : m.resultado_local!;
-    gf += own; ga += opp;
     if (own > opp) wins++;
     else if (own === opp) draws++;
     else losses++;
