@@ -155,7 +155,7 @@ function Matches() {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success(t("common.saved"));
+      toast.success(t("events.updated"));
       qc.invalidateQueries({ queryKey: ["events"] });
     },
     onError: (e: Error) => toast.error(e.message),
