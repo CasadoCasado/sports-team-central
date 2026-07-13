@@ -887,7 +887,7 @@ function MatchResultsSection({
         {isManager && (
           <div className="flex justify-end">
             <Button
-              onClick={() => save.mutate()}
+              onClick={handleSave}
               className="bg-primary text-primary-foreground uppercase tracking-widest font-bold hover:opacity-90"
             >
               {t("results.save")}
