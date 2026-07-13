@@ -20,6 +20,7 @@ import {
   Menu,
   X,
   Shield,
+  Swords,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/use-profile";
@@ -94,6 +95,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       label: t("nav.gestion"),
       items: [
         { to: "/entrenamientos", label: t("nav.entrenamientos"), icon: Dumbbell },
+        { to: "/enfrentamientos", label: t("nav.enfrentamientos"), icon: Swords },
         { to: "/competiciones", label: t("nav.competiciones"), icon: Trophy },
         { to: "/convocatorias", label: t("nav.convocatorias"), icon: ClipboardList },
         { to: "/encuestas", label: t("nav.encuestas"), icon: Vote },
