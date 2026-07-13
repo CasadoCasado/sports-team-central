@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { Trophy, Dumbbell, CheckCircle2, XCircle, HelpCircle, Percent, Target } from "lucide-react";
+import { Trophy, Dumbbell, CheckCircle2, XCircle, HelpCircle, Percent } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/hooks/use-session";
 import { useActiveTeam } from "@/hooks/use-active-team";
