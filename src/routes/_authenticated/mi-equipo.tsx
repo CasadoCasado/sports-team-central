@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Search, Shield, Upload, Users } from "lucide-react";
+import { Search, Shield, Trash2, Upload, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/hooks/use-session";
 import { useProfile } from "@/hooks/use-profile";
@@ -232,7 +232,7 @@ function MiEquipo() {
         {memberships!.map((m) => {
           const team = Array.isArray(m.teams) ? m.teams[0] : m.teams;
           if (!team) return null;
-          return <TeamCard key={m.id} team={team} role={m.role} />;
+          return <TeamCard key={m.id} team={team} role={m.role} currentUserId={user?.id ?? null} />;
         })}
       </div>
     </div>
@@ -369,6 +369,7 @@ function TeamDiscovery() {
 function TeamCard({
   team,
   role,
+  currentUserId,
 }: {
   team: {
     id: string;
@@ -377,10 +378,16 @@ function TeamCard({
     descripcion: string | null;
     deporte: string | null;
     ciudad: string | null;
+    owner_id?: string;
   };
   role: string;
+  currentUserId: string | null;
 }) {
   const { t, i18n } = useTranslation();
+  const qc = useQueryClient();
+  const [deleting, setDeleting] = useState(false);
+  const isOwner = !!currentUserId && team.owner_id === currentUserId;
+
   const { data: members } = useQuery({
     queryKey: ["team-members-count", team.id],
     queryFn: async () => {
@@ -393,6 +400,23 @@ function TeamCard({
       return count ?? 0;
     },
   });
+
+  async function deleteTeam() {
+    const confirmMsg = t("team.deleteConfirm", { name: team.nombre });
+    if (!confirm(confirmMsg)) return;
+    setDeleting(true);
+    try {
+      const { error } = await supabase.from("teams").delete().eq("id", team.id);
+      if (error) throw error;
+      toast.success(t("team.deleted"));
+      qc.invalidateQueries({ queryKey: ["my-teams-full"] });
+      qc.invalidateQueries({ queryKey: ["my-teams"] });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("common.error"));
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   return (
     <div className="surface-card overflow-hidden">
@@ -414,6 +438,21 @@ function TeamCard({
             {role}
           </p>
         </div>
+        {isOwner && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={deleteTeam}
+            disabled={deleting}
+            className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+            aria-label={t("team.delete")}
+          >
+            <Trash2 className="size-4" />
+            <span className="ml-1 hidden sm:inline uppercase text-[10px] font-bold tracking-widest">
+              {t("team.delete")}
+            </span>
+          </Button>
+        )}
       </div>
       {team.descripcion && (
         <p className="border-b border-border p-6 text-sm text-muted-foreground">
