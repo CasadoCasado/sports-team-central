@@ -218,6 +218,7 @@ function Miembros() {
                     {t(`roles.${m.role}`)}
                   </span>
                 )}
+              </div>
             );
           })}
           {(members?.length ?? 0) === 0 && (
