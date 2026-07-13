@@ -43,18 +43,54 @@ function Trainings() {
   });
 
   const eventIds = (data ?? []).map((e) => e.id);
-  const { data: myResponses } = useQuery({
-    queryKey: ["my-training-responses", user?.id, eventIds.join(",")],
-    enabled: !!user && eventIds.length > 0,
+  const { data: responses } = useQuery({
+    queryKey: ["training-responses", active?.team_id, eventIds.join(",")],
+    enabled: eventIds.length > 0,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("event_responses")
-        .select("event_id")
-        .eq("user_id", user!.id)
+        .select("id, event_id, user_id")
         .in("event_id", eventIds);
       if (error) throw error;
-      return new Set((data ?? []).map((r) => r.event_id));
+      return data ?? [];
     },
+  });
+
+  const countsByEvent = new Map<string, number>();
+  const myRespByEvent = new Map<string, string>();
+  (responses ?? []).forEach((r) => {
+    countsByEvent.set(r.event_id, (countsByEvent.get(r.event_id) ?? 0) + 1);
+    if (r.user_id === user?.id) myRespByEvent.set(r.event_id, r.id);
+  });
+
+  const signUp = useMutation({
+    mutationFn: async (eventId: string) => {
+      if (!user) return;
+      const { error } = await supabase.from("event_responses").insert({
+        event_id: eventId,
+        user_id: user.id,
+        status: "confirmado",
+        responded_at: new Date().toISOString(),
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success(t("callups.signedUp"));
+      qc.invalidateQueries({ queryKey: ["training-responses"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const withdraw = useMutation({
+    mutationFn: async (respId: string) => {
+      const { error } = await supabase.from("event_responses").delete().eq("id", respId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success(t("callups.withdrawn"));
+      qc.invalidateQueries({ queryKey: ["training-responses"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const signUp = useMutation({
