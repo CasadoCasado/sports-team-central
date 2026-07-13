@@ -40,6 +40,7 @@ export type EventFormValues = {
   competition_id: string | null;
   requiere_convocatoria: boolean;
   convocatoria_cierra_en: string;
+  padel_num_pistas: number | null;
 };
 
 const emptyValues = (): EventFormValues => ({
@@ -54,6 +55,7 @@ const emptyValues = (): EventFormValues => ({
   competition_id: null,
   requiere_convocatoria: false,
   convocatoria_cierra_en: "",
+  padel_num_pistas: null,
 });
 
 export function EventFormDialog({
