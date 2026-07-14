@@ -93,6 +93,15 @@ export function AppShell({ children }: { children: ReactNode }) {
         { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
         () => qc.invalidateQueries({ queryKey: ["shell-unread", user.id] }),
       )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "team_invitations" },
+        () => {
+          qc.invalidateQueries({ queryKey: ["shell-unread", user.id] });
+          qc.invalidateQueries({ queryKey: ["join-requests", user.id] });
+          qc.invalidateQueries({ queryKey: ["invitations", user.id] });
+        },
+      )
       .subscribe();
     return () => {
       supabase.removeChannel(ch);
