@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Search, Trash2, UserPlus, Users } from "lucide-react";
+import { Check, Search, Trash2, UserPlus, Users, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/hooks/use-session";
 import { Button } from "@/components/ui/button";
@@ -91,6 +91,51 @@ function Miembros() {
     }
     toast.success(t("members.removed"));
     qc.invalidateQueries({ queryKey: ["team-members-list"] });
+  }
+
+  const { data: joinRequests } = useQuery({
+    queryKey: ["team-join-requests", selectedTeamId],
+    enabled: !!selectedTeamId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("team_invitations")
+        .select("id, team_id, invited_user_id, created_at, mensaje, requester:invited_user_id(nombre, apellidos, email)")
+        .eq("team_id", selectedTeamId!)
+        .eq("es_solicitud", true)
+        .eq("status", "pendiente")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  async function respondRequest(invId: string, teamId: string, requesterId: string, accept: boolean) {
+    try {
+      const { error } = await supabase
+        .from("team_invitations")
+        .update({
+          status: accept ? "aceptada" : "rechazada",
+          responded_at: new Date().toISOString(),
+        })
+        .eq("id", invId);
+      if (error) throw error;
+      if (accept) {
+        const { error: memErr } = await supabase.from("team_members").insert({
+          team_id: teamId,
+          user_id: requesterId,
+          role: "jugador",
+          status: "activo",
+        });
+        if (memErr && !memErr.message.includes("duplicate")) throw memErr;
+      }
+      toast.success(accept ? t("notifications.accepted") : t("notifications.rejected"));
+      qc.invalidateQueries({ queryKey: ["team-join-requests"] });
+      qc.invalidateQueries({ queryKey: ["team-members-list"] });
+      qc.invalidateQueries({ queryKey: ["join-requests"] });
+      qc.invalidateQueries({ queryKey: ["shell-unread"] });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("common.error"));
+    }
   }
 
   const { data: results, isFetching } = useQuery({
@@ -228,6 +273,56 @@ function Miembros() {
           )}
         </div>
       </div>
+
+      {/* Join requests (managers only) */}
+      {canManageRoles && (joinRequests?.length ?? 0) > 0 && (
+        <div className="surface-card">
+          <div className="border-b border-border p-4">
+            <h2 className="text-[10px] font-bold uppercase tracking-widest text-primary">
+              {t("members.joinRequests", { defaultValue: "Solicitudes de unión" })} ({joinRequests!.length})
+            </h2>
+          </div>
+          <div className="divide-y divide-border">
+            {joinRequests!.map((req) => {
+              const p = Array.isArray(req.requester) ? req.requester[0] : req.requester;
+              return (
+                <div key={req.id} className="flex items-center gap-4 p-4">
+                  <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary ring-1 ring-border">
+                    {(p?.nombre?.[0] ?? "") + (p?.apellidos?.[0] ?? "")}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-bold">
+                      {p?.nombre} {p?.apellidos}
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground">{p?.email}</p>
+                    {req.mensaje && (
+                      <p className="mt-1 text-xs text-muted-foreground italic">"{req.mensaje}"</p>
+                    )}
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() => respondRequest(req.id, req.team_id, req.invited_user_id, true)}
+                    className="bg-primary text-primary-foreground uppercase text-[10px] font-bold tracking-widest hover:opacity-90"
+                  >
+                    <Check className="mr-1 size-3.5" />
+                    {t("notifications.approve")}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => respondRequest(req.id, req.team_id, req.invited_user_id, false)}
+                  >
+                    <X className="mr-1 size-3.5" />
+                    {t("notifications.reject")}
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+
 
       {/* Search */}
       <div className="surface-card p-6">
