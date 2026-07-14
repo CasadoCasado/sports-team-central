@@ -274,6 +274,56 @@ function Miembros() {
         </div>
       </div>
 
+      {/* Join requests (managers only) */}
+      {canManageRoles && (joinRequests?.length ?? 0) > 0 && (
+        <div className="surface-card">
+          <div className="border-b border-border p-4">
+            <h2 className="text-[10px] font-bold uppercase tracking-widest text-primary">
+              {t("members.joinRequests", { defaultValue: "Solicitudes de unión" })} ({joinRequests!.length})
+            </h2>
+          </div>
+          <div className="divide-y divide-border">
+            {joinRequests!.map((req) => {
+              const p = Array.isArray(req.requester) ? req.requester[0] : req.requester;
+              return (
+                <div key={req.id} className="flex items-center gap-4 p-4">
+                  <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary ring-1 ring-border">
+                    {(p?.nombre?.[0] ?? "") + (p?.apellidos?.[0] ?? "")}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-bold">
+                      {p?.nombre} {p?.apellidos}
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground">{p?.email}</p>
+                    {req.mensaje && (
+                      <p className="mt-1 text-xs text-muted-foreground italic">"{req.mensaje}"</p>
+                    )}
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() => respondRequest(req.id, req.team_id, req.invited_user_id, true)}
+                    className="bg-primary text-primary-foreground uppercase text-[10px] font-bold tracking-widest hover:opacity-90"
+                  >
+                    <Check className="mr-1 size-3.5" />
+                    {t("notifications.approve")}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => respondRequest(req.id, req.team_id, req.invited_user_id, false)}
+                  >
+                    <X className="mr-1 size-3.5" />
+                    {t("notifications.reject")}
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+
+
       {/* Search */}
       <div className="surface-card p-6">
         <h2 className="text-display mb-4 text-xl font-bold">
