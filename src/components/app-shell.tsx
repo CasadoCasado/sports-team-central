@@ -156,7 +156,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <aside
         id="main-sidebar"
         className={cn(
-          "fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 flex-col border-r border-border bg-background/95 backdrop-blur transition-transform lg:sticky lg:top-0 lg:h-dvh lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 flex-col border-r border-border bg-background/95 backdrop-blur transition-transform xl:sticky xl:top-0 xl:h-dvh xl:translate-x-0",
           mobileOpen ? "translate-x-0" : "-translate-x-full",
         )}
         aria-label="Navegación principal"
@@ -224,7 +224,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       {mobileOpen && (
         <button
           type="button"
-          className="fixed inset-0 z-30 bg-black/60 lg:hidden"
+          className="fixed inset-0 z-30 bg-black/60 xl:hidden"
           onClick={() => setMobileOpen(false)}
           aria-label="Cerrar menú"
         />
@@ -232,11 +232,11 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {/* Main */}
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-border bg-background/80 px-4 backdrop-blur lg:px-8">
+        <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-border bg-background/80 px-4 backdrop-blur xl:px-8">
           <div className="flex items-center gap-3">
             <button
               type="button"
-              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-border p-2 lg:hidden"
+              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-border p-2 xl:hidden"
               onClick={() => setMobileOpen((v) => !v)}
               aria-label={mobileOpen ? "Cerrar menú" : "Abrir menú"}
               aria-expanded={mobileOpen}
@@ -269,7 +269,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </header>
 
-        <main className="flex-1 p-4 lg:p-8">{children}</main>
+        <main className="flex-1 p-4 xl:p-8">{children}</main>
       </div>
     </div>
   );
