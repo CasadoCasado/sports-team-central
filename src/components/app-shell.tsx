@@ -50,7 +50,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     queryKey: ["shell-unread", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const [{ count: notifCount }, { count: invCount }] = await Promise.all([
+      const [{ count: notifCount }, { count: invCount }, managed] = await Promise.all([
         supabase
           .from("notifications")
           .select("id", { count: "exact", head: true })
@@ -60,9 +60,27 @@ export function AppShell({ children }: { children: ReactNode }) {
           .from("team_invitations")
           .select("id", { count: "exact", head: true })
           .eq("invited_user_id", user!.id)
-          .eq("status", "pendiente"),
+          .eq("status", "pendiente")
+          .eq("es_solicitud", false),
+        supabase
+          .from("team_members")
+          .select("team_id")
+          .eq("user_id", user!.id)
+          .eq("status", "activo")
+          .in("role", ["capitan", "entrenador", "delegado"]),
       ]);
-      return (notifCount ?? 0) + (invCount ?? 0);
+      const teamIds = (managed.data ?? []).map((r) => r.team_id);
+      let reqCount = 0;
+      if (teamIds.length > 0) {
+        const { count } = await supabase
+          .from("team_invitations")
+          .select("id", { count: "exact", head: true })
+          .in("team_id", teamIds)
+          .eq("es_solicitud", true)
+          .eq("status", "pendiente");
+        reqCount = count ?? 0;
+      }
+      return (notifCount ?? 0) + (invCount ?? 0) + reqCount;
     },
   });
 
