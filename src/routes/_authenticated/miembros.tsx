@@ -93,6 +93,51 @@ function Miembros() {
     qc.invalidateQueries({ queryKey: ["team-members-list"] });
   }
 
+  const { data: joinRequests } = useQuery({
+    queryKey: ["team-join-requests", selectedTeamId],
+    enabled: !!selectedTeamId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("team_invitations")
+        .select("id, team_id, invited_user_id, created_at, mensaje, requester:invited_user_id(nombre, apellidos, email)")
+        .eq("team_id", selectedTeamId!)
+        .eq("es_solicitud", true)
+        .eq("status", "pendiente")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  async function respondRequest(invId: string, teamId: string, requesterId: string, accept: boolean) {
+    try {
+      const { error } = await supabase
+        .from("team_invitations")
+        .update({
+          status: accept ? "aceptada" : "rechazada",
+          responded_at: new Date().toISOString(),
+        })
+        .eq("id", invId);
+      if (error) throw error;
+      if (accept) {
+        const { error: memErr } = await supabase.from("team_members").insert({
+          team_id: teamId,
+          user_id: requesterId,
+          role: "jugador",
+          status: "activo",
+        });
+        if (memErr && !memErr.message.includes("duplicate")) throw memErr;
+      }
+      toast.success(accept ? t("notifications.accepted") : t("notifications.rejected"));
+      qc.invalidateQueries({ queryKey: ["team-join-requests"] });
+      qc.invalidateQueries({ queryKey: ["team-members-list"] });
+      qc.invalidateQueries({ queryKey: ["join-requests"] });
+      qc.invalidateQueries({ queryKey: ["shell-unread"] });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("common.error"));
+    }
+  }
+
   const { data: results, isFetching } = useQuery({
     queryKey: ["user-search", searchBy, debounced],
     enabled: debounced.length >= 2,
