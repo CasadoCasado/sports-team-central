@@ -359,12 +359,13 @@ function Miembros() {
             <span className="text-muted-foreground">{t("members.inviteAs")}:</span>
             <select
               value={inviteRole}
-              onChange={(e) => setInviteRole(e.target.value as "jugador" | "entrenador" | "delegado")}
+              onChange={(e) => setInviteRole(e.target.value as "jugador" | "co_capitan" | "entrenador" | "delegado")}
               className="rounded-md border border-border bg-card px-2 py-1 text-xs"
             >
               <option value="jugador">{t("roles.jugador")}</option>
               <option value="entrenador">{t("roles.entrenador")}</option>
               <option value="delegado">{t("roles.delegado")}</option>
+              {canManageRoles && <option value="co_capitan">{t("roles.co_capitan")}</option>}
             </select>
           </div>
         </div>
