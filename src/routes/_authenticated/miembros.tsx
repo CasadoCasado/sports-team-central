@@ -165,7 +165,7 @@ function Miembros() {
       });
       if (error) throw error;
 
-      const team = managedTeams?.find((tt) => tt.team_id === selectedTeamId)?.team;
+      const team = myTeams?.find((tt) => tt.team_id === selectedTeamId)?.team;
       await supabase.from("notifications").insert({
         user_id: userId,
         tipo: "invitation",
@@ -186,13 +186,13 @@ function Miembros() {
     }
   }
 
-  if (!managedTeams || managedTeams.length === 0) {
+  if (!myTeams || myTeams.length === 0) {
     return (
       <div className="mx-auto max-w-xl">
         <div className="surface-card flex flex-col items-center gap-3 p-12 text-center">
           <Users className="size-10 text-muted-foreground" />
           <h2 className="text-display text-xl font-bold">{t("members.empty")}</h2>
-          <p className="text-sm text-muted-foreground">{t("team.noTeamCapitan")}</p>
+          <p className="text-sm text-muted-foreground">{t("team.noTeamJugador")}</p>
         </div>
       </div>
     );
@@ -202,13 +202,13 @@ function Miembros() {
     <div className="mx-auto max-w-5xl space-y-6">
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-display text-3xl font-black tracking-tight">{t("members.title")}</h1>
-        {managedTeams.length > 1 && (
+        {myTeams.length > 1 && (
           <select
             value={selectedTeamId ?? ""}
             onChange={(e) => setSelectedTeamId(e.target.value)}
             className="rounded-md border border-border bg-card px-3 py-2 text-sm"
           >
-            {managedTeams.map((mt) => (
+            {myTeams.map((mt) => (
               <option key={mt.team_id} value={mt.team_id}>
                 {mt.team?.nombre}
               </option>
@@ -216,6 +216,7 @@ function Miembros() {
           </select>
         )}
       </div>
+
 
       {/* Current members */}
       <div className="surface-card">
