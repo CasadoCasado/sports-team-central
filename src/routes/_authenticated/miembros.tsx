@@ -62,15 +62,15 @@ function Miembros() {
 
   const [searchBy, setSearchBy] = useState<"nombre" | "email">("nombre");
   const [query, setQuery] = useState("");
-  const [inviteRole, setInviteRole] = useState<"jugador" | "entrenador" | "delegado">("jugador");
+  const [inviteRole, setInviteRole] = useState<"jugador" | "co_capitan" | "entrenador" | "delegado">("jugador");
   const debounced = useDebounced(query, 300);
 
   const currentUserRole = myTeams?.find((mt) => mt.team_id === selectedTeamId)?.role;
   const canManageRoles = currentUserRole === "capitan";
   const isManagerOfSelected =
-    !!currentUserRole && ["capitan", "entrenador", "delegado"].includes(currentUserRole);
+    !!currentUserRole && ["capitan", "co_capitan", "entrenador", "delegado"].includes(currentUserRole);
 
-  async function changeRole(memberId: string, newRole: "capitan" | "entrenador" | "delegado" | "jugador") {
+  async function changeRole(memberId: string, newRole: "capitan" | "co_capitan" | "entrenador" | "delegado" | "jugador") {
     const { error } = await supabase
       .from("team_members")
       .update({ role: newRole })
