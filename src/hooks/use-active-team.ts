@@ -54,7 +54,7 @@ export function useActiveTeam() {
   };
 
   const isManager =
-    !!active && ["capitan", "entrenador", "delegado"].includes(active.role);
+    !!active && ["capitan", "co_capitan", "entrenador", "delegado"].includes(active.role);
 
   return {
     memberships,
