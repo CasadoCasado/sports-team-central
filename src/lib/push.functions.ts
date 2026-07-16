@@ -129,7 +129,7 @@ export const sendPushToTeam = createServerFn({ method: "POST" })
       .select("user_id")
       .eq("team_id", data.teamId)
       .eq("status", "activo");
-    if (data.managersOnly) q = q.in("role", ["capitan", "entrenador", "delegado"]);
+    if (data.managersOnly) q = q.in("role", ["capitan", "co_capitan", "entrenador", "delegado"]);
     const { data: members, error } = await q;
     if (error) throw error;
     let userIds = (members ?? []).map((m) => m.user_id as string);
