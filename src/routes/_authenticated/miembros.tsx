@@ -416,11 +416,11 @@ function Miembros() {
           ))}
         </div>
       </div>
-      </div>
       )}
-
+    </div>
   );
 }
+
 
 function useDebounced(value: string, delay: number) {
   const [debounced, setDebounced] = useState(value);
