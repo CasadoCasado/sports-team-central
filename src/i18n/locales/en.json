@@ -184,6 +184,16 @@
     "updated": "Profile updated",
     "language": "Language"
   },
+  "push": {
+    "title": "Push notifications",
+    "description": "Get alerts on this device when there are new messages, events or call-ups.",
+    "enable": "Enable notifications",
+    "disable": "Disable notifications",
+    "enabled": "Notifications enabled",
+    "disabled": "Notifications disabled",
+    "blocked": "Notifications are blocked in the browser. Change it in your browser settings.",
+    "unsupported": "This browser does not support push notifications."
+  },
   "dashboard": {
     "welcome": "Welcome, {{name}}",
     "welcomeSubtitle": "Here's a summary of your activity.",
