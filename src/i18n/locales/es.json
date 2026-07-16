@@ -184,6 +184,16 @@
     "updated": "Perfil actualizado",
     "language": "Idioma"
   },
+  "push": {
+    "title": "Notificaciones push",
+    "description": "Recibe avisos en este dispositivo cuando haya nuevos mensajes, eventos o convocatorias.",
+    "enable": "Activar notificaciones",
+    "disable": "Desactivar notificaciones",
+    "enabled": "Notificaciones activadas",
+    "disabled": "Notificaciones desactivadas",
+    "blocked": "Notificaciones bloqueadas en el navegador. Cámbialo en los ajustes del navegador.",
+    "unsupported": "Este navegador no soporta notificaciones push."
+  },
   "dashboard": {
     "welcome": "Bienvenido, {{name}}",
     "welcomeSubtitle": "Aquí tienes el resumen de tu actividad.",
