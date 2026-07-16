@@ -4,6 +4,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/hooks/use-session";
+import { useServerFn } from "@tanstack/react-start";
+import { sendPushToTeam } from "@/lib/push.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -146,11 +148,24 @@ export function EventFormDialog({
     onSuccess: (r) => {
       toast.success(r.updated ? t("events.updated") : t("events.created"));
       qc.invalidateQueries({ queryKey: ["events"] });
+      if (!r.updated) {
+        const tipoLabel = t(`events.tipos.${values.tipo}`, { defaultValue: values.tipo });
+        pushTeam({
+          data: {
+            teamId,
+            title: `${tipoLabel}: ${values.titulo.trim()}`,
+            body: new Date(values.fecha_inicio).toLocaleString(),
+            url: "/calendario",
+            tag: `event-new:${teamId}`,
+          },
+        }).catch(() => {});
+      }
       onOpenChange(false);
     },
     onError: (e: Error) => toast.error(e.message || t("common.error")),
     onSettled: () => setSaving(false),
   });
+  const pushTeam = useServerFn(sendPushToTeam);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

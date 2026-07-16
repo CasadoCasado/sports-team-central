@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { PushSettings } from "@/components/push-settings";
 
 export const Route = createFileRoute("/_authenticated/perfil")({
   component: Perfil,
@@ -137,6 +138,8 @@ function Perfil() {
           {t("profile.save")}
         </Button>
       </form>
+
+      <PushSettings />
     </div>
   );
 }
