@@ -68,7 +68,7 @@ function EventDetail() {
     },
   });
 
-  const isManager = membership && ["capitan", "entrenador", "delegado"].includes(membership.role);
+  const isManager = membership && ["capitan", "co_capitan", "entrenador", "delegado"].includes(membership.role);
 
   const del = useMutation({
     mutationFn: async () => {
