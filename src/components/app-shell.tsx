@@ -67,7 +67,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           .select("team_id")
           .eq("user_id", user!.id)
           .eq("status", "activo")
-          .in("role", ["capitan", "entrenador", "delegado"]),
+          .in("role", ["capitan", "co_capitan", "entrenador", "delegado"]),
       ]);
       const teamIds = (managed.data ?? []).map((r) => r.team_id);
       let reqCount = 0;
