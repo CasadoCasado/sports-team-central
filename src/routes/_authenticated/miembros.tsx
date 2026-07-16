@@ -326,7 +326,8 @@ function Miembros() {
 
 
 
-      {/* Search */}
+      {/* Search — only managers can invite */}
+      {isManagerOfSelected && (
       <div className="surface-card p-6">
         <h2 className="text-display mb-4 text-xl font-bold">
           <UserPlus className="mr-2 inline size-5 text-primary" />
@@ -415,7 +416,9 @@ function Miembros() {
           ))}
         </div>
       </div>
-    </div>
+      </div>
+      )}
+
   );
 }
 
