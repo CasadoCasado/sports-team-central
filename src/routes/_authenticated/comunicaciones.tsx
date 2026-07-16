@@ -5,6 +5,9 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Hash, Lock, Plus, Send, Trash2, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
+import { sendPushToTeam } from "@/lib/push.functions";
+import { useProfile } from "@/hooks/use-profile";
 import { useSession } from "@/hooks/use-session";
 import { useActiveTeam } from "@/hooks/use-active-team";
 import { TeamPicker } from "@/components/team-picker";
@@ -211,6 +214,8 @@ function ChannelView({ channel, isManager }: { channel: Channel; isManager: bool
   const { t } = useTranslation();
   const { user } = useSession();
   const qc = useQueryClient();
+  const { data: me } = useProfile();
+  const pushTeam = useServerFn(sendPushToTeam);
 
   const messagesKey = useMemo(() => ["chat-messages", channel.id] as const, [channel.id]);
 
@@ -293,6 +298,17 @@ function ChannelView({ channel, isManager }: { channel: Channel; isManager: bool
       if (error) throw error;
       setText("");
       qc.invalidateQueries({ queryKey: messagesKey });
+      const author = [me?.nombre, me?.apellidos].filter(Boolean).join(" ") || "Nuevo mensaje";
+      pushTeam({
+        data: {
+          teamId: channel.team_id,
+          title: `#${channel.nombre} · ${author}`,
+          body: content.slice(0, 140),
+          url: "/comunicaciones",
+          tag: `chat:${channel.id}`,
+          managersOnly: channel.scope === "staff",
+        },
+      }).catch(() => {});
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("common.error"));
     } finally {
