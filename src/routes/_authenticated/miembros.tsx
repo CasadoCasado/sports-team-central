@@ -20,16 +20,15 @@ function Miembros() {
   const { user } = useSession();
   const qc = useQueryClient();
 
-  // Load teams the current user manages (owner/capitan/entrenador/delegado)
-  const { data: managedTeams } = useQuery({
-    queryKey: ["managed-teams", user?.id],
+  // Load ALL teams the user belongs to (any role). Manager-only UI is gated below.
+  const { data: myTeams } = useQuery({
+    queryKey: ["my-teams-any-role", user?.id],
     enabled: !!user,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("team_members")
         .select("team_id, role, teams:team_id(id, nombre)")
         .eq("user_id", user!.id)
-        .in("role", ["capitan", "entrenador", "delegado"])
         .eq("status", "activo");
       if (error) throw error;
       return (data ?? []).map((r) => ({
@@ -42,10 +41,10 @@ function Miembros() {
 
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
   useEffect(() => {
-    if (!selectedTeamId && managedTeams && managedTeams.length > 0) {
-      setSelectedTeamId(managedTeams[0].team_id);
+    if (!selectedTeamId && myTeams && myTeams.length > 0) {
+      setSelectedTeamId(myTeams[0].team_id);
     }
-  }, [managedTeams, selectedTeamId]);
+  }, [myTeams, selectedTeamId]);
 
   const { data: members } = useQuery({
     queryKey: ["team-members-list", selectedTeamId],
@@ -66,8 +65,10 @@ function Miembros() {
   const [inviteRole, setInviteRole] = useState<"jugador" | "entrenador" | "delegado">("jugador");
   const debounced = useDebounced(query, 300);
 
-  const currentUserRole = managedTeams?.find((mt) => mt.team_id === selectedTeamId)?.role;
+  const currentUserRole = myTeams?.find((mt) => mt.team_id === selectedTeamId)?.role;
   const canManageRoles = currentUserRole === "capitan";
+  const isManagerOfSelected =
+    !!currentUserRole && ["capitan", "entrenador", "delegado"].includes(currentUserRole);
 
   async function changeRole(memberId: string, newRole: "capitan" | "entrenador" | "delegado" | "jugador") {
     const { error } = await supabase
