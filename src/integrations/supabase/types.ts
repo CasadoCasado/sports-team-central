@@ -882,7 +882,12 @@ export type Database = {
       member_status: "pendiente" | "activo" | "expulsado"
       preferred_role: "capitan" | "jugador"
       response_status: "convocado" | "confirmado" | "rechazado" | "duda"
-      team_role: "capitan" | "entrenador" | "delegado" | "jugador"
+      team_role:
+        | "capitan"
+        | "entrenador"
+        | "delegado"
+        | "jugador"
+        | "co_capitan"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1018,7 +1023,7 @@ export const Constants = {
       member_status: ["pendiente", "activo", "expulsado"],
       preferred_role: ["capitan", "jugador"],
       response_status: ["convocado", "confirmado", "rechazado", "duda"],
-      team_role: ["capitan", "entrenador", "delegado", "jugador"],
+      team_role: ["capitan", "entrenador", "delegado", "jugador", "co_capitan"],
     },
   },
 } as const

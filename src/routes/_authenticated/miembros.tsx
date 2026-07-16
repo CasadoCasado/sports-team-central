@@ -62,15 +62,15 @@ function Miembros() {
 
   const [searchBy, setSearchBy] = useState<"nombre" | "email">("nombre");
   const [query, setQuery] = useState("");
-  const [inviteRole, setInviteRole] = useState<"jugador" | "entrenador" | "delegado">("jugador");
+  const [inviteRole, setInviteRole] = useState<"jugador" | "co_capitan" | "entrenador" | "delegado">("jugador");
   const debounced = useDebounced(query, 300);
 
   const currentUserRole = myTeams?.find((mt) => mt.team_id === selectedTeamId)?.role;
   const canManageRoles = currentUserRole === "capitan";
   const isManagerOfSelected =
-    !!currentUserRole && ["capitan", "entrenador", "delegado"].includes(currentUserRole);
+    !!currentUserRole && ["capitan", "co_capitan", "entrenador", "delegado"].includes(currentUserRole);
 
-  async function changeRole(memberId: string, newRole: "capitan" | "entrenador" | "delegado" | "jugador") {
+  async function changeRole(memberId: string, newRole: "capitan" | "co_capitan" | "entrenador" | "delegado" | "jugador") {
     const { error } = await supabase
       .from("team_members")
       .update({ role: newRole })
@@ -244,12 +244,13 @@ function Miembros() {
                   <>
                     <select
                       value={m.role}
-                      onChange={(e) => changeRole(m.id, e.target.value as "capitan" | "entrenador" | "delegado" | "jugador")}
+                      onChange={(e) => changeRole(m.id, e.target.value as "capitan" | "co_capitan" | "entrenador" | "delegado" | "jugador")}
                       className="rounded-md border border-border bg-card px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-primary"
                     >
                       <option value="jugador">{t("roles.jugador")}</option>
                       <option value="entrenador">{t("roles.entrenador")}</option>
                       <option value="delegado">{t("roles.delegado")}</option>
+                      <option value="co_capitan">{t("roles.co_capitan")}</option>
                       <option value="capitan">{t("roles.capitan")}</option>
                     </select>
                     <button
@@ -358,12 +359,13 @@ function Miembros() {
             <span className="text-muted-foreground">{t("members.inviteAs")}:</span>
             <select
               value={inviteRole}
-              onChange={(e) => setInviteRole(e.target.value as "jugador" | "entrenador" | "delegado")}
+              onChange={(e) => setInviteRole(e.target.value as "jugador" | "co_capitan" | "entrenador" | "delegado")}
               className="rounded-md border border-border bg-card px-2 py-1 text-xs"
             >
               <option value="jugador">{t("roles.jugador")}</option>
               <option value="entrenador">{t("roles.entrenador")}</option>
               <option value="delegado">{t("roles.delegado")}</option>
+              {canManageRoles && <option value="co_capitan">{t("roles.co_capitan")}</option>}
             </select>
           </div>
         </div>

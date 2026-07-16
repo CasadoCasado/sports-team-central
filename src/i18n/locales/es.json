@@ -117,6 +117,7 @@
   },
   "roles": {
     "capitan": "Capitán",
+    "co_capitan": "Co-capitán",
     "entrenador": "Entrenador",
     "delegado": "Delegado",
     "jugador": "Jugador"

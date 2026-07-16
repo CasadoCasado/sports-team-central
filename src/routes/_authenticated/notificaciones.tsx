@@ -45,7 +45,7 @@ function Notificaciones() {
         .select("team_id")
         .eq("user_id", user!.id)
         .eq("status", "activo")
-        .in("role", ["capitan", "entrenador", "delegado"]);
+        .in("role", ["capitan", "co_capitan", "entrenador", "delegado"]);
       if (mErr) throw mErr;
       const teamIds = (managed ?? []).map((r) => r.team_id);
       if (teamIds.length === 0) return [];
