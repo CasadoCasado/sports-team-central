@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Plus, Trash2, Vote as VoteIcon, X, Lock, CheckCircle2 } from "lucide-react";
+import { Plus, Trash2, Vote as VoteIcon, X, Lock, CheckCircle2, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/hooks/use-session";
 import { useActiveTeam } from "@/hooks/use-active-team";
@@ -43,10 +43,18 @@ type Poll = {
 type Option = { id: string; poll_id: string; texto: string; posicion: number };
 type VoteRow = { id: string; poll_id: string; option_id: string; user_id: string };
 
+type TabKey = "pending" | "active" | "closed" | "all";
+
+function isPollClosed(poll: Poll): boolean {
+  return poll.closed || (!!poll.closes_at && new Date(poll.closes_at).getTime() < Date.now());
+}
+
 function Encuestas() {
   const { t } = useTranslation();
+  const { user } = useSession();
   const { active, isManager } = useActiveTeam();
   const teamId = active?.team.id;
+  const [tab, setTab] = useState<TabKey>("pending");
 
   const { data: polls } = useQuery({
     queryKey: ["polls", teamId],
@@ -62,7 +70,61 @@ function Encuestas() {
     },
   });
 
+  const pollIds = useMemo(() => (polls ?? []).map((p) => p.id), [polls]);
+
+  const { data: myVotes } = useQuery({
+    queryKey: ["my-poll-votes", teamId, user?.id, pollIds.join(",")],
+    enabled: !!user && pollIds.length > 0,
+    queryFn: async (): Promise<Set<string>> => {
+      const { data, error } = await supabase
+        .from("poll_votes")
+        .select("poll_id")
+        .eq("user_id", user!.id)
+        .in("poll_id", pollIds);
+      if (error) throw error;
+      return new Set((data ?? []).map((v) => v.poll_id as string));
+    },
+  });
+
+  const votedSet = myVotes ?? new Set<string>();
+
+  const filtered = useMemo(() => {
+    const list = polls ?? [];
+    switch (tab) {
+      case "pending":
+        return list.filter((p) => !isPollClosed(p) && !votedSet.has(p.id));
+      case "active":
+        return list.filter((p) => !isPollClosed(p));
+      case "closed":
+        return list.filter((p) => isPollClosed(p));
+      case "all":
+      default:
+        return list;
+    }
+  }, [polls, tab, votedSet]);
+
+  const pendingCount = useMemo(
+    () => (polls ?? []).filter((p) => !isPollClosed(p) && !votedSet.has(p.id)).length,
+    [polls, votedSet],
+  );
+
   if (!active) return <EmptyTeamState />;
+
+  const emptyMsg =
+    tab === "pending"
+      ? t("polls.noPending")
+      : tab === "active"
+        ? t("polls.noActive")
+        : tab === "closed"
+          ? t("polls.noClosed")
+          : t("polls.empty");
+
+  const tabs: { key: TabKey; label: string; badge?: number }[] = [
+    { key: "pending", label: t("polls.tabPending"), badge: pendingCount || undefined },
+    { key: "active", label: t("polls.tabActive") },
+    { key: "closed", label: t("polls.tabClosed") },
+    { key: "all", label: t("polls.tabAll") },
+  ];
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
@@ -79,17 +141,44 @@ function Encuestas() {
         </div>
       </div>
 
-      {(polls?.length ?? 0) === 0 ? (
+      <div className="flex flex-wrap gap-2 border-b border-border">
+        {tabs.map((tb) => (
+          <button
+            key={tb.key}
+            onClick={() => setTab(tb.key)}
+            className={cn(
+              "relative -mb-px flex items-center gap-2 border-b-2 px-3 py-2 text-xs font-bold uppercase tracking-widest transition-colors",
+              tab === tb.key
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground",
+            )}
+          >
+            {tb.label}
+            {tb.badge ? (
+              <span className="inline-flex min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-black text-primary-foreground">
+                {tb.badge}
+              </span>
+            ) : null}
+          </button>
+        ))}
+      </div>
+
+      {filtered.length === 0 ? (
         <div className="surface-card flex flex-col items-center gap-3 p-12 text-center">
           <div className="flex size-14 items-center justify-center rounded-full bg-primary/10 text-primary">
             <VoteIcon className="size-7" />
           </div>
-          <p className="text-sm text-muted-foreground">{t("polls.empty")}</p>
+          <p className="text-sm text-muted-foreground">{emptyMsg}</p>
         </div>
       ) : (
         <div className="space-y-4">
-          {polls!.map((p) => (
-            <PollCard key={p.id} poll={p} isManager={isManager} />
+          {filtered.map((p) => (
+            <PollCard
+              key={p.id}
+              poll={p}
+              isManager={isManager}
+              hasVoted={votedSet.has(p.id)}
+            />
           ))}
         </div>
       )}
@@ -97,7 +186,15 @@ function Encuestas() {
   );
 }
 
-function PollCard({ poll, isManager }: { poll: Poll; isManager: boolean }) {
+function PollCard({
+  poll,
+  isManager,
+  hasVoted,
+}: {
+  poll: Poll;
+  isManager: boolean;
+  hasVoted: boolean;
+}) {
   const { t } = useTranslation();
   const { user } = useSession();
   const qc = useQueryClient();
@@ -139,8 +236,7 @@ function PollCard({ poll, isManager }: { poll: Poll; isManager: boolean }) {
     [votes, user],
   );
 
-  const isClosed =
-    poll.closed || (!!poll.closes_at && new Date(poll.closes_at).getTime() < Date.now());
+  const isClosed = isPollClosed(poll);
 
   async function vote(optionId: string) {
     if (!user || isClosed) return;
@@ -170,6 +266,7 @@ function PollCard({ poll, isManager }: { poll: Poll; isManager: boolean }) {
         if (error) throw error;
       }
       qc.invalidateQueries({ queryKey: ["poll-votes", poll.id] });
+      qc.invalidateQueries({ queryKey: ["my-poll-votes", poll.team_id] });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("common.error"));
     }
@@ -185,13 +282,17 @@ function PollCard({ poll, isManager }: { poll: Poll; isManager: boolean }) {
     qc.invalidateQueries({ queryKey: ["polls", poll.team_id] });
   }
 
-  async function remove() {
-    if (!confirm(t("polls.deleteConfirm"))) return;
+  async function cancel() {
+    if (!confirm(t("polls.cancelConfirm"))) return;
     const { error } = await supabase.from("polls").delete().eq("id", poll.id);
     if (error) return toast.error(error.message);
-    toast.success(t("polls.deleted"));
+    toast.success(t("polls.cancelled"));
     qc.invalidateQueries({ queryKey: ["polls", poll.team_id] });
+    qc.invalidateQueries({ queryKey: ["my-poll-votes", poll.team_id] });
   }
+
+  const pastDeadline = !!poll.closes_at && new Date(poll.closes_at).getTime() < Date.now();
+  const canCloseManually = isManager && !pastDeadline;
 
   return (
     <article className="surface-card space-y-4 p-5">
@@ -199,9 +300,17 @@ function PollCard({ poll, isManager }: { poll: Poll; isManager: boolean }) {
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-display text-lg font-black tracking-tight">{poll.pregunta}</h2>
-            {isClosed && (
+            {isClosed ? (
               <span className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                 <Lock className="size-3" /> {t("polls.closed")}
+              </span>
+            ) : hasVoted ? (
+              <span className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-primary">
+                <CheckCircle2 className="size-3" /> {t("polls.voted")}
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-amber-500">
+                <Clock className="size-3" /> {t("polls.pendingLabel")}
               </span>
             )}
             {poll.multi_select && (
@@ -225,17 +334,25 @@ function PollCard({ poll, isManager }: { poll: Poll; isManager: boolean }) {
           )}
         </div>
         {isManager && (
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={toggleClose}>
-              {poll.closed ? t("polls.reopen") : t("polls.close")}
-            </Button>
-            <button
-              onClick={remove}
-              className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
-              aria-label={t("common.delete")}
+          <div className="flex flex-wrap items-center gap-2">
+            {canCloseManually && (
+              <Button variant="outline" size="sm" onClick={toggleClose}>
+                {poll.closed ? t("polls.reopen") : t("polls.close")}
+              </Button>
+            )}
+            {!canCloseManually && poll.closed && (
+              <Button variant="outline" size="sm" onClick={toggleClose}>
+                {t("polls.reopen")}
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={cancel}
+              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
             >
-              <Trash2 className="size-4" />
-            </button>
+              <Trash2 className="size-4" /> {t("polls.cancel")}
+            </Button>
           </div>
         )}
       </header>
