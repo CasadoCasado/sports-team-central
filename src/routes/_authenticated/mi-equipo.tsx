@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SPORTS, sportLabel } from "@/lib/sports";
+import { TeamDiscovery } from "@/components/team-discovery";
 
 export const Route = createFileRoute("/_authenticated/mi-equipo")({
   component: MiEquipo,
