@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/use-profile";
 import { useSession } from "@/hooks/use-session";
 import { eventTypeStyles } from "@/lib/events";
+import { TeamDiscovery } from "@/components/team-discovery";
 
 export const Route = createFileRoute("/_authenticated/inicio")({
   component: Inicio,
@@ -107,20 +108,20 @@ function Inicio() {
 
   const hasTeam = (teams?.length ?? 0) > 0;
 
-  return (
-    <div className="mx-auto max-w-7xl space-y-8">
-      <div>
-        <h1 className="text-display text-3xl font-black tracking-tight sm:text-4xl">
-          {t("dashboard.welcome", { name: profile?.nombre || "" })}
-        </h1>
-        <p className="mt-1 text-muted-foreground">{t("dashboard.welcomeSubtitle")}</p>
-      </div>
+  if (!hasTeam) {
+    const canCreateTeam = profile?.preferred_role === "capitan";
+    return (
+      <div className="mx-auto max-w-3xl space-y-6">
+        <div>
+          <h1 className="text-display text-3xl font-black tracking-tight sm:text-4xl">
+            {t("dashboard.findTeamTitle")}
+          </h1>
+          <p className="mt-1 text-muted-foreground">{t("dashboard.findTeamSubtitle")}</p>
+        </div>
 
-      {!hasTeam && (
-        <div className="surface-card p-6">
-          <p className="text-sm text-muted-foreground">{t("dashboard.noTeamAlert")}</p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            {profile?.preferred_role === "capitan" && (
+        {(canCreateTeam || (pendingInvites ?? 0) > 0) && (
+          <div className="flex flex-wrap gap-2">
+            {canCreateTeam && (
               <Link
                 to="/mi-equipo"
                 className="rounded-md bg-primary px-4 py-2 text-xs font-bold uppercase tracking-widest text-primary-foreground hover:opacity-90"
@@ -137,8 +138,21 @@ function Inicio() {
               </Link>
             )}
           </div>
-        </div>
-      )}
+        )}
+
+        <TeamDiscovery onlyOpen />
+      </div>
+    );
+  }
+
+  return (
+    <div className="mx-auto max-w-7xl space-y-8">
+      <div>
+        <h1 className="text-display text-3xl font-black tracking-tight sm:text-4xl">
+          {t("dashboard.welcome", { name: profile?.nombre || "" })}
+        </h1>
+        <p className="mt-1 text-muted-foreground">{t("dashboard.welcomeSubtitle")}</p>
+      </div>
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <StatCard icon={<Shield />} label={t("nav.miEquipo")} value={teams?.length ?? 0} to="/mi-equipo" />
