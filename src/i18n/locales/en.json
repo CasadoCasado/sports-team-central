@@ -208,6 +208,8 @@
     "welcome": "Welcome, {{name}}",
     "welcomeSubtitle": "Here's a summary of your activity.",
     "noTeamAlert": "You don't belong to any active team yet.",
+    "findTeamTitle": "Find your team",
+    "findTeamSubtitle": "Search for the team you want to join and send your request.",
     "upcomingEvents": "Upcoming events",
     "pendingCallups": "Pending call-ups",
     "viewAll": "View all",
