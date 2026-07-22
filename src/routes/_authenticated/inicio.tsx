@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/use-profile";
 import { useSession } from "@/hooks/use-session";
 import { eventTypeStyles } from "@/lib/events";
+import { TeamDiscovery } from "@/components/team-discovery";
 
 export const Route = createFileRoute("/_authenticated/inicio")({
   component: Inicio,
