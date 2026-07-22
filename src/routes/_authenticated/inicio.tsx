@@ -76,19 +76,28 @@ function Inicio() {
   });
 
   const { data: myPending } = useQuery({
-    queryKey: ["dash-my-pending", user?.id],
-    enabled: !!user,
+    queryKey: ["dash-open-callups", user?.id, teamIds.join(",")],
+    enabled: !!user && teamIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("event_responses")
-        .select("id, event:event_id(id, titulo, tipo, fecha_inicio, ubicacion)")
-        .eq("user_id", user!.id)
-        .eq("status", "convocado")
-        .limit(5);
+      const nowIso = new Date().toISOString();
+      const { data: evs, error } = await supabase
+        .from("events")
+        .select("id, titulo, tipo, fecha_inicio, ubicacion, requiere_convocatoria")
+        .in("team_id", teamIds)
+        .in("tipo", ["partido", "entrenamiento"])
+        .gte("fecha_inicio", nowIso)
+        .order("fecha_inicio", { ascending: true });
       if (error) throw error;
-      return (data ?? [])
-        .map((r) => (Array.isArray(r.event) ? r.event[0] : r.event))
-        .filter((e) => e && new Date(e.fecha_inicio) >= new Date());
+      const open = (evs ?? []).filter((e) => e.requiere_convocatoria);
+      if (open.length === 0) return [];
+      const { data: resps, error: rErr } = await supabase
+        .from("event_responses")
+        .select("event_id")
+        .eq("user_id", user!.id)
+        .in("event_id", open.map((e) => e.id));
+      if (rErr) throw rErr;
+      const answered = new Set((resps ?? []).map((r) => r.event_id));
+      return open.filter((e) => !answered.has(e.id)).slice(0, 5);
     },
   });
 
