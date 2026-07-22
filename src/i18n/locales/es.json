@@ -90,7 +90,16 @@
     "requestSent": "Solicitud enviada",
     "delete": "Borrar equipo",
     "deleted": "Equipo borrado",
-    "deleteConfirm": "¿Seguro que quieres borrar el equipo \"{{name}}\"? Se eliminarán todos sus datos (miembros, eventos, mensajes, etc.). Esta acción no se puede deshacer."
+    "deleteConfirm": "¿Seguro que quieres borrar el equipo \"{{name}}\"? Se eliminarán todos sus datos (miembros, eventos, mensajes, etc.). Esta acción no se puede deshacer.",
+    "inscripcionesAbiertas": "Inscripciones abiertas",
+    "inscripcionesCerradas": "Inscripciones cerradas",
+    "cerrarInscripciones": "Cerrar inscripciones",
+    "abrirInscripciones": "Abrir inscripciones",
+    "inscripcionesUpdated": "Estado de inscripciones actualizado",
+    "openTeamsTitle": "Equipos con inscripciones abiertas",
+    "openTeamsSubtitle": "Estos equipos aceptan nuevos jugadores actualmente.",
+    "noOpenTeams": "No hay equipos con inscripciones abiertas ahora mismo.",
+    "closedToJoin": "Inscripciones cerradas"
   },
   "members": {
     "title": "Miembros",

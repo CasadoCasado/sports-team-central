@@ -914,6 +914,7 @@ export type Database = {
           deporte: string | null
           descripcion: string | null
           id: string
+          inscripciones_abiertas: boolean
           instalacion: string | null
           logo_url: string | null
           nombre: string
@@ -929,6 +930,7 @@ export type Database = {
           deporte?: string | null
           descripcion?: string | null
           id?: string
+          inscripciones_abiertas?: boolean
           instalacion?: string | null
           logo_url?: string | null
           nombre: string
@@ -944,6 +946,7 @@ export type Database = {
           deporte?: string | null
           descripcion?: string | null
           id?: string
+          inscripciones_abiertas?: boolean
           instalacion?: string | null
           logo_url?: string | null
           nombre?: string

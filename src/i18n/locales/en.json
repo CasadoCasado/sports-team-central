@@ -90,7 +90,16 @@
     "requestSent": "Request sent",
     "delete": "Delete team",
     "deleted": "Team deleted",
-    "deleteConfirm": "Delete team \"{{name}}\"? All its data (members, events, messages, etc.) will be removed. This cannot be undone."
+    "deleteConfirm": "Delete team \"{{name}}\"? All its data (members, events, messages, etc.) will be removed. This cannot be undone.",
+    "inscripcionesAbiertas": "Registrations open",
+    "inscripcionesCerradas": "Registrations closed",
+    "cerrarInscripciones": "Close registrations",
+    "abrirInscripciones": "Open registrations",
+    "inscripcionesUpdated": "Registration status updated",
+    "openTeamsTitle": "Teams with open registrations",
+    "openTeamsSubtitle": "These teams are currently accepting new players.",
+    "noOpenTeams": "No teams with open registrations right now.",
+    "closedToJoin": "Registrations closed"
   },
   "members": {
     "title": "Members",

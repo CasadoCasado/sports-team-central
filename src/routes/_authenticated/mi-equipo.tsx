@@ -37,7 +37,7 @@ function MiEquipo() {
       const { data, error } = await supabase
         .from("team_members")
         .select(
-          "id, team_id, role, status, teams:team_id(id, nombre, logo_url, descripcion, deporte, categoria, ciudad, instalacion, owner_id)",
+          "id, team_id, role, status, teams:team_id(id, nombre, logo_url, descripcion, deporte, categoria, ciudad, instalacion, owner_id, inscripciones_abiertas)",
         )
         .eq("user_id", user!.id)
         .eq("status", "activo");
@@ -211,7 +211,7 @@ function MiEquipo() {
           </Button>
         </div>
 
-        <TeamDiscovery />
+        <TeamDiscovery onlyOpen />
       </div>
     );
   }
@@ -235,11 +235,13 @@ function MiEquipo() {
           return <TeamCard key={m.id} team={team} role={m.role} currentUserId={user?.id ?? null} />;
         })}
       </div>
+
+      <TeamDiscovery onlyOpen />
     </div>
   );
 }
 
-function TeamDiscovery() {
+function TeamDiscovery({ onlyOpen = false }: { onlyOpen?: boolean } = {}) {
   const { t, i18n } = useTranslation();
   const { user } = useSession();
   const qc = useQueryClient();
@@ -247,13 +249,14 @@ function TeamDiscovery() {
   const [q, setQ] = useState("");
 
   const { data: teams, isLoading } = useQuery({
-    queryKey: ["team-discovery", sport, q],
+    queryKey: ["team-discovery", sport, q, onlyOpen],
     queryFn: async () => {
       let query = supabase
         .from("teams")
-        .select("id, nombre, logo_url, deporte, ciudad, descripcion")
+        .select("id, nombre, logo_url, deporte, ciudad, descripcion, inscripciones_abiertas")
         .order("nombre")
         .limit(30);
+      if (onlyOpen) query = query.eq("inscripciones_abiertas", true);
       if (sport !== "all") query = query.eq("deporte", sport);
       if (q.trim()) query = query.ilike("nombre", `%${q.trim()}%`);
       const { data, error } = await query;
@@ -298,8 +301,12 @@ function TeamDiscovery() {
 
   return (
     <div className="surface-card p-6">
-      <h3 className="text-display text-xl font-bold">{t("team.discoverTitle")}</h3>
-      <p className="mt-1 text-sm text-muted-foreground">{t("team.discoverSubtitle")}</p>
+      <h3 className="text-display text-xl font-bold">
+        {onlyOpen ? t("team.openTeamsTitle") : t("team.discoverTitle")}
+      </h3>
+      <p className="mt-1 text-sm text-muted-foreground">
+        {onlyOpen ? t("team.openTeamsSubtitle") : t("team.discoverSubtitle")}
+      </p>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_200px]">
         <div className="relative">
@@ -327,10 +334,13 @@ function TeamDiscovery() {
       <div className="mt-5 space-y-2">
         {isLoading && <p className="text-xs text-muted-foreground">{t("common.loading")}</p>}
         {!isLoading && (teams?.length ?? 0) === 0 && (
-          <p className="text-xs text-muted-foreground">{t("members.noResults")}</p>
+          <p className="text-xs text-muted-foreground">
+            {onlyOpen ? t("team.noOpenTeams") : t("members.noResults")}
+          </p>
         )}
         {teams?.map((tm) => {
           const alreadyRequested = pendingReqs?.has(tm.id);
+          const closed = tm.inscripciones_abiertas === false;
           return (
             <div
               key={tm.id}
@@ -352,11 +362,15 @@ function TeamDiscovery() {
               </div>
               <Button
                 size="sm"
-                disabled={alreadyRequested}
+                disabled={alreadyRequested || closed}
                 onClick={() => requestJoin(tm.id)}
                 className="bg-primary text-primary-foreground uppercase text-[10px] font-bold tracking-widest hover:opacity-90"
               >
-                {alreadyRequested ? t("team.requestPending") : t("team.requestJoin")}
+                {closed
+                  ? t("team.closedToJoin")
+                  : alreadyRequested
+                    ? t("team.requestPending")
+                    : t("team.requestJoin")}
               </Button>
             </div>
           );
@@ -379,6 +393,7 @@ function TeamCard({
     deporte: string | null;
     ciudad: string | null;
     owner_id?: string;
+    inscripciones_abiertas?: boolean;
   };
   role: string;
   currentUserId: string | null;
@@ -386,7 +401,9 @@ function TeamCard({
   const { t, i18n } = useTranslation();
   const qc = useQueryClient();
   const [deleting, setDeleting] = useState(false);
+  const [togglingIns, setTogglingIns] = useState(false);
   const isOwner = !!currentUserId && team.owner_id === currentUserId;
+  const inscripcionesAbiertas = team.inscripciones_abiertas !== false;
 
   const { data: members } = useQuery({
     queryKey: ["team-members-count", team.id],
@@ -400,6 +417,24 @@ function TeamCard({
       return count ?? 0;
     },
   });
+
+  async function toggleInscripciones() {
+    setTogglingIns(true);
+    try {
+      const { error } = await supabase
+        .from("teams")
+        .update({ inscripciones_abiertas: !inscripcionesAbiertas })
+        .eq("id", team.id);
+      if (error) throw error;
+      toast.success(t("team.inscripcionesUpdated"));
+      qc.invalidateQueries({ queryKey: ["my-teams-full"] });
+      qc.invalidateQueries({ queryKey: ["team-discovery"] });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("common.error"));
+    } finally {
+      setTogglingIns(false);
+    }
+  }
 
   async function deleteTeam() {
     const confirmMsg = t("team.deleteConfirm", { name: team.nombre });
@@ -458,6 +493,33 @@ function TeamCard({
         <p className="border-b border-border p-6 text-sm text-muted-foreground">
           {team.descripcion}
         </p>
+      )}
+      {isOwner && (
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4">
+          <div className="flex items-center gap-2">
+            <span
+              className={`inline-block size-2 rounded-full ${
+                inscripcionesAbiertas ? "bg-primary" : "bg-muted-foreground/50"
+              }`}
+            />
+            <span className="text-[11px] font-bold uppercase tracking-widest">
+              {inscripcionesAbiertas
+                ? t("team.inscripcionesAbiertas")
+                : t("team.inscripcionesCerradas")}
+            </span>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={togglingIns}
+            onClick={toggleInscripciones}
+            className="uppercase text-[10px] font-bold tracking-widest"
+          >
+            {inscripcionesAbiertas
+              ? t("team.cerrarInscripciones")
+              : t("team.abrirInscripciones")}
+          </Button>
+        </div>
       )}
       <div className="grid grid-cols-3 divide-x divide-border">
         <MetaCell label={t("team.members")} value={String(members ?? 0)} icon={<Users className="size-4" />} />

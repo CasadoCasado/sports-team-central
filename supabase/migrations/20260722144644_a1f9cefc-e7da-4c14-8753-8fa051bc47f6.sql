@@ -1,0 +1,1 @@
+ALTER TABLE public.teams ADD COLUMN inscripciones_abiertas boolean NOT NULL DEFAULT true;
