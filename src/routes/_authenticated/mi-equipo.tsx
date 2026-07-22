@@ -235,6 +235,8 @@ function MiEquipo() {
           return <TeamCard key={m.id} team={team} role={m.role} currentUserId={user?.id ?? null} />;
         })}
       </div>
+
+      <TeamDiscovery onlyOpen />
     </div>
   );
 }
