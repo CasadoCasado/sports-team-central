@@ -211,7 +211,7 @@ function MiEquipo() {
           </Button>
         </div>
 
-        <TeamDiscovery />
+        <TeamDiscovery onlyOpen />
       </div>
     );
   }
