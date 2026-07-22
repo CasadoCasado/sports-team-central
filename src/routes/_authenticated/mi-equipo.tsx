@@ -37,7 +37,7 @@ function MiEquipo() {
       const { data, error } = await supabase
         .from("team_members")
         .select(
-          "id, team_id, role, status, teams:team_id(id, nombre, logo_url, descripcion, deporte, categoria, ciudad, instalacion, owner_id)",
+          "id, team_id, role, status, teams:team_id(id, nombre, logo_url, descripcion, deporte, categoria, ciudad, instalacion, owner_id, inscripciones_abiertas)",
         )
         .eq("user_id", user!.id)
         .eq("status", "activo");
