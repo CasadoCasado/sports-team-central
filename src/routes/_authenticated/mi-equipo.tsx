@@ -391,6 +391,9 @@ function TeamCard({
         <MetaCell label={t("team.deporte")} value={sportLabel(team.deporte, i18n.language)} />
         <MetaCell label={t("team.ciudad")} value={team.ciudad || "—"} />
       </div>
+      {(isOwner || ["capitan", "co_capitan", "entrenador", "delegado"].includes(role)) && (
+        <TeamJoinRequests teamId={team.id} compact />
+      )}
     </div>
   );
 }
