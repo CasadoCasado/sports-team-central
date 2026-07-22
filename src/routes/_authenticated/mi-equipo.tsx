@@ -494,6 +494,33 @@ function TeamCard({
           {team.descripcion}
         </p>
       )}
+      {isOwner && (
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4">
+          <div className="flex items-center gap-2">
+            <span
+              className={`inline-block size-2 rounded-full ${
+                inscripcionesAbiertas ? "bg-primary" : "bg-muted-foreground/50"
+              }`}
+            />
+            <span className="text-[11px] font-bold uppercase tracking-widest">
+              {inscripcionesAbiertas
+                ? t("team.inscripcionesAbiertas")
+                : t("team.inscripcionesCerradas")}
+            </span>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={togglingIns}
+            onClick={toggleInscripciones}
+            className="uppercase text-[10px] font-bold tracking-widest"
+          >
+            {inscripcionesAbiertas
+              ? t("team.cerrarInscripciones")
+              : t("team.abrirInscripciones")}
+          </Button>
+        </div>
+      )}
       <div className="grid grid-cols-3 divide-x divide-border">
         <MetaCell label={t("team.members")} value={String(members ?? 0)} icon={<Users className="size-4" />} />
         <MetaCell label={t("team.deporte")} value={sportLabel(team.deporte, i18n.language)} />
