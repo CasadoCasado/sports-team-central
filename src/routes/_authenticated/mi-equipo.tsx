@@ -301,8 +301,12 @@ function TeamDiscovery({ onlyOpen = false }: { onlyOpen?: boolean } = {}) {
 
   return (
     <div className="surface-card p-6">
-      <h3 className="text-display text-xl font-bold">{t("team.discoverTitle")}</h3>
-      <p className="mt-1 text-sm text-muted-foreground">{t("team.discoverSubtitle")}</p>
+      <h3 className="text-display text-xl font-bold">
+        {onlyOpen ? t("team.openTeamsTitle") : t("team.discoverTitle")}
+      </h3>
+      <p className="mt-1 text-sm text-muted-foreground">
+        {onlyOpen ? t("team.openTeamsSubtitle") : t("team.discoverSubtitle")}
+      </p>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_200px]">
         <div className="relative">
@@ -330,10 +334,13 @@ function TeamDiscovery({ onlyOpen = false }: { onlyOpen?: boolean } = {}) {
       <div className="mt-5 space-y-2">
         {isLoading && <p className="text-xs text-muted-foreground">{t("common.loading")}</p>}
         {!isLoading && (teams?.length ?? 0) === 0 && (
-          <p className="text-xs text-muted-foreground">{t("members.noResults")}</p>
+          <p className="text-xs text-muted-foreground">
+            {onlyOpen ? t("team.noOpenTeams") : t("members.noResults")}
+          </p>
         )}
         {teams?.map((tm) => {
           const alreadyRequested = pendingReqs?.has(tm.id);
+          const closed = tm.inscripciones_abiertas === false;
           return (
             <div
               key={tm.id}
@@ -355,11 +362,15 @@ function TeamDiscovery({ onlyOpen = false }: { onlyOpen?: boolean } = {}) {
               </div>
               <Button
                 size="sm"
-                disabled={alreadyRequested}
+                disabled={alreadyRequested || closed}
                 onClick={() => requestJoin(tm.id)}
                 className="bg-primary text-primary-foreground uppercase text-[10px] font-bold tracking-widest hover:opacity-90"
               >
-                {alreadyRequested ? t("team.requestPending") : t("team.requestJoin")}
+                {closed
+                  ? t("team.closedToJoin")
+                  : alreadyRequested
+                    ? t("team.requestPending")
+                    : t("team.requestJoin")}
               </Button>
             </div>
           );
