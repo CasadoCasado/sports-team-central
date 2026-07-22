@@ -241,7 +241,7 @@ function MiEquipo() {
   );
 }
 
-function TeamDiscovery() {
+function TeamDiscovery({ onlyOpen = false }: { onlyOpen?: boolean } = {}) {
   const { t, i18n } = useTranslation();
   const { user } = useSession();
   const qc = useQueryClient();
@@ -249,13 +249,14 @@ function TeamDiscovery() {
   const [q, setQ] = useState("");
 
   const { data: teams, isLoading } = useQuery({
-    queryKey: ["team-discovery", sport, q],
+    queryKey: ["team-discovery", sport, q, onlyOpen],
     queryFn: async () => {
       let query = supabase
         .from("teams")
-        .select("id, nombre, logo_url, deporte, ciudad, descripcion")
+        .select("id, nombre, logo_url, deporte, ciudad, descripcion, inscripciones_abiertas")
         .order("nombre")
         .limit(30);
+      if (onlyOpen) query = query.eq("inscripciones_abiertas", true);
       if (sport !== "all") query = query.eq("deporte", sport);
       if (q.trim()) query = query.ilike("nombre", `%${q.trim()}%`);
       const { data, error } = await query;
