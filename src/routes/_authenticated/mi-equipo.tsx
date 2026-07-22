@@ -393,6 +393,7 @@ function TeamCard({
     deporte: string | null;
     ciudad: string | null;
     owner_id?: string;
+    inscripciones_abiertas?: boolean;
   };
   role: string;
   currentUserId: string | null;
@@ -400,7 +401,9 @@ function TeamCard({
   const { t, i18n } = useTranslation();
   const qc = useQueryClient();
   const [deleting, setDeleting] = useState(false);
+  const [togglingIns, setTogglingIns] = useState(false);
   const isOwner = !!currentUserId && team.owner_id === currentUserId;
+  const inscripcionesAbiertas = team.inscripciones_abiertas !== false;
 
   const { data: members } = useQuery({
     queryKey: ["team-members-count", team.id],
@@ -414,6 +417,24 @@ function TeamCard({
       return count ?? 0;
     },
   });
+
+  async function toggleInscripciones() {
+    setTogglingIns(true);
+    try {
+      const { error } = await supabase
+        .from("teams")
+        .update({ inscripciones_abiertas: !inscripcionesAbiertas })
+        .eq("id", team.id);
+      if (error) throw error;
+      toast.success(t("team.inscripcionesUpdated"));
+      qc.invalidateQueries({ queryKey: ["my-teams-full"] });
+      qc.invalidateQueries({ queryKey: ["team-discovery"] });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("common.error"));
+    } finally {
+      setTogglingIns(false);
+    }
+  }
 
   async function deleteTeam() {
     const confirmMsg = t("team.deleteConfirm", { name: team.nombre });
