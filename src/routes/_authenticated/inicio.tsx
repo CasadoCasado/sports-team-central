@@ -32,22 +32,40 @@ function Inicio() {
   const qc = useQueryClient();
   const [callupId, setCallupId] = useState<string | null>(null);
 
+  const { data: alreadySignedUp } = useQuery({
+    queryKey: ["my-response-for", user?.id, callupId],
+    enabled: !!user && !!callupId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("event_responses")
+        .select("id, status")
+        .eq("user_id", user!.id)
+        .eq("event_id", callupId!)
+        .maybeSingle();
+      if (error) throw error;
+      return !!data && data.status === "confirmado";
+    },
+  });
+
   const signUp = useMutation({
     mutationFn: async (eventId: string) => {
       if (!user) return;
-      const { error } = await supabase.from("event_responses").insert({
-        event_id: eventId,
-        user_id: user.id,
-        status: "confirmado",
-        responded_at: new Date().toISOString(),
-      });
+      const { error } = await supabase.from("event_responses").upsert(
+        {
+          event_id: eventId,
+          user_id: user.id,
+          status: "confirmado",
+          responded_at: new Date().toISOString(),
+        },
+        { onConflict: "event_id,user_id" },
+      );
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_d, eventId) => {
       toast.success(t("callups.signedUp"));
       qc.invalidateQueries({ queryKey: ["dash-open-callups"] });
       qc.invalidateQueries({ queryKey: ["my-responses-map"] });
-      setCallupId(null);
+      qc.invalidateQueries({ queryKey: ["my-response-for", user?.id, eventId] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
