@@ -29,6 +29,28 @@ function Inicio() {
   const { t } = useTranslation();
   const { user } = useSession();
   const { data: profile } = useProfile();
+  const qc = useQueryClient();
+  const [callupId, setCallupId] = useState<string | null>(null);
+
+  const signUp = useMutation({
+    mutationFn: async (eventId: string) => {
+      if (!user) return;
+      const { error } = await supabase.from("event_responses").insert({
+        event_id: eventId,
+        user_id: user.id,
+        status: "confirmado",
+        responded_at: new Date().toISOString(),
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success(t("callups.signedUp"));
+      qc.invalidateQueries({ queryKey: ["dash-open-callups"] });
+      qc.invalidateQueries({ queryKey: ["my-responses-map"] });
+      setCallupId(null);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const { data: teams } = useQuery({
     queryKey: ["my-teams", user?.id],
