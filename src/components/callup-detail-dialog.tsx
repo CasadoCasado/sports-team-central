@@ -56,7 +56,7 @@ export function CallupDetailDialog({
   const style = event ? eventTypeStyles[event.tipo as EventType] : null;
   const start = event ? new Date(event.fecha_inicio) : null;
   const end = event?.fecha_fin ? new Date(event.fecha_fin) : null;
-  const cierre = event?.cierre_convocatoria ? new Date(event.cierre_convocatoria) : null;
+  const cierre = event?.convocatoria_cierra_en ? new Date(event.convocatoria_cierra_en) : null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
