@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import {
   Shield,
   Calendar,
@@ -17,6 +19,7 @@ import { useProfile } from "@/hooks/use-profile";
 import { useSession } from "@/hooks/use-session";
 import { eventTypeStyles } from "@/lib/events";
 import { TeamDiscovery } from "@/components/team-discovery";
+import { CallupDetailDialog } from "@/components/callup-detail-dialog";
 
 export const Route = createFileRoute("/_authenticated/inicio")({
   component: Inicio,
