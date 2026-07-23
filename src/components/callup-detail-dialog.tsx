@@ -130,11 +130,13 @@ export function CallupDetailDialog({
         )}
 
         <DialogFooter className="flex-col-reverse gap-2 sm:flex-row sm:justify-between">
-          <Button variant="outline" asChild size="sm">
-            <Link to="/eventos/$id" params={{ id: event?.id ?? "" }} disabled={!event}>
-              <ExternalLink className="mr-1 size-3.5" /> {t("events.detail")}
-            </Link>
-          </Button>
+          {event && (
+            <Button variant="outline" asChild size="sm">
+              <Link to="/eventos/$id" params={{ id: event.id }}>
+                <ExternalLink className="mr-1 size-3.5" /> {t("events.detail")}
+              </Link>
+            </Button>
+          )}
           {onSignUp && event && !alreadySignedUp && (
             <Button
               size="sm"
