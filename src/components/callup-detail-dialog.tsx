@@ -44,7 +44,7 @@ export function CallupDetailDialog({
       const { data, error } = await supabase
         .from("events")
         .select(
-          "id, tipo, titulo, descripcion, fecha_inicio, fecha_fin, ubicacion, rival, es_local, requiere_convocatoria, cierre_convocatoria, competitions:competition_id(nombre)",
+          "id, tipo, titulo, descripcion, fecha_inicio, fecha_fin, ubicacion, rival, es_local, requiere_convocatoria, convocatoria_cierra_en, competitions:competition_id(nombre)",
         )
         .eq("id", eventId!)
         .maybeSingle();
