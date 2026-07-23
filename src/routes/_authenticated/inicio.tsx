@@ -382,6 +382,7 @@ function Inicio() {
         onOpenChange={(o) => !o && setCallupId(null)}
         onSignUp={(id) => signUp.mutate(id)}
         signingUp={signUp.isPending}
+        alreadySignedUp={alreadySignedUp}
       />
     </div>
   );
