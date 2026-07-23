@@ -284,11 +284,11 @@ function Inicio() {
               ) : (
                 <div className="space-y-2">
                   {myPending!.map((e) => (
-                    <Link
+                    <button
                       key={e!.id}
-                      to="/eventos/$id"
-                      params={{ id: e!.id }}
-                      className="surface-card flex items-center gap-3 p-4 transition-colors hover:border-primary/40"
+                      type="button"
+                      onClick={() => setCallupId(e!.id)}
+                      className="surface-card flex w-full items-center gap-3 p-4 text-left transition-colors hover:border-primary/40"
                     >
                       <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
                         <ClipboardList className="size-4" />
@@ -302,7 +302,7 @@ function Inicio() {
                       <span className="rounded-full border border-amber-400/40 bg-amber-400/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-amber-300">
                         {t("callups.pending")}
                       </span>
-                    </Link>
+                    </button>
                   ))}
                 </div>
               )}
