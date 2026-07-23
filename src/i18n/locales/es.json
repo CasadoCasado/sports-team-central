@@ -360,7 +360,16 @@
     "selectChannel": "Selecciona un canal para empezar",
     "placeholder": "Mensaje en #{{channel}}",
     "unknownUser": "Usuario",
-    "deleteConfirm": "¿Borrar este mensaje?"
+    "deleteConfirm": "¿Borrar este mensaje?",
+    "members": "Miembros",
+    "manageMembers": "Gestionar miembros",
+    "selectMembers": "Selecciona quién puede ver este canal",
+    "noMembersSelected": "Añade al menos un miembro",
+    "membersUpdated": "Miembros actualizados",
+    "privateChannel": "Canal privado",
+    "deleteChannel": "Eliminar canal",
+    "deleteChannelConfirm": "¿Eliminar este canal y todos sus mensajes?",
+    "channelDeleted": "Canal eliminado"
   },
   "polls": {
     "title": "Encuestas",
