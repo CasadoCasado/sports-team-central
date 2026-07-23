@@ -420,9 +420,12 @@ function Inicio() {
         open={!!callupId}
         onOpenChange={(o) => !o && setCallupId(null)}
         onSignUp={(id) => signUp.mutate(id)}
+        onWithdraw={(id) => withdraw.mutate(id)}
         signingUp={signUp.isPending}
+        withdrawing={withdraw.isPending}
         alreadySignedUp={alreadySignedUp}
       />
+
     </div>
   );
 }
