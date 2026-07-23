@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -69,6 +69,45 @@ function Inicio() {
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  const withdraw = useMutation({
+    mutationFn: async (eventId: string) => {
+      if (!user) return;
+      const { error } = await supabase
+        .from("event_responses")
+        .delete()
+        .eq("event_id", eventId)
+        .eq("user_id", user.id);
+      if (error) throw error;
+    },
+    onSuccess: (_d, eventId) => {
+      toast.success(t("callups.withdrawn"));
+      qc.invalidateQueries({ queryKey: ["dash-open-callups"] });
+      qc.invalidateQueries({ queryKey: ["my-responses-map"] });
+      qc.invalidateQueries({ queryKey: ["my-response-for", user?.id, eventId] });
+      setCallupId(null);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`event_responses:${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "event_responses", filter: `user_id=eq.${user.id}` },
+        () => {
+          qc.invalidateQueries({ queryKey: ["dash-open-callups"] });
+          qc.invalidateQueries({ queryKey: ["my-response-for", user.id] });
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, qc]);
+
 
   const { data: teams } = useQuery({
     queryKey: ["my-teams", user?.id],
@@ -381,9 +420,12 @@ function Inicio() {
         open={!!callupId}
         onOpenChange={(o) => !o && setCallupId(null)}
         onSignUp={(id) => signUp.mutate(id)}
+        onWithdraw={(id) => withdraw.mutate(id)}
         signingUp={signUp.isPending}
+        withdrawing={withdraw.isPending}
         alreadySignedUp={alreadySignedUp}
       />
+
     </div>
   );
 }
