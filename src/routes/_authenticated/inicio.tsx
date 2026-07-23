@@ -80,14 +80,18 @@ function Inicio() {
         .eq("user_id", user.id);
       if (error) throw error;
     },
-    onSuccess: (_d, eventId) => {
-      toast.success(t("callups.withdrawn"));
+    onMutate: () => {
+      const id = toast.loading(t("callups.withdrawing"));
+      return { toastId: id };
+    },
+    onSuccess: (_d, eventId, ctx) => {
+      toast.success(t("callups.withdrawn"), { id: ctx?.toastId });
       qc.invalidateQueries({ queryKey: ["dash-open-callups"] });
       qc.invalidateQueries({ queryKey: ["my-responses-map"] });
       qc.invalidateQueries({ queryKey: ["my-response-for", user?.id, eventId] });
       setCallupId(null);
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error, _v, ctx) => toast.error(e.message, { id: ctx?.toastId }),
   });
 
   useEffect(() => {
