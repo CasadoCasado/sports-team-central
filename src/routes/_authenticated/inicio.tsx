@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import {
   Shield,
   Calendar,
@@ -17,6 +19,7 @@ import { useProfile } from "@/hooks/use-profile";
 import { useSession } from "@/hooks/use-session";
 import { eventTypeStyles } from "@/lib/events";
 import { TeamDiscovery } from "@/components/team-discovery";
+import { CallupDetailDialog } from "@/components/callup-detail-dialog";
 
 export const Route = createFileRoute("/_authenticated/inicio")({
   component: Inicio,
@@ -26,6 +29,28 @@ function Inicio() {
   const { t } = useTranslation();
   const { user } = useSession();
   const { data: profile } = useProfile();
+  const qc = useQueryClient();
+  const [callupId, setCallupId] = useState<string | null>(null);
+
+  const signUp = useMutation({
+    mutationFn: async (eventId: string) => {
+      if (!user) return;
+      const { error } = await supabase.from("event_responses").insert({
+        event_id: eventId,
+        user_id: user.id,
+        status: "confirmado",
+        responded_at: new Date().toISOString(),
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success(t("callups.signedUp"));
+      qc.invalidateQueries({ queryKey: ["dash-open-callups"] });
+      qc.invalidateQueries({ queryKey: ["my-responses-map"] });
+      setCallupId(null);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const { data: teams } = useQuery({
     queryKey: ["my-teams", user?.id],
@@ -259,11 +284,11 @@ function Inicio() {
               ) : (
                 <div className="space-y-2">
                   {myPending!.map((e) => (
-                    <Link
+                    <button
                       key={e!.id}
-                      to="/eventos/$id"
-                      params={{ id: e!.id }}
-                      className="surface-card flex items-center gap-3 p-4 transition-colors hover:border-primary/40"
+                      type="button"
+                      onClick={() => setCallupId(e!.id)}
+                      className="surface-card flex w-full items-center gap-3 p-4 text-left transition-colors hover:border-primary/40"
                     >
                       <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
                         <ClipboardList className="size-4" />
@@ -277,7 +302,7 @@ function Inicio() {
                       <span className="rounded-full border border-amber-400/40 bg-amber-400/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-amber-300">
                         {t("callups.pending")}
                       </span>
-                    </Link>
+                    </button>
                   ))}
                 </div>
               )}
@@ -332,6 +357,14 @@ function Inicio() {
           </div>
         </div>
       )}
+
+      <CallupDetailDialog
+        eventId={callupId}
+        open={!!callupId}
+        onOpenChange={(o) => !o && setCallupId(null)}
+        onSignUp={(id) => signUp.mutate(id)}
+        signingUp={signUp.isPending}
+      />
     </div>
   );
 }
