@@ -153,10 +153,24 @@ export function CallupDetailDialog({
             </Button>
           )}
           {alreadySignedUp && (
-            <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400">
-              {t("callups.signedUp")}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400">
+                {t("callups.signedUp")}
+              </span>
+              {onWithdraw && event && (!cierre || cierre > new Date()) && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={withdrawing}
+                  onClick={() => onWithdraw(event.id)}
+                  className="text-[10px] font-bold uppercase tracking-widest"
+                >
+                  {t("callups.withdraw")}
+                </Button>
+              )}
+            </div>
           )}
+
         </DialogFooter>
       </DialogContent>
     </Dialog>
