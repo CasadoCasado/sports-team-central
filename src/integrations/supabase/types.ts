@@ -14,6 +14,32 @@ export type Database = {
   }
   public: {
     Tables: {
+      chat_channel_members: {
+        Row: {
+          added_at: string
+          channel_id: string
+          user_id: string
+        }
+        Insert: {
+          added_at?: string
+          channel_id: string
+          user_id: string
+        }
+        Update: {
+          added_at?: string
+          channel_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_channel_members_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "chat_channels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_channels: {
         Row: {
           created_at: string
@@ -1002,6 +1028,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_access_channel: {
+        Args: { _channel_id: string; _user_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Hash, Lock, Plus, Send, Trash2, Users } from "lucide-react";
+import { Hash, Lock, Plus, Send, Settings, Trash2, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
 import { sendPushToTeam } from "@/lib/push.functions";
@@ -14,6 +14,7 @@ import { TeamPicker } from "@/components/team-picker";
 import { EmptyTeamState } from "@/components/empty-team-state";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -44,6 +45,39 @@ type Message = {
   edited: boolean;
   created_at: string;
 };
+
+type TeamMemberOption = {
+  user_id: string;
+  role: string;
+  nombre: string | null;
+  apellidos: string | null;
+  avatar_url: string | null;
+};
+
+function useTeamMemberOptions(teamId: string | undefined) {
+  return useQuery({
+    queryKey: ["team-member-options", teamId],
+    enabled: !!teamId,
+    queryFn: async (): Promise<TeamMemberOption[]> => {
+      const { data, error } = await supabase
+        .from("team_members")
+        .select("user_id, role, profiles:user_id(nombre, apellidos, avatar_url)")
+        .eq("team_id", teamId!)
+        .eq("status", "activo");
+      if (error) throw error;
+      return (data ?? []).map((r: any) => {
+        const p = Array.isArray(r.profiles) ? r.profiles[0] : r.profiles;
+        return {
+          user_id: r.user_id,
+          role: r.role,
+          nombre: p?.nombre ?? null,
+          apellidos: p?.apellidos ?? null,
+          avatar_url: p?.avatar_url ?? null,
+        };
+      });
+    },
+  });
+}
 
 function Comunicaciones() {
   const { t } = useTranslation();
@@ -95,9 +129,7 @@ function Comunicaciones() {
             <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
               {t("chat.channels")}
             </span>
-            {isManager && teamId && (
-              <NewChannelDialog teamId={teamId} />
-            )}
+            {isManager && teamId && <NewChannelDialog teamId={teamId} />}
           </div>
           <div className="flex-1 overflow-y-auto p-2">
             {channels?.map((c) => (
@@ -138,26 +170,97 @@ function Comunicaciones() {
   );
 }
 
+function MemberPicker({
+  options,
+  selected,
+  onToggle,
+  currentUserId,
+}: {
+  options: TeamMemberOption[];
+  selected: Set<string>;
+  onToggle: (id: string) => void;
+  currentUserId?: string;
+}) {
+  return (
+    <div className="max-h-64 space-y-1 overflow-y-auto rounded-md border border-border p-2">
+      {options.length === 0 ? (
+        <p className="p-2 text-xs text-muted-foreground">—</p>
+      ) : (
+        options.map((m) => {
+          const name = `${m.nombre ?? ""} ${m.apellidos ?? ""}`.trim() || m.user_id.slice(0, 8);
+          const isSelf = m.user_id === currentUserId;
+          return (
+            <label
+              key={m.user_id}
+              className={cn(
+                "flex cursor-pointer items-center gap-3 rounded-md px-2 py-1.5 text-sm hover:bg-card",
+                isSelf && "opacity-70",
+              )}
+            >
+              <Checkbox
+                checked={selected.has(m.user_id) || isSelf}
+                disabled={isSelf}
+                onCheckedChange={() => !isSelf && onToggle(m.user_id)}
+              />
+              <span className="flex-1 truncate font-medium">{name}</span>
+              <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                {m.role}
+              </span>
+            </label>
+          );
+        })
+      )}
+    </div>
+  );
+}
+
 function NewChannelDialog({ teamId }: { teamId: string }) {
   const { t } = useTranslation();
   const qc = useQueryClient();
+  const { user } = useSession();
   const [open, setOpen] = useState(false);
   const [nombre, setNombre] = useState("");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
+  const { data: options = [] } = useTeamMemberOptions(open ? teamId : undefined);
+
+  function toggle(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
 
   async function create(e: React.FormEvent) {
     e.preventDefault();
     if (!nombre.trim()) return;
+    if (selected.size === 0) {
+      toast.error(t("chat.noMembersSelected"));
+      return;
+    }
     setSaving(true);
     try {
-      const { error } = await supabase.from("chat_channels").insert({
-        team_id: teamId,
-        nombre: nombre.trim(),
-        scope: "custom",
-      });
+      const { data: channel, error } = await supabase
+        .from("chat_channels")
+        .insert({ team_id: teamId, nombre: nombre.trim(), scope: "custom" })
+        .select("id")
+        .single();
       if (error) throw error;
+
+      const memberIds = new Set(selected);
+      if (user) memberIds.add(user.id);
+      const rows = Array.from(memberIds).map((uid) => ({
+        channel_id: channel.id,
+        user_id: uid,
+      }));
+      const { error: memErr } = await supabase.from("chat_channel_members").insert(rows);
+      if (memErr) throw memErr;
+
       toast.success(t("chat.channelCreated"));
       setNombre("");
+      setSelected(new Set());
       setOpen(false);
       qc.invalidateQueries({ queryKey: ["chat-channels", teamId] });
     } catch (err) {
@@ -192,6 +295,15 @@ function NewChannelDialog({ teamId }: { teamId: string }) {
               autoFocus
             />
           </div>
+          <div>
+            <Label>{t("chat.selectMembers")}</Label>
+            <MemberPicker
+              options={options}
+              selected={selected}
+              onToggle={toggle}
+              currentUserId={user?.id}
+            />
+          </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               {t("common.cancel")}
@@ -205,6 +317,128 @@ function NewChannelDialog({ teamId }: { teamId: string }) {
             </Button>
           </DialogFooter>
         </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function ManageMembersDialog({
+  channel,
+  teamId,
+}: {
+  channel: Channel;
+  teamId: string;
+}) {
+  const { t } = useTranslation();
+  const qc = useQueryClient();
+  const { user } = useSession();
+  const [open, setOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const { data: options = [] } = useTeamMemberOptions(open ? teamId : undefined);
+
+  const { data: currentMembers } = useQuery({
+    queryKey: ["channel-members", channel.id],
+    enabled: open,
+    queryFn: async (): Promise<string[]> => {
+      const { data, error } = await supabase
+        .from("chat_channel_members")
+        .select("user_id")
+        .eq("channel_id", channel.id);
+      if (error) throw error;
+      return (data ?? []).map((r) => r.user_id);
+    },
+  });
+
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    if (currentMembers) setSelected(new Set(currentMembers));
+  }, [currentMembers]);
+
+  function toggle(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  async function save() {
+    if (selected.size === 0) {
+      toast.error(t("chat.noMembersSelected"));
+      return;
+    }
+    setSaving(true);
+    try {
+      const current = new Set(currentMembers ?? []);
+      const desired = new Set(selected);
+      if (user) desired.add(user.id);
+
+      const toAdd = Array.from(desired).filter((id) => !current.has(id));
+      const toRemove = Array.from(current).filter((id) => !desired.has(id));
+
+      if (toAdd.length) {
+        const { error } = await supabase
+          .from("chat_channel_members")
+          .insert(toAdd.map((uid) => ({ channel_id: channel.id, user_id: uid })));
+        if (error) throw error;
+      }
+      if (toRemove.length) {
+        const { error } = await supabase
+          .from("chat_channel_members")
+          .delete()
+          .eq("channel_id", channel.id)
+          .in("user_id", toRemove);
+        if (error) throw error;
+      }
+      toast.success(t("chat.membersUpdated"));
+      setOpen(false);
+      qc.invalidateQueries({ queryKey: ["channel-members", channel.id] });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("common.error"));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <button
+          className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-card hover:text-foreground"
+          aria-label={t("chat.manageMembers")}
+          title={t("chat.manageMembers")}
+        >
+          <Settings className="size-4" />
+        </button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>
+            {t("chat.manageMembers")} · #{channel.nombre}
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <MemberPicker
+            options={options}
+            selected={selected}
+            onToggle={toggle}
+            currentUserId={user?.id}
+          />
+        </div>
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            {t("common.cancel")}
+          </Button>
+          <Button
+            type="button"
+            onClick={save}
+            disabled={saving}
+            className="bg-primary text-primary-foreground uppercase tracking-widest font-bold"
+          >
+            {t("common.save")}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
@@ -298,17 +532,20 @@ function ChannelView({ channel, isManager }: { channel: Channel; isManager: bool
       if (error) throw error;
       setText("");
       qc.invalidateQueries({ queryKey: messagesKey });
-      const author = [me?.nombre, me?.apellidos].filter(Boolean).join(" ") || "Nuevo mensaje";
-      pushTeam({
-        data: {
-          teamId: channel.team_id,
-          title: `#${channel.nombre} · ${author}`,
-          body: content.slice(0, 140),
-          url: "/comunicaciones",
-          tag: `chat:${channel.id}`,
-          managersOnly: channel.scope === "staff",
-        },
-      }).catch(() => {});
+      // Skip team-wide push for custom (private) channels — audience is restricted.
+      if (channel.scope !== "custom") {
+        const author = [me?.nombre, me?.apellidos].filter(Boolean).join(" ") || "Nuevo mensaje";
+        pushTeam({
+          data: {
+            teamId: channel.team_id,
+            title: `#${channel.nombre} · ${author}`,
+            body: content.slice(0, 140),
+            url: "/comunicaciones",
+            tag: `chat:${channel.id}`,
+            managersOnly: channel.scope === "staff",
+          },
+        }).catch(() => {});
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("common.error"));
     } finally {
@@ -326,6 +563,17 @@ function ChannelView({ channel, isManager }: { channel: Channel; isManager: bool
     qc.invalidateQueries({ queryKey: messagesKey });
   }
 
+  async function removeChannel() {
+    if (!confirm(t("chat.deleteChannelConfirm"))) return;
+    const { error } = await supabase.from("chat_channels").delete().eq("id", channel.id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success(t("chat.channelDeleted"));
+    qc.invalidateQueries({ queryKey: ["chat-channels", channel.team_id] });
+  }
+
   return (
     <>
       <header className="flex items-center gap-2 border-b border-border px-5 py-3">
@@ -341,6 +589,24 @@ function ChannelView({ channel, isManager }: { channel: Channel; isManager: bool
           <span className="ml-2 rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-primary">
             {t("chat.staffOnly")}
           </span>
+        )}
+        {channel.scope === "custom" && (
+          <span className="ml-2 rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-primary">
+            {t("chat.privateChannel")}
+          </span>
+        )}
+        {isManager && channel.scope === "custom" && (
+          <div className="ml-auto flex items-center gap-1">
+            <ManageMembersDialog channel={channel} teamId={channel.team_id} />
+            <button
+              onClick={removeChannel}
+              className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-card hover:text-destructive"
+              aria-label={t("chat.deleteChannel")}
+              title={t("chat.deleteChannel")}
+            >
+              <Trash2 className="size-4" />
+            </button>
+          </div>
         )}
       </header>
 
@@ -419,4 +685,3 @@ function ChannelView({ channel, isManager }: { channel: Channel; isManager: bool
     </>
   );
 }
-
