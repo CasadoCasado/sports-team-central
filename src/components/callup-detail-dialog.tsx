@@ -22,7 +22,9 @@ type Props = {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   onSignUp?: (eventId: string) => void;
+  onWithdraw?: (eventId: string) => void;
   signingUp?: boolean;
+  withdrawing?: boolean;
   alreadySignedUp?: boolean;
 };
 
@@ -31,9 +33,12 @@ export function CallupDetailDialog({
   open,
   onOpenChange,
   onSignUp,
+  onWithdraw,
   signingUp,
+  withdrawing,
   alreadySignedUp,
 }: Props) {
+
   const { t, i18n } = useTranslation();
   const locale = i18n.language.startsWith("en") ? enUS : esLocale;
 
