@@ -13,6 +13,17 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { eventTypeStyles, type EventType } from "@/lib/events";
 import { cn } from "@/lib/utils";
@@ -158,15 +169,35 @@ export function CallupDetailDialog({
                 {t("callups.signedUp")}
               </span>
               {onWithdraw && event && (!cierre || cierre > new Date()) && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  disabled={withdrawing}
-                  onClick={() => onWithdraw(event.id)}
-                  className="text-[10px] font-bold uppercase tracking-widest"
-                >
-                  {t("callups.withdraw")}
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={withdrawing}
+                      className="text-[10px] font-bold uppercase tracking-widest"
+                    >
+                      {withdrawing ? t("callups.withdrawing") : t("callups.withdraw")}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>{t("callups.withdrawConfirmTitle")}</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        {t("callups.withdrawConfirmBody")}
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>{t("callups.keepSignedUp")}</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => onWithdraw(event.id)}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        {t("callups.withdrawConfirmAction")}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               )}
             </div>
           )}
