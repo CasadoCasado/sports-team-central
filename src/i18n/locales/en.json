@@ -360,7 +360,16 @@
     "selectChannel": "Select a channel to start",
     "placeholder": "Message in #{{channel}}",
     "unknownUser": "User",
-    "deleteConfirm": "Delete this message?"
+    "deleteConfirm": "Delete this message?",
+    "members": "Members",
+    "manageMembers": "Manage members",
+    "selectMembers": "Select who can see this channel",
+    "noMembersSelected": "Add at least one member",
+    "membersUpdated": "Members updated",
+    "privateChannel": "Private channel",
+    "deleteChannel": "Delete channel",
+    "deleteChannelConfirm": "Delete this channel and all its messages?",
+    "channelDeleted": "Channel deleted"
   },
   "polls": {
     "title": "Polls",
