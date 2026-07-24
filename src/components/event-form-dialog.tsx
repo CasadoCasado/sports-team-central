@@ -189,7 +189,7 @@ export function EventFormDialog({
             >
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                {(["entrenamiento", "partido", "reunion", "otro"] as EventType[]).map((tp) => (
+                {(["entrenamiento", "partido", "torneo", "reunion", "otro"] as EventType[]).map((tp) => (
                   <SelectItem key={tp} value={tp}>{t(`events.types.${tp}`)}</SelectItem>
                 ))}
               </SelectContent>

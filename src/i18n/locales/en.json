@@ -259,6 +259,7 @@
     "types": {
       "entrenamiento": "Training",
       "partido": "Match",
+      "torneo": "Tournament",
       "reunion": "Meeting",
       "otro": "Other"
     },

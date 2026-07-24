@@ -248,7 +248,7 @@ function ViewSwitcher({
 }
 
 function Legend({ t }: { t: (k: string) => string }) {
-  const items: EventType[] = ["entrenamiento", "partido", "reunion", "otro"];
+  const items: EventType[] = ["entrenamiento", "partido", "torneo", "reunion", "otro"];
   return (
     <div className="hidden items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground md:flex">
       <span>{t("events.legend")}</span>
