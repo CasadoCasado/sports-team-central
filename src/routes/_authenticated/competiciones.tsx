@@ -36,6 +36,8 @@ type Competition = {
   tipo: CompType;
   temporada: string | null;
   descripcion: string | null;
+  fecha_inicio: string | null;
+  fecha_fin: string | null;
 };
 
 export const Route = createFileRoute("/_authenticated/competiciones")({
