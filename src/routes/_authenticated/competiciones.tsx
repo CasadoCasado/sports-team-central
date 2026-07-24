@@ -158,6 +158,20 @@ function CompCard({
             <span className="rounded border border-primary/40 bg-primary/15 px-1.5 py-0.5 text-primary">
               {t(`competitions.types.${c.tipo}`)}
             </span>
+            {(() => {
+              const status = getCompetitionStatus(c);
+              if (!status) return null;
+              const styles = {
+                proxima: "border-sky-500/40 bg-sky-500/15 text-sky-600 dark:text-sky-400",
+                enCurso: "border-emerald-500/40 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400",
+                finalizada: "border-muted-foreground/30 bg-muted text-muted-foreground",
+              } as const;
+              return (
+                <span className={`rounded border px-1.5 py-0.5 ${styles[status]}`}>
+                  {t(`competitions.status.${status}`)}
+                </span>
+              );
+            })()}
             {c.tipo === "liga" && c.temporada && (
               <span className="text-muted-foreground">{c.temporada}</span>
             )}
