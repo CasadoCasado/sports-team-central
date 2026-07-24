@@ -152,32 +152,37 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-dvh bg-background text-foreground">
-      {/* Sidebar */}
+      {/* Sidebar — signature ink surface */}
       <aside
         id="main-sidebar"
         className={cn(
-          "fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 flex-col border-r border-border bg-background/95 backdrop-blur transition-transform xl:sticky xl:top-0 xl:h-dvh xl:translate-x-0",
+          "fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 flex-col bg-[color:var(--color-ink)] text-[color:var(--color-ink-foreground)] transition-transform xl:sticky xl:top-0 xl:h-dvh xl:translate-x-0",
           mobileOpen ? "translate-x-0" : "-translate-x-full",
         )}
         aria-label="Navegación principal"
       >
         <div className="flex h-16 items-center gap-3 px-6">
-          <div className="flex size-8 items-center justify-center rounded-md bg-primary">
-            <div className="size-3.5 rotate-45 rounded-sm bg-primary-foreground" />
+          <div className="flex size-9 items-center justify-center rounded-lg bg-primary shadow-[0_6px_20px_-6px_color-mix(in_oklab,var(--color-primary)_60%,transparent)]">
+            <div className="size-3.5 rotate-45 rounded-[3px] bg-primary-foreground" />
           </div>
-          <span className="text-display text-lg font-extrabold uppercase tracking-tight">
-            {t("app.name")}
-          </span>
+          <div className="flex flex-col leading-none">
+            <span className="text-display text-base font-bold uppercase tracking-[0.14em]">
+              {t("app.name")}
+            </span>
+            <span className="mt-1 text-[9px] font-semibold uppercase tracking-[0.28em] text-[color:var(--color-ink-muted)]">
+              Team OS
+            </span>
+          </div>
         </div>
 
-        <nav className="flex-1 space-y-4 overflow-y-auto px-3 py-2">
+        <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-3">
           {groups.map((group) => (
             <div key={group.label}>
-              <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
+              <div className="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-[0.22em] text-[color:var(--color-ink-muted)]">
                 {group.label}
               </div>
               <div className="space-y-0.5">
-                {group.items.map((item) => {
+                {groups.length > 0 && group.items.map((item) => {
                   const active = pathname === item.to || pathname.startsWith(item.to + "/");
                   const Icon = item.icon;
                   return (
@@ -186,13 +191,16 @@ export function AppShell({ children }: { children: ReactNode }) {
                       to={item.to}
                       onClick={() => setMobileOpen(false)}
                       className={cn(
-                        "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                        "group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all",
                         active
-                          ? "bg-primary text-primary-foreground"
-                          : "text-muted-foreground hover:bg-card hover:text-foreground",
+                          ? "bg-white/[0.06] text-white"
+                          : "text-[color:var(--color-ink-muted)] hover:bg-white/[0.04] hover:text-white",
                       )}
                     >
-                      <Icon className="size-4 shrink-0" />
+                      {active && (
+                        <span className="absolute inset-y-1.5 left-0 w-0.5 rounded-r-full bg-primary" aria-hidden="true" />
+                      )}
+                      <Icon className={cn("size-4 shrink-0 transition-colors", active ? "text-primary" : "text-[color:var(--color-ink-muted)] group-hover:text-white")} />
                       <span className="truncate">{item.label}</span>
                     </Link>
                   );
@@ -202,20 +210,20 @@ export function AppShell({ children }: { children: ReactNode }) {
           ))}
         </nav>
 
-        <div className="border-t border-border p-4">
+        <div className="border-t border-white/5 p-3">
           <Link
             to="/perfil"
-            className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-card"
+            className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-white/[0.05]"
             onClick={() => setMobileOpen(false)}
           >
-            <div className="flex size-9 items-center justify-center rounded-full bg-card text-xs font-bold ring-1 ring-border">
+            <div className="flex size-9 items-center justify-center rounded-full bg-primary/15 text-xs font-bold text-primary ring-1 ring-primary/30">
               {initials}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-bold">
+              <p className="truncate text-xs font-semibold text-white">
                 {profile?.nombre} {profile?.apellidos}
               </p>
-              <p className="truncate text-[10px] text-muted-foreground">{profile?.email}</p>
+              <p className="truncate text-[10px] text-[color:var(--color-ink-muted)]">{profile?.email}</p>
             </div>
           </Link>
         </div>
@@ -224,7 +232,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       {mobileOpen && (
         <button
           type="button"
-          className="fixed inset-0 z-30 bg-black/60 xl:hidden"
+          className="fixed inset-0 z-30 bg-black/50 backdrop-blur-sm xl:hidden"
           onClick={() => setMobileOpen(false)}
           aria-label="Cerrar menú"
         />
@@ -232,11 +240,11 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {/* Main */}
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-border bg-background/80 px-4 backdrop-blur xl:px-8">
+        <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-border/70 bg-background/85 px-4 backdrop-blur-md xl:px-8">
           <div className="flex items-center gap-3">
             <button
               type="button"
-              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-border p-2 xl:hidden"
+              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-border bg-card p-2 shadow-[var(--shadow-card)] xl:hidden"
               onClick={() => setMobileOpen((v) => !v)}
               aria-label={mobileOpen ? "Cerrar menú" : "Abrir menú"}
               aria-expanded={mobileOpen}
@@ -245,23 +253,23 @@ export function AppShell({ children }: { children: ReactNode }) {
               {mobileOpen ? <X className="size-4" aria-hidden="true" /> : <Menu className="size-4" aria-hidden="true" />}
             </button>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <LangToggle />
             <Link
               to="/notificaciones"
-              className="relative inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-border p-2 text-muted-foreground transition-colors hover:text-foreground"
+              className="relative inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-border bg-card p-2 text-muted-foreground shadow-[var(--shadow-card)] transition-all hover:-translate-y-px hover:text-foreground"
               aria-label={`${t("nav.notificaciones")}${(unreadCount ?? 0) > 0 ? ` (${unreadCount} sin leer)` : ""}`}
             >
               <Bell className="size-4" aria-hidden="true" />
               {(unreadCount ?? 0) > 0 && (
-                <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground" aria-hidden="true">
+                <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground shadow-[var(--shadow-rose)]" aria-hidden="true">
                   {unreadCount! > 9 ? "9+" : unreadCount}
                 </span>
               )}
             </Link>
             <button
               onClick={signOut}
-              className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:bg-card hover:text-foreground"
+              className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground shadow-[var(--shadow-card)] transition-all hover:-translate-y-px hover:text-foreground"
             >
               <LogOut className="size-3.5" />
               <span className="hidden sm:inline">{t("auth.logout")}</span>
@@ -269,10 +277,13 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </header>
 
-        <main className="flex-1 p-4 xl:p-8">{children}</main>
+        <main className="flex-1 p-4 xl:p-8">
+          <div className="animate-fade-in-up">{children}</div>
+        </main>
       </div>
     </div>
   );
 }
 
 export { UserCircle2 };
+
