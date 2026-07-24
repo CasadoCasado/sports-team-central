@@ -35,6 +35,7 @@ type Channel = {
   team_id: string;
   nombre: string;
   scope: "general" | "staff" | "custom";
+  invite_token: string | null;
 };
 
 type Message = {
