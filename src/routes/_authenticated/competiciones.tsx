@@ -289,10 +289,23 @@ function CompDialog({
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <Label>{t("competitions.temporada")}</Label>
-              <Input value={temporada} onChange={(e) => setTemporada(e.target.value)} placeholder="2025/26" maxLength={20} />
-            </div>
+            {isLiga ? (
+              <div>
+                <Label>{t("competitions.temporada")}</Label>
+                <Input value={temporada} onChange={(e) => setTemporada(e.target.value)} placeholder="2025/26" maxLength={20} />
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label>{t("competitions.fechaInicio")}</Label>
+                  <Input type="date" value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} />
+                </div>
+                <div>
+                  <Label>{t("competitions.fechaFin")}</Label>
+                  <Input type="date" value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} min={fechaInicio || undefined} />
+                </div>
+              </div>
+            )}
           </div>
           <div>
             <Label>{t("competitions.descripcion")}</Label>
