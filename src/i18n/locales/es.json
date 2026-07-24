@@ -299,6 +299,11 @@
       "copa": "Copa",
       "torneo": "Torneo",
       "amistoso": "Amistoso"
+    },
+    "status": {
+      "proxima": "Próxima",
+      "enCurso": "En curso",
+      "finalizada": "Finalizada"
     }
   },
   "callups": {
