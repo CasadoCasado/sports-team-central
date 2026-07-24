@@ -205,9 +205,6 @@ function CompCard({
                 {c.fecha_fin ? new Date(c.fecha_fin).toLocaleDateString() : "?"}
               </span>
             )}
-            <span className="text-muted-foreground">
-              {matchCount ?? 0} {t("competitions.matches")}
-            </span>
           </div>
         </div>
         {canManage && (
