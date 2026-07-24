@@ -366,6 +366,8 @@ function MonthGrid({
               <div className="space-y-1">
                 {dayEvents.slice(0, 3).map((e) => {
                   const style = eventTypeStyles[e.tipo];
+                  const isStart =
+                    format(new Date(e.fecha_inicio), "yyyy-MM-dd") === key;
                   return (
                     <Link
                       key={e.id}
@@ -379,13 +381,18 @@ function MonthGrid({
                       <span
                         className={cn("size-1.5 shrink-0 rounded-full", style.dot)}
                       />
-                      <span className="tabular-nums opacity-70">
-                        {format(new Date(e.fecha_inicio), "HH:mm")}
-                      </span>
+                      {isStart ? (
+                        <span className="tabular-nums opacity-70">
+                          {format(new Date(e.fecha_inicio), "HH:mm")}
+                        </span>
+                      ) : (
+                        <span className="opacity-70">→</span>
+                      )}
                       <span className="truncate">{e.titulo}</span>
                     </Link>
                   );
                 })}
+
                 {dayEvents.length > 3 && (
                   <div className="text-[10px] font-medium text-muted-foreground">
                     +{dayEvents.length - 3}
