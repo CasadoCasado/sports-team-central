@@ -31,6 +31,7 @@ import { Route as AuthenticatedComunicacionesRouteImport } from './routes/_authe
 import { Route as AuthenticatedCompeticionesRouteImport } from './routes/_authenticated/competiciones'
 import { Route as AuthenticatedCalendarioRouteImport } from './routes/_authenticated/calendario'
 import { Route as AuthenticatedEventosIdRouteImport } from './routes/_authenticated/eventos.$id'
+import { Route as AuthenticatedComunicacionesUnirseTokenRouteImport } from './routes/_authenticated/comunicaciones.unirse.$token'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -148,13 +149,19 @@ const AuthenticatedEventosIdRoute = AuthenticatedEventosIdRouteImport.update({
   path: '/eventos/$id',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedComunicacionesUnirseTokenRoute =
+  AuthenticatedComunicacionesUnirseTokenRouteImport.update({
+    id: '/unirse/$token',
+    path: '/unirse/$token',
+    getParentRoute: () => AuthenticatedComunicacionesRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/calendario': typeof AuthenticatedCalendarioRoute
   '/competiciones': typeof AuthenticatedCompeticionesRoute
-  '/comunicaciones': typeof AuthenticatedComunicacionesRoute
+  '/comunicaciones': typeof AuthenticatedComunicacionesRouteWithChildren
   '/convocatorias': typeof AuthenticatedConvocatoriasRoute
   '/documentos': typeof AuthenticatedDocumentosRoute
   '/encuestas': typeof AuthenticatedEncuestasRoute
@@ -171,13 +178,14 @@ export interface FileRoutesByFullPath {
   '/perfil': typeof AuthenticatedPerfilRoute
   '/resultados': typeof AuthenticatedResultadosRoute
   '/eventos/$id': typeof AuthenticatedEventosIdRoute
+  '/comunicaciones/unirse/$token': typeof AuthenticatedComunicacionesUnirseTokenRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/calendario': typeof AuthenticatedCalendarioRoute
   '/competiciones': typeof AuthenticatedCompeticionesRoute
-  '/comunicaciones': typeof AuthenticatedComunicacionesRoute
+  '/comunicaciones': typeof AuthenticatedComunicacionesRouteWithChildren
   '/convocatorias': typeof AuthenticatedConvocatoriasRoute
   '/documentos': typeof AuthenticatedDocumentosRoute
   '/encuestas': typeof AuthenticatedEncuestasRoute
@@ -194,6 +202,7 @@ export interface FileRoutesByTo {
   '/perfil': typeof AuthenticatedPerfilRoute
   '/resultados': typeof AuthenticatedResultadosRoute
   '/eventos/$id': typeof AuthenticatedEventosIdRoute
+  '/comunicaciones/unirse/$token': typeof AuthenticatedComunicacionesUnirseTokenRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -202,7 +211,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/calendario': typeof AuthenticatedCalendarioRoute
   '/_authenticated/competiciones': typeof AuthenticatedCompeticionesRoute
-  '/_authenticated/comunicaciones': typeof AuthenticatedComunicacionesRoute
+  '/_authenticated/comunicaciones': typeof AuthenticatedComunicacionesRouteWithChildren
   '/_authenticated/convocatorias': typeof AuthenticatedConvocatoriasRoute
   '/_authenticated/documentos': typeof AuthenticatedDocumentosRoute
   '/_authenticated/encuestas': typeof AuthenticatedEncuestasRoute
@@ -219,6 +228,7 @@ export interface FileRoutesById {
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
   '/_authenticated/resultados': typeof AuthenticatedResultadosRoute
   '/_authenticated/eventos/$id': typeof AuthenticatedEventosIdRoute
+  '/_authenticated/comunicaciones/unirse/$token': typeof AuthenticatedComunicacionesUnirseTokenRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -244,6 +254,7 @@ export interface FileRouteTypes {
     | '/perfil'
     | '/resultados'
     | '/eventos/$id'
+    | '/comunicaciones/unirse/$token'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -267,6 +278,7 @@ export interface FileRouteTypes {
     | '/perfil'
     | '/resultados'
     | '/eventos/$id'
+    | '/comunicaciones/unirse/$token'
   id:
     | '__root__'
     | '/'
@@ -291,6 +303,7 @@ export interface FileRouteTypes {
     | '/_authenticated/perfil'
     | '/_authenticated/resultados'
     | '/_authenticated/eventos/$id'
+    | '/_authenticated/comunicaciones/unirse/$token'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -455,13 +468,35 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEventosIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/comunicaciones/unirse/$token': {
+      id: '/_authenticated/comunicaciones/unirse/$token'
+      path: '/unirse/$token'
+      fullPath: '/comunicaciones/unirse/$token'
+      preLoaderRoute: typeof AuthenticatedComunicacionesUnirseTokenRouteImport
+      parentRoute: typeof AuthenticatedComunicacionesRoute
+    }
   }
 }
+
+interface AuthenticatedComunicacionesRouteChildren {
+  AuthenticatedComunicacionesUnirseTokenRoute: typeof AuthenticatedComunicacionesUnirseTokenRoute
+}
+
+const AuthenticatedComunicacionesRouteChildren: AuthenticatedComunicacionesRouteChildren =
+  {
+    AuthenticatedComunicacionesUnirseTokenRoute:
+      AuthenticatedComunicacionesUnirseTokenRoute,
+  }
+
+const AuthenticatedComunicacionesRouteWithChildren =
+  AuthenticatedComunicacionesRoute._addFileChildren(
+    AuthenticatedComunicacionesRouteChildren,
+  )
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedCalendarioRoute: typeof AuthenticatedCalendarioRoute
   AuthenticatedCompeticionesRoute: typeof AuthenticatedCompeticionesRoute
-  AuthenticatedComunicacionesRoute: typeof AuthenticatedComunicacionesRoute
+  AuthenticatedComunicacionesRoute: typeof AuthenticatedComunicacionesRouteWithChildren
   AuthenticatedConvocatoriasRoute: typeof AuthenticatedConvocatoriasRoute
   AuthenticatedDocumentosRoute: typeof AuthenticatedDocumentosRoute
   AuthenticatedEncuestasRoute: typeof AuthenticatedEncuestasRoute
@@ -483,7 +518,8 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCalendarioRoute: AuthenticatedCalendarioRoute,
   AuthenticatedCompeticionesRoute: AuthenticatedCompeticionesRoute,
-  AuthenticatedComunicacionesRoute: AuthenticatedComunicacionesRoute,
+  AuthenticatedComunicacionesRoute:
+    AuthenticatedComunicacionesRouteWithChildren,
   AuthenticatedConvocatoriasRoute: AuthenticatedConvocatoriasRoute,
   AuthenticatedDocumentosRoute: AuthenticatedDocumentosRoute,
   AuthenticatedEncuestasRoute: AuthenticatedEncuestasRoute,

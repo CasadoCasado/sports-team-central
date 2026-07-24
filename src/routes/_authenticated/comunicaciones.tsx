@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Hash, Lock, Plus, Send, Settings, Trash2, Users } from "lucide-react";
+import { Copy, Hash, Link2, Lock, Plus, RefreshCw, Send, Settings, Trash2, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
 import { sendPushToTeam } from "@/lib/push.functions";
@@ -35,6 +35,7 @@ type Channel = {
   team_id: string;
   nombre: string;
   scope: "general" | "staff" | "custom";
+  invite_token: string | null;
 };
 
 type Message = {
@@ -90,7 +91,7 @@ function Comunicaciones() {
     queryFn: async (): Promise<Channel[]> => {
       const { data, error } = await supabase
         .from("chat_channels")
-        .select("id, team_id, nombre, scope")
+        .select("id, team_id, nombre, scope, invite_token")
         .eq("team_id", teamId!)
         .order("scope")
         .order("created_at");
@@ -322,6 +323,110 @@ function NewChannelDialog({ teamId }: { teamId: string }) {
   );
 }
 
+function InviteLinkSection({ channel }: { channel: Channel }) {
+  const { t } = useTranslation();
+  const qc = useQueryClient();
+  const [token, setToken] = useState<string | null>(channel.invite_token);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    setToken(channel.invite_token);
+  }, [channel.invite_token]);
+
+  const link = token ? `${window.location.origin}/comunicaciones/unirse/${token}` : "";
+
+  async function generate() {
+    setBusy(true);
+    try {
+      const newToken =
+        (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)) +
+        Math.random().toString(36).slice(2, 8);
+      const { error } = await supabase
+        .from("chat_channels")
+        .update({ invite_token: newToken })
+        .eq("id", channel.id);
+      if (error) throw error;
+      setToken(newToken);
+      qc.invalidateQueries({ queryKey: ["chat-channels", channel.team_id] });
+      toast.success(t("chat.inviteGenerated"));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("common.error"));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function revoke() {
+    setBusy(true);
+    try {
+      const { error } = await supabase
+        .from("chat_channels")
+        .update({ invite_token: null })
+        .eq("id", channel.id);
+      if (error) throw error;
+      setToken(null);
+      qc.invalidateQueries({ queryKey: ["chat-channels", channel.team_id] });
+      toast.success(t("chat.inviteRevoked"));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("common.error"));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function copy() {
+    if (!link) return;
+    try {
+      await navigator.clipboard.writeText(link);
+      toast.success(t("chat.linkCopied"));
+    } catch {
+      toast.error(t("common.error"));
+    }
+  }
+
+  return (
+    <div className="rounded-md border border-border bg-card/40 p-3">
+      <div className="mb-2 flex items-center gap-2">
+        <Link2 className="size-3.5 text-primary" />
+        <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+          {t("chat.inviteLink")}
+        </span>
+      </div>
+      <p className="mb-2 text-xs text-muted-foreground">{t("chat.inviteLinkHelp")}</p>
+      {token ? (
+        <div className="space-y-2">
+          <div className="flex gap-2">
+            <Input value={link} readOnly className="flex-1 font-mono text-xs" />
+            <Button type="button" variant="outline" size="icon" onClick={copy} aria-label={t("chat.copyLink")}>
+              <Copy className="size-4" />
+            </Button>
+          </div>
+          <div className="flex gap-2">
+            <Button type="button" variant="outline" size="sm" onClick={generate} disabled={busy}>
+              <RefreshCw className="mr-1 size-3.5" />
+              {t("chat.regenerate")}
+            </Button>
+            <Button type="button" variant="ghost" size="sm" onClick={revoke} disabled={busy}>
+              {t("chat.revokeLink")}
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <Button
+          type="button"
+          size="sm"
+          onClick={generate}
+          disabled={busy}
+          className="bg-primary text-primary-foreground uppercase tracking-widest font-bold"
+        >
+          <Link2 className="mr-1 size-3.5" />
+          {t("chat.generateLink")}
+        </Button>
+      )}
+    </div>
+  );
+}
+
 function ManageMembersDialog({
   channel,
   teamId,
@@ -419,6 +524,7 @@ function ManageMembersDialog({
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
+          <InviteLinkSection channel={channel} />
           <MemberPicker
             options={options}
             selected={selected}
