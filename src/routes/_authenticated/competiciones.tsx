@@ -36,6 +36,8 @@ type Competition = {
   tipo: CompType;
   temporada: string | null;
   descripcion: string | null;
+  fecha_inicio: string | null;
+  fecha_fin: string | null;
 };
 
 export const Route = createFileRoute("/_authenticated/competiciones")({
@@ -53,7 +55,7 @@ function CompetitionsPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("competitions")
-        .select("id, nombre, tipo, temporada, descripcion")
+        .select("id, nombre, tipo, temporada, descripcion, fecha_inicio, fecha_fin")
         .eq("team_id", active!.team_id)
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -156,7 +158,16 @@ function CompCard({
             <span className="rounded border border-primary/40 bg-primary/15 px-1.5 py-0.5 text-primary">
               {t(`competitions.types.${c.tipo}`)}
             </span>
-            {c.temporada && <span className="text-muted-foreground">{c.temporada}</span>}
+            {c.tipo === "liga" && c.temporada && (
+              <span className="text-muted-foreground">{c.temporada}</span>
+            )}
+            {c.tipo !== "liga" && (c.fecha_inicio || c.fecha_fin) && (
+              <span className="text-muted-foreground">
+                {c.fecha_inicio ? new Date(c.fecha_inicio).toLocaleDateString() : "?"}
+                {" – "}
+                {c.fecha_fin ? new Date(c.fecha_fin).toLocaleDateString() : "?"}
+              </span>
+            )}
             <span className="text-muted-foreground">
               {matchCount ?? 0} {t("competitions.matches")}
             </span>
@@ -201,6 +212,8 @@ function CompDialog({
   const [nombre, setNombre] = useState("");
   const [tipo, setTipo] = useState<CompType>("liga");
   const [temporada, setTemporada] = useState("");
+  const [fechaInicio, setFechaInicio] = useState("");
+  const [fechaFin, setFechaFin] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -208,10 +221,13 @@ function CompDialog({
     setNombre(initial.nombre ?? "");
     setTipo((initial.tipo as CompType) ?? "liga");
     setTemporada(initial.temporada ?? "");
+    setFechaInicio(initial.fecha_inicio ?? "");
+    setFechaFin(initial.fecha_fin ?? "");
     setDescripcion(initial.descripcion ?? "");
   }, [initial]);
 
   const isEdit = !!initial.id;
+  const isLiga = tipo === "liga";
 
   const save = useMutation({
     mutationFn: async () => {
@@ -220,7 +236,9 @@ function CompDialog({
         team_id: teamId,
         nombre: nombre.trim(),
         tipo,
-        temporada: temporada.trim() || null,
+        temporada: isLiga ? (temporada.trim() || null) : null,
+        fecha_inicio: !isLiga && fechaInicio ? fechaInicio : null,
+        fecha_fin: !isLiga && fechaFin ? fechaFin : null,
         descripcion: descripcion.trim() || null,
         created_by: user.id,
       };
@@ -271,10 +289,23 @@ function CompDialog({
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <Label>{t("competitions.temporada")}</Label>
-              <Input value={temporada} onChange={(e) => setTemporada(e.target.value)} placeholder="2025/26" maxLength={20} />
-            </div>
+            {isLiga ? (
+              <div>
+                <Label>{t("competitions.temporada")}</Label>
+                <Input value={temporada} onChange={(e) => setTemporada(e.target.value)} placeholder="2025/26" maxLength={20} />
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label>{t("competitions.fechaInicio")}</Label>
+                  <Input type="date" value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} />
+                </div>
+                <div>
+                  <Label>{t("competitions.fechaFin")}</Label>
+                  <Input type="date" value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} min={fechaInicio || undefined} />
+                </div>
+              </div>
+            )}
           </div>
           <div>
             <Label>{t("competitions.descripcion")}</Label>

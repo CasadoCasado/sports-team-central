@@ -134,6 +134,8 @@ export type Database = {
           created_at: string
           created_by: string
           descripcion: string | null
+          fecha_fin: string | null
+          fecha_inicio: string | null
           id: string
           nombre: string
           team_id: string
@@ -145,6 +147,8 @@ export type Database = {
           created_at?: string
           created_by: string
           descripcion?: string | null
+          fecha_fin?: string | null
+          fecha_inicio?: string | null
           id?: string
           nombre: string
           team_id: string
@@ -156,6 +160,8 @@ export type Database = {
           created_at?: string
           created_by?: string
           descripcion?: string | null
+          fecha_fin?: string | null
+          fecha_inicio?: string | null
           id?: string
           nombre?: string
           team_id?: string
