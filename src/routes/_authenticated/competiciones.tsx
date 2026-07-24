@@ -158,7 +158,16 @@ function CompCard({
             <span className="rounded border border-primary/40 bg-primary/15 px-1.5 py-0.5 text-primary">
               {t(`competitions.types.${c.tipo}`)}
             </span>
-            {c.temporada && <span className="text-muted-foreground">{c.temporada}</span>}
+            {c.tipo === "liga" && c.temporada && (
+              <span className="text-muted-foreground">{c.temporada}</span>
+            )}
+            {c.tipo !== "liga" && (c.fecha_inicio || c.fecha_fin) && (
+              <span className="text-muted-foreground">
+                {c.fecha_inicio ? new Date(c.fecha_inicio).toLocaleDateString() : "?"}
+                {" – "}
+                {c.fecha_fin ? new Date(c.fecha_fin).toLocaleDateString() : "?"}
+              </span>
+            )}
             <span className="text-muted-foreground">
               {matchCount ?? 0} {t("competitions.matches")}
             </span>
