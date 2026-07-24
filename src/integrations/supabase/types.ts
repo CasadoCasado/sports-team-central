@@ -45,6 +45,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           id: string
+          invite_token: string | null
           nombre: string
           scope: Database["public"]["Enums"]["channel_scope"]
           team_id: string
@@ -54,6 +55,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
+          invite_token?: string | null
           nombre: string
           scope?: Database["public"]["Enums"]["channel_scope"]
           team_id: string
@@ -63,6 +65,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
+          invite_token?: string | null
           nombre?: string
           scope?: Database["public"]["Enums"]["channel_scope"]
           team_id?: string
@@ -1047,6 +1050,7 @@ export type Database = {
         Args: { _team_id: string; _user_id: string }
         Returns: boolean
       }
+      join_channel_by_token: { Args: { _token: string }; Returns: string }
     }
     Enums: {
       app_role: "admin" | "user"
