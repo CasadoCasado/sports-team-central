@@ -168,17 +168,6 @@ function CompCard({
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const { data: matchCount } = useQuery({
-    queryKey: ["competition-matches", c.id],
-    queryFn: async () => {
-      const { count, error } = await supabase
-        .from("events")
-        .select("id", { count: "exact", head: true })
-        .eq("competition_id", c.id);
-      if (error) throw error;
-      return count ?? 0;
-    },
-  });
 
   return (
     <div className="surface-card p-5">
