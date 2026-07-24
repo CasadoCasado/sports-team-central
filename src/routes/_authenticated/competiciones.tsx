@@ -55,7 +55,7 @@ function CompetitionsPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("competitions")
-        .select("id, nombre, tipo, temporada, descripcion")
+        .select("id, nombre, tipo, temporada, descripcion, fecha_inicio, fecha_fin")
         .eq("team_id", active!.team_id)
         .order("created_at", { ascending: false });
       if (error) throw error;
