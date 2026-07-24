@@ -195,11 +195,11 @@ function CompCard({
             {(() => {
               const status = getCompetitionStatus(c);
               if (!status) return null;
-              const styles = {
+              const styles: Record<CompStatus, string> = {
                 proxima: "border-sky-500/40 bg-sky-500/15 text-sky-600 dark:text-sky-400",
                 enCurso: "border-emerald-500/40 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400",
                 finalizada: "border-muted-foreground/30 bg-muted text-muted-foreground",
-              } as const;
+              };
               return (
                 <span className={`rounded border px-1.5 py-0.5 ${styles[status]}`}>
                   {t(`competitions.status.${status}`)}
