@@ -58,6 +58,26 @@ type EventRow = {
 
 type View = "month" | "week" | "list";
 
+/** Build a map of dayKey -> events, expanding multi-day events across every day they span. */
+function buildDayMap(events: EventRow[], gridStart: Date, gridEnd: Date) {
+  const m = new Map<string, EventRow[]>();
+  events.forEach((e) => {
+    const start = startOfDay(new Date(e.fecha_inicio));
+    const end = e.fecha_fin ? startOfDay(new Date(e.fecha_fin)) : start;
+    const from = start < gridStart ? gridStart : start;
+    const to = end > gridEnd ? gridEnd : end;
+    if (to < from) return;
+    eachDayOfInterval({ start: from, end: to }).forEach((d) => {
+      const k = format(d, "yyyy-MM-dd");
+      const arr = m.get(k) ?? [];
+      arr.push(e);
+      m.set(k, arr);
+    });
+  });
+  return m;
+}
+
+
 function Calendario() {
   const { t, i18n } = useTranslation();
   const locale = i18n.language.startsWith("en") ? enUS : esLocale;
