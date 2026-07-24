@@ -212,6 +212,8 @@ function CompDialog({
   const [nombre, setNombre] = useState("");
   const [tipo, setTipo] = useState<CompType>("liga");
   const [temporada, setTemporada] = useState("");
+  const [fechaInicio, setFechaInicio] = useState("");
+  const [fechaFin, setFechaFin] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -219,10 +221,13 @@ function CompDialog({
     setNombre(initial.nombre ?? "");
     setTipo((initial.tipo as CompType) ?? "liga");
     setTemporada(initial.temporada ?? "");
+    setFechaInicio(initial.fecha_inicio ?? "");
+    setFechaFin(initial.fecha_fin ?? "");
     setDescripcion(initial.descripcion ?? "");
   }, [initial]);
 
   const isEdit = !!initial.id;
+  const isLiga = tipo === "liga";
 
   const save = useMutation({
     mutationFn: async () => {
@@ -231,7 +236,9 @@ function CompDialog({
         team_id: teamId,
         nombre: nombre.trim(),
         tipo,
-        temporada: temporada.trim() || null,
+        temporada: isLiga ? (temporada.trim() || null) : null,
+        fecha_inicio: !isLiga && fechaInicio ? fechaInicio : null,
+        fecha_fin: !isLiga && fechaFin ? fechaFin : null,
         descripcion: descripcion.trim() || null,
         created_by: user.id,
       };
