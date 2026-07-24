@@ -40,6 +40,40 @@ type Competition = {
   fecha_fin: string | null;
 };
 
+type CompStatus = "proxima" | "enCurso" | "finalizada";
+
+function getCompetitionStatus(c: Pick<Competition, "tipo" | "temporada" | "fecha_inicio" | "fecha_fin">): CompStatus | null {
+  let start: Date | null = null;
+  let end: Date | null = null;
+  if (c.fecha_inicio) start = new Date(c.fecha_inicio);
+  if (c.fecha_fin) {
+    end = new Date(c.fecha_fin);
+    end.setHours(23, 59, 59, 999);
+  }
+  if (!start && !end && c.tipo === "liga" && c.temporada) {
+    const m = c.temporada.match(/^(\d{4})\s*[/\-]\s*(\d{2,4})$/);
+    if (m) {
+      const y1 = Number(m[1]);
+      const y2Raw = Number(m[2]);
+      const y2 = y2Raw < 100 ? 2000 + y2Raw : y2Raw;
+      start = new Date(y1, 7, 1);
+      end = new Date(y2, 5, 30, 23, 59, 59, 999);
+    } else {
+      const y = c.temporada.match(/^(\d{4})$/);
+      if (y) {
+        const yr = Number(y[1]);
+        start = new Date(yr, 0, 1);
+        end = new Date(yr, 11, 31, 23, 59, 59, 999);
+      }
+    }
+  }
+  if (!start && !end) return null;
+  const now = new Date();
+  if (end && now > end) return "finalizada";
+  if (start && now < start) return "proxima";
+  return "enCurso";
+}
+
 export const Route = createFileRoute("/_authenticated/competiciones")({
   component: CompetitionsPage,
 });
@@ -158,6 +192,20 @@ function CompCard({
             <span className="rounded border border-primary/40 bg-primary/15 px-1.5 py-0.5 text-primary">
               {t(`competitions.types.${c.tipo}`)}
             </span>
+            {(() => {
+              const status = getCompetitionStatus(c);
+              if (!status) return null;
+              const styles: Record<CompStatus, string> = {
+                proxima: "border-sky-500/40 bg-sky-500/15 text-sky-600 dark:text-sky-400",
+                enCurso: "border-emerald-500/40 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400",
+                finalizada: "border-muted-foreground/30 bg-muted text-muted-foreground",
+              };
+              return (
+                <span className={`rounded border px-1.5 py-0.5 ${styles[status]}`}>
+                  {t(`competitions.status.${status}`)}
+                </span>
+              );
+            })()}
             {c.tipo === "liga" && c.temporada && (
               <span className="text-muted-foreground">{c.temporada}</span>
             )}
