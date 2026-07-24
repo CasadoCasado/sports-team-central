@@ -91,7 +91,7 @@ function Comunicaciones() {
     queryFn: async (): Promise<Channel[]> => {
       const { data, error } = await supabase
         .from("chat_channels")
-        .select("id, team_id, nombre, scope")
+        .select("id, team_id, nombre, scope, invite_token")
         .eq("team_id", teamId!)
         .order("scope")
         .order("created_at");
