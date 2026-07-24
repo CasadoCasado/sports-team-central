@@ -97,12 +97,15 @@ function Calendario() {
           "id, tipo, titulo, fecha_inicio, fecha_fin, ubicacion, rival, requiere_convocatoria",
         )
         .eq("team_id", active!.team_id)
-        .gte("fecha_inicio", range.start.toISOString())
         .lte("fecha_inicio", range.end.toISOString())
+        .or(
+          `fecha_fin.gte.${range.start.toISOString()},and(fecha_fin.is.null,fecha_inicio.gte.${range.start.toISOString()})`,
+        )
         .order("fecha_inicio", { ascending: true });
       if (error) throw error;
       return (data ?? []) as EventRow[];
     },
+
   });
 
   if (!active) return <EmptyTeamState />;
