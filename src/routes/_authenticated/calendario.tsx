@@ -310,16 +310,11 @@ function MonthGrid({
     () => eachDayOfInterval({ start: gridStart, end: gridEnd }),
     [gridStart, gridEnd],
   );
-  const byDay = useMemo(() => {
-    const m = new Map<string, EventRow[]>();
-    events.forEach((e) => {
-      const k = format(new Date(e.fecha_inicio), "yyyy-MM-dd");
-      const arr = m.get(k) ?? [];
-      arr.push(e);
-      m.set(k, arr);
-    });
-    return m;
-  }, [events]);
+  const byDay = useMemo(
+    () => buildDayMap(events, gridStart, gridEnd),
+    [events, gridStart, gridEnd],
+  );
+
   const weekdays = eachDayOfInterval({
     start: gridStart,
     end: addDays(gridStart, 6),
