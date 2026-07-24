@@ -251,9 +251,16 @@
       "otro": "Otro"
     },
     "monthView": "Mes",
+    "weekView": "Semana",
     "listView": "Lista",
     "prevMonth": "Mes anterior",
     "nextMonth": "Mes siguiente",
+    "prevWeek": "Semana anterior",
+    "nextWeek": "Semana siguiente",
+    "todayBtn": "Hoy",
+    "legend": "Leyenda",
+    "allDay": "Todo el día",
+    "noEventsDay": "Sin eventos",
     "backToCalendar": "Volver al calendario",
     "padelPistas": "Nº de pistas de pádel",
     "padelPistasHint": "Ej. 2"

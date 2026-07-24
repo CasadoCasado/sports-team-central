@@ -251,9 +251,16 @@
       "otro": "Other"
     },
     "monthView": "Month",
+    "weekView": "Week",
     "listView": "List",
     "prevMonth": "Previous month",
     "nextMonth": "Next month",
+    "prevWeek": "Previous week",
+    "nextWeek": "Next week",
+    "todayBtn": "Today",
+    "legend": "Legend",
+    "allDay": "All day",
+    "noEventsDay": "No events",
     "backToCalendar": "Back to calendar",
     "padelPistas": "Number of padel courts",
     "padelPistasHint": "e.g. 2"
