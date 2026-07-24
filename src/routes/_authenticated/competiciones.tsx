@@ -168,7 +168,6 @@ function CompCard({
     onError: (e: Error) => toast.error(e.message),
   });
 
-
   return (
     <div className="surface-card p-5">
       <div className="flex items-start gap-3">
