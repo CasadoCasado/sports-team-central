@@ -53,6 +53,7 @@ type EventRow = {
   requiere_convocatoria?: boolean;
   resultado_local?: number | null;
   resultado_visitante?: number | null;
+
 };
 
 type View = "month" | "week" | "list";
