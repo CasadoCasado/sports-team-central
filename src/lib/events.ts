@@ -2,26 +2,57 @@ import type { Database } from "@/integrations/supabase/types";
 
 export type EventType = Database["public"]["Enums"]["event_type"];
 
-export const eventTypeStyles: Record<EventType, { dot: string; badge: string; ring: string }> = {
+/**
+ * Semantic type styling driven by CSS tokens defined in styles.css.
+ * `color` is the raw token used inline for chips/dots.
+ * Tailwind classes use arbitrary values that reference the same tokens
+ * so light/dark themes and future re-tinting stay in one place.
+ */
+export const eventTypeStyles: Record<
+  EventType,
+  {
+    token: string;
+    dot: string;
+    badge: string;
+    band: string;
+    ring: string;
+    soft: string;
+  }
+> = {
   entrenamiento: {
-    dot: "bg-sky-400",
-    badge: "bg-sky-400/10 text-sky-300 border-sky-400/30",
-    ring: "ring-sky-400/40",
+    token: "var(--color-evt-entreno)",
+    dot: "bg-[var(--color-evt-entreno)]",
+    badge:
+      "bg-[color-mix(in_oklab,var(--color-evt-entreno)_14%,transparent)] text-[var(--color-evt-entreno)] border-[color-mix(in_oklab,var(--color-evt-entreno)_45%,transparent)]",
+    band: "event-band-entreno",
+    ring: "ring-[color-mix(in_oklab,var(--color-evt-entreno)_45%,transparent)]",
+    soft: "bg-[color-mix(in_oklab,var(--color-evt-entreno)_10%,transparent)]",
   },
   partido: {
-    dot: "bg-primary",
-    badge: "bg-primary/15 text-primary border-primary/40",
-    ring: "ring-primary/40",
+    token: "var(--color-evt-partido)",
+    dot: "bg-[var(--color-evt-partido)]",
+    badge:
+      "bg-[color-mix(in_oklab,var(--color-evt-partido)_15%,transparent)] text-[var(--color-evt-partido)] border-[color-mix(in_oklab,var(--color-evt-partido)_50%,transparent)]",
+    band: "event-band-partido",
+    ring: "ring-[color-mix(in_oklab,var(--color-evt-partido)_50%,transparent)]",
+    soft: "bg-[color-mix(in_oklab,var(--color-evt-partido)_10%,transparent)]",
   },
   reunion: {
-    dot: "bg-amber-400",
-    badge: "bg-amber-400/10 text-amber-300 border-amber-400/30",
-    ring: "ring-amber-400/40",
+    token: "var(--color-evt-reunion)",
+    dot: "bg-[var(--color-evt-reunion)]",
+    badge:
+      "bg-[color-mix(in_oklab,var(--color-evt-reunion)_14%,transparent)] text-[var(--color-evt-reunion)] border-[color-mix(in_oklab,var(--color-evt-reunion)_45%,transparent)]",
+    band: "event-band-reunion",
+    ring: "ring-[color-mix(in_oklab,var(--color-evt-reunion)_45%,transparent)]",
+    soft: "bg-[color-mix(in_oklab,var(--color-evt-reunion)_10%,transparent)]",
   },
   otro: {
+    token: "var(--color-muted-foreground)",
     dot: "bg-muted-foreground",
     badge: "bg-muted text-muted-foreground border-border",
+    band: "border-l-[3px] border-l-border",
     ring: "ring-border",
+    soft: "bg-muted",
   },
 };
 
