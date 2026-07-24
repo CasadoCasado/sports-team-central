@@ -13,7 +13,6 @@ import {
   format,
   isSameMonth,
   isToday,
-  isToday,
   startOfDay,
   startOfMonth,
   startOfWeek,
@@ -370,7 +369,7 @@ function MonthGrid({
                 })}
                 {dayEvents.length > 3 && (
                   <div className="text-[10px] font-medium text-muted-foreground">
-                    +{dayEvents.length - 3} {t("common.more") || ""}
+                    +{dayEvents.length - 3}
                   </div>
                 )}
               </div>
