@@ -1095,7 +1095,7 @@ export type Database = {
       app_role: "admin" | "user"
       channel_scope: "general" | "staff" | "custom"
       competition_type: "liga" | "copa" | "torneo" | "amistoso"
-      event_type: "entrenamiento" | "partido" | "reunion" | "otro"
+      event_type: "entrenamiento" | "partido" | "reunion" | "otro" | "torneo"
       invitation_status: "pendiente" | "aceptada" | "rechazada"
       member_status: "pendiente" | "activo" | "expulsado"
       preferred_role: "capitan" | "jugador"
@@ -1236,7 +1236,7 @@ export const Constants = {
       app_role: ["admin", "user"],
       channel_scope: ["general", "staff", "custom"],
       competition_type: ["liga", "copa", "torneo", "amistoso"],
-      event_type: ["entrenamiento", "partido", "reunion", "otro"],
+      event_type: ["entrenamiento", "partido", "reunion", "otro", "torneo"],
       invitation_status: ["pendiente", "aceptada", "rechazada"],
       member_status: ["pendiente", "activo", "expulsado"],
       preferred_role: ["capitan", "jugador"],
