@@ -217,6 +217,35 @@ export type Database = {
           },
         ]
       }
+      event_reminders_sent: {
+        Row: {
+          event_id: string
+          hours_before: number
+          sent_at: string
+          user_id: string
+        }
+        Insert: {
+          event_id: string
+          hours_before: number
+          sent_at?: string
+          user_id: string
+        }
+        Update: {
+          event_id?: string
+          hours_before?: number
+          sent_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_reminders_sent_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_responses: {
         Row: {
           created_at: string
@@ -731,6 +760,7 @@ export type Database = {
           onboarding_completed: boolean
           posicion: string | null
           preferred_role: Database["public"]["Enums"]["preferred_role"] | null
+          reminder_hours: number[]
           telefono: string | null
           updated_at: string
         }
@@ -750,6 +780,7 @@ export type Database = {
           onboarding_completed?: boolean
           posicion?: string | null
           preferred_role?: Database["public"]["Enums"]["preferred_role"] | null
+          reminder_hours?: number[]
           telefono?: string | null
           updated_at?: string
         }
@@ -769,6 +800,7 @@ export type Database = {
           onboarding_completed?: boolean
           posicion?: string | null
           preferred_role?: Database["public"]["Enums"]["preferred_role"] | null
+          reminder_hours?: number[]
           telefono?: string | null
           updated_at?: string
         }
@@ -1051,6 +1083,7 @@ export type Database = {
         Returns: boolean
       }
       join_channel_by_token: { Args: { _token: string }; Returns: string }
+      send_event_reminders: { Args: never; Returns: number }
     }
     Enums: {
       app_role: "admin" | "user"
