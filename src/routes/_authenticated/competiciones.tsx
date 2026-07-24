@@ -40,6 +40,40 @@ type Competition = {
   fecha_fin: string | null;
 };
 
+type CompStatus = "proxima" | "enCurso" | "finalizada";
+
+function getCompetitionStatus(c: Pick<Competition, "tipo" | "temporada" | "fecha_inicio" | "fecha_fin">): CompStatus | null {
+  let start: Date | null = null;
+  let end: Date | null = null;
+  if (c.fecha_inicio) start = new Date(c.fecha_inicio);
+  if (c.fecha_fin) {
+    end = new Date(c.fecha_fin);
+    end.setHours(23, 59, 59, 999);
+  }
+  if (!start && !end && c.tipo === "liga" && c.temporada) {
+    const m = c.temporada.match(/^(\d{4})\s*[/\-]\s*(\d{2,4})$/);
+    if (m) {
+      const y1 = Number(m[1]);
+      const y2Raw = Number(m[2]);
+      const y2 = y2Raw < 100 ? 2000 + y2Raw : y2Raw;
+      start = new Date(y1, 7, 1);
+      end = new Date(y2, 5, 30, 23, 59, 59, 999);
+    } else {
+      const y = c.temporada.match(/^(\d{4})$/);
+      if (y) {
+        const yr = Number(y[1]);
+        start = new Date(yr, 0, 1);
+        end = new Date(yr, 11, 31, 23, 59, 59, 999);
+      }
+    }
+  }
+  if (!start && !end) return null;
+  const now = new Date();
+  if (end && now > end) return "finalizada";
+  if (start && now < start) return "proxima";
+  return "enCurso";
+}
+
 export const Route = createFileRoute("/_authenticated/competiciones")({
   component: CompetitionsPage,
 });
