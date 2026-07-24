@@ -423,16 +423,11 @@ function WeekView({
   const start = startOfWeek(cursor, { weekStartsOn: 1 });
   const days = eachDayOfInterval({ start, end: addDays(start, 6) });
 
-  const byDay = useMemo(() => {
-    const m = new Map<string, EventRow[]>();
-    events.forEach((e) => {
-      const k = format(new Date(e.fecha_inicio), "yyyy-MM-dd");
-      const arr = m.get(k) ?? [];
-      arr.push(e);
-      m.set(k, arr);
-    });
-    return m;
-  }, [events]);
+  const byDay = useMemo(
+    () => buildDayMap(events, days[0], days[days.length - 1]),
+    [events, days],
+  );
+
 
   return (
     <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-7">
