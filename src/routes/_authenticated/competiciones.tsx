@@ -325,36 +325,35 @@ function CompDialog({
             <Label>{t("competitions.nombre")}</Label>
             <Input value={nombre} onChange={(e) => setNombre(e.target.value)} required maxLength={100} />
           </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div>
-              <Label>{t("competitions.tipo")}</Label>
-              <Select value={tipo} onValueChange={(v) => setTipo(v as CompType)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {(["liga", "copa", "torneo", "amistoso"] as CompType[]).map((tp) => (
-                    <SelectItem key={tp} value={tp}>{t(`competitions.types.${tp}`)}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            {isLiga ? (
-              <div>
-                <Label>{t("competitions.temporada")}</Label>
-                <Input value={temporada} onChange={(e) => setTemporada(e.target.value)} placeholder="2025/26" maxLength={20} />
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <Label>{t("competitions.fechaInicio")}</Label>
-                  <Input type="date" value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} />
-                </div>
-                <div>
-                  <Label>{t("competitions.fechaFin")}</Label>
-                  <Input type="date" value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} min={fechaInicio || undefined} />
-                </div>
-              </div>
-            )}
+          <div>
+            <Label>{t("competitions.tipo")}</Label>
+            <Select value={tipo} onValueChange={(v) => setTipo(v as CompType)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {(["liga", "copa", "torneo", "amistoso"] as CompType[]).map((tp) => (
+                  <SelectItem key={tp} value={tp}>{t(`competitions.types.${tp}`)}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
+          {isLiga ? (
+            <div>
+              <Label>{t("competitions.temporada")}</Label>
+              <Input value={temporada} onChange={(e) => setTemporada(e.target.value)} placeholder="2025/26" maxLength={20} />
+            </div>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <Label>{t("competitions.fechaInicio")}</Label>
+                <Input type="date" value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} />
+              </div>
+              <div>
+                <Label>{t("competitions.fechaFin")}</Label>
+                <Input type="date" value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} min={fechaInicio || undefined} />
+              </div>
+            </div>
+          )}
+
           <div>
             <Label>{t("competitions.descripcion")}</Label>
             <Textarea value={descripcion} onChange={(e) => setDescripcion(e.target.value)} rows={3} maxLength={500} />
