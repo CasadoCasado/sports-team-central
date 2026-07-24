@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { PushSettings } from "@/components/push-settings";
+import { ReminderSettings } from "@/components/reminder-settings";
 
 export const Route = createFileRoute("/_authenticated/perfil")({
   component: Perfil,
@@ -139,6 +140,7 @@ function Perfil() {
         </Button>
       </form>
 
+      <ReminderSettings />
       <PushSettings />
     </div>
   );
