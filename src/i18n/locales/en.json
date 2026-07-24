@@ -194,6 +194,18 @@
     "updated": "Profile updated",
     "language": "Language"
   },
+  "reminders": {
+    "title": "Event reminders",
+    "description": "Choose when to get in-app alerts for upcoming trainings and matches.",
+    "1h": "1 hour before",
+    "2h": "2 hours before",
+    "6h": "6 hours before",
+    "24h": "1 day before",
+    "48h": "2 days before",
+    "72h": "3 days before",
+    "saved": "Reminders saved",
+    "none": "No reminders"
+  },
   "push": {
     "title": "Push notifications",
     "description": "Get alerts on this device when there are new messages, events or call-ups.",

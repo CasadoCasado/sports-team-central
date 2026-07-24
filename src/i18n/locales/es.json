@@ -194,6 +194,18 @@
     "updated": "Perfil actualizado",
     "language": "Idioma"
   },
+  "reminders": {
+    "title": "Recordatorios de eventos",
+    "description": "Elige cuándo quieres recibir avisos dentro de la app para próximos entrenamientos y enfrentamientos.",
+    "1h": "1 hora antes",
+    "2h": "2 horas antes",
+    "6h": "6 horas antes",
+    "24h": "1 día antes",
+    "48h": "2 días antes",
+    "72h": "3 días antes",
+    "saved": "Recordatorios guardados",
+    "none": "Sin recordatorios"
+  },
   "push": {
     "title": "Notificaciones push",
     "description": "Recibe avisos en este dispositivo cuando haya nuevos mensajes, eventos o convocatorias.",
