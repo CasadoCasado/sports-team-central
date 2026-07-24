@@ -299,6 +299,11 @@
       "copa": "Cup",
       "torneo": "Tournament",
       "amistoso": "Friendly"
+    },
+    "status": {
+      "proxima": "Upcoming",
+      "enCurso": "Ongoing",
+      "finalizada": "Finished"
     }
   },
   "callups": {
