@@ -420,6 +420,7 @@ function ManageMembersDialog({
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
+          <InviteLinkSection channel={channel} />
           <MemberPicker
             options={options}
             selected={selected}
