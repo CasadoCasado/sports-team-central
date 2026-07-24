@@ -53,9 +53,30 @@ type EventRow = {
   requiere_convocatoria?: boolean;
   resultado_local?: number | null;
   resultado_visitante?: number | null;
+
 };
 
 type View = "month" | "week" | "list";
+
+/** Build a map of dayKey -> events, expanding multi-day events across every day they span. */
+function buildDayMap(events: EventRow[], gridStart: Date, gridEnd: Date) {
+  const m = new Map<string, EventRow[]>();
+  events.forEach((e) => {
+    const start = startOfDay(new Date(e.fecha_inicio));
+    const end = e.fecha_fin ? startOfDay(new Date(e.fecha_fin)) : start;
+    const from = start < gridStart ? gridStart : start;
+    const to = end > gridEnd ? gridEnd : end;
+    if (to < from) return;
+    eachDayOfInterval({ start: from, end: to }).forEach((d) => {
+      const k = format(d, "yyyy-MM-dd");
+      const arr = m.get(k) ?? [];
+      arr.push(e);
+      m.set(k, arr);
+    });
+  });
+  return m;
+}
+
 
 function Calendario() {
   const { t, i18n } = useTranslation();
@@ -97,12 +118,15 @@ function Calendario() {
           "id, tipo, titulo, fecha_inicio, fecha_fin, ubicacion, rival, requiere_convocatoria",
         )
         .eq("team_id", active!.team_id)
-        .gte("fecha_inicio", range.start.toISOString())
         .lte("fecha_inicio", range.end.toISOString())
+        .or(
+          `fecha_fin.gte.${range.start.toISOString()},and(fecha_fin.is.null,fecha_inicio.gte.${range.start.toISOString()})`,
+        )
         .order("fecha_inicio", { ascending: true });
       if (error) throw error;
       return (data ?? []) as EventRow[];
     },
+
   });
 
   if (!active) return <EmptyTeamState />;
@@ -286,16 +310,11 @@ function MonthGrid({
     () => eachDayOfInterval({ start: gridStart, end: gridEnd }),
     [gridStart, gridEnd],
   );
-  const byDay = useMemo(() => {
-    const m = new Map<string, EventRow[]>();
-    events.forEach((e) => {
-      const k = format(new Date(e.fecha_inicio), "yyyy-MM-dd");
-      const arr = m.get(k) ?? [];
-      arr.push(e);
-      m.set(k, arr);
-    });
-    return m;
-  }, [events]);
+  const byDay = useMemo(
+    () => buildDayMap(events, gridStart, gridEnd),
+    [events, gridStart, gridEnd],
+  );
+
   const weekdays = eachDayOfInterval({
     start: gridStart,
     end: addDays(gridStart, 6),
@@ -347,6 +366,8 @@ function MonthGrid({
               <div className="space-y-1">
                 {dayEvents.slice(0, 3).map((e) => {
                   const style = eventTypeStyles[e.tipo];
+                  const isStart =
+                    format(new Date(e.fecha_inicio), "yyyy-MM-dd") === key;
                   return (
                     <Link
                       key={e.id}
@@ -360,13 +381,18 @@ function MonthGrid({
                       <span
                         className={cn("size-1.5 shrink-0 rounded-full", style.dot)}
                       />
-                      <span className="tabular-nums opacity-70">
-                        {format(new Date(e.fecha_inicio), "HH:mm")}
-                      </span>
+                      {isStart ? (
+                        <span className="tabular-nums opacity-70">
+                          {format(new Date(e.fecha_inicio), "HH:mm")}
+                        </span>
+                      ) : (
+                        <span className="opacity-70">→</span>
+                      )}
                       <span className="truncate">{e.titulo}</span>
                     </Link>
                   );
                 })}
+
                 {dayEvents.length > 3 && (
                   <div className="text-[10px] font-medium text-muted-foreground">
                     +{dayEvents.length - 3}
@@ -397,16 +423,11 @@ function WeekView({
   const start = startOfWeek(cursor, { weekStartsOn: 1 });
   const days = eachDayOfInterval({ start, end: addDays(start, 6) });
 
-  const byDay = useMemo(() => {
-    const m = new Map<string, EventRow[]>();
-    events.forEach((e) => {
-      const k = format(new Date(e.fecha_inicio), "yyyy-MM-dd");
-      const arr = m.get(k) ?? [];
-      arr.push(e);
-      m.set(k, arr);
-    });
-    return m;
-  }, [events]);
+  const byDay = useMemo(
+    () => buildDayMap(events, days[0], days[days.length - 1]),
+    [events, days],
+  );
+
 
   return (
     <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-7">
