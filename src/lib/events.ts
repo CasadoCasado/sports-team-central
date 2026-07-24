@@ -37,6 +37,15 @@ export const eventTypeStyles: Record<
     ring: "ring-[color-mix(in_oklab,var(--color-evt-partido)_50%,transparent)]",
     soft: "bg-[color-mix(in_oklab,var(--color-evt-partido)_10%,transparent)]",
   },
+  torneo: {
+    token: "var(--color-evt-torneo)",
+    dot: "bg-[var(--color-evt-torneo)]",
+    badge:
+      "bg-[color-mix(in_oklab,var(--color-evt-torneo)_15%,transparent)] text-[var(--color-evt-torneo)] border-[color-mix(in_oklab,var(--color-evt-torneo)_50%,transparent)]",
+    band: "event-band-torneo",
+    ring: "ring-[color-mix(in_oklab,var(--color-evt-torneo)_50%,transparent)]",
+    soft: "bg-[color-mix(in_oklab,var(--color-evt-torneo)_10%,transparent)]",
+  },
   reunion: {
     token: "var(--color-evt-reunion)",
     dot: "bg-[var(--color-evt-reunion)]",

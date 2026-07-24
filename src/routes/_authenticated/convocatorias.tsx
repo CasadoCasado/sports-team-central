@@ -49,7 +49,7 @@ function MyCallups() {
         .from("events")
         .select("id, tipo, titulo, fecha_inicio, ubicacion, rival, team_id, requiere_convocatoria")
         .in("team_id", teamIds!)
-        .in("tipo", ["partido", "entrenamiento"])
+        .in("tipo", ["partido", "entrenamiento", "torneo"])
         .gte("fecha_inicio", nowIso)
         .order("fecha_inicio", { ascending: true });
       if (error) throw error;

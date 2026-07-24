@@ -14,7 +14,7 @@ export const Route = createFileRoute("/_authenticated/estadisticas")({
 
 type EventRow = {
   id: string;
-  tipo: "entrenamiento" | "partido" | "reunion" | "otro";
+  tipo: "entrenamiento" | "partido" | "torneo" | "reunion" | "otro";
   fecha_inicio: string;
   resultado_local: number | null;
   resultado_visitante: number | null;
