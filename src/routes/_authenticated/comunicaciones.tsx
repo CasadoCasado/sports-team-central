@@ -113,19 +113,51 @@ function Comunicaciones() {
   if (!active) return <EmptyTeamState />;
 
   return (
-    <div className="mx-auto flex h-[calc(100vh-9rem)] max-w-7xl flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-display text-3xl font-black tracking-tight">
+    <div className="mx-auto flex h-[calc(100dvh-8.5rem)] max-w-7xl flex-col gap-3 lg:h-[calc(100dvh-9rem)] lg:gap-4">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 sm:flex sm:flex-wrap sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="text-display truncate text-2xl font-black tracking-tight sm:text-3xl">
             {t("chat.title")}
           </h1>
-          <p className="text-sm text-muted-foreground">{t("chat.subtitle")}</p>
+          <p className="hidden text-sm text-muted-foreground sm:block">{t("chat.subtitle")}</p>
         </div>
         <TeamPicker />
       </div>
 
+      {/* Mobile channel strip */}
+      <div className="surface-card flex shrink-0 items-center gap-2 overflow-hidden p-2 lg:hidden">
+        <div className="flex min-w-0 flex-1 gap-2 overflow-x-auto">
+          {channels?.map((c) => (
+            <button
+              key={c.id}
+              onClick={() => setSelectedId(c.id)}
+              className={cn(
+                "flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-xs font-semibold transition-colors",
+                selectedId === c.id
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground",
+              )}
+            >
+              {c.scope === "staff" ? (
+                <Lock className="size-3.5 shrink-0" />
+              ) : c.scope === "general" ? (
+                <Users className="size-3.5 shrink-0" />
+              ) : (
+                <Hash className="size-3.5 shrink-0" />
+              )}
+              <span className="max-w-32 truncate">{c.nombre}</span>
+            </button>
+          ))}
+        </div>
+        {isManager && teamId && (
+          <div className="shrink-0">
+            <NewChannelDialog teamId={teamId} />
+          </div>
+        )}
+      </div>
+
       <div className="flex min-h-0 flex-1 gap-4">
-        <aside className="surface-card flex w-64 shrink-0 flex-col overflow-hidden">
+        <aside className="surface-card hidden w-64 shrink-0 flex-col overflow-hidden lg:flex">
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
               {t("chat.channels")}
@@ -170,6 +202,7 @@ function Comunicaciones() {
     </div>
   );
 }
+
 
 function MemberPicker({
   options,
@@ -682,27 +715,29 @@ function ChannelView({ channel, isManager }: { channel: Channel; isManager: bool
 
   return (
     <>
-      <header className="flex items-center gap-2 border-b border-border px-5 py-3">
+      <header className="flex items-center gap-2 border-b border-border px-3 py-2.5 sm:px-5 sm:py-3">
         {channel.scope === "staff" ? (
-          <Lock className="size-4 text-primary" />
+          <Lock className="size-4 shrink-0 text-primary" />
         ) : channel.scope === "general" ? (
-          <Users className="size-4 text-primary" />
+          <Users className="size-4 shrink-0 text-primary" />
         ) : (
-          <Hash className="size-4 text-primary" />
+          <Hash className="size-4 shrink-0 text-primary" />
         )}
-        <span className="text-display font-bold uppercase tracking-tight">{channel.nombre}</span>
+        <span className="text-display min-w-0 truncate font-bold uppercase tracking-tight">
+          {channel.nombre}
+        </span>
         {channel.scope === "staff" && (
-          <span className="ml-2 rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-primary">
+          <span className="ml-1 hidden shrink-0 rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-primary sm:inline">
             {t("chat.staffOnly")}
           </span>
         )}
         {channel.scope === "custom" && (
-          <span className="ml-2 rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-primary">
+          <span className="ml-1 hidden shrink-0 rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-primary sm:inline">
             {t("chat.privateChannel")}
           </span>
         )}
         {isManager && channel.scope === "custom" && (
-          <div className="ml-auto flex items-center gap-1">
+          <div className="ml-auto flex shrink-0 items-center gap-1">
             <ManageMembersDialog channel={channel} teamId={channel.team_id} />
             <button
               onClick={removeChannel}
@@ -716,7 +751,8 @@ function ChannelView({ channel, isManager }: { channel: Channel; isManager: bool
         )}
       </header>
 
-      <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto px-5 py-4">
+
+      <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto px-3 py-3 sm:px-5 sm:py-4">
         {(messages?.length ?? 0) === 0 ? (
           <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
             {t("chat.empty")}
@@ -732,33 +768,34 @@ function ChannelView({ channel, isManager }: { channel: Channel; isManager: bool
             const own = m.user_id === user?.id;
             const canDelete = own || isManager;
             return (
-              <div key={m.id} className={cn("group flex gap-3", sameAuthor && "mt-0")}>
-                <div className="w-9 shrink-0">
+              <div key={m.id} className={cn("group flex gap-2 sm:gap-3", sameAuthor && "mt-0")}>
+                <div className="w-8 shrink-0 sm:w-9">
                   {!sameAuthor && (
                     p?.avatar_url ? (
-                      <img src={p.avatar_url} alt="" className="size-9 rounded-full object-cover" />
+                      <img src={p.avatar_url} alt="" className="size-8 rounded-full object-cover sm:size-9" />
                     ) : (
-                      <div className="flex size-9 items-center justify-center rounded-full bg-card text-xs font-bold ring-1 ring-border">
+                      <div className="flex size-8 items-center justify-center rounded-full bg-card text-xs font-bold ring-1 ring-border sm:size-9">
                         {initials}
                       </div>
                     )
                   )}
                 </div>
+
                 <div className="min-w-0 flex-1">
                   {!sameAuthor && (
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-sm font-bold">{name}</span>
+                    <div className="flex min-w-0 flex-wrap items-baseline gap-x-2">
+                      <span className="truncate text-sm font-bold">{name}</span>
                       <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
                         {new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                       </span>
                     </div>
                   )}
                   <div className="flex items-start gap-2">
-                    <p className="flex-1 whitespace-pre-wrap break-words text-sm">{m.contenido}</p>
+                    <p className="min-w-0 flex-1 whitespace-pre-wrap break-words text-sm">{m.contenido}</p>
                     {canDelete && (
                       <button
                         onClick={() => remove(m.id)}
-                        className="opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100"
+                        className="shrink-0 p-1 text-muted-foreground transition-opacity hover:text-destructive sm:opacity-0 sm:group-hover:opacity-100"
                         aria-label={t("common.delete")}
                       >
                         <Trash2 className="size-3.5" />
@@ -772,22 +809,23 @@ function ChannelView({ channel, isManager }: { channel: Channel; isManager: bool
         )}
       </div>
 
-      <form onSubmit={send} className="flex gap-2 border-t border-border p-3">
+      <form onSubmit={send} className="flex gap-2 border-t border-border p-2 sm:p-3">
         <Input
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder={t("chat.placeholder", { channel: channel.nombre })}
           maxLength={2000}
-          className="flex-1"
+          className="min-w-0 flex-1"
         />
         <Button
           type="submit"
           disabled={sending || !text.trim()}
-          className="bg-primary text-primary-foreground uppercase tracking-widest font-bold"
+          className="shrink-0 bg-primary text-primary-foreground uppercase tracking-widest font-bold"
         >
           <Send className="size-4" />
         </Button>
       </form>
+
     </>
   );
 }
