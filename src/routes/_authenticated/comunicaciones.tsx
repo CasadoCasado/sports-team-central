@@ -783,19 +783,19 @@ function ChannelView({ channel, isManager }: { channel: Channel; isManager: bool
 
                 <div className="min-w-0 flex-1">
                   {!sameAuthor && (
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-sm font-bold">{name}</span>
+                    <div className="flex min-w-0 flex-wrap items-baseline gap-x-2">
+                      <span className="truncate text-sm font-bold">{name}</span>
                       <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
                         {new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                       </span>
                     </div>
                   )}
                   <div className="flex items-start gap-2">
-                    <p className="flex-1 whitespace-pre-wrap break-words text-sm">{m.contenido}</p>
+                    <p className="min-w-0 flex-1 whitespace-pre-wrap break-words text-sm">{m.contenido}</p>
                     {canDelete && (
                       <button
                         onClick={() => remove(m.id)}
-                        className="opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100"
+                        className="shrink-0 p-1 text-muted-foreground transition-opacity hover:text-destructive sm:opacity-0 sm:group-hover:opacity-100"
                         aria-label={t("common.delete")}
                       >
                         <Trash2 className="size-3.5" />
@@ -809,22 +809,23 @@ function ChannelView({ channel, isManager }: { channel: Channel; isManager: bool
         )}
       </div>
 
-      <form onSubmit={send} className="flex gap-2 border-t border-border p-3">
+      <form onSubmit={send} className="flex gap-2 border-t border-border p-2 sm:p-3">
         <Input
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder={t("chat.placeholder", { channel: channel.nombre })}
           maxLength={2000}
-          className="flex-1"
+          className="min-w-0 flex-1"
         />
         <Button
           type="submit"
           disabled={sending || !text.trim()}
-          className="bg-primary text-primary-foreground uppercase tracking-widest font-bold"
+          className="shrink-0 bg-primary text-primary-foreground uppercase tracking-widest font-bold"
         >
           <Send className="size-4" />
         </Button>
       </form>
+
     </>
   );
 }
