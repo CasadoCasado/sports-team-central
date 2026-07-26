@@ -715,27 +715,29 @@ function ChannelView({ channel, isManager }: { channel: Channel; isManager: bool
 
   return (
     <>
-      <header className="flex items-center gap-2 border-b border-border px-5 py-3">
+      <header className="flex items-center gap-2 border-b border-border px-3 py-2.5 sm:px-5 sm:py-3">
         {channel.scope === "staff" ? (
-          <Lock className="size-4 text-primary" />
+          <Lock className="size-4 shrink-0 text-primary" />
         ) : channel.scope === "general" ? (
-          <Users className="size-4 text-primary" />
+          <Users className="size-4 shrink-0 text-primary" />
         ) : (
-          <Hash className="size-4 text-primary" />
+          <Hash className="size-4 shrink-0 text-primary" />
         )}
-        <span className="text-display font-bold uppercase tracking-tight">{channel.nombre}</span>
+        <span className="text-display min-w-0 truncate font-bold uppercase tracking-tight">
+          {channel.nombre}
+        </span>
         {channel.scope === "staff" && (
-          <span className="ml-2 rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-primary">
+          <span className="ml-1 hidden shrink-0 rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-primary sm:inline">
             {t("chat.staffOnly")}
           </span>
         )}
         {channel.scope === "custom" && (
-          <span className="ml-2 rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-primary">
+          <span className="ml-1 hidden shrink-0 rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-primary sm:inline">
             {t("chat.privateChannel")}
           </span>
         )}
         {isManager && channel.scope === "custom" && (
-          <div className="ml-auto flex items-center gap-1">
+          <div className="ml-auto flex shrink-0 items-center gap-1">
             <ManageMembersDialog channel={channel} teamId={channel.team_id} />
             <button
               onClick={removeChannel}
@@ -748,6 +750,7 @@ function ChannelView({ channel, isManager }: { channel: Channel; isManager: bool
           </div>
         )}
       </header>
+
 
       <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto px-5 py-4">
         {(messages?.length ?? 0) === 0 ? (
