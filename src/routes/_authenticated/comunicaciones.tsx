@@ -768,18 +768,19 @@ function ChannelView({ channel, isManager }: { channel: Channel; isManager: bool
             const own = m.user_id === user?.id;
             const canDelete = own || isManager;
             return (
-              <div key={m.id} className={cn("group flex gap-3", sameAuthor && "mt-0")}>
-                <div className="w-9 shrink-0">
+              <div key={m.id} className={cn("group flex gap-2 sm:gap-3", sameAuthor && "mt-0")}>
+                <div className="w-8 shrink-0 sm:w-9">
                   {!sameAuthor && (
                     p?.avatar_url ? (
-                      <img src={p.avatar_url} alt="" className="size-9 rounded-full object-cover" />
+                      <img src={p.avatar_url} alt="" className="size-8 rounded-full object-cover sm:size-9" />
                     ) : (
-                      <div className="flex size-9 items-center justify-center rounded-full bg-card text-xs font-bold ring-1 ring-border">
+                      <div className="flex size-8 items-center justify-center rounded-full bg-card text-xs font-bold ring-1 ring-border sm:size-9">
                         {initials}
                       </div>
                     )
                   )}
                 </div>
+
                 <div className="min-w-0 flex-1">
                   {!sameAuthor && (
                     <div className="flex items-baseline gap-2">
