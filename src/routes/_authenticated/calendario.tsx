@@ -339,7 +339,7 @@ function MonthGrid({
             <div
               key={key}
               className={cn(
-                "min-h-28 border-b border-r border-border p-1.5 transition-colors",
+                "min-h-16 border-b border-r border-border p-1 transition-colors sm:min-h-28 sm:p-1.5",
                 outside && "bg-card/40",
                 today && "bg-[color-mix(in_oklab,var(--color-primary)_5%,transparent)]",
               )}
@@ -358,12 +358,35 @@ function MonthGrid({
                   {format(day, "d")}
                 </div>
                 {dayEvents.length > 0 && !today && (
-                  <span className="text-[9px] font-bold text-muted-foreground">
+                  <span className="hidden text-[9px] font-bold text-muted-foreground sm:inline">
                     {dayEvents.length}
                   </span>
                 )}
               </div>
-              <div className="space-y-1">
+
+              {/* Mobile: compact dots */}
+              <div className="flex flex-wrap gap-1 sm:hidden">
+                {dayEvents.slice(0, 4).map((e) => (
+                  <Link
+                    key={e.id}
+                    to="/eventos/$id"
+                    params={{ id: e.id }}
+                    aria-label={e.titulo}
+                    className={cn(
+                      "size-2 rounded-full",
+                      eventTypeStyles[e.tipo].dot,
+                    )}
+                  />
+                ))}
+                {dayEvents.length > 4 && (
+                  <span className="text-[9px] font-bold leading-none text-muted-foreground">
+                    +{dayEvents.length - 4}
+                  </span>
+                )}
+              </div>
+
+              {/* Tablet & desktop: full chips */}
+              <div className="hidden space-y-1 sm:block">
                 {dayEvents.slice(0, 3).map((e) => {
                   const style = eventTypeStyles[e.tipo];
                   const isStart =
@@ -374,7 +397,7 @@ function MonthGrid({
                       to="/eventos/$id"
                       params={{ id: e.id }}
                       className={cn(
-                        "group flex items-center gap-1 truncate rounded border px-1.5 py-0.5 text-[10px] font-semibold transition-all hover:translate-x-0.5",
+                        "group flex min-w-0 items-center gap-1 rounded border px-1.5 py-0.5 text-[10px] font-semibold transition-all hover:translate-x-0.5",
                         style.badge,
                       )}
                     >
@@ -382,11 +405,11 @@ function MonthGrid({
                         className={cn("size-1.5 shrink-0 rounded-full", style.dot)}
                       />
                       {isStart ? (
-                        <span className="tabular-nums opacity-70">
+                        <span className="shrink-0 tabular-nums opacity-70">
                           {format(new Date(e.fecha_inicio), "HH:mm")}
                         </span>
                       ) : (
-                        <span className="opacity-70">→</span>
+                        <span className="shrink-0 opacity-70">→</span>
                       )}
                       <span className="truncate">{e.titulo}</span>
                     </Link>
@@ -399,6 +422,7 @@ function MonthGrid({
                   </div>
                 )}
               </div>
+
             </div>
           );
         })}
