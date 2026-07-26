@@ -113,19 +113,51 @@ function Comunicaciones() {
   if (!active) return <EmptyTeamState />;
 
   return (
-    <div className="mx-auto flex h-[calc(100vh-9rem)] max-w-7xl flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-display text-3xl font-black tracking-tight">
+    <div className="mx-auto flex h-[calc(100dvh-8.5rem)] max-w-7xl flex-col gap-3 lg:h-[calc(100dvh-9rem)] lg:gap-4">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 sm:flex sm:flex-wrap sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="text-display truncate text-2xl font-black tracking-tight sm:text-3xl">
             {t("chat.title")}
           </h1>
-          <p className="text-sm text-muted-foreground">{t("chat.subtitle")}</p>
+          <p className="hidden text-sm text-muted-foreground sm:block">{t("chat.subtitle")}</p>
         </div>
         <TeamPicker />
       </div>
 
+      {/* Mobile channel strip */}
+      <div className="surface-card flex shrink-0 items-center gap-2 overflow-hidden p-2 lg:hidden">
+        <div className="flex min-w-0 flex-1 gap-2 overflow-x-auto">
+          {channels?.map((c) => (
+            <button
+              key={c.id}
+              onClick={() => setSelectedId(c.id)}
+              className={cn(
+                "flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-xs font-semibold transition-colors",
+                selectedId === c.id
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground",
+              )}
+            >
+              {c.scope === "staff" ? (
+                <Lock className="size-3.5 shrink-0" />
+              ) : c.scope === "general" ? (
+                <Users className="size-3.5 shrink-0" />
+              ) : (
+                <Hash className="size-3.5 shrink-0" />
+              )}
+              <span className="max-w-32 truncate">{c.nombre}</span>
+            </button>
+          ))}
+        </div>
+        {isManager && teamId && (
+          <div className="shrink-0">
+            <NewChannelDialog teamId={teamId} />
+          </div>
+        )}
+      </div>
+
       <div className="flex min-h-0 flex-1 gap-4">
-        <aside className="surface-card flex w-64 shrink-0 flex-col overflow-hidden">
+        <aside className="surface-card hidden w-64 shrink-0 flex-col overflow-hidden lg:flex">
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
               {t("chat.channels")}
@@ -170,6 +202,7 @@ function Comunicaciones() {
     </div>
   );
 }
+
 
 function MemberPicker({
   options,
