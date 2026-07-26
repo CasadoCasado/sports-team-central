@@ -752,7 +752,7 @@ function ChannelView({ channel, isManager }: { channel: Channel; isManager: bool
       </header>
 
 
-      <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto px-5 py-4">
+      <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto px-3 py-3 sm:px-5 sm:py-4">
         {(messages?.length ?? 0) === 0 ? (
           <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
             {t("chat.empty")}
