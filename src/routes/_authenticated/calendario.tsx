@@ -190,25 +190,26 @@ function Calendario() {
           <div className="inline-flex items-center gap-1">
             <button
               onClick={() => shift(-1)}
-              className="rounded-md border border-border bg-card p-2 transition-colors hover:bg-accent"
+              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-border bg-card transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:min-h-9 sm:min-w-9"
               aria-label={view === "week" ? t("events.prevWeek") : t("events.prevMonth")}
             >
-              <ChevronLeft className="size-4" />
+              <ChevronLeft className="size-4" aria-hidden="true" />
             </button>
             <button
               onClick={() => setCursor(new Date())}
-              className="rounded-md border border-border bg-card px-3 py-1.5 text-[11px] font-bold uppercase tracking-widest transition-colors hover:bg-accent"
+              className="inline-flex min-h-11 items-center justify-center rounded-md border border-border bg-card px-4 text-[11px] font-bold uppercase tracking-widest transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:min-h-9"
             >
               {t("events.todayBtn")}
             </button>
             <button
               onClick={() => shift(1)}
-              className="rounded-md border border-border bg-card p-2 transition-colors hover:bg-accent"
+              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-border bg-card transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:min-h-9 sm:min-w-9"
               aria-label={view === "week" ? t("events.nextWeek") : t("events.nextMonth")}
             >
-              <ChevronRight className="size-4" />
+              <ChevronRight className="size-4" aria-hidden="true" />
             </button>
           </div>
+
           <Legend t={t} />
         </div>
       )}
