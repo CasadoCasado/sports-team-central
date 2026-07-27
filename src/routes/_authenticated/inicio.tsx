@@ -451,10 +451,10 @@ function StatCard({
   return (
     <Link
       to={to}
-      className="surface-card group flex flex-col gap-3 p-5 transition-colors hover:border-primary/40"
+      className="surface-card group flex min-h-24 flex-col gap-3 p-5 transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
       <div className="flex items-center justify-between">
-        <div className="flex size-8 items-center justify-center rounded-md bg-primary/10 text-primary [&>svg]:size-4">
+        <div className="flex size-8 items-center justify-center rounded-md bg-primary/10 text-primary [&>svg]:size-4" aria-hidden="true">
           {icon}
         </div>
       </div>
@@ -468,16 +468,18 @@ function StatCard({
   );
 }
 
+
 function QuickLink({ to, icon, label }: { to: string; icon: React.ReactNode; label: string }) {
   return (
     <Link
       to={to}
-      className="surface-card flex items-center gap-3 p-4 transition-colors hover:border-primary/40"
+      className="surface-card flex min-h-14 items-center gap-3 p-4 transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
-      <div className="flex size-9 items-center justify-center rounded-md bg-primary/10 text-primary [&>svg]:size-4">
+      <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary [&>svg]:size-4" aria-hidden="true">
         {icon}
       </div>
-      <span className="text-sm font-bold">{label}</span>
+      <span className="min-w-0 truncate text-sm font-bold">{label}</span>
     </Link>
+
   );
 }
