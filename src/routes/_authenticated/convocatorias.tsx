@@ -117,18 +117,21 @@ function MyCallups() {
           <p className="text-sm text-muted-foreground">{t("callups.empty")}</p>
         </div>
       ) : (
-        <div className="surface-card divide-y divide-border overflow-hidden">
+        <ul className="surface-card divide-y divide-border overflow-hidden">
           {list.map((e) => {
             const style = eventTypeStyles[e.tipo as EventType];
             const mine = myResponses?.get(e.id);
             return (
-              <div key={e.id} className="flex items-center gap-4 p-4">
+              <li
+                key={e.id}
+                className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 p-3 sm:gap-4 sm:p-4"
+              >
                 <Link
                   to="/eventos/$id"
                   params={{ id: e.id }}
-                  className="flex flex-1 min-w-0 items-center gap-4"
+                  className="flex min-w-0 items-center gap-3 rounded-md py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:gap-4"
                 >
-                  <div className={cn("flex size-12 flex-col items-center justify-center rounded-md ring-1", style.ring)}>
+                  <div className={cn("flex size-12 shrink-0 flex-col items-center justify-center rounded-md ring-1", style.ring)}>
                     <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                       {format(new Date(e.fecha_inicio), "MMM", { locale })}
                     </div>
@@ -138,11 +141,12 @@ function MyCallups() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold">{e.titulo}</p>
-                    <div className="mt-0.5 flex items-center gap-3 text-[11px] text-muted-foreground">
+                    <div className="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
                       <span>{format(new Date(e.fecha_inicio), "HH:mm")}</span>
                       {e.ubicacion && (
-                        <span className="inline-flex items-center gap-1 truncate">
-                          <MapPin className="size-3" /> {e.ubicacion}
+                        <span className="inline-flex min-w-0 items-center gap-1">
+                          <MapPin className="size-3 shrink-0" aria-hidden="true" />
+                          <span className="truncate">{e.ubicacion}</span>
                         </span>
                       )}
                       {e.rival && <span className="truncate">vs {e.rival}</span>}
@@ -153,17 +157,19 @@ function MyCallups() {
                   <StatusPill status={mine.status} convocado={mine.es_convocado} />
                 ) : (
                   <Button
-                    size="sm"
                     onClick={() => signUp.mutate(e.id)}
-                    className="bg-primary text-primary-foreground uppercase text-[10px] font-bold tracking-widest hover:opacity-90"
+                    disabled={signUp.isPending}
+                    aria-label={`${t("callups.signUp")}: ${e.titulo}`}
+                    className="btn-primary-rose min-h-11 shrink-0 px-4 text-[10px] font-bold uppercase tracking-widest"
                   >
                     {t("callups.signUp")}
                   </Button>
                 )}
-              </div>
+              </li>
             );
           })}
-        </div>
+        </ul>
+
       )}
     </div>
   );
