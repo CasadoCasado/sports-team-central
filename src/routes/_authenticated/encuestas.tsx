@@ -343,12 +343,12 @@ function PollCard({
         {isManager && (
           <div className="flex flex-wrap items-center gap-2">
             {canCloseManually && (
-              <Button variant="outline" size="sm" onClick={toggleClose}>
+              <Button variant="outline" size="sm" className="min-h-11 sm:min-h-9" onClick={toggleClose}>
                 {poll.closed ? t("polls.reopen") : t("polls.close")}
               </Button>
             )}
             {!canCloseManually && poll.closed && (
-              <Button variant="outline" size="sm" onClick={toggleClose}>
+              <Button variant="outline" size="sm" className="min-h-11 sm:min-h-9" onClick={toggleClose}>
                 {t("polls.reopen")}
               </Button>
             )}
@@ -356,12 +356,13 @@ function PollCard({
               variant="outline"
               size="sm"
               onClick={cancel}
-              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+              className="min-h-11 text-destructive hover:bg-destructive/10 hover:text-destructive sm:min-h-9"
             >
-              <Trash2 className="size-4" /> {t("polls.cancel")}
+              <Trash2 className="size-4" aria-hidden="true" /> {t("polls.cancel")}
             </Button>
           </div>
         )}
+
       </header>
 
       <div className="space-y-2">
