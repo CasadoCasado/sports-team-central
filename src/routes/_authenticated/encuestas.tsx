@@ -141,13 +141,19 @@ function Encuestas() {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2 border-b border-border">
+      <div
+        role="tablist"
+        aria-label={t("polls.title")}
+        className="flex flex-wrap gap-2 border-b border-border"
+      >
         {tabs.map((tb) => (
           <button
             key={tb.key}
+            role="tab"
+            aria-selected={tab === tb.key}
             onClick={() => setTab(tb.key)}
             className={cn(
-              "relative -mb-px flex items-center gap-2 border-b-2 px-3 py-2 text-xs font-bold uppercase tracking-widest transition-colors",
+              "relative -mb-px flex min-h-11 items-center gap-2 border-b-2 px-3 text-xs font-bold uppercase tracking-widest transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               tab === tb.key
                 ? "border-primary text-primary"
                 : "border-transparent text-muted-foreground hover:text-foreground",
@@ -162,6 +168,7 @@ function Encuestas() {
           </button>
         ))}
       </div>
+
 
       {filtered.length === 0 ? (
         <div className="surface-card flex flex-col items-center gap-3 p-12 text-center">
