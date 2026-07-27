@@ -375,14 +375,17 @@ function PollCard({
               key={opt.id}
               onClick={() => vote(opt.id)}
               disabled={isClosed}
+              aria-pressed={selected}
+              aria-label={`${opt.texto} — ${pct}% (${count})`}
               className={cn(
-                "group relative w-full overflow-hidden rounded-lg border p-3 text-left transition-colors",
+                "group relative flex min-h-12 w-full items-center overflow-hidden rounded-lg border p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 selected
                   ? "border-primary bg-primary/10"
                   : "border-border bg-card hover:border-primary/50",
                 isClosed && "cursor-not-allowed opacity-80",
               )}
             >
+
               <div
                 className={cn(
                   "absolute inset-y-0 left-0 transition-all",
