@@ -372,26 +372,30 @@ function MonthGrid({
                 )}
               </div>
 
-              {/* Mobile: compact dots */}
-              <div className="flex flex-wrap gap-1 sm:hidden">
+              {/* Mobile: compact dots (larger tap area) */}
+              <ul className="flex list-none flex-wrap items-center sm:hidden">
                 {dayEvents.slice(0, 4).map((e) => (
-                  <Link
-                    key={e.id}
-                    to="/eventos/$id"
-                    params={{ id: e.id }}
-                    aria-label={e.titulo}
-                    className={cn(
-                      "size-2 rounded-full",
-                      eventTypeStyles[e.tipo].dot,
-                    )}
-                  />
+                  <li key={e.id}>
+                    <Link
+                      to="/eventos/$id"
+                      params={{ id: e.id }}
+                      aria-label={`${e.titulo} — ${format(new Date(e.fecha_inicio), "d LLL HH:mm", { locale })}`}
+                      className="grid size-7 place-items-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      <span
+                        className={cn("size-2.5 rounded-full", eventTypeStyles[e.tipo].dot)}
+                        aria-hidden="true"
+                      />
+                    </Link>
+                  </li>
                 ))}
                 {dayEvents.length > 4 && (
-                  <span className="text-[9px] font-bold leading-none text-muted-foreground">
+                  <li className="px-1 text-[9px] font-bold leading-none text-muted-foreground">
                     +{dayEvents.length - 4}
-                  </span>
+                  </li>
                 )}
-              </div>
+              </ul>
+
 
               {/* Tablet & desktop: full chips */}
               <div className="hidden space-y-1 sm:block">
