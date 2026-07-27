@@ -190,25 +190,26 @@ function Calendario() {
           <div className="inline-flex items-center gap-1">
             <button
               onClick={() => shift(-1)}
-              className="rounded-md border border-border bg-card p-2 transition-colors hover:bg-accent"
+              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-border bg-card transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:min-h-9 sm:min-w-9"
               aria-label={view === "week" ? t("events.prevWeek") : t("events.prevMonth")}
             >
-              <ChevronLeft className="size-4" />
+              <ChevronLeft className="size-4" aria-hidden="true" />
             </button>
             <button
               onClick={() => setCursor(new Date())}
-              className="rounded-md border border-border bg-card px-3 py-1.5 text-[11px] font-bold uppercase tracking-widest transition-colors hover:bg-accent"
+              className="inline-flex min-h-11 items-center justify-center rounded-md border border-border bg-card px-4 text-[11px] font-bold uppercase tracking-widest transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:min-h-9"
             >
               {t("events.todayBtn")}
             </button>
             <button
               onClick={() => shift(1)}
-              className="rounded-md border border-border bg-card p-2 transition-colors hover:bg-accent"
+              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-border bg-card transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:min-h-9 sm:min-w-9"
               aria-label={view === "week" ? t("events.nextWeek") : t("events.nextMonth")}
             >
-              <ChevronRight className="size-4" />
+              <ChevronRight className="size-4" aria-hidden="true" />
             </button>
           </div>
+
           <Legend t={t} />
         </div>
       )}
@@ -252,13 +253,19 @@ function ViewSwitcher({
     { key: "list", label: t("events.listView") },
   ];
   return (
-    <div className="inline-flex rounded-md border border-border bg-card p-0.5 text-[10px] font-bold uppercase tracking-widest">
+    <div
+      role="tablist"
+      aria-label={t("nav.calendario")}
+      className="inline-flex rounded-md border border-border bg-card p-0.5 text-[10px] font-bold uppercase tracking-widest"
+    >
       {items.map((it) => (
         <button
           key={it.key}
+          role="tab"
+          aria-selected={view === it.key}
           onClick={() => setView(it.key)}
           className={cn(
-            "rounded-sm px-3 py-1.5 transition-colors",
+            "inline-flex min-h-10 items-center justify-center rounded-sm px-3 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
             view === it.key
               ? "bg-primary text-primary-foreground shadow-sm"
               : "text-muted-foreground hover:text-foreground",
@@ -267,6 +274,7 @@ function ViewSwitcher({
           {it.label}
         </button>
       ))}
+
     </div>
   );
 }
@@ -364,26 +372,30 @@ function MonthGrid({
                 )}
               </div>
 
-              {/* Mobile: compact dots */}
-              <div className="flex flex-wrap gap-1 sm:hidden">
+              {/* Mobile: compact dots (larger tap area) */}
+              <ul className="flex list-none flex-wrap items-center sm:hidden">
                 {dayEvents.slice(0, 4).map((e) => (
-                  <Link
-                    key={e.id}
-                    to="/eventos/$id"
-                    params={{ id: e.id }}
-                    aria-label={e.titulo}
-                    className={cn(
-                      "size-2 rounded-full",
-                      eventTypeStyles[e.tipo].dot,
-                    )}
-                  />
+                  <li key={e.id}>
+                    <Link
+                      to="/eventos/$id"
+                      params={{ id: e.id }}
+                      aria-label={`${e.titulo} — ${format(new Date(e.fecha_inicio), "d LLL HH:mm", { locale })}`}
+                      className="grid size-7 place-items-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      <span
+                        className={cn("size-2.5 rounded-full", eventTypeStyles[e.tipo].dot)}
+                        aria-hidden="true"
+                      />
+                    </Link>
+                  </li>
                 ))}
                 {dayEvents.length > 4 && (
-                  <span className="text-[9px] font-bold leading-none text-muted-foreground">
+                  <li className="px-1 text-[9px] font-bold leading-none text-muted-foreground">
                     +{dayEvents.length - 4}
-                  </span>
+                  </li>
                 )}
-              </div>
+              </ul>
+
 
               {/* Tablet & desktop: full chips */}
               <div className="hidden space-y-1 sm:block">

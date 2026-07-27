@@ -141,13 +141,19 @@ function Encuestas() {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2 border-b border-border">
+      <div
+        role="tablist"
+        aria-label={t("polls.title")}
+        className="flex flex-wrap gap-2 border-b border-border"
+      >
         {tabs.map((tb) => (
           <button
             key={tb.key}
+            role="tab"
+            aria-selected={tab === tb.key}
             onClick={() => setTab(tb.key)}
             className={cn(
-              "relative -mb-px flex items-center gap-2 border-b-2 px-3 py-2 text-xs font-bold uppercase tracking-widest transition-colors",
+              "relative -mb-px flex min-h-11 items-center gap-2 border-b-2 px-3 text-xs font-bold uppercase tracking-widest transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               tab === tb.key
                 ? "border-primary text-primary"
                 : "border-transparent text-muted-foreground hover:text-foreground",
@@ -162,6 +168,7 @@ function Encuestas() {
           </button>
         ))}
       </div>
+
 
       {filtered.length === 0 ? (
         <div className="surface-card flex flex-col items-center gap-3 p-12 text-center">
@@ -336,12 +343,12 @@ function PollCard({
         {isManager && (
           <div className="flex flex-wrap items-center gap-2">
             {canCloseManually && (
-              <Button variant="outline" size="sm" onClick={toggleClose}>
+              <Button variant="outline" size="sm" className="min-h-11 sm:min-h-9" onClick={toggleClose}>
                 {poll.closed ? t("polls.reopen") : t("polls.close")}
               </Button>
             )}
             {!canCloseManually && poll.closed && (
-              <Button variant="outline" size="sm" onClick={toggleClose}>
+              <Button variant="outline" size="sm" className="min-h-11 sm:min-h-9" onClick={toggleClose}>
                 {t("polls.reopen")}
               </Button>
             )}
@@ -349,12 +356,13 @@ function PollCard({
               variant="outline"
               size="sm"
               onClick={cancel}
-              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+              className="min-h-11 text-destructive hover:bg-destructive/10 hover:text-destructive sm:min-h-9"
             >
-              <Trash2 className="size-4" /> {t("polls.cancel")}
+              <Trash2 className="size-4" aria-hidden="true" /> {t("polls.cancel")}
             </Button>
           </div>
         )}
+
       </header>
 
       <div className="space-y-2">
@@ -367,14 +375,17 @@ function PollCard({
               key={opt.id}
               onClick={() => vote(opt.id)}
               disabled={isClosed}
+              aria-pressed={selected}
+              aria-label={`${opt.texto} — ${pct}% (${count})`}
               className={cn(
-                "group relative w-full overflow-hidden rounded-lg border p-3 text-left transition-colors",
+                "group relative flex min-h-12 w-full items-center overflow-hidden rounded-lg border p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 selected
                   ? "border-primary bg-primary/10"
                   : "border-border bg-card hover:border-primary/50",
                 isClosed && "cursor-not-allowed opacity-80",
               )}
             >
+
               <div
                 className={cn(
                   "absolute inset-y-0 left-0 transition-all",
@@ -383,7 +394,7 @@ function PollCard({
                 style={{ width: `${pct}%` }}
                 aria-hidden
               />
-              <div className="relative flex items-center justify-between gap-3">
+              <div className="relative flex w-full items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
                   {selected && <CheckCircle2 className="size-4 text-primary" />}
                   <span className="text-sm font-medium">{opt.texto}</span>
@@ -502,12 +513,13 @@ function NewPollDialog({ teamId }: { teamId: string }) {
                     <button
                       type="button"
                       onClick={() => setOpts((prev) => prev.filter((_, j) => j !== i))}
-                      className="rounded-md border border-border p-2 text-muted-foreground hover:text-destructive"
-                      aria-label={t("common.delete")}
+                      className="grid min-h-11 min-w-11 shrink-0 place-items-center rounded-md border border-border text-muted-foreground hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      aria-label={`${t("common.delete")} ${i + 1}`}
                     >
-                      <X className="size-4" />
+                      <X className="size-4" aria-hidden="true" />
                     </button>
                   )}
+
                 </div>
               ))}
             </div>

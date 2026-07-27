@@ -343,30 +343,33 @@ function Inicio() {
                   {t("callups.empty")}
                 </div>
               ) : (
-                <div className="space-y-2">
+                <ul className="space-y-2">
                   {myPending!.map((e) => (
-                    <button
-                      key={e!.id}
-                      type="button"
-                      onClick={() => setCallupId(e!.id)}
-                      className="surface-card flex w-full items-center gap-3 p-4 text-left transition-colors hover:border-primary/40"
-                    >
-                      <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-                        <ClipboardList className="size-4" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-bold">{e!.titulo}</p>
-                        <p className="text-[11px] text-muted-foreground">
-                          {new Date(e!.fecha_inicio).toLocaleString([], { dateStyle: "short", timeStyle: "short" })}
-                        </p>
-                      </div>
-                      <span className="rounded-full border border-amber-400/40 bg-amber-400/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-amber-300">
-                        {t("callups.pending")}
-                      </span>
-                    </button>
+                    <li key={e!.id}>
+                      <button
+                        type="button"
+                        onClick={() => setCallupId(e!.id)}
+                        aria-label={`${e!.titulo} — ${t("callups.pending")}`}
+                        className="surface-card flex min-h-14 w-full items-center gap-3 p-4 text-left transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                          <ClipboardList className="size-4" aria-hidden="true" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-bold">{e!.titulo}</p>
+                          <p className="text-[11px] text-muted-foreground">
+                            {new Date(e!.fecha_inicio).toLocaleString([], { dateStyle: "short", timeStyle: "short" })}
+                          </p>
+                        </div>
+                        <span className="shrink-0 rounded-full border border-amber-400/40 bg-amber-400/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-amber-300">
+                          {t("callups.pending")}
+                        </span>
+                      </button>
+                    </li>
                   ))}
-                </div>
+                </ul>
               )}
+
             </div>
 
             <div>
@@ -448,10 +451,10 @@ function StatCard({
   return (
     <Link
       to={to}
-      className="surface-card group flex flex-col gap-3 p-5 transition-colors hover:border-primary/40"
+      className="surface-card group flex min-h-24 flex-col gap-3 p-5 transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
       <div className="flex items-center justify-between">
-        <div className="flex size-8 items-center justify-center rounded-md bg-primary/10 text-primary [&>svg]:size-4">
+        <div className="flex size-8 items-center justify-center rounded-md bg-primary/10 text-primary [&>svg]:size-4" aria-hidden="true">
           {icon}
         </div>
       </div>
@@ -465,16 +468,18 @@ function StatCard({
   );
 }
 
+
 function QuickLink({ to, icon, label }: { to: string; icon: React.ReactNode; label: string }) {
   return (
     <Link
       to={to}
-      className="surface-card flex items-center gap-3 p-4 transition-colors hover:border-primary/40"
+      className="surface-card flex min-h-14 items-center gap-3 p-4 transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
-      <div className="flex size-9 items-center justify-center rounded-md bg-primary/10 text-primary [&>svg]:size-4">
+      <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary [&>svg]:size-4" aria-hidden="true">
         {icon}
       </div>
-      <span className="text-sm font-bold">{label}</span>
+      <span className="min-w-0 truncate text-sm font-bold">{label}</span>
     </Link>
+
   );
 }

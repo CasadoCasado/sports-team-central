@@ -134,10 +134,11 @@ function Perfil() {
         <Button
           type="submit"
           disabled={saving}
-          className="bg-primary text-primary-foreground uppercase tracking-widest font-bold hover:opacity-90"
+          className="min-h-11 w-full bg-primary text-primary-foreground uppercase tracking-widest font-bold hover:opacity-90 sm:w-auto"
         >
           {t("profile.save")}
         </Button>
+
       </form>
 
       <ReminderSettings />
