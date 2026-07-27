@@ -394,7 +394,7 @@ function PollCard({
                 style={{ width: `${pct}%` }}
                 aria-hidden
               />
-              <div className="relative flex items-center justify-between gap-3">
+              <div className="relative flex w-full items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
                   {selected && <CheckCircle2 className="size-4 text-primary" />}
                   <span className="text-sm font-medium">{opt.texto}</span>
@@ -513,12 +513,13 @@ function NewPollDialog({ teamId }: { teamId: string }) {
                     <button
                       type="button"
                       onClick={() => setOpts((prev) => prev.filter((_, j) => j !== i))}
-                      className="rounded-md border border-border p-2 text-muted-foreground hover:text-destructive"
-                      aria-label={t("common.delete")}
+                      className="grid min-h-11 min-w-11 shrink-0 place-items-center rounded-md border border-border text-muted-foreground hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      aria-label={`${t("common.delete")} ${i + 1}`}
                     >
-                      <X className="size-4" />
+                      <X className="size-4" aria-hidden="true" />
                     </button>
                   )}
+
                 </div>
               ))}
             </div>
