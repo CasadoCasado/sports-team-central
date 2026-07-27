@@ -253,13 +253,19 @@ function ViewSwitcher({
     { key: "list", label: t("events.listView") },
   ];
   return (
-    <div className="inline-flex rounded-md border border-border bg-card p-0.5 text-[10px] font-bold uppercase tracking-widest">
+    <div
+      role="tablist"
+      aria-label={t("nav.calendario")}
+      className="inline-flex rounded-md border border-border bg-card p-0.5 text-[10px] font-bold uppercase tracking-widest"
+    >
       {items.map((it) => (
         <button
           key={it.key}
+          role="tab"
+          aria-selected={view === it.key}
           onClick={() => setView(it.key)}
           className={cn(
-            "rounded-sm px-3 py-1.5 transition-colors",
+            "inline-flex min-h-10 items-center justify-center rounded-sm px-3 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
             view === it.key
               ? "bg-primary text-primary-foreground shadow-sm"
               : "text-muted-foreground hover:text-foreground",
@@ -268,6 +274,7 @@ function ViewSwitcher({
           {it.label}
         </button>
       ))}
+
     </div>
   );
 }
