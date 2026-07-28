@@ -20,7 +20,7 @@
     "pagos": "Pagos",
     "comunicaciones": "Comunicaciones",
     "notificaciones": "Notificaciones",
-    "perfil": "Perfil",
+    "perfil": "Mi perfil",
     "principal": "Principal",
     "gestion": "Gestión",
     "recursos": "Recursos"
@@ -192,7 +192,14 @@
     "fechaNacimiento": "Fecha de nacimiento",
     "save": "Guardar",
     "updated": "Perfil actualizado",
-    "language": "Idioma"
+    "language": "Idioma",
+    "myProfile": "Mi perfil",
+    "email": "Correo electrónico",
+    "deporte": "Deporte",
+    "deportePlaceholder": "Selecciona un deporte",
+    "account": "Cuenta",
+    "accessibility": "Accesibilidad",
+    "fontSizeHint": "Ajusta el tamaño del texto de toda la app."
   },
   "reminders": {
     "title": "Recordatorios de eventos",

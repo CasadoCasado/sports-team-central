@@ -20,7 +20,7 @@
     "pagos": "Payments",
     "comunicaciones": "Chat",
     "notificaciones": "Notifications",
-    "perfil": "Profile",
+    "perfil": "My profile",
     "principal": "Main",
     "gestion": "Management",
     "recursos": "Resources"
@@ -192,7 +192,14 @@
     "fechaNacimiento": "Birth date",
     "save": "Save",
     "updated": "Profile updated",
-    "language": "Language"
+    "language": "Language",
+    "myProfile": "My profile",
+    "email": "Email",
+    "deporte": "Sport",
+    "deportePlaceholder": "Select a sport",
+    "account": "Account",
+    "accessibility": "Accessibility",
+    "fontSizeHint": "Adjust the text size across the whole app."
   },
   "reminders": {
     "title": "Event reminders",
