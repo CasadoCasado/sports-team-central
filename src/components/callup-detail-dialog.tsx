@@ -86,7 +86,7 @@ export function CallupDetailDialog({
               <div className="flex flex-wrap items-center gap-2 pt-1">
                 <span
                   className={cn(
-                    "inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest",
+                    "inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-2xs font-bold uppercase tracking-widest",
                     style.badge,
                   )}
                 >
@@ -97,7 +97,7 @@ export function CallupDetailDialog({
                   <span className="text-xs text-muted-foreground">
                     vs <span className="text-foreground font-semibold">{event.rival}</span>
                     {event.es_local != null && (
-                      <span className="ml-2 text-[10px] font-bold uppercase tracking-widest text-primary">
+                      <span className="ml-2 text-2xs font-bold uppercase tracking-widest text-primary">
                         {event.es_local ? t("events.local") : t("events.visitante")}
                       </span>
                     )}
@@ -136,7 +136,7 @@ export function CallupDetailDialog({
             )}
             {event.descripcion && (
               <div className="rounded-md border border-border bg-muted/30 p-3">
-                <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                <p className="mb-1 text-2xs font-bold uppercase tracking-widest text-muted-foreground">
                   {t("events.descripcion")}
                 </p>
                 <p className="whitespace-pre-wrap text-sm">{event.descripcion}</p>
@@ -158,14 +158,14 @@ export function CallupDetailDialog({
               size="sm"
               disabled={signingUp}
               onClick={() => onSignUp(event.id)}
-              className="bg-primary text-primary-foreground uppercase text-[10px] font-bold tracking-widest hover:opacity-90"
+              className="bg-primary text-primary-foreground uppercase text-2xs font-bold tracking-widest hover:opacity-90"
             >
               {t("callups.signUp")}
             </Button>
           )}
           {alreadySignedUp && (
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400">
+              <span className="text-2xs font-bold uppercase tracking-widest text-emerald-400">
                 {t("callups.signedUp")}
               </span>
               {onWithdraw && event && (!cierre || cierre > new Date()) && (
@@ -175,7 +175,7 @@ export function CallupDetailDialog({
                       size="sm"
                       variant="outline"
                       disabled={withdrawing}
-                      className="text-[10px] font-bold uppercase tracking-widest"
+                      className="text-2xs font-bold uppercase tracking-widest"
                     >
                       {withdrawing ? t("callups.withdrawing") : t("callups.withdraw")}
                     </Button>
@@ -223,7 +223,7 @@ function Row({
         {icon}
       </div>
       <div className="min-w-0">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{label}</p>
+        <p className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">{label}</p>
         <p className="text-sm">{children}</p>
       </div>
     </div>

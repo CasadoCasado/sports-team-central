@@ -132,7 +132,7 @@ function MyCallups() {
                   className="flex min-w-0 items-center gap-3 rounded-md py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:gap-4"
                 >
                   <div className={cn("flex size-12 shrink-0 flex-col items-center justify-center rounded-md ring-1", style.ring)}>
-                    <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                    <div className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
                       {format(new Date(e.fecha_inicio), "MMM", { locale })}
                     </div>
                     <div className="text-display text-lg font-black leading-none">
@@ -141,7 +141,7 @@ function MyCallups() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold">{e.titulo}</p>
-                    <div className="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
+                    <div className="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-0.5 text-xxs text-muted-foreground">
                       <span>{format(new Date(e.fecha_inicio), "HH:mm")}</span>
                       {e.ubicacion && (
                         <span className="inline-flex min-w-0 items-center gap-1">
@@ -160,7 +160,7 @@ function MyCallups() {
                     onClick={() => signUp.mutate(e.id)}
                     disabled={signUp.isPending}
                     aria-label={`${t("callups.signUp")}: ${e.titulo}`}
-                    className="btn-primary-rose min-h-11 shrink-0 px-4 text-[10px] font-bold uppercase tracking-widest"
+                    className="btn-primary-rose min-h-11 shrink-0 px-4 text-2xs font-bold uppercase tracking-widest"
                   >
                     {t("callups.signUp")}
                   </Button>
@@ -186,11 +186,11 @@ function StatusPill({ status, convocado }: { status: ResponseStatus; convocado: 
   const { t } = useTranslation();
   return (
     <div className="flex flex-col items-end gap-1">
-      <span className={cn("rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest", STATUS_STYLES[status])}>
+      <span className={cn("rounded-full border px-2.5 py-1 text-2xs font-bold uppercase tracking-widest", STATUS_STYLES[status])}>
         {t(`callups.response_${status}`)}
       </span>
       {convocado && (
-        <span className="rounded-full border border-primary/40 bg-primary/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-primary">
+        <span className="rounded-full border border-primary/40 bg-primary/15 px-2 py-0.5 text-3xs font-bold uppercase tracking-widest text-primary">
           ★ {t("callups.calledUp")}
         </span>
       )}

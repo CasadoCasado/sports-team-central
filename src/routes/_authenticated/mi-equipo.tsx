@@ -334,7 +334,7 @@ function TeamCard({
         )}
         <div className="min-w-0 flex-1">
           <h3 className="text-display truncate text-2xl font-black">{team.nombre}</h3>
-          <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-primary">
+          <p className="mt-1 text-2xs font-bold uppercase tracking-widest text-primary">
             {role}
           </p>
         </div>
@@ -348,7 +348,7 @@ function TeamCard({
             aria-label={t("team.delete")}
           >
             <Trash2 className="size-4" />
-            <span className="ml-1 hidden sm:inline uppercase text-[10px] font-bold tracking-widest">
+            <span className="ml-1 hidden sm:inline uppercase text-2xs font-bold tracking-widest">
               {t("team.delete")}
             </span>
           </Button>
@@ -367,7 +367,7 @@ function TeamCard({
                 inscripcionesAbiertas ? "bg-primary" : "bg-muted-foreground/50"
               }`}
             />
-            <span className="text-[11px] font-bold uppercase tracking-widest">
+            <span className="text-xxs font-bold uppercase tracking-widest">
               {inscripcionesAbiertas
                 ? t("team.inscripcionesAbiertas")
                 : t("team.inscripcionesCerradas")}
@@ -378,7 +378,7 @@ function TeamCard({
             size="sm"
             disabled={togglingIns}
             onClick={toggleInscripciones}
-            className="uppercase text-[10px] font-bold tracking-widest"
+            className="uppercase text-2xs font-bold tracking-widest"
           >
             {inscripcionesAbiertas
               ? t("team.cerrarInscripciones")
@@ -409,7 +409,7 @@ function MetaCell({
 }) {
   return (
     <div className="p-4">
-      <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+      <div className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
         {label}
       </div>
       <div className="mt-1 flex items-center gap-2 text-sm font-medium">

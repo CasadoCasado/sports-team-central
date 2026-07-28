@@ -120,7 +120,7 @@ function Trainings() {
       </div>
 
       <section className="surface-card overflow-hidden">
-        <div className="border-b border-border px-5 py-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+        <div className="border-b border-border px-5 py-3 text-2xs font-bold uppercase tracking-widest text-muted-foreground">
           {t("events.upcoming")}
         </div>
         {upcoming.length === 0 && (
@@ -142,7 +142,7 @@ function Trainings() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold">{e.titulo}</p>
-                    <div className="mt-0.5 flex items-center gap-3 text-[11px] text-muted-foreground">
+                    <div className="mt-0.5 flex items-center gap-3 text-xxs text-muted-foreground">
                       <span>{format(new Date(e.fecha_inicio), "PPP HH:mm", { locale })}</span>
                       {e.ubicacion && (
                         <span className="inline-flex items-center gap-1 truncate">
@@ -160,7 +160,7 @@ function Trainings() {
                     size="sm"
                     variant="outline"
                     onClick={() => withdraw.mutate(myRespId)}
-                    className="uppercase text-[10px] font-bold tracking-widest"
+                    className="uppercase text-2xs font-bold tracking-widest"
                   >
                     <Check className="mr-1 size-3" /> {t("callups.withdraw")}
                   </Button>
@@ -168,7 +168,7 @@ function Trainings() {
                   <Button
                     size="sm"
                     onClick={() => signUp.mutate(e.id)}
-                    className="bg-primary text-primary-foreground uppercase text-[10px] font-bold tracking-widest hover:opacity-90"
+                    className="bg-primary text-primary-foreground uppercase text-2xs font-bold tracking-widest hover:opacity-90"
                   >
                     {t("callups.signUp")}
                   </Button>
@@ -181,7 +181,7 @@ function Trainings() {
 
       {past.length > 0 && (
         <section className="surface-card overflow-hidden">
-          <div className="border-b border-border px-5 py-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+          <div className="border-b border-border px-5 py-3 text-2xs font-bold uppercase tracking-widest text-muted-foreground">
             {t("events.past")}
           </div>
           <div className="divide-y divide-border">
@@ -197,7 +197,7 @@ function Trainings() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm">{e.titulo}</p>
-                  <p className="text-[11px] text-muted-foreground">
+                  <p className="text-xxs text-muted-foreground">
                     {format(new Date(e.fecha_inicio), "PPP", { locale })}
                   </p>
                 </div>

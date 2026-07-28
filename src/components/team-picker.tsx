@@ -29,7 +29,7 @@ export function TeamPicker() {
       </DropdownMenuTrigger>
       {memberships.length > 1 && (
         <DropdownMenuContent align="start" className="w-56">
-          <DropdownMenuLabel className="text-[10px] uppercase tracking-widest text-muted-foreground">
+          <DropdownMenuLabel className="text-2xs uppercase tracking-widest text-muted-foreground">
             {t("team.switchTeam")}
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
@@ -42,7 +42,7 @@ export function TeamPicker() {
                   <Shield className="size-4 text-primary" />
                 )}
                 <span className="flex-1 truncate">{m.team.nombre}</span>
-                <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                <span className="text-2xs uppercase tracking-widest text-muted-foreground">
                   {m.role}
                 </span>
               </div>

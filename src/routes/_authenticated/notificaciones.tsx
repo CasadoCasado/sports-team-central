@@ -143,7 +143,7 @@ function Notificaciones() {
 
       {(joinRequests?.length ?? 0) > 0 && (
         <div className="space-y-3">
-          <h2 className="text-[10px] font-bold uppercase tracking-widest text-primary">
+          <h2 className="text-2xs font-bold uppercase tracking-widest text-primary">
             {t("notifications.joinRequests")}
           </h2>
           {joinRequests!.map((req) => {
@@ -166,7 +166,7 @@ function Notificaciones() {
                       <Button
                         size="sm"
                         onClick={() => respondRequest(req.id, req.team_id, req.invited_user_id, true)}
-                        className="bg-primary text-primary-foreground uppercase text-[10px] font-bold tracking-widest hover:opacity-90"
+                        className="bg-primary text-primary-foreground uppercase text-2xs font-bold tracking-widest hover:opacity-90"
                       >
                         <Check className="mr-1 size-3.5" />
                         {t("notifications.approve")}
@@ -191,7 +191,7 @@ function Notificaciones() {
 
       {(invitations?.length ?? 0) > 0 && (
         <div className="space-y-3">
-          <h2 className="text-[10px] font-bold uppercase tracking-widest text-primary">
+          <h2 className="text-2xs font-bold uppercase tracking-widest text-primary">
             {t("nav.notificaciones")}
           </h2>
           {invitations!.map((inv) => {
@@ -214,7 +214,7 @@ function Notificaciones() {
                       <Button
                         size="sm"
                         onClick={() => respond(inv.id, inv.team_id, true)}
-                        className="bg-primary text-primary-foreground uppercase text-[10px] font-bold tracking-widest hover:opacity-90"
+                        className="bg-primary text-primary-foreground uppercase text-2xs font-bold tracking-widest hover:opacity-90"
                       >
                         <Check className="mr-1 size-3.5" />
                         {t("notifications.accept")}
@@ -246,7 +246,7 @@ function Notificaciones() {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold">{n.titulo}</p>
                 {n.cuerpo && <p className="mt-0.5 text-xs text-muted-foreground">{n.cuerpo}</p>}
-                <p className="mt-1 text-[10px] uppercase tracking-widest text-muted-foreground">
+                <p className="mt-1 text-2xs uppercase tracking-widest text-muted-foreground">
                   {new Date(n.created_at).toLocaleString()}
                 </p>
               </div>

@@ -10,6 +10,14 @@
  * ============================================================= */
 
 @theme inline {
+  /* Scalable micro type sizes (rem-based so the font-size control affects them) */
+  --text-3xs: 0.5625rem;
+  --text-3xs--line-height: 1.4;
+  --text-2xs: 0.625rem;
+  --text-2xs--line-height: 1.4;
+  --text-xxs: 0.6875rem;
+  --text-xxs--line-height: 1.45;
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);

@@ -64,7 +64,7 @@ function Landing() {
 
       <main className="mx-auto max-w-6xl px-6 py-24">
         <section className="text-center">
-          <span className="inline-block rounded-full border border-border bg-card px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-primary">
+          <span className="inline-block rounded-full border border-border bg-card px-3 py-1 text-2xs font-bold uppercase tracking-widest text-primary">
             {t("app.name")}
           </span>
           <h1 className="text-display mt-6 text-5xl font-black leading-[1.05] tracking-tight sm:text-6xl">

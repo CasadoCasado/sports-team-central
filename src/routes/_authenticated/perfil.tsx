@@ -78,7 +78,7 @@ function Perfil() {
 
       <form onSubmit={save} className="space-y-6">
         <section className="surface-card p-6">
-          <h2 className="text-[10px] mb-4 font-bold uppercase tracking-widest text-primary">
+          <h2 className="text-2xs mb-4 font-bold uppercase tracking-widest text-primary">
             {t("profile.personal")}
           </h2>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -102,7 +102,7 @@ function Perfil() {
         </section>
 
         <section className="surface-card p-6">
-          <h2 className="text-[10px] mb-4 font-bold uppercase tracking-widest text-primary">
+          <h2 className="text-2xs mb-4 font-bold uppercase tracking-widest text-primary">
             {t("profile.sports")}
           </h2>
           <div className="grid gap-4 sm:grid-cols-3">

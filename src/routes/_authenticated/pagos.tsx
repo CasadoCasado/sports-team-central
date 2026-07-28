@@ -167,7 +167,7 @@ function Pagos() {
         {isManager && (
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-primary text-primary-foreground uppercase text-[10px] tracking-widest font-bold">
+              <Button className="bg-primary text-primary-foreground uppercase text-2xs tracking-widest font-bold">
                 <Plus className="mr-2 size-4" />
                 {t("fees.create")}
               </Button>
@@ -242,7 +242,7 @@ function Pagos() {
                       {fee.amount.toFixed(2)} €
                     </p>
                     {isManager && (
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                      <p className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
                         {paidCount} / {members?.length ?? 0} {t("fees.paid")}
                       </p>
                     )}
@@ -278,7 +278,7 @@ function Pagos() {
                               })
                             }
                             className={cn(
-                              "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest transition",
+                              "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-2xs font-bold uppercase tracking-widest transition",
                               paid
                                 ? "bg-primary/20 text-primary"
                                 : "bg-card text-muted-foreground hover:bg-muted",

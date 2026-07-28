@@ -221,7 +221,7 @@ function Miembros() {
       {/* Current members */}
       <div className="surface-card">
         <div className="border-b border-border p-4">
-          <h2 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+          <h2 className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
             {t("members.title")} ({members?.length ?? 0})
           </h2>
         </div>
@@ -245,7 +245,7 @@ function Miembros() {
                     <select
                       value={m.role}
                       onChange={(e) => changeRole(m.id, e.target.value as "capitan" | "co_capitan" | "entrenador" | "delegado" | "jugador")}
-                      className="rounded-md border border-border bg-card px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-primary"
+                      className="rounded-md border border-border bg-card px-2 py-1 text-2xs font-bold uppercase tracking-widest text-primary"
                     >
                       <option value="jugador">{t("roles.jugador")}</option>
                       <option value="entrenador">{t("roles.entrenador")}</option>
@@ -262,7 +262,7 @@ function Miembros() {
                     </button>
                   </>
                 ) : (
-                  <span className="rounded-md bg-primary/10 px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-primary">
+                  <span className="rounded-md bg-primary/10 px-2 py-1 text-2xs font-bold uppercase tracking-widest text-primary">
                     {t(`roles.${m.role}`)}
                   </span>
                 )}
@@ -281,7 +281,7 @@ function Miembros() {
       {canManageRoles && (joinRequests?.length ?? 0) > 0 && (
         <div className="surface-card">
           <div className="border-b border-border p-4">
-            <h2 className="text-[10px] font-bold uppercase tracking-widest text-primary">
+            <h2 className="text-2xs font-bold uppercase tracking-widest text-primary">
               {t("members.joinRequests", { defaultValue: "Solicitudes de unión" })} ({joinRequests!.length})
             </h2>
           </div>
@@ -305,7 +305,7 @@ function Miembros() {
                   <Button
                     size="sm"
                     onClick={() => respondRequest(req.id, req.team_id, req.invited_user_id, true)}
-                    className="bg-primary text-primary-foreground uppercase text-[10px] font-bold tracking-widest hover:opacity-90"
+                    className="bg-primary text-primary-foreground uppercase text-2xs font-bold tracking-widest hover:opacity-90"
                   >
                     <Check className="mr-1 size-3.5" />
                     {t("notifications.approve")}
@@ -410,7 +410,7 @@ function Miembros() {
               <Button
                 size="sm"
                 onClick={() => invite(r.id)}
-                className="bg-primary text-primary-foreground uppercase tracking-widest text-[10px] font-bold hover:opacity-90"
+                className="bg-primary text-primary-foreground uppercase tracking-widest text-2xs font-bold hover:opacity-90"
               >
                 {t("members.sendInvite")}
               </Button>

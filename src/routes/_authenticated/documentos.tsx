@@ -132,7 +132,7 @@ function Documentos() {
             <Button
               onClick={() => fileRef.current?.click()}
               disabled={upload.isPending}
-              className="bg-primary text-primary-foreground uppercase text-[10px] tracking-widest font-bold"
+              className="bg-primary text-primary-foreground uppercase text-2xs tracking-widest font-bold"
             >
               <FileUp className="mr-2 size-4" />
               {upload.isPending ? t("common.loading") : t("documents.upload")}

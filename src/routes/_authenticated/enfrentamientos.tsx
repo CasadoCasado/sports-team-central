@@ -200,7 +200,7 @@ function Matches() {
       </div>
 
       <section className="surface-card overflow-hidden">
-        <div className="border-b border-border px-5 py-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+        <div className="border-b border-border px-5 py-3 text-2xs font-bold uppercase tracking-widest text-muted-foreground">
           {t("events.upcoming")}
         </div>
         {upcoming.length === 0 && (
@@ -230,7 +230,7 @@ function Matches() {
                           <span className="text-muted-foreground"> · vs {e.rival}</span>
                         )}
                       </p>
-                      <div className="mt-0.5 flex items-center gap-3 text-[11px] text-muted-foreground">
+                      <div className="mt-0.5 flex items-center gap-3 text-xxs text-muted-foreground">
                         <span>{format(new Date(e.fecha_inicio), "PPP HH:mm", { locale })}</span>
                         {e.ubicacion && (
                           <span className="inline-flex items-center gap-1 truncate">
@@ -248,7 +248,7 @@ function Matches() {
                       size="sm"
                       variant="outline"
                       onClick={() => withdraw.mutate(myResp.id)}
-                      className="uppercase text-[10px] font-bold tracking-widest"
+                      className="uppercase text-2xs font-bold tracking-widest"
                     >
                       <Check className="mr-1 size-3" /> {t("callups.withdraw")}
                     </Button>
@@ -256,7 +256,7 @@ function Matches() {
                     <Button
                       size="sm"
                       onClick={() => signUp.mutate(e.id)}
-                      className="bg-primary text-primary-foreground uppercase text-[10px] font-bold tracking-widest hover:opacity-90"
+                      className="bg-primary text-primary-foreground uppercase text-2xs font-bold tracking-widest hover:opacity-90"
                     >
                       {t("callups.signUp")}
                     </Button>
@@ -266,7 +266,7 @@ function Matches() {
                       size="sm"
                       variant="ghost"
                       onClick={() => setExpanded(isOpen ? null : e.id)}
-                      className="uppercase text-[10px] font-bold tracking-widest"
+                      className="uppercase text-2xs font-bold tracking-widest"
                     >
                       {isOpen ? <ChevronUp className="size-3" /> : <ChevronDown className="size-3" />}
                       <span className="ml-1">{t("callups.padelAssign")}</span>
@@ -291,7 +291,7 @@ function Matches() {
 
       {past.length > 0 && (
         <section className="surface-card overflow-hidden">
-          <div className="border-b border-border px-5 py-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+          <div className="border-b border-border px-5 py-3 text-2xs font-bold uppercase tracking-widest text-muted-foreground">
             {t("events.past")}
           </div>
           <div className="divide-y divide-border">
@@ -310,7 +310,7 @@ function Matches() {
                     {e.titulo}
                     {e.rival && <span className="text-muted-foreground"> · vs {e.rival}</span>}
                   </p>
-                  <p className="text-[11px] text-muted-foreground">
+                  <p className="text-xxs text-muted-foreground">
                     {format(new Date(e.fecha_inicio), "PPP", { locale })}
                   </p>
                 </div>
@@ -365,7 +365,7 @@ function PadelCourtsPanel({
     <div className="mt-4 rounded-md border border-border bg-card/40 p-4">
       <div className="mb-4 flex flex-wrap items-end gap-2">
         <div>
-          <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+          <label className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
             {t("events.padelPistas")}
           </label>
           <Input
@@ -381,11 +381,11 @@ function PadelCourtsPanel({
           size="sm"
           variant="outline"
           onClick={() => onUpdatePistas(pistasDraft ? Number(pistasDraft) : null)}
-          className="uppercase text-[10px] font-bold tracking-widest"
+          className="uppercase text-2xs font-bold tracking-widest"
         >
           {t("common.save")}
         </Button>
-        <p className="ml-auto text-[11px] text-muted-foreground">
+        <p className="ml-auto text-xxs text-muted-foreground">
           {responses.length} {t("callups.signedUpList").toLowerCase()}
         </p>
       </div>
@@ -403,7 +403,7 @@ function PadelCourtsPanel({
             const available = responses.filter((r) => r.padel_pista == null);
             return (
               <div key={pistaNum} className="rounded-md border border-border p-3">
-                <div className="mb-2 flex items-center justify-between text-[10px] font-bold uppercase tracking-widest">
+                <div className="mb-2 flex items-center justify-between text-2xs font-bold uppercase tracking-widest">
                   <span>{t("callups.pista")} {pistaNum}</span>
                   <span className={cn(isFull ? "text-primary" : "text-muted-foreground")}>
                     {assigned.length}/2
@@ -443,7 +443,7 @@ function PadelCourtsPanel({
                     </select>
                   )}
                   {!isFull && available.length === 0 && (
-                    <span className="text-[11px] text-muted-foreground">
+                    <span className="text-xxs text-muted-foreground">
                       {t("callups.noSignedUp")}
                     </span>
                   )}
