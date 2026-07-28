@@ -117,6 +117,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         { to: "/mi-equipo", label: t("nav.miEquipo"), icon: Shield },
         { to: "/miembros", label: t("nav.miembros"), icon: Users },
         { to: "/calendario", label: t("nav.calendario"), icon: Calendar },
+        { to: "/perfil", label: t("nav.perfil"), icon: UserCircle2 },
       ],
     },
     {
