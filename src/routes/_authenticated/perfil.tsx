@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { Mail } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/use-profile";
 import { useSession } from "@/hooks/use-session";
@@ -9,15 +10,24 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { PushSettings } from "@/components/push-settings";
 import { ReminderSettings } from "@/components/reminder-settings";
+import { FontSizeControl } from "@/components/font-size-control";
+import { SPORTS, sportLabel } from "@/lib/sports";
 
 export const Route = createFileRoute("/_authenticated/perfil")({
   component: Perfil,
 });
 
 function Perfil() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user } = useSession();
   const { data: profile, refetch } = useProfile();
 
@@ -25,6 +35,7 @@ function Perfil() {
   const [apellidos, setApellidos] = useState("");
   const [telefono, setTelefono] = useState("");
   const [ciudad, setCiudad] = useState("");
+  const [deporte, setDeporte] = useState("");
   const [posicion, setPosicion] = useState("");
   const [mano, setMano] = useState("");
   const [nivel, setNivel] = useState("");
@@ -37,6 +48,7 @@ function Perfil() {
       setApellidos(profile.apellidos ?? "");
       setTelefono(profile.telefono ?? "");
       setCiudad(profile.ciudad ?? "");
+      setDeporte(profile.deporte ?? "");
       setPosicion(profile.posicion ?? "");
       setMano(profile.mano_dominante ?? "");
       setNivel(profile.nivel ?? "");
@@ -56,6 +68,7 @@ function Perfil() {
           apellidos: apellidos.trim(),
           telefono: telefono.trim() || null,
           ciudad: ciudad.trim() || null,
+          deporte: deporte || null,
           posicion: posicion.trim() || null,
           mano_dominante: mano.trim() || null,
           nivel: nivel.trim() || null,
@@ -72,9 +85,33 @@ function Perfil() {
     }
   }
 
+  const initials =
+    ((profile?.nombre?.[0] ?? "") + (profile?.apellidos?.[0] ?? "")).toUpperCase() || "U";
+
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <h1 className="text-display text-3xl font-black tracking-tight">{t("profile.title")}</h1>
+      <h1 className="text-display text-3xl font-black tracking-tight">
+        {t("profile.myProfile")}
+      </h1>
+
+      {/* Resumen de cuenta */}
+      <section className="surface-card flex flex-col gap-4 p-6 sm:flex-row sm:items-center">
+        <div className="flex size-14 shrink-0 items-center justify-center rounded-full bg-primary/15 text-base font-bold text-primary ring-1 ring-primary/30">
+          {initials}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-display truncate text-lg font-bold">
+            {[profile?.nombre, profile?.apellidos].filter(Boolean).join(" ") || "—"}
+          </p>
+          <p className="mt-1 flex items-center gap-2 truncate text-sm text-muted-foreground">
+            <Mail className="size-3.5 shrink-0" aria-hidden="true" />
+            <span className="truncate">{profile?.email ?? user?.email ?? "—"}</span>
+          </p>
+          <p className="mt-1 text-2xs font-bold uppercase tracking-widest text-primary">
+            {t("profile.deporte")}: {sportLabel(profile?.deporte, i18n.language)}
+          </p>
+        </div>
+      </section>
 
       <form onSubmit={save} className="space-y-6">
         <section className="surface-card p-6">
@@ -91,6 +128,10 @@ function Perfil() {
               <Input id="apellidos" value={apellidos} onChange={(e) => setApellidos(e.target.value)} maxLength={120} />
             </div>
             <div>
+              <Label htmlFor="email">{t("profile.email")}</Label>
+              <Input id="email" value={profile?.email ?? user?.email ?? ""} readOnly disabled />
+            </div>
+            <div>
               <Label htmlFor="telefono">{t("profile.telefono")}</Label>
               <Input id="telefono" value={telefono} onChange={(e) => setTelefono(e.target.value)} maxLength={30} />
             </div>
@@ -105,7 +146,22 @@ function Perfil() {
           <h2 className="text-2xs mb-4 font-bold uppercase tracking-widest text-primary">
             {t("profile.sports")}
           </h2>
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <Label htmlFor="deporte">{t("profile.deporte")}</Label>
+              <Select value={deporte} onValueChange={setDeporte}>
+                <SelectTrigger id="deporte" className="min-h-11">
+                  <SelectValue placeholder={t("profile.deportePlaceholder")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {SPORTS.map((s) => (
+                    <SelectItem key={s.value} value={s.value}>
+                      {i18n.language.startsWith("en") ? s.labelEn : s.labelEs}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div>
               <Label htmlFor="posicion">{t("profile.posicion")}</Label>
               <Input id="posicion" value={posicion} onChange={(e) => setPosicion(e.target.value)} maxLength={50} />
@@ -140,6 +196,16 @@ function Perfil() {
         </Button>
 
       </form>
+
+      <section className="surface-card p-6">
+        <h2 className="text-2xs mb-4 font-bold uppercase tracking-widest text-primary">
+          {t("profile.accessibility")}
+        </h2>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm text-muted-foreground">{t("profile.fontSizeHint")}</p>
+          <FontSizeControl />
+        </div>
+      </section>
 
       <ReminderSettings />
       <PushSettings />
