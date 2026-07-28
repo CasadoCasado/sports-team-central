@@ -496,5 +496,11 @@
     "errPadelSet3NotAllowed": "Pista {{pista}}: no se juega Set 3 si el partido está 2-0",
     "errScore": "Marcador no válido",
     "errNoData": "Introduce al menos un resultado"
+  },
+  "a11y": {
+    "fontSize": "Tamaño de texto",
+    "fontSizeIncrease": "Aumentar tamaño de texto",
+    "fontSizeDecrease": "Reducir tamaño de texto",
+    "fontSizeReset": "Restablecer tamaño de texto"
   }
 }

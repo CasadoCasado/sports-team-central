@@ -496,5 +496,11 @@
     "errPadelSet3NotAllowed": "Court {{pista}}: Set 3 is not played when the match is 2-0",
     "errScore": "Invalid score",
     "errNoData": "Enter at least one result"
+  },
+  "a11y": {
+    "fontSize": "Text size",
+    "fontSizeIncrease": "Increase text size",
+    "fontSizeDecrease": "Decrease text size",
+    "fontSizeReset": "Reset text size"
   }
 }
