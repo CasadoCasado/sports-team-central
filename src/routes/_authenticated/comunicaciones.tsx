@@ -159,7 +159,7 @@ function Comunicaciones() {
       <div className="flex min-h-0 flex-1 gap-4">
         <aside className="surface-card hidden w-64 shrink-0 flex-col overflow-hidden lg:flex">
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+            <span className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
               {t("chat.channels")}
             </span>
             {isManager && teamId && <NewChannelDialog teamId={teamId} />}
@@ -237,7 +237,7 @@ function MemberPicker({
                 onCheckedChange={() => !isSelf && onToggle(m.user_id)}
               />
               <span className="flex-1 truncate font-medium">{name}</span>
-              <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
+              <span className="text-2xs uppercase tracking-widest text-muted-foreground">
                 {m.role}
               </span>
             </label>
@@ -421,7 +421,7 @@ function InviteLinkSection({ channel }: { channel: Channel }) {
     <div className="rounded-md border border-border bg-card/40 p-3">
       <div className="mb-2 flex items-center gap-2">
         <Link2 className="size-3.5 text-primary" />
-        <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+        <span className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
           {t("chat.inviteLink")}
         </span>
       </div>
@@ -727,12 +727,12 @@ function ChannelView({ channel, isManager }: { channel: Channel; isManager: bool
           {channel.nombre}
         </span>
         {channel.scope === "staff" && (
-          <span className="ml-1 hidden shrink-0 rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-primary sm:inline">
+          <span className="ml-1 hidden shrink-0 rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-2xs font-bold uppercase tracking-widest text-primary sm:inline">
             {t("chat.staffOnly")}
           </span>
         )}
         {channel.scope === "custom" && (
-          <span className="ml-1 hidden shrink-0 rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-primary sm:inline">
+          <span className="ml-1 hidden shrink-0 rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-2xs font-bold uppercase tracking-widest text-primary sm:inline">
             {t("chat.privateChannel")}
           </span>
         )}
@@ -785,7 +785,7 @@ function ChannelView({ channel, isManager }: { channel: Channel; isManager: bool
                   {!sameAuthor && (
                     <div className="flex min-w-0 flex-wrap items-baseline gap-x-2">
                       <span className="truncate text-sm font-bold">{name}</span>
-                      <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                      <span className="text-2xs uppercase tracking-widest text-muted-foreground">
                         {new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                       </span>
                     </div>

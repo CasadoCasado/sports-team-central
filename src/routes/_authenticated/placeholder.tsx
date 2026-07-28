@@ -14,7 +14,7 @@ export function PlaceholderPage({ title }: { title: string }) {
           Este módulo llegará en la próxima fase. Sigue con tu equipo y las invitaciones mientras
           tanto.
         </p>
-        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+        <p className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
           {t("common.loading").replace("...", "")} — Próximamente
         </p>
       </div>

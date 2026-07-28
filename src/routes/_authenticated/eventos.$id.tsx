@@ -103,7 +103,7 @@ function EventDetail() {
         <div className="border-b border-border p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="min-w-0">
-              <span className={cn("inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest", style.badge)}>
+              <span className={cn("inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-2xs font-bold uppercase tracking-widest", style.badge)}>
                 <span className={cn("size-1.5 rounded-full", style.dot)} />
                 {t(`events.types.${event.tipo}`)}
               </span>
@@ -114,7 +114,7 @@ function EventDetail() {
                 <p className="text-display mt-1 text-lg text-muted-foreground">
                   vs <span className="text-foreground">{event.rival}</span>
                   {event.es_local != null && (
-                    <span className="ml-2 text-[10px] font-bold uppercase tracking-widest text-primary">
+                    <span className="ml-2 text-2xs font-bold uppercase tracking-widest text-primary">
                       {event.es_local ? t("events.local") : t("events.visitante")}
                     </span>
                   )}
@@ -212,7 +212,7 @@ function InfoRow({ icon, label, children }: { icon: React.ReactNode; label: stri
     <div className="flex items-start gap-3">
       <div className="mt-0.5 flex size-8 items-center justify-center rounded-md bg-primary/10 text-primary">{icon}</div>
       <div className="min-w-0">
-        <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{label}</div>
+        <div className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">{label}</div>
         <div className="mt-0.5 text-sm">{children}</div>
       </div>
     </div>
@@ -392,7 +392,7 @@ function CallupSection({
           </div>
           <div>
             <h2 className="text-display text-lg font-bold uppercase tracking-tight">{t("callups.title")}</h2>
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-xxs text-muted-foreground">
               {signedUp.length} <Users className="inline size-3" /> · {confirmed} ✓ · {rejected} ✕ · {doubt} ? · {convocados.length} ★
             </p>
           </div>
@@ -414,11 +414,11 @@ function CallupSection({
 
       {userId && myResp && (
         <div className="border-b border-border p-5">
-          <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+          <div className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
             {t("callups.myStatus")}
           </div>
           {myResp.es_convocado && (
-            <p className="mt-1 text-[11px] font-bold uppercase tracking-widest text-primary">
+            <p className="mt-1 text-xxs font-bold uppercase tracking-widest text-primary">
               ★ {t("callups.youAreCalled")}
               {myResp.padel_pista ? ` · ${t("callups.pista")} ${myResp.padel_pista}` : ""}
             </p>
@@ -428,7 +428,7 @@ function CallupSection({
       )}
 
       <div className="p-5">
-        <h3 className="mb-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+        <h3 className="mb-3 text-2xs font-bold uppercase tracking-widest text-muted-foreground">
           {t("callups.signedUpList")} ({signedUp.length})
         </h3>
         {signedUp.length === 0 && (
@@ -453,13 +453,13 @@ function CallupSection({
                   <p className="truncate text-sm font-medium">
                     {m?.profile?.nombre} {m?.profile?.apellidos}
                   </p>
-                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                  <p className="text-2xs uppercase tracking-widest text-muted-foreground">
                     {m?.role}
                   </p>
                 </div>
                 <span
                   className={cn(
-                    "rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest",
+                    "rounded-full border px-2 py-0.5 text-2xs font-bold uppercase tracking-widest",
                     status === "confirmado" && "border-emerald-500/40 bg-emerald-500/15 text-emerald-300",
                     status === "rechazado" && "border-red-500/40 bg-red-500/15 text-red-300",
                     status === "duda" && "border-amber-500/40 bg-amber-500/15 text-amber-300",
@@ -469,7 +469,7 @@ function CallupSection({
                   {t(`callups.response_${status}`)}
                 </span>
                 {isManager && (
-                  <label className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest">
+                  <label className="flex items-center gap-1 text-2xs font-bold uppercase tracking-widest">
                     <input
                       type="checkbox"
                       checked={r.es_convocado}
@@ -487,7 +487,7 @@ function CallupSection({
 
         {showPadelCourts && isManager && convocados.length > 0 && (
           <div className="mt-6">
-            <h3 className="mb-3 text-[10px] font-bold uppercase tracking-widest text-primary">
+            <h3 className="mb-3 text-2xs font-bold uppercase tracking-widest text-primary">
               {t("callups.padelAssign")} ({event.padel_num_pistas} {t("callups.pistas")})
             </h3>
             <div className="space-y-2">
@@ -497,7 +497,7 @@ function CallupSection({
                 const isFull = assigned.length >= 2;
                 return (
                   <div key={pistaNum} className="rounded-md border border-border p-3">
-                    <div className="mb-2 flex items-center justify-between text-[10px] font-bold uppercase tracking-widest">
+                    <div className="mb-2 flex items-center justify-between text-2xs font-bold uppercase tracking-widest">
                       <span>{t("callups.pista")} {pistaNum}</span>
                       <span className={cn(isFull ? "text-primary" : "text-muted-foreground")}>
                         {assigned.length}/2
@@ -608,7 +608,7 @@ function PlayerResponseForm({
         {btn("rechazado", t("callups.iReject"), "border-red-500/40 bg-red-500/15 text-red-300")}
       </div>
       <div>
-        <Label className="text-[10px] uppercase tracking-widest text-muted-foreground">
+        <Label className="text-2xs uppercase tracking-widest text-muted-foreground">
           {t("callups.notas")}
         </Label>
         <div className="mt-1 flex gap-2">
@@ -819,19 +819,19 @@ function MatchResultsSection({
         <h2 className="text-display text-lg font-bold uppercase tracking-tight">
           {t("results.title")}
         </h2>
-        <p className="text-[11px] text-muted-foreground">{t("results.subtitle")}</p>
+        <p className="text-xxs text-muted-foreground">{t("results.subtitle")}</p>
       </div>
       <div className="space-y-4 p-5">
         {rows.map((row, idx) => (
           <div key={row.pista} className="rounded-md border border-border p-4">
             {isPadel && (
-              <div className="mb-3 text-[10px] font-bold uppercase tracking-widest text-primary">
+              <div className="mb-3 text-2xs font-bold uppercase tracking-widest text-primary">
                 {t("results.pista")} {row.pista}
               </div>
             )}
             {isPadel ? (
               <div className="space-y-2">
-                <div className="grid grid-cols-[80px_repeat(3,1fr)] items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                <div className="grid grid-cols-[80px_repeat(3,1fr)] items-center gap-2 text-2xs font-bold uppercase tracking-widest text-muted-foreground">
                   <span />
                   <span className="text-center">{t("results.set")} 1</span>
                   <span className="text-center">{t("results.set")} 2</span>
@@ -860,7 +860,7 @@ function MatchResultsSection({
             ) : (
               <div className="flex items-center justify-center gap-4">
                 <div className="text-center">
-                  <div className="mb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                  <div className="mb-1 text-2xs font-bold uppercase tracking-widest text-muted-foreground">
                     {t("results.local")}
                   </div>
                   <NumInput
@@ -871,7 +871,7 @@ function MatchResultsSection({
                 </div>
                 <span className="text-display text-2xl font-black text-muted-foreground">:</span>
                 <div className="text-center">
-                  <div className="mb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                  <div className="mb-1 text-2xs font-bold uppercase tracking-widest text-muted-foreground">
                     {t("results.visitante")}
                   </div>
                   <NumInput

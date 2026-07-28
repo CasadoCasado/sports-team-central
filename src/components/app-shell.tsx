@@ -170,7 +170,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <span className="text-display text-base font-bold uppercase tracking-[0.14em]">
               {t("app.name")}
             </span>
-            <span className="mt-1 text-[9px] font-semibold uppercase tracking-[0.28em] text-[color:var(--color-ink-muted)]">
+            <span className="mt-1 text-3xs font-semibold uppercase tracking-[0.28em] text-[color:var(--color-ink-muted)]">
               Team OS
             </span>
           </div>
@@ -179,7 +179,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-3">
           {groups.map((group) => (
             <div key={group.label}>
-              <div className="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-[0.22em] text-[color:var(--color-ink-muted)]">
+              <div className="px-3 pb-1.5 text-2xs font-bold uppercase tracking-[0.22em] text-[color:var(--color-ink-muted)]">
                 {group.label}
               </div>
               <div className="space-y-0.5">
@@ -224,7 +224,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <p className="truncate text-xs font-semibold text-white">
                 {profile?.nombre} {profile?.apellidos}
               </p>
-              <p className="truncate text-[10px] text-[color:var(--color-ink-muted)]">{profile?.email}</p>
+              <p className="truncate text-2xs text-[color:var(--color-ink-muted)]">{profile?.email}</p>
             </div>
           </Link>
         </div>
@@ -264,7 +264,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             >
               <Bell className="size-4" aria-hidden="true" />
               {(unreadCount ?? 0) > 0 && (
-                <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground shadow-[var(--shadow-rose)]" aria-hidden="true">
+                <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-primary text-2xs font-bold text-primary-foreground shadow-[var(--shadow-rose)]" aria-hidden="true">
                   {unreadCount! > 9 ? "9+" : unreadCount}
                 </span>
               )}

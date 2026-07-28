@@ -159,7 +159,7 @@ function Calendario() {
       {/* Page header */}
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+          <div className="flex items-center gap-2 text-2xs font-bold uppercase tracking-widest text-muted-foreground">
             <CalendarDays className="size-3.5" />
             {t("nav.calendario")}
           </div>
@@ -197,7 +197,7 @@ function Calendario() {
             </button>
             <button
               onClick={() => setCursor(new Date())}
-              className="inline-flex min-h-11 items-center justify-center rounded-md border border-border bg-card px-4 text-[11px] font-bold uppercase tracking-widest transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:min-h-9"
+              className="inline-flex min-h-11 items-center justify-center rounded-md border border-border bg-card px-4 text-xxs font-bold uppercase tracking-widest transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:min-h-9"
             >
               {t("events.todayBtn")}
             </button>
@@ -256,7 +256,7 @@ function ViewSwitcher({
     <div
       role="tablist"
       aria-label={t("nav.calendario")}
-      className="inline-flex rounded-md border border-border bg-card p-0.5 text-[10px] font-bold uppercase tracking-widest"
+      className="inline-flex rounded-md border border-border bg-card p-0.5 text-2xs font-bold uppercase tracking-widest"
     >
       {items.map((it) => (
         <button
@@ -282,7 +282,7 @@ function ViewSwitcher({
 function Legend({ t }: { t: (k: string) => string }) {
   const items: EventType[] = ["entrenamiento", "partido", "torneo", "reunion", "otro"];
   return (
-    <div className="hidden items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground md:flex">
+    <div className="hidden items-center gap-3 text-2xs font-bold uppercase tracking-widest text-muted-foreground md:flex">
       <span>{t("events.legend")}</span>
       {items.map((k) => {
         const s = eventTypeStyles[k];
@@ -330,7 +330,7 @@ function MonthGrid({
 
   return (
     <div className="surface-card overflow-hidden">
-      <div className="grid grid-cols-7 border-b border-border bg-card/60 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+      <div className="grid grid-cols-7 border-b border-border bg-card/60 text-2xs font-bold uppercase tracking-widest text-muted-foreground">
         {weekdays.map((d) => (
           <div key={d.toISOString()} className="px-2 py-2 text-center">
             {format(d, "EEE", { locale })}
@@ -366,7 +366,7 @@ function MonthGrid({
                   {format(day, "d")}
                 </div>
                 {dayEvents.length > 0 && !today && (
-                  <span className="hidden text-[9px] font-bold text-muted-foreground sm:inline">
+                  <span className="hidden text-3xs font-bold text-muted-foreground sm:inline">
                     {dayEvents.length}
                   </span>
                 )}
@@ -390,7 +390,7 @@ function MonthGrid({
                   </li>
                 ))}
                 {dayEvents.length > 4 && (
-                  <li className="px-1 text-[9px] font-bold leading-none text-muted-foreground">
+                  <li className="px-1 text-3xs font-bold leading-none text-muted-foreground">
                     +{dayEvents.length - 4}
                   </li>
                 )}
@@ -409,7 +409,7 @@ function MonthGrid({
                       to="/eventos/$id"
                       params={{ id: e.id }}
                       className={cn(
-                        "group flex min-w-0 items-center gap-1 rounded border px-1.5 py-0.5 text-[10px] font-semibold transition-all hover:translate-x-0.5",
+                        "group flex min-w-0 items-center gap-1 rounded border px-1.5 py-0.5 text-2xs font-semibold transition-all hover:translate-x-0.5",
                         style.badge,
                       )}
                     >
@@ -429,7 +429,7 @@ function MonthGrid({
                 })}
 
                 {dayEvents.length > 3 && (
-                  <div className="text-[10px] font-medium text-muted-foreground">
+                  <div className="text-2xs font-medium text-muted-foreground">
                     +{dayEvents.length - 3}
                   </div>
                 )}
@@ -481,7 +481,7 @@ function WeekView({
           >
             <div className="mb-2 flex items-center justify-between">
               <div>
-                <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                <div className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
                   {format(d, "EEE", { locale })}
                 </div>
                 <div
@@ -501,7 +501,7 @@ function WeekView({
             </div>
             <div className="space-y-2">
               {list.length === 0 ? (
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-xxs text-muted-foreground">
                   {t("events.noEventsDay")}
                 </p>
               ) : (
@@ -528,7 +528,7 @@ function WeekEventCard({ e }: { e: EventRow }) {
         style.band,
       )}
     >
-      <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+      <div className="flex items-center gap-1.5 text-2xs font-bold uppercase tracking-widest text-muted-foreground">
         <Clock className="size-3" />
         <span className="tabular-nums">{format(start, "HH:mm")}</span>
         {end && (
@@ -540,13 +540,13 @@ function WeekEventCard({ e }: { e: EventRow }) {
         <p className="truncate text-sm font-semibold">{e.titulo}</p>
       </div>
       {e.ubicacion && (
-        <div className="mt-1 flex items-center gap-1 truncate text-[11px] text-muted-foreground">
+        <div className="mt-1 flex items-center gap-1 truncate text-xxs text-muted-foreground">
           <MapPin className="size-3" />
           <span className="truncate">{e.ubicacion}</span>
         </div>
       )}
       {e.rival && (
-        <div className="mt-0.5 truncate text-[11px] text-muted-foreground">
+        <div className="mt-0.5 truncate text-xxs text-muted-foreground">
           vs {e.rival}
         </div>
       )}
@@ -623,7 +623,7 @@ function Section({
 }) {
   return (
     <div className="surface-card overflow-hidden">
-      <div className="border-b border-border px-5 py-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+      <div className="border-b border-border px-5 py-3 text-2xs font-bold uppercase tracking-widest text-muted-foreground">
         {title}
       </div>
       <div className="divide-y divide-border">{children}</div>
@@ -659,7 +659,7 @@ function EventRowItem({
           style.ring,
         )}
       >
-        <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+        <div className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
           {format(date, "MMM", { locale })}
         </div>
         <div className="text-display text-xl font-black leading-none">
@@ -689,7 +689,7 @@ function EventRowItem({
             <ClipboardList className="size-3.5 text-primary" />
           )}
         </div>
-        <div className="mt-1 flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
+        <div className="mt-1 flex flex-wrap items-center gap-3 text-xxs text-muted-foreground">
           <span className="inline-flex items-center gap-1 tabular-nums">
             <Clock className="size-3" />
             {format(date, "HH:mm")}

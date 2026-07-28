@@ -96,7 +96,7 @@ function Estadisticas() {
 
       {/* Team stats */}
       <section className="space-y-4">
-        <h2 className="text-[10px] font-bold uppercase tracking-widest text-primary">
+        <h2 className="text-2xs font-bold uppercase tracking-widest text-primary">
           {t("stats.team")}
         </h2>
         <div className="grid grid-cols-2 gap-4 md:grid-cols-2">
@@ -112,7 +112,7 @@ function Estadisticas() {
 
         {withResult.length > 0 && (
           <div className="surface-card p-5">
-            <h3 className="text-[10px] mb-3 font-bold uppercase tracking-widest text-muted-foreground">
+            <h3 className="text-2xs mb-3 font-bold uppercase tracking-widest text-muted-foreground">
               {t("stats.recentResults")}
             </h3>
             <div className="flex flex-wrap gap-2">
@@ -133,7 +133,7 @@ function Estadisticas() {
                   return (
                     <div
                       key={m.id}
-                      className={`flex size-10 flex-col items-center justify-center rounded-md border text-[10px] font-bold ${cls}`}
+                      className={`flex size-10 flex-col items-center justify-center rounded-md border text-2xs font-bold ${cls}`}
                       title={`${own}-${opp}`}
                     >
                       <span className="text-sm">{outcome}</span>
@@ -148,7 +148,7 @@ function Estadisticas() {
 
       {/* Personal stats */}
       <section className="space-y-4">
-        <h2 className="text-[10px] font-bold uppercase tracking-widest text-primary">
+        <h2 className="text-2xs font-bold uppercase tracking-widest text-primary">
           {t("stats.personal")}
         </h2>
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
@@ -200,7 +200,7 @@ function BigStat({
         {icon}
       </div>
       <p className="text-display mt-3 text-3xl font-black">{value}</p>
-      <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+      <p className="mt-1 text-2xs font-bold uppercase tracking-widest text-muted-foreground">
         {label}
       </p>
     </div>
@@ -211,7 +211,7 @@ function ResultCell({ label, value, color }: { label: string; value: number; col
   return (
     <div className="flex flex-col items-center p-5">
       <span className={`text-display text-4xl font-black ${color}`}>{value}</span>
-      <span className="mt-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+      <span className="mt-1 text-2xs font-bold uppercase tracking-widest text-muted-foreground">
         {label}
       </span>
     </div>

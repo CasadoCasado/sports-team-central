@@ -77,7 +77,7 @@ function Resultados() {
                       <span>{own}-{opp}</span>
                     </>
                   ) : (
-                    <span className="text-[10px] uppercase tracking-widest">{t("results.notPlayed")}</span>
+                    <span className="text-2xs uppercase tracking-widest">{t("results.notPlayed")}</span>
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -96,7 +96,7 @@ function Resultados() {
                       </span>
                     )}
                     {comp?.nombre && (
-                      <span className="rounded-md border border-border px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest">
+                      <span className="rounded-md border border-border px-2 py-0.5 text-2xs font-bold uppercase tracking-widest">
                         {comp.nombre}
                       </span>
                     )}

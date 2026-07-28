@@ -76,7 +76,7 @@ export function TeamJoinRequests({
     <div className={compact ? "border-t border-border" : "surface-card"}>
       <div className="flex items-center gap-2 border-b border-border p-4">
         <Inbox className="size-4 text-primary" />
-        <h2 className="text-[10px] font-bold uppercase tracking-widest text-primary">
+        <h2 className="text-2xs font-bold uppercase tracking-widest text-primary">
           {t("members.joinRequests", { defaultValue: "Solicitudes pendientes" })} ({count})
         </h2>
       </div>
@@ -105,7 +105,7 @@ export function TeamJoinRequests({
                 <Button
                   size="sm"
                   onClick={() => respond(req.id, req.team_id, req.invited_user_id, true)}
-                  className="bg-primary text-primary-foreground uppercase text-[10px] font-bold tracking-widest hover:opacity-90"
+                  className="bg-primary text-primary-foreground uppercase text-2xs font-bold tracking-widest hover:opacity-90"
                 >
                   <Check className="mr-1 size-3.5" />
                   {t("notifications.approve")}

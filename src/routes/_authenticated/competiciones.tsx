@@ -176,7 +176,7 @@ function CompCard({
         </div>
         <div className="min-w-0 flex-1">
           <h3 className="text-display truncate text-lg font-bold">{c.nombre}</h3>
-          <div className="mt-1 flex flex-wrap items-center gap-2 text-[10px] font-bold uppercase tracking-widest">
+          <div className="mt-1 flex flex-wrap items-center gap-2 text-2xs font-bold uppercase tracking-widest">
             <span className="rounded border border-primary/40 bg-primary/15 px-1.5 py-0.5 text-primary">
               {t(`competitions.types.${c.tipo}`)}
             </span>

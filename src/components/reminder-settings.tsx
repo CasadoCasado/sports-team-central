@@ -57,7 +57,7 @@ export function ReminderSettings() {
     <section className="surface-card p-6">
       <div className="mb-3 flex items-center gap-2">
         <Bell className="size-4 text-primary" />
-        <h2 className="text-[10px] font-bold uppercase tracking-widest text-primary">
+        <h2 className="text-2xs font-bold uppercase tracking-widest text-primary">
           {t("reminders.title")}
         </h2>
       </div>

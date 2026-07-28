@@ -161,7 +161,7 @@ function Encuestas() {
           >
             {tb.label}
             {tb.badge ? (
-              <span className="inline-flex min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-black text-primary-foreground">
+              <span className="inline-flex min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 py-0.5 text-2xs font-black text-primary-foreground">
                 {tb.badge}
               </span>
             ) : null}
@@ -308,25 +308,25 @@ function PollCard({
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-display text-lg font-black tracking-tight">{poll.pregunta}</h2>
             {isClosed ? (
-              <span className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+              <span className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-2 py-0.5 text-2xs font-bold uppercase tracking-widest text-muted-foreground">
                 <Lock className="size-3" /> {t("polls.closed")}
               </span>
             ) : hasVoted ? (
-              <span className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-primary">
+              <span className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-2xs font-bold uppercase tracking-widest text-primary">
                 <CheckCircle2 className="size-3" /> {t("polls.voted")}
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-amber-500">
+              <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-2xs font-bold uppercase tracking-widest text-amber-500">
                 <Clock className="size-3" /> {t("polls.pendingLabel")}
               </span>
             )}
             {poll.multi_select && (
-              <span className="rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-primary">
+              <span className="rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-2xs font-bold uppercase tracking-widest text-primary">
                 {t("polls.multi")}
               </span>
             )}
             {poll.anonymous && (
-              <span className="rounded-full border border-border bg-card px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+              <span className="rounded-full border border-border bg-card px-2 py-0.5 text-2xs font-bold uppercase tracking-widest text-muted-foreground">
                 {t("polls.anonymous")}
               </span>
             )}
@@ -335,7 +335,7 @@ function PollCard({
             <p className="mt-1 text-sm text-muted-foreground">{poll.descripcion}</p>
           )}
           {poll.closes_at && (
-            <p className="mt-1 text-[11px] uppercase tracking-widest text-muted-foreground">
+            <p className="mt-1 text-xxs uppercase tracking-widest text-muted-foreground">
               {t("polls.closesOn", { date: new Date(poll.closes_at).toLocaleString() })}
             </p>
           )}
@@ -399,7 +399,7 @@ function PollCard({
                   {selected && <CheckCircle2 className="size-4 text-primary" />}
                   <span className="text-sm font-medium">{opt.texto}</span>
                 </div>
-                <div className="flex items-center gap-3 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+                <div className="flex items-center gap-3 text-xxs font-bold uppercase tracking-widest text-muted-foreground">
                   <span>{count}</span>
                   <span className="text-primary">{pct}%</span>
                 </div>
@@ -409,7 +409,7 @@ function PollCard({
         })}
       </div>
 
-      <footer className="flex items-center justify-between text-[11px] uppercase tracking-widest text-muted-foreground">
+      <footer className="flex items-center justify-between text-xxs uppercase tracking-widest text-muted-foreground">
         <span>{t("polls.votesCount", { count: totalVotes })}</span>
         <span>{t("polls.votersCount", { count: uniqueVoters })}</span>
       </footer>

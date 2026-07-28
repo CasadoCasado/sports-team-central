@@ -266,7 +266,7 @@ function Inicio() {
               </h2>
               <Link
                 to="/calendario"
-                className="text-[10px] font-bold uppercase tracking-widest text-primary hover:underline"
+                className="text-2xs font-bold uppercase tracking-widest text-primary hover:underline"
               >
                 {t("dashboard.viewAll")}
               </Link>
@@ -291,7 +291,7 @@ function Inicio() {
                         <span className="text-xs font-bold">
                           {new Date(e.fecha_inicio).toLocaleDateString([], { day: "numeric" })}
                         </span>
-                        <span className="text-[9px] uppercase tracking-widest">
+                        <span className="text-3xs uppercase tracking-widest">
                           {new Date(e.fecha_inicio).toLocaleDateString([], { month: "short" })}
                         </span>
                       </div>
@@ -304,7 +304,7 @@ function Inicio() {
                               : e.titulo}
                           </p>
                         </div>
-                        <div className="mt-1 flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
+                        <div className="mt-1 flex flex-wrap items-center gap-3 text-xxs text-muted-foreground">
                           <span className="inline-flex items-center gap-1">
                             <Clock className="size-3" />
                             {new Date(e.fecha_inicio).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
@@ -333,7 +333,7 @@ function Inicio() {
                 </h2>
                 <Link
                   to="/convocatorias"
-                  className="text-[10px] font-bold uppercase tracking-widest text-primary hover:underline"
+                  className="text-2xs font-bold uppercase tracking-widest text-primary hover:underline"
                 >
                   {t("dashboard.viewAll")}
                 </Link>
@@ -357,11 +357,11 @@ function Inicio() {
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-sm font-bold">{e!.titulo}</p>
-                          <p className="text-[11px] text-muted-foreground">
+                          <p className="text-xxs text-muted-foreground">
                             {new Date(e!.fecha_inicio).toLocaleString([], { dateStyle: "short", timeStyle: "short" })}
                           </p>
                         </div>
-                        <span className="shrink-0 rounded-full border border-amber-400/40 bg-amber-400/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-amber-300">
+                        <span className="shrink-0 rounded-full border border-amber-400/40 bg-amber-400/10 px-2 py-0.5 text-3xs font-bold uppercase tracking-widest text-amber-300">
                           {t("callups.pending")}
                         </span>
                       </button>
@@ -411,7 +411,7 @@ function Inicio() {
                   </div>
                   <div className="min-w-0">
                     <p className="text-display truncate text-lg font-bold">{team.nombre}</p>
-                    <p className="mt-0.5 text-[10px] font-bold uppercase tracking-widest text-primary">
+                    <p className="mt-0.5 text-2xs font-bold uppercase tracking-widest text-primary">
                       {tm.role}
                     </p>
                   </div>
@@ -460,7 +460,7 @@ function StatCard({
       </div>
       <div>
         <p className="text-display text-3xl font-black">{value}</p>
-        <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+        <p className="mt-1 text-2xs font-bold uppercase tracking-widest text-muted-foreground">
           {label}
         </p>
       </div>

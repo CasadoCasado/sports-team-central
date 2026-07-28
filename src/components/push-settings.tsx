@@ -27,7 +27,7 @@ export function PushSettings() {
 
   return (
     <section className="surface-card p-6">
-      <h2 className="text-[10px] mb-4 font-bold uppercase tracking-widest text-primary">
+      <h2 className="text-2xs mb-4 font-bold uppercase tracking-widest text-primary">
         {t("push.title")}
       </h2>
       <p className="mb-4 text-sm text-muted-foreground">{t("push.description")}</p>

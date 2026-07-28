@@ -138,7 +138,7 @@ export function TeamDiscovery({
               )}
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold">{tm.nombre}</p>
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-xxs text-muted-foreground">
                   {sportLabel(tm.deporte, i18n.language)}
                   {tm.ciudad ? ` · ${tm.ciudad}` : ""}
                 </p>
@@ -147,7 +147,7 @@ export function TeamDiscovery({
                 size="sm"
                 disabled={alreadyRequested || closed}
                 onClick={() => requestJoin(tm.id)}
-                className="bg-primary text-primary-foreground uppercase text-[10px] font-bold tracking-widest hover:opacity-90"
+                className="bg-primary text-primary-foreground uppercase text-2xs font-bold tracking-widest hover:opacity-90"
               >
                 {closed
                   ? t("team.closedToJoin")
