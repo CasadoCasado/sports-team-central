@@ -755,6 +755,7 @@ export type Database = {
           avatar_url: string | null
           ciudad: string | null
           created_at: string
+          deporte: string | null
           descripcion: string | null
           email: string
           fecha_nacimiento: string | null
@@ -775,6 +776,7 @@ export type Database = {
           avatar_url?: string | null
           ciudad?: string | null
           created_at?: string
+          deporte?: string | null
           descripcion?: string | null
           email: string
           fecha_nacimiento?: string | null
@@ -795,6 +797,7 @@ export type Database = {
           avatar_url?: string | null
           ciudad?: string | null
           created_at?: string
+          deporte?: string | null
           descripcion?: string | null
           email?: string
           fecha_nacimiento?: string | null
