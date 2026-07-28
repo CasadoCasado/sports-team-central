@@ -26,6 +26,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/use-profile";
 import { useSession } from "@/hooks/use-session";
 import { LangToggle } from "./lang-toggle";
+import { FontSizeControl } from "./font-size-control";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -254,6 +255,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             </button>
           </div>
           <div className="flex items-center gap-2">
+            <FontSizeControl />
             <LangToggle />
             <Link
               to="/notificaciones"
