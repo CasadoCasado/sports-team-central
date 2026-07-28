@@ -255,7 +255,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             </button>
           </div>
           <div className="flex items-center gap-2">
-            <FontSizeControl />
+            
             <LangToggle />
             <Link
               to="/notificaciones"
