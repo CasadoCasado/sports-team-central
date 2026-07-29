@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Search, Shield } from "lucide-react";
@@ -15,6 +15,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SPORTS, sportLabel } from "@/lib/sports";
+import {
+  categoriesCatalogQuery,
+  competitionsCatalogQuery,
+  openRegistrationsQuery,
+} from "@/lib/official-competitions";
+import { statusBadgeClass } from "@/components/official-registrations-section";
 
 export function TeamDiscovery({
   onlyOpen = false,
@@ -30,6 +36,28 @@ export function TeamDiscovery({
   const qc = useQueryClient();
   const [sport, setSport] = useState<string>("all");
   const [q, setQ] = useState("");
+  const [competitionId, setCompetitionId] = useState<string>("all");
+  const [categoryId, setCategoryId] = useState<string>("all");
+
+  const { data: competitions } = useQuery(competitionsCatalogQuery);
+  const { data: allCategories } = useQuery(categoriesCatalogQuery);
+  const categories = useMemo(
+    () => (allCategories ?? []).filter((c) => c.competition_id === competitionId),
+    [allCategories, competitionId],
+  );
+
+  const { data: registrations } = useQuery(
+    openRegistrationsQuery({
+      competitionId: competitionId === "all" ? undefined : competitionId,
+      categoryId: categoryId === "all" ? undefined : categoryId,
+    }),
+  );
+
+  const regByTeam = useMemo(() => {
+    const map = new Map<string, NonNullable<typeof registrations>[number]>();
+    for (const r of registrations ?? []) if (!map.has(r.team_id)) map.set(r.team_id, r);
+    return map;
+  }, [registrations]);
 
   const { data: teams, isLoading } = useQuery({
     queryKey: ["team-discovery", sport, q, onlyOpen],
@@ -47,6 +75,12 @@ export function TeamDiscovery({
       return data ?? [];
     },
   });
+
+  const visibleTeams = useMemo(() => {
+    if (competitionId === "all") return teams ?? [];
+    return (teams ?? []).filter((tm) => regByTeam.has(tm.id));
+  }, [teams, competitionId, regByTeam]);
+
 
   const { data: pendingReqs } = useQuery({
     queryKey: ["my-join-requests", user?.id],
