@@ -27,6 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { OfficialRegistrationsSection } from "@/components/official-registrations-section";
 import type { Database } from "@/integrations/supabase/types";
 
 type CompType = Database["public"]["Enums"]["competition_type"];
