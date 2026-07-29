@@ -509,5 +509,32 @@
     "fontSizeIncrease": "Increase text size",
     "fontSizeDecrease": "Decrease text size",
     "fontSizeReset": "Reset text size"
+  },
+  "registrations": {
+    "title": "Competition registrations",
+    "subtitle": "Register your team in official competitions with its category and division.",
+    "register": "Register team",
+    "edit": "Edit registration",
+    "empty": "This team is not registered in any official competition.",
+    "competition": "Competition",
+    "category": "Category",
+    "division": "Division",
+    "selectCompetition": "Select competition",
+    "selectCategory": "Select category",
+    "selectDivision": "Select division",
+    "allCompetitions": "All",
+    "allCategories": "All",
+    "statusLabel": "Status",
+    "requiredFields": "Category and division are required",
+    "created": "Registration created",
+    "updated": "Registration updated",
+    "deleted": "Registration removed",
+    "deleteConfirm": "Delete this registration?",
+    "status": {
+      "abierta": "Registration open",
+      "activa": "Active",
+      "cerrada": "Closed",
+      "rechazada": "Rejected"
+    }
   }
 }

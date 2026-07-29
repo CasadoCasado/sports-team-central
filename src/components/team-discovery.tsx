@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Search, Shield } from "lucide-react";
@@ -15,6 +15,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SPORTS, sportLabel } from "@/lib/sports";
+import {
+  categoriesCatalogQuery,
+  competitionsCatalogQuery,
+  openRegistrationsQuery,
+} from "@/lib/official-competitions";
+import { statusBadgeClass } from "@/components/official-registrations-section";
 
 export function TeamDiscovery({
   onlyOpen = false,
@@ -30,6 +36,28 @@ export function TeamDiscovery({
   const qc = useQueryClient();
   const [sport, setSport] = useState<string>("all");
   const [q, setQ] = useState("");
+  const [competitionId, setCompetitionId] = useState<string>("all");
+  const [categoryId, setCategoryId] = useState<string>("all");
+
+  const { data: competitions } = useQuery(competitionsCatalogQuery);
+  const { data: allCategories } = useQuery(categoriesCatalogQuery);
+  const categories = useMemo(
+    () => (allCategories ?? []).filter((c) => c.competition_id === competitionId),
+    [allCategories, competitionId],
+  );
+
+  const { data: registrations } = useQuery(
+    openRegistrationsQuery({
+      competitionId: competitionId === "all" ? undefined : competitionId,
+      categoryId: categoryId === "all" ? undefined : categoryId,
+    }),
+  );
+
+  const regByTeam = useMemo(() => {
+    const map = new Map<string, NonNullable<typeof registrations>[number]>();
+    for (const r of registrations ?? []) if (!map.has(r.team_id)) map.set(r.team_id, r);
+    return map;
+  }, [registrations]);
 
   const { data: teams, isLoading } = useQuery({
     queryKey: ["team-discovery", sport, q, onlyOpen],
@@ -47,6 +75,12 @@ export function TeamDiscovery({
       return data ?? [];
     },
   });
+
+  const visibleTeams = useMemo(() => {
+    if (competitionId === "all") return teams ?? [];
+    return (teams ?? []).filter((tm) => regByTeam.has(tm.id));
+  }, [teams, competitionId, regByTeam]);
+
 
   const { data: pendingReqs } = useQuery({
     queryKey: ["my-join-requests", user?.id],
@@ -102,7 +136,7 @@ export function TeamDiscovery({
           />
         </div>
         <Select value={sport} onValueChange={setSport}>
-          <SelectTrigger><SelectValue /></SelectTrigger>
+          <SelectTrigger aria-label={t("team.allSports")}><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">{t("team.allSports")}</SelectItem>
             {SPORTS.map((s) => (
@@ -114,20 +148,64 @@ export function TeamDiscovery({
         </Select>
       </div>
 
+      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+        <div>
+          <p className="mb-1 text-2xs font-bold uppercase tracking-widest text-muted-foreground">
+            {t("registrations.competition")}
+          </p>
+          <Select
+            value={competitionId}
+            onValueChange={(v) => {
+              setCompetitionId(v);
+              setCategoryId("all");
+            }}
+          >
+            <SelectTrigger aria-label={t("registrations.competition")}><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t("registrations.allCompetitions")}</SelectItem>
+              {competitions?.map((c) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.nombre}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        {competitionId !== "all" && (
+          <div>
+            <p className="mb-1 text-2xs font-bold uppercase tracking-widest text-muted-foreground">
+              {t("registrations.category")}
+            </p>
+            <Select value={categoryId} onValueChange={setCategoryId}>
+              <SelectTrigger aria-label={t("registrations.category")}><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("registrations.allCategories")}</SelectItem>
+                {categories.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.nombre}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+      </div>
+
       <div className="mt-5 space-y-2">
         {isLoading && <p className="text-xs text-muted-foreground">{t("common.loading")}</p>}
-        {!isLoading && (teams?.length ?? 0) === 0 && (
+        {!isLoading && visibleTeams.length === 0 && (
           <p className="text-xs text-muted-foreground">
             {onlyOpen ? t("team.noOpenTeams") : t("members.noResults")}
           </p>
         )}
-        {teams?.map((tm) => {
+        {visibleTeams.map((tm) => {
           const alreadyRequested = pendingReqs?.has(tm.id);
           const closed = tm.inscripciones_abiertas === false;
+          const reg = regByTeam.get(tm.id);
           return (
             <div
               key={tm.id}
-              className="flex items-center gap-3 rounded-md border border-border bg-card p-3"
+              className="flex flex-wrap items-center gap-3 rounded-md border border-border bg-card p-3"
             >
               {tm.logo_url ? (
                 <img src={tm.logo_url} alt="" className="size-10 rounded object-cover" />
@@ -142,6 +220,22 @@ export function TeamDiscovery({
                   {sportLabel(tm.deporte, i18n.language)}
                   {tm.ciudad ? ` · ${tm.ciudad}` : ""}
                 </p>
+                {reg && (
+                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-3xs font-bold uppercase tracking-widest">
+                    <span className="rounded border border-primary/40 bg-primary/15 px-1.5 py-0.5 text-primary">
+                      {reg.official_competitions?.nombre}
+                    </span>
+                    <span className="rounded border border-border px-1.5 py-0.5 text-muted-foreground">
+                      {reg.official_competition_categories?.nombre}
+                    </span>
+                    <span className="rounded border border-border px-1.5 py-0.5 text-muted-foreground">
+                      {reg.official_competition_divisions?.nombre}
+                    </span>
+                    <span className={`rounded border px-1.5 py-0.5 ${statusBadgeClass(reg.status)}`}>
+                      {t(`registrations.status.${reg.status}`)}
+                    </span>
+                  </div>
+                )}
               </div>
               <Button
                 size="sm"
@@ -158,6 +252,7 @@ export function TeamDiscovery({
             </div>
           );
         })}
+
       </div>
     </div>
   );

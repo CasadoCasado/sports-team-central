@@ -509,5 +509,32 @@
     "fontSizeIncrease": "Aumentar tamaño de texto",
     "fontSizeDecrease": "Reducir tamaño de texto",
     "fontSizeReset": "Restablecer tamaño de texto"
+  },
+  "registrations": {
+    "title": "Inscripciones en competiciones",
+    "subtitle": "Inscribe a tu equipo en competiciones oficiales indicando categoría y división.",
+    "register": "Inscribir equipo",
+    "edit": "Editar inscripción",
+    "empty": "Este equipo no está inscrito en ninguna competición oficial.",
+    "competition": "Competición",
+    "category": "Categoría",
+    "division": "División",
+    "selectCompetition": "Selecciona competición",
+    "selectCategory": "Selecciona categoría",
+    "selectDivision": "Selecciona división",
+    "allCompetitions": "Todas",
+    "allCategories": "Todas",
+    "statusLabel": "Estado",
+    "requiredFields": "Categoría y división son obligatorias",
+    "created": "Inscripción creada",
+    "updated": "Inscripción actualizada",
+    "deleted": "Inscripción eliminada",
+    "deleteConfirm": "¿Eliminar esta inscripción?",
+    "status": {
+      "abierta": "Inscripción abierta",
+      "activa": "Activa",
+      "cerrada": "Cerrada",
+      "rechazada": "Rechazada"
+    }
   }
 }
