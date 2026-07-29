@@ -129,6 +129,77 @@ export type Database = {
           },
         ]
       }
+      competition_registrations: {
+        Row: {
+          category_id: string
+          competition_id: string
+          created_at: string
+          created_by: string | null
+          division_id: string
+          id: string
+          registered_at: string
+          status: Database["public"]["Enums"]["registration_status"]
+          team_id: string
+          temporada: string | null
+          updated_at: string
+        }
+        Insert: {
+          category_id: string
+          competition_id: string
+          created_at?: string
+          created_by?: string | null
+          division_id: string
+          id?: string
+          registered_at?: string
+          status?: Database["public"]["Enums"]["registration_status"]
+          team_id: string
+          temporada?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string
+          competition_id?: string
+          created_at?: string
+          created_by?: string | null
+          division_id?: string
+          id?: string
+          registered_at?: string
+          status?: Database["public"]["Enums"]["registration_status"]
+          team_id?: string
+          temporada?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "competition_registrations_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "official_competition_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "competition_registrations_competition_id_fkey"
+            columns: ["competition_id"]
+            isOneToOne: false
+            referencedRelation: "official_competitions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "competition_registrations_division_id_fkey"
+            columns: ["division_id"]
+            isOneToOne: false
+            referencedRelation: "official_competition_divisions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "competition_registrations_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       competitions: {
         Row: {
           created_at: string
@@ -628,6 +699,109 @@ export type Database = {
         }
         Relationships: []
       }
+      official_competition_categories: {
+        Row: {
+          code: string
+          competition_id: string
+          created_at: string
+          id: string
+          nombre: string
+          orden: number
+        }
+        Insert: {
+          code: string
+          competition_id: string
+          created_at?: string
+          id?: string
+          nombre: string
+          orden?: number
+        }
+        Update: {
+          code?: string
+          competition_id?: string
+          created_at?: string
+          id?: string
+          nombre?: string
+          orden?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "official_competition_categories_competition_id_fkey"
+            columns: ["competition_id"]
+            isOneToOne: false
+            referencedRelation: "official_competitions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      official_competition_divisions: {
+        Row: {
+          code: string
+          competition_id: string
+          created_at: string
+          id: string
+          nombre: string
+          orden: number
+        }
+        Insert: {
+          code: string
+          competition_id: string
+          created_at?: string
+          id?: string
+          nombre: string
+          orden?: number
+        }
+        Update: {
+          code?: string
+          competition_id?: string
+          created_at?: string
+          id?: string
+          nombre?: string
+          orden?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "official_competition_divisions_competition_id_fkey"
+            columns: ["competition_id"]
+            isOneToOne: false
+            referencedRelation: "official_competitions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      official_competitions: {
+        Row: {
+          activa: boolean
+          code: string
+          created_at: string
+          descripcion: string | null
+          id: string
+          nombre: string
+          orden: number
+          updated_at: string
+        }
+        Insert: {
+          activa?: boolean
+          code: string
+          created_at?: string
+          descripcion?: string | null
+          id?: string
+          nombre: string
+          orden?: number
+          updated_at?: string
+        }
+        Update: {
+          activa?: boolean
+          code?: string
+          created_at?: string
+          descripcion?: string | null
+          id?: string
+          nombre?: string
+          orden?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       poll_options: {
         Row: {
           created_at: string
@@ -1106,6 +1280,7 @@ export type Database = {
       invitation_status: "pendiente" | "aceptada" | "rechazada"
       member_status: "pendiente" | "activo" | "expulsado"
       preferred_role: "capitan" | "jugador"
+      registration_status: "abierta" | "activa" | "cerrada" | "rechazada"
       response_status: "convocado" | "confirmado" | "rechazado" | "duda"
       team_role:
         | "capitan"
@@ -1247,6 +1422,7 @@ export const Constants = {
       invitation_status: ["pendiente", "aceptada", "rechazada"],
       member_status: ["pendiente", "activo", "expulsado"],
       preferred_role: ["capitan", "jugador"],
+      registration_status: ["abierta", "activa", "cerrada", "rechazada"],
       response_status: ["convocado", "confirmado", "rechazado", "duda"],
       team_role: ["capitan", "entrenador", "delegado", "jugador", "co_capitan"],
     },
