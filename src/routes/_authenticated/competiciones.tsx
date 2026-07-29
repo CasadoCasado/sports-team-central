@@ -134,6 +134,9 @@ function CompetitionsPage() {
         </div>
       )}
 
+      <OfficialRegistrationsSection teamId={active.team_id} canManage={isManager} />
+
+
       {editing && active && (
         <CompDialog
           teamId={active.team_id}
