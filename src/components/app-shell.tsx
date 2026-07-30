@@ -141,6 +141,20 @@ export function AppShell({ children }: { children: ReactNode }) {
         { to: "/comunicaciones", label: t("nav.comunicaciones"), icon: MessagesSquare },
       ],
     },
+    ...(isAdmin
+      ? [
+          {
+            label: t("nav.admin"),
+            items: [
+              {
+                to: "/admin/competiciones",
+                label: t("nav.adminCompeticiones"),
+                icon: Trophy,
+              },
+            ] as NavItem[],
+          },
+        ]
+      : []),
   ];
 
   async function signOut() {
