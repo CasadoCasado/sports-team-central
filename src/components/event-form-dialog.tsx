@@ -112,6 +112,11 @@ export function EventFormDialog({
   });
   const isPadel = team?.deporte === "padel";
 
+  const { data: registrations } = useQuery({
+    ...teamRegistrationsQuery(teamId),
+    enabled: !!teamId && open,
+  });
+
   const save = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error("No user");
