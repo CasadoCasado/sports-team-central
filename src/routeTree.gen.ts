@@ -31,6 +31,7 @@ import { Route as AuthenticatedComunicacionesRouteImport } from './routes/_authe
 import { Route as AuthenticatedCompeticionesRouteImport } from './routes/_authenticated/competiciones'
 import { Route as AuthenticatedCalendarioRouteImport } from './routes/_authenticated/calendario'
 import { Route as AuthenticatedEventosIdRouteImport } from './routes/_authenticated/eventos.$id'
+import { Route as AuthenticatedAdminCompeticionesRouteImport } from './routes/_authenticated/admin/competiciones'
 import { Route as AuthenticatedComunicacionesUnirseTokenRouteImport } from './routes/_authenticated/comunicaciones.unirse.$token'
 
 const AuthRoute = AuthRouteImport.update({
@@ -149,6 +150,12 @@ const AuthenticatedEventosIdRoute = AuthenticatedEventosIdRouteImport.update({
   path: '/eventos/$id',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAdminCompeticionesRoute =
+  AuthenticatedAdminCompeticionesRouteImport.update({
+    id: '/admin/competiciones',
+    path: '/admin/competiciones',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedComunicacionesUnirseTokenRoute =
   AuthenticatedComunicacionesUnirseTokenRouteImport.update({
     id: '/unirse/$token',
@@ -177,6 +184,7 @@ export interface FileRoutesByFullPath {
   '/pagos': typeof AuthenticatedPagosRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/resultados': typeof AuthenticatedResultadosRoute
+  '/admin/competiciones': typeof AuthenticatedAdminCompeticionesRoute
   '/eventos/$id': typeof AuthenticatedEventosIdRoute
   '/comunicaciones/unirse/$token': typeof AuthenticatedComunicacionesUnirseTokenRoute
 }
@@ -201,6 +209,7 @@ export interface FileRoutesByTo {
   '/pagos': typeof AuthenticatedPagosRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/resultados': typeof AuthenticatedResultadosRoute
+  '/admin/competiciones': typeof AuthenticatedAdminCompeticionesRoute
   '/eventos/$id': typeof AuthenticatedEventosIdRoute
   '/comunicaciones/unirse/$token': typeof AuthenticatedComunicacionesUnirseTokenRoute
 }
@@ -227,6 +236,7 @@ export interface FileRoutesById {
   '/_authenticated/pagos': typeof AuthenticatedPagosRoute
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
   '/_authenticated/resultados': typeof AuthenticatedResultadosRoute
+  '/_authenticated/admin/competiciones': typeof AuthenticatedAdminCompeticionesRoute
   '/_authenticated/eventos/$id': typeof AuthenticatedEventosIdRoute
   '/_authenticated/comunicaciones/unirse/$token': typeof AuthenticatedComunicacionesUnirseTokenRoute
 }
@@ -253,6 +263,7 @@ export interface FileRouteTypes {
     | '/pagos'
     | '/perfil'
     | '/resultados'
+    | '/admin/competiciones'
     | '/eventos/$id'
     | '/comunicaciones/unirse/$token'
   fileRoutesByTo: FileRoutesByTo
@@ -277,6 +288,7 @@ export interface FileRouteTypes {
     | '/pagos'
     | '/perfil'
     | '/resultados'
+    | '/admin/competiciones'
     | '/eventos/$id'
     | '/comunicaciones/unirse/$token'
   id:
@@ -302,6 +314,7 @@ export interface FileRouteTypes {
     | '/_authenticated/pagos'
     | '/_authenticated/perfil'
     | '/_authenticated/resultados'
+    | '/_authenticated/admin/competiciones'
     | '/_authenticated/eventos/$id'
     | '/_authenticated/comunicaciones/unirse/$token'
   fileRoutesById: FileRoutesById
@@ -468,6 +481,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEventosIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/competiciones': {
+      id: '/_authenticated/admin/competiciones'
+      path: '/admin/competiciones'
+      fullPath: '/admin/competiciones'
+      preLoaderRoute: typeof AuthenticatedAdminCompeticionesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/comunicaciones/unirse/$token': {
       id: '/_authenticated/comunicaciones/unirse/$token'
       path: '/unirse/$token'
@@ -512,6 +532,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPagosRoute: typeof AuthenticatedPagosRoute
   AuthenticatedPerfilRoute: typeof AuthenticatedPerfilRoute
   AuthenticatedResultadosRoute: typeof AuthenticatedResultadosRoute
+  AuthenticatedAdminCompeticionesRoute: typeof AuthenticatedAdminCompeticionesRoute
   AuthenticatedEventosIdRoute: typeof AuthenticatedEventosIdRoute
 }
 
@@ -535,6 +556,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPagosRoute: AuthenticatedPagosRoute,
   AuthenticatedPerfilRoute: AuthenticatedPerfilRoute,
   AuthenticatedResultadosRoute: AuthenticatedResultadosRoute,
+  AuthenticatedAdminCompeticionesRoute: AuthenticatedAdminCompeticionesRoute,
   AuthenticatedEventosIdRoute: AuthenticatedEventosIdRoute,
 }
 

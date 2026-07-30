@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { Database } from "@/integrations/supabase/types";
+import { teamRegistrationsQuery } from "@/lib/official-competitions";
 
 type EventType = Database["public"]["Enums"]["event_type"];
 
@@ -40,6 +41,7 @@ export type EventFormValues = {
   rival: string;
   es_local: boolean;
   competition_id: string | null;
+  registration_id: string | null;
   requiere_convocatoria: boolean;
   convocatoria_cierra_en: string;
   padel_num_pistas: number | null;
@@ -55,6 +57,7 @@ const emptyValues = (): EventFormValues => ({
   rival: "",
   es_local: true,
   competition_id: null,
+  registration_id: null,
   requiere_convocatoria: false,
   convocatoria_cierra_en: "",
   padel_num_pistas: null,
@@ -110,6 +113,11 @@ export function EventFormDialog({
   });
   const isPadel = team?.deporte === "padel";
 
+  const { data: registrations } = useQuery({
+    ...teamRegistrationsQuery(teamId),
+    enabled: !!teamId && open,
+  });
+
   const save = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error("No user");
@@ -126,6 +134,7 @@ export function EventFormDialog({
         rival: values.rival.trim() || null,
         es_local: values.tipo === "partido" ? values.es_local : null,
         competition_id: values.competition_id,
+        registration_id: values.tipo === "partido" ? values.registration_id : null,
         requiere_convocatoria: values.requiere_convocatoria,
         convocatoria_cierra_en: values.convocatoria_cierra_en
           ? new Date(values.convocatoria_cierra_en).toISOString()
@@ -260,6 +269,34 @@ export function EventFormDialog({
                   </Select>
                 </div>
               </div>
+              {(registrations?.length ?? 0) > 0 && (
+                <div>
+                  <Label>{t("events.competicionOficial")}</Label>
+                  <Select
+                    value={values.registration_id ?? "none"}
+                    onValueChange={(v) =>
+                      setValues((s) => ({ ...s, registration_id: v === "none" ? null : v }))
+                    }
+                  >
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">{t("events.sinCompeticion")}</SelectItem>
+                      {registrations?.map((r) => (
+                        <SelectItem key={r.id} value={r.id}>
+                          {[
+                            r.official_competitions?.nombre,
+                            r.official_competition_categories?.nombre,
+                            r.official_competition_divisions?.nombre,
+                            r.temporada,
+                          ]
+                            .filter(Boolean)
+                            .join(" · ")}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <div className="flex items-center justify-between rounded-md border border-border p-3">
                 <Label htmlFor="es_local" className="cursor-pointer">{t("events.esLocal")}</Label>
                 <Switch

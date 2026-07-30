@@ -382,6 +382,7 @@ export type Database = {
           fecha_inicio: string
           id: string
           padel_num_pistas: number | null
+          registration_id: string | null
           requiere_convocatoria: boolean
           resultado_local: number | null
           resultado_visitante: number | null
@@ -403,6 +404,7 @@ export type Database = {
           fecha_inicio: string
           id?: string
           padel_num_pistas?: number | null
+          registration_id?: string | null
           requiere_convocatoria?: boolean
           resultado_local?: number | null
           resultado_visitante?: number | null
@@ -424,6 +426,7 @@ export type Database = {
           fecha_inicio?: string
           id?: string
           padel_num_pistas?: number | null
+          registration_id?: string | null
           requiere_convocatoria?: boolean
           resultado_local?: number | null
           resultado_visitante?: number | null
@@ -440,6 +443,13 @@ export type Database = {
             columns: ["competition_id"]
             isOneToOne: false
             referencedRelation: "competitions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_registration_id_fkey"
+            columns: ["registration_id"]
+            isOneToOne: false
+            referencedRelation: "competition_registrations"
             referencedColumns: ["id"]
           },
           {
@@ -776,8 +786,11 @@ export type Database = {
           created_at: string
           descripcion: string | null
           id: string
+          inscripciones_abiertas: boolean
           nombre: string
           orden: number
+          reglas: string | null
+          temporada_actual: string | null
           updated_at: string
         }
         Insert: {
@@ -786,8 +799,11 @@ export type Database = {
           created_at?: string
           descripcion?: string | null
           id?: string
+          inscripciones_abiertas?: boolean
           nombre: string
           orden?: number
+          reglas?: string | null
+          temporada_actual?: string | null
           updated_at?: string
         }
         Update: {
@@ -796,8 +812,11 @@ export type Database = {
           created_at?: string
           descripcion?: string | null
           id?: string
+          inscripciones_abiertas?: boolean
           nombre?: string
           orden?: number
+          reglas?: string | null
+          temporada_actual?: string | null
           updated_at?: string
         }
         Relationships: []

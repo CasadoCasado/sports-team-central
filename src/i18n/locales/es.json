@@ -23,7 +23,9 @@
     "perfil": "Mi perfil",
     "principal": "Principal",
     "gestion": "Gestión",
-    "recursos": "Recursos"
+    "recursos": "Recursos",
+    "adminCompeticiones": "Competiciones oficiales",
+    "admin": "Administración"
   },
   "auth": {
     "welcome": "Bienvenido a Vestuario",
@@ -283,7 +285,8 @@
     "noEventsDay": "Sin eventos",
     "backToCalendar": "Volver al calendario",
     "padelPistas": "Nº de pistas de pádel",
-    "padelPistasHint": "Ej. 2"
+    "padelPistasHint": "Ej. 2",
+    "competicionOficial": "Competición oficial (inscripción)"
   },
   "competitions": {
     "title": "Competiciones",
@@ -536,5 +539,30 @@
       "cerrada": "Cerrada",
       "rechazada": "Rechazada"
     }
+  },
+  "adminComps": {
+    "title": "Competiciones oficiales",
+    "subtitle": "Gestiona el catálogo: categorías, divisiones, reglas y estado de inscripción.",
+    "noAccess": "Solo los administradores pueden acceder a esta sección.",
+    "newCompetition": "Nueva competición",
+    "editCompetition": "Editar competición",
+    "empty": "Todavía no hay competiciones oficiales.",
+    "emptyCatalog": "Sin elementos",
+    "showCatalog": "Ver categorías y divisiones",
+    "hideCatalog": "Ocultar categorías y divisiones",
+    "code": "Código",
+    "name": "Nombre",
+    "description": "Descripción",
+    "rules": "Reglas",
+    "season": "Temporada actual",
+    "active": "Activa",
+    "inactive": "Inactiva",
+    "registrationsOpen": "Inscripciones abiertas",
+    "registrationsClosed": "Inscripciones cerradas",
+    "requiredFields": "Código y nombre son obligatorios",
+    "created": "Creado",
+    "updated": "Actualizado",
+    "deleted": "Eliminado",
+    "deleteConfirm": "¿Eliminar este elemento?"
   }
 }

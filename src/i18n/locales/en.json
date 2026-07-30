@@ -23,7 +23,9 @@
     "perfil": "My profile",
     "principal": "Main",
     "gestion": "Management",
-    "recursos": "Resources"
+    "recursos": "Resources",
+    "adminCompeticiones": "Official competitions",
+    "admin": "Admin"
   },
   "auth": {
     "welcome": "Welcome to Vestuario",
@@ -283,7 +285,8 @@
     "noEventsDay": "No events",
     "backToCalendar": "Back to calendar",
     "padelPistas": "Number of padel courts",
-    "padelPistasHint": "e.g. 2"
+    "padelPistasHint": "e.g. 2",
+    "competicionOficial": "Official competition (registration)"
   },
   "competitions": {
     "title": "Competitions",
@@ -536,5 +539,30 @@
       "cerrada": "Closed",
       "rechazada": "Rejected"
     }
+  },
+  "adminComps": {
+    "title": "Official competitions",
+    "subtitle": "Manage the catalog: categories, divisions, rules and registration status.",
+    "noAccess": "Only administrators can access this section.",
+    "newCompetition": "New competition",
+    "editCompetition": "Edit competition",
+    "empty": "No official competitions yet.",
+    "emptyCatalog": "No items",
+    "showCatalog": "Show categories and divisions",
+    "hideCatalog": "Hide categories and divisions",
+    "code": "Code",
+    "name": "Name",
+    "description": "Description",
+    "rules": "Rules",
+    "season": "Current season",
+    "active": "Active",
+    "inactive": "Inactive",
+    "registrationsOpen": "Registrations open",
+    "registrationsClosed": "Registrations closed",
+    "requiredFields": "Code and name are required",
+    "created": "Created",
+    "updated": "Updated",
+    "deleted": "Deleted",
+    "deleteConfirm": "Delete this item?"
   }
 }

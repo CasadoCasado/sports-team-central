@@ -9,6 +9,26 @@ export type OfficialCompetition = {
   nombre: string;
   descripcion: string | null;
   activa: boolean;
+  reglas?: string | null;
+  inscripciones_abiertas?: boolean;
+  temporada_actual?: string | null;
+  orden?: number;
+};
+
+const COMPETITION_SELECT =
+  "id, code, nombre, descripcion, activa, reglas, inscripciones_abiertas, temporada_actual, orden";
+
+/** Catálogo completo (incluidas inactivas) para la pantalla de administración. */
+export const adminCompetitionsQuery = {
+  queryKey: ["official-competitions-admin"],
+  queryFn: async (): Promise<OfficialCompetition[]> => {
+    const { data, error } = await supabase
+      .from("official_competitions")
+      .select(COMPETITION_SELECT)
+      .order("orden");
+    if (error) throw error;
+    return (data ?? []) as OfficialCompetition[];
+  },
 };
 
 export type CatalogItem = {
@@ -41,11 +61,11 @@ export const competitionsCatalogQuery = {
   queryFn: async (): Promise<OfficialCompetition[]> => {
     const { data, error } = await supabase
       .from("official_competitions")
-      .select("id, code, nombre, descripcion, activa")
+      .select(COMPETITION_SELECT)
       .eq("activa", true)
       .order("orden");
     if (error) throw error;
-    return data ?? [];
+    return (data ?? []) as OfficialCompetition[];
   },
 };
 
