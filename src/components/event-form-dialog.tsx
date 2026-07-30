@@ -40,6 +40,7 @@ export type EventFormValues = {
   rival: string;
   es_local: boolean;
   competition_id: string | null;
+  registration_id: string | null;
   requiere_convocatoria: boolean;
   convocatoria_cierra_en: string;
   padel_num_pistas: number | null;
@@ -55,6 +56,7 @@ const emptyValues = (): EventFormValues => ({
   rival: "",
   es_local: true,
   competition_id: null,
+  registration_id: null,
   requiere_convocatoria: false,
   convocatoria_cierra_en: "",
   padel_num_pistas: null,
