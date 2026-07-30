@@ -134,6 +134,7 @@ export function EventFormDialog({
         rival: values.rival.trim() || null,
         es_local: values.tipo === "partido" ? values.es_local : null,
         competition_id: values.competition_id,
+        registration_id: values.tipo === "partido" ? values.registration_id : null,
         requiere_convocatoria: values.requiere_convocatoria,
         convocatoria_cierra_en: values.convocatoria_cierra_en
           ? new Date(values.convocatoria_cierra_en).toISOString()
