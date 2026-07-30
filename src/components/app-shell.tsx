@@ -1,6 +1,7 @@
 import { type ReactNode, useState } from "react";
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { useIsAdmin } from "@/hooks/use-is-admin";
 import {
   Home,
   Users,
