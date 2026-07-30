@@ -61,11 +61,11 @@ export const competitionsCatalogQuery = {
   queryFn: async (): Promise<OfficialCompetition[]> => {
     const { data, error } = await supabase
       .from("official_competitions")
-      .select("id, code, nombre, descripcion, activa")
+      .select(COMPETITION_SELECT)
       .eq("activa", true)
       .order("orden");
     if (error) throw error;
-    return data ?? [];
+    return (data ?? []) as OfficialCompetition[];
   },
 };
 
