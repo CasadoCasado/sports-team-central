@@ -109,6 +109,8 @@ export function AppShell({ children }: { children: ReactNode }) {
     };
   }, [user, qc]);
 
+  const isAdmin = useIsAdmin();
+
   const groups: { label: string; items: NavItem[] }[] = [
     {
       label: t("nav.principal"),
