@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { Database } from "@/integrations/supabase/types";
+import { teamRegistrationsQuery } from "@/lib/official-competitions";
 
 type EventType = Database["public"]["Enums"]["event_type"];
 
