@@ -269,6 +269,34 @@ export function EventFormDialog({
                   </Select>
                 </div>
               </div>
+              {(registrations?.length ?? 0) > 0 && (
+                <div>
+                  <Label>{t("events.competicionOficial")}</Label>
+                  <Select
+                    value={values.registration_id ?? "none"}
+                    onValueChange={(v) =>
+                      setValues((s) => ({ ...s, registration_id: v === "none" ? null : v }))
+                    }
+                  >
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">{t("events.sinCompeticion")}</SelectItem>
+                      {registrations?.map((r) => (
+                        <SelectItem key={r.id} value={r.id}>
+                          {[
+                            r.official_competitions?.nombre,
+                            r.official_competition_categories?.nombre,
+                            r.official_competition_divisions?.nombre,
+                            r.temporada,
+                          ]
+                            .filter(Boolean)
+                            .join(" · ")}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <div className="flex items-center justify-between rounded-md border border-border p-3">
                 <Label htmlFor="es_local" className="cursor-pointer">{t("events.esLocal")}</Label>
                 <Switch
