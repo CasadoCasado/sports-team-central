@@ -118,6 +118,43 @@ export function EventFormDialog({
     enabled: !!teamId && open,
   });
 
+  const [officialCompetitionId, setOfficialCompetitionId] = useState<string | null>(null);
+
+  // Distinct official competitions the team has previously registered in.
+  const officialCompetitions = useMemo(() => {
+    const map = new Map<string, { id: string; nombre: string }>();
+    for (const r of registrations ?? []) {
+      const c = r.official_competitions;
+      if (c && !map.has(c.id)) map.set(c.id, { id: c.id, nombre: c.nombre });
+    }
+    return [...map.values()];
+  }, [registrations]);
+
+  // Only inscriptions belonging to the selected official competition are choosable.
+  const filteredRegistrations = useMemo(
+    () =>
+      officialCompetitionId
+        ? (registrations ?? []).filter((r) => r.competition_id === officialCompetitionId)
+        : [],
+    [registrations, officialCompetitionId],
+  );
+
+  // Preselect the competition of an already linked inscription (edit mode).
+  useEffect(() => {
+    if (!open) return;
+    const current = (registrations ?? []).find((r) => r.id === values.registration_id);
+    setOfficialCompetitionId(current?.competition_id ?? null);
+  }, [open, registrations, values.registration_id]);
+
+  // Drop a stale inscription if it no longer matches the selected competition.
+  useEffect(() => {
+    if (!values.registration_id) return;
+    if (!filteredRegistrations.some((r) => r.id === values.registration_id)) {
+      setValues((s) => ({ ...s, registration_id: null }));
+    }
+  }, [filteredRegistrations, values.registration_id]);
+
+
   const save = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error("No user");
