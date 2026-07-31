@@ -286,7 +286,8 @@
     "backToCalendar": "Back to calendar",
     "padelPistas": "Number of padel courts",
     "padelPistasHint": "e.g. 2",
-    "competicionOficial": "Official competition (registration)"
+    "competicionOficialTipo": "Official competition",
+    "competicionOficial": "Team registration"
   },
   "competitions": {
     "title": "Competitions",

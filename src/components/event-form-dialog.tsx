@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -117,6 +117,43 @@ export function EventFormDialog({
     ...teamRegistrationsQuery(teamId),
     enabled: !!teamId && open,
   });
+
+  const [officialCompetitionId, setOfficialCompetitionId] = useState<string | null>(null);
+
+  // Distinct official competitions the team has previously registered in.
+  const officialCompetitions = useMemo(() => {
+    const map = new Map<string, { id: string; nombre: string }>();
+    for (const r of registrations ?? []) {
+      const c = r.official_competitions;
+      if (c && !map.has(c.id)) map.set(c.id, { id: c.id, nombre: c.nombre });
+    }
+    return [...map.values()];
+  }, [registrations]);
+
+  // Only inscriptions belonging to the selected official competition are choosable.
+  const filteredRegistrations = useMemo(
+    () =>
+      officialCompetitionId
+        ? (registrations ?? []).filter((r) => r.competition_id === officialCompetitionId)
+        : [],
+    [registrations, officialCompetitionId],
+  );
+
+  // Preselect the competition of an already linked inscription (edit mode).
+  useEffect(() => {
+    if (!open) return;
+    const current = (registrations ?? []).find((r) => r.id === values.registration_id);
+    setOfficialCompetitionId(current?.competition_id ?? null);
+  }, [open, registrations, values.registration_id]);
+
+  // Drop a stale inscription if it no longer matches the selected competition.
+  useEffect(() => {
+    if (!values.registration_id) return;
+    if (!filteredRegistrations.some((r) => r.id === values.registration_id)) {
+      setValues((s) => ({ ...s, registration_id: null }));
+    }
+  }, [filteredRegistrations, values.registration_id]);
+
 
   const save = useMutation({
     mutationFn: async () => {
@@ -270,33 +307,54 @@ export function EventFormDialog({
                 </div>
               </div>
               {(registrations?.length ?? 0) > 0 && (
-                <div>
-                  <Label>{t("events.competicionOficial")}</Label>
-                  <Select
-                    value={values.registration_id ?? "none"}
-                    onValueChange={(v) =>
-                      setValues((s) => ({ ...s, registration_id: v === "none" ? null : v }))
-                    }
-                  >
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">{t("events.sinCompeticion")}</SelectItem>
-                      {registrations?.map((r) => (
-                        <SelectItem key={r.id} value={r.id}>
-                          {[
-                            r.official_competitions?.nombre,
-                            r.official_competition_categories?.nombre,
-                            r.official_competition_divisions?.nombre,
-                            r.temporada,
-                          ]
-                            .filter(Boolean)
-                            .join(" · ")}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <Label>{t("events.competicionOficialTipo")}</Label>
+                    <Select
+                      value={officialCompetitionId ?? "none"}
+                      onValueChange={(v) => {
+                        setOfficialCompetitionId(v === "none" ? null : v);
+                        setValues((s) => ({ ...s, registration_id: null }));
+                      }}
+                    >
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">{t("events.sinCompeticion")}</SelectItem>
+                        {officialCompetitions.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>{c.nombre}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>{t("events.competicionOficial")}</Label>
+                    <Select
+                      value={values.registration_id ?? "none"}
+                      disabled={!officialCompetitionId}
+                      onValueChange={(v) =>
+                        setValues((s) => ({ ...s, registration_id: v === "none" ? null : v }))
+                      }
+                    >
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">{t("events.sinCompeticion")}</SelectItem>
+                        {filteredRegistrations.map((r) => (
+                          <SelectItem key={r.id} value={r.id}>
+                            {[
+                              r.official_competition_categories?.nombre,
+                              r.official_competition_divisions?.nombre,
+                              r.temporada,
+                            ]
+                              .filter(Boolean)
+                              .join(" · ")}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               )}
+
               <div className="flex items-center justify-between rounded-md border border-border p-3">
                 <Label htmlFor="es_local" className="cursor-pointer">{t("events.esLocal")}</Label>
                 <Switch
