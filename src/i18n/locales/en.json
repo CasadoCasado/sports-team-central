@@ -287,7 +287,11 @@
     "padelPistas": "Number of padel courts",
     "padelPistasHint": "e.g. 2",
     "competicionOficialTipo": "Official competition",
-    "competicionOficial": "Team registration"
+    "competicionOficial": "Team registration",
+    "errors": {
+      "registrationMismatch": "The selected registration doesn't belong to this team or no longer exists.",
+      "registrationNotActive": "The selected registration is not open or active."
+    }
   },
   "competitions": {
     "title": "Competitions",

@@ -287,7 +287,11 @@
     "padelPistas": "Nº de pistas de pádel",
     "padelPistasHint": "Ej. 2",
     "competicionOficialTipo": "Competición oficial",
-    "competicionOficial": "Inscripción del equipo"
+    "competicionOficial": "Inscripción del equipo",
+    "errors": {
+      "registrationMismatch": "La inscripción seleccionada no pertenece a este equipo o no existe.",
+      "registrationNotActive": "La inscripción seleccionada no está abierta ni activa."
+    }
   },
   "competitions": {
     "title": "Competiciones",
