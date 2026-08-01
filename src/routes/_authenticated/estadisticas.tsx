@@ -130,9 +130,25 @@ function Estadisticas() {
           {t("stats.team")}
         </h2>
         <div className="grid grid-cols-2 gap-4 md:grid-cols-2">
-          <BigStat icon={<Trophy />} label={t("stats.matchesPlayed")} value={withResult.length} />
-          <BigStat icon={<Percent />} label={t("stats.winRate")} value={`${winPct}%`} accent />
+          <BigStat icon={<Trophy />} label={t("stats.matchesPlayed")} value={teamStats?.jugados ?? withResult.length} />
+          <BigStat icon={<Percent />} label={t("stats.winRate")} value={`${teamStats?.win_pct ?? winPct}%`} accent />
         </div>
+
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          <BigStat
+            icon={<Flame />}
+            label={teamStats?.racha_victorias ? t("stats.winStreak") : t("stats.lossStreak")}
+            value={teamStats?.racha ?? 0}
+          />
+          <BigStat icon={<CheckCircle2 />} label={t("stats.courtsWon")} value={teamStats?.pistas_ganadas ?? 0} />
+          <BigStat icon={<XCircle />} label={t("stats.courtsLost")} value={teamStats?.pistas_perdidas ?? 0} />
+          <BigStat
+            icon={<Percent />}
+            label={t("stats.courtsDiff")}
+            value={`${(teamStats?.diferencia_pistas ?? 0) > 0 ? "+" : ""}${teamStats?.diferencia_pistas ?? 0}`}
+          />
+        </div>
+
 
         <div className="surface-card grid grid-cols-3 divide-x divide-border">
           <ResultCell label={t("stats.wins")} value={wins} color="text-primary" />
