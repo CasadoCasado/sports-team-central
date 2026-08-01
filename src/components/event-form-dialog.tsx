@@ -154,6 +154,14 @@ export function EventFormDialog({
     }
   }, [filteredRegistrations, values.registration_id]);
 
+  const [registrationError, setRegistrationError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setRegistrationError(null);
+  }, [values.registration_id, officialCompetitionId, open]);
+
+
+
 
   const save = useMutation({
     mutationFn: async () => {
