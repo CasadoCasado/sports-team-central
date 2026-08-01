@@ -218,7 +218,31 @@ function Estadisticas() {
           } />
           <BigStat icon={<HelpCircle />} label={t("stats.pending")} value={myPending} />
         </div>
+
+        <h3 className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
+          {t("stats.myMatches")}
+        </h3>
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          <BigStat icon={<Percent />} label={t("stats.winRate")} value={`${playerStats?.win_pct ?? 0}%`} accent />
+          <BigStat icon={<Trophy />} label={t("stats.wins")} value={playerStats?.victorias ?? 0} />
+          <BigStat icon={<XCircle />} label={t("stats.losses")} value={playerStats?.derrotas ?? 0} />
+          <BigStat icon={<CheckCircle2 />} label={t("stats.played")} value={playerStats?.disputados ?? 0} />
+        </div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <BigStat icon={<HelpCircle />} label={t("stats.calledUp")} value={playerStats?.convocado ?? 0} />
+          <BigStat
+            icon={<CalendarClock />}
+            label={t("stats.lastCallup")}
+            value={playerStats?.ultima_convocatoria ? new Date(playerStats.ultima_convocatoria).toLocaleDateString() : "—"}
+          />
+          <BigStat
+            icon={<CalendarClock />}
+            label={t("stats.lastMatch")}
+            value={playerStats?.ultimo_partido ? new Date(playerStats.ultimo_partido).toLocaleDateString() : "—"}
+          />
+        </div>
       </section>
+
 
       {isManager && (
         <p className="text-xs text-muted-foreground">
