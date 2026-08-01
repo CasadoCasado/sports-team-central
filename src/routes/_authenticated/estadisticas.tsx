@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { Trophy, Dumbbell, CheckCircle2, XCircle, HelpCircle, Percent } from "lucide-react";
+import { Trophy, Dumbbell, CheckCircle2, XCircle, HelpCircle, Percent, Flame, CalendarClock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/hooks/use-session";
 import { useActiveTeam } from "@/hooks/use-active-team";
@@ -41,6 +41,35 @@ function Estadisticas() {
     },
   });
 
+  const { data: teamStats } = useQuery({
+    queryKey: ["team-stats", teamId],
+    enabled: !!teamId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("team_match_stats")
+        .select("*")
+        .eq("team_id", teamId!)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: playerStats } = useQuery({
+    queryKey: ["player-stats", teamId, user?.id],
+    enabled: !!teamId && !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("player_match_stats")
+        .select("*")
+        .eq("team_id", teamId!)
+        .eq("user_id", user!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const { data: myResponses } = useQuery({
     queryKey: ["stats-my-responses", teamId, user?.id],
     enabled: !!teamId && !!user,
@@ -58,6 +87,7 @@ function Estadisticas() {
   });
 
   if (!active) return <EmptyTeamState />;
+
 
   const matches = (events ?? []).filter((e) => e.tipo === "partido");
   const withResult = matches.filter(
@@ -100,9 +130,25 @@ function Estadisticas() {
           {t("stats.team")}
         </h2>
         <div className="grid grid-cols-2 gap-4 md:grid-cols-2">
-          <BigStat icon={<Trophy />} label={t("stats.matchesPlayed")} value={withResult.length} />
-          <BigStat icon={<Percent />} label={t("stats.winRate")} value={`${winPct}%`} accent />
+          <BigStat icon={<Trophy />} label={t("stats.matchesPlayed")} value={teamStats?.jugados ?? withResult.length} />
+          <BigStat icon={<Percent />} label={t("stats.winRate")} value={`${teamStats?.win_pct ?? winPct}%`} accent />
         </div>
+
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          <BigStat
+            icon={<Flame />}
+            label={teamStats?.racha_victorias ? t("stats.winStreak") : t("stats.lossStreak")}
+            value={teamStats?.racha ?? 0}
+          />
+          <BigStat icon={<CheckCircle2 />} label={t("stats.courtsWon")} value={teamStats?.pistas_ganadas ?? 0} />
+          <BigStat icon={<XCircle />} label={t("stats.courtsLost")} value={teamStats?.pistas_perdidas ?? 0} />
+          <BigStat
+            icon={<Percent />}
+            label={t("stats.courtsDiff")}
+            value={`${(teamStats?.diferencia_pistas ?? 0) > 0 ? "+" : ""}${teamStats?.diferencia_pistas ?? 0}`}
+          />
+        </div>
+
 
         <div className="surface-card grid grid-cols-3 divide-x divide-border">
           <ResultCell label={t("stats.wins")} value={wins} color="text-primary" />
@@ -172,7 +218,31 @@ function Estadisticas() {
           } />
           <BigStat icon={<HelpCircle />} label={t("stats.pending")} value={myPending} />
         </div>
+
+        <h3 className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
+          {t("stats.myMatches")}
+        </h3>
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          <BigStat icon={<Percent />} label={t("stats.winRate")} value={`${playerStats?.win_pct ?? 0}%`} accent />
+          <BigStat icon={<Trophy />} label={t("stats.wins")} value={playerStats?.victorias ?? 0} />
+          <BigStat icon={<XCircle />} label={t("stats.losses")} value={playerStats?.derrotas ?? 0} />
+          <BigStat icon={<CheckCircle2 />} label={t("stats.played")} value={playerStats?.disputados ?? 0} />
+        </div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <BigStat icon={<HelpCircle />} label={t("stats.calledUp")} value={playerStats?.convocado ?? 0} />
+          <BigStat
+            icon={<CalendarClock />}
+            label={t("stats.lastCallup")}
+            value={playerStats?.ultima_convocatoria ? new Date(playerStats.ultima_convocatoria).toLocaleDateString() : "—"}
+          />
+          <BigStat
+            icon={<CalendarClock />}
+            label={t("stats.lastMatch")}
+            value={playerStats?.ultimo_partido ? new Date(playerStats.ultimo_partido).toLocaleDateString() : "—"}
+          />
+        </div>
       </section>
+
 
       {isManager && (
         <p className="text-xs text-muted-foreground">

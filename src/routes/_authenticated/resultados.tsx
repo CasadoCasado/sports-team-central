@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { Trophy, MapPin, Calendar as CalendarIcon } from "lucide-react";
+import { Trophy, MapPin, Calendar as CalendarIcon, XCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useActiveTeam } from "@/hooks/use-active-team";
 import { TeamPicker } from "@/components/team-picker";
@@ -56,11 +56,11 @@ function Resultados() {
               ? own! > opp! ? "W" : own === opp ? "D" : "L"
               : null;
             const outcomeClass = outcome === "W"
-              ? "bg-primary text-primary-foreground"
+              ? "bg-emerald-500/15 text-emerald-600 border border-emerald-500/40"
               : outcome === "D"
-              ? "bg-amber-400/20 text-amber-300 border border-amber-400/40"
+              ? "bg-amber-400/20 text-amber-600 border border-amber-400/40"
               : outcome === "L"
-              ? "bg-red-500/20 text-red-400 border border-red-500/40"
+              ? "bg-red-500/15 text-red-500 border border-red-500/40"
               : "bg-muted text-muted-foreground border border-border";
             const comp = Array.isArray(m.competition) ? m.competition[0] : m.competition;
             return (
@@ -70,16 +70,17 @@ function Resultados() {
                 params={{ id: m.id }}
                 className="surface-card flex items-center gap-4 p-5 transition-colors hover:border-primary/40"
               >
-                <div className={`flex size-14 flex-col items-center justify-center rounded-md text-xs font-bold ${outcomeClass}`}>
+                <div className={`flex size-14 flex-col items-center justify-center gap-0.5 rounded-md text-xs font-bold ${outcomeClass}`}>
                   {played ? (
                     <>
-                      <span className="text-lg">{outcome}</span>
+                      {outcome === "W" ? <Trophy className="size-4" /> : outcome === "L" ? <XCircle className="size-4" /> : null}
                       <span>{own}-{opp}</span>
                     </>
                   ) : (
                     <span className="text-2xs uppercase tracking-widest">{t("results.notPlayed")}</span>
                   )}
                 </div>
+
                 <div className="flex-1 min-w-0">
                   <p className="text-display truncate text-lg font-bold">
                     {m.es_local ? active.team.nombre : m.rival || "—"} <span className="text-muted-foreground">vs</span> {m.es_local ? m.rival || "—" : active.team.nombre}
