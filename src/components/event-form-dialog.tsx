@@ -219,13 +219,16 @@ export function EventFormDialog({
     onError: (e: Error) => {
       const msg = e.message || "";
       if (msg.includes("registration_team_mismatch") || msg.includes("invalid_registration")) {
+        setRegistrationError(t("events.errors.registrationMismatch"));
         toast.error(t("events.errors.registrationMismatch"));
       } else if (msg.includes("registration_not_active")) {
+        setRegistrationError(t("events.errors.registrationNotActive"));
         toast.error(t("events.errors.registrationNotActive"));
       } else {
         toast.error(msg || t("common.error"));
       }
     },
+
 
     onSettled: () => setSaving(false),
   });
