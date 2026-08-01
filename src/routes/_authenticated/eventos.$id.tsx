@@ -646,12 +646,14 @@ function MatchResultsSection({
   teamId,
   startISO,
   padelNumPistas,
+  esLocal,
   isManager,
 }: {
   eventId: string;
   teamId: string;
   startISO: string;
   padelNumPistas: number | null;
+  esLocal: boolean;
   isManager: boolean;
 }) {
   const { t } = useTranslation();
@@ -687,6 +689,34 @@ function MatchResultsSection({
     },
   });
 
+  const { data: participations } = useQuery({
+    queryKey: ["match-participations", eventId],
+    enabled: hasStarted,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("match_participations")
+        .select("user_id, pista, ganado")
+        .eq("event_id", eventId)
+        .order("pista", { ascending: true, nullsFirst: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const { data: profiles } = useQuery({
+    queryKey: ["match-participation-profiles", eventId, participations?.length ?? 0],
+    enabled: !!participations?.length,
+    queryFn: async () => {
+      const ids = (participations ?? []).map((p) => p.user_id);
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, nombre, apellidos")
+        .in("id", ids);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
   const [rows, setRows] = useState<MatchResultRow[]>([]);
   useEffect(() => {
     const base: MatchResultRow[] = Array.from({ length: courtsCount }).map((_, i) => {
@@ -706,38 +736,34 @@ function MatchResultsSection({
     setRows(base);
   }, [existing, courtsCount]);
 
+  const setsOf = (r: MatchResultRow): SetPair[] => [
+    { local: r.set1_local, visitante: r.set1_visitante },
+    { local: r.set2_local, visitante: r.set2_visitante },
+    { local: r.set3_local, visitante: r.set3_visitante },
+  ];
+
+  const winners = rows.map((r) =>
+    isPadel ? courtWinner(setsOf(r)) : simpleCourtWinner(r.set1_local, r.set1_visitante),
+  );
+  const summary = tieSummary(winners, esLocal);
+
   const validate = (): string | null => {
-    const pairOk = (a: number | null, b: number | null, max: number) => {
-      if (a == null && b == null) return "empty";
-      if (a == null || b == null) return "incomplete";
-      if (a < 0 || b < 0 || a > max || b > max) return "range";
-      if (a === b) return "tie";
-      return "ok";
-    };
-    for (const r of rows) {
-      if (isPadel) {
-        const s1 = pairOk(r.set1_local, r.set1_visitante, 7);
-        const s2 = pairOk(r.set2_local, r.set2_visitante, 7);
-        const s3 = pairOk(r.set3_local, r.set3_visitante, 7);
-        if (s1 === "empty" && s2 === "empty" && s3 === "empty") continue;
-        if (s1 !== "ok") return t("results.errPadelSet1", { pista: r.pista });
-        if (s2 !== "ok") return t("results.errPadelSet2", { pista: r.pista });
-        const wins1 = (r.set1_local ?? 0) > (r.set1_visitante ?? 0) ? "L" : "V";
-        const wins2 = (r.set2_local ?? 0) > (r.set2_visitante ?? 0) ? "L" : "V";
-        const tied = wins1 !== wins2;
-        if (tied && s3 !== "ok") return t("results.errPadelSet3Required", { pista: r.pista });
-        if (!tied && s3 !== "empty") return t("results.errPadelSet3NotAllowed", { pista: r.pista });
-      } else {
-        const s = pairOk(r.set1_local, r.set1_visitante, 99);
-        if (s === "empty") continue;
-        if (s !== "ok") return t("results.errScore");
+    if (isPadel) {
+      for (const r of rows) {
+        const err = validatePadelCourt(r.pista, setsOf(r));
+        if (err) return t(`results.err_${err.code}`, { pista: err.pista });
+      }
+    } else {
+      for (const r of rows) {
+        const a = r.set1_local;
+        const b = r.set1_visitante;
+        if (a == null && b == null) continue;
+        if (a == null || b == null || a < 0 || b < 0) return t("results.errScore");
       }
     }
-    if (rows.every((r) =>
-      r.set1_local == null && r.set1_visitante == null &&
-      r.set2_local == null && r.set2_visitante == null &&
-      r.set3_local == null && r.set3_visitante == null
-    )) return t("results.errNoData");
+    if (rows.every((r) => setsOf(r).every((s) => s.local == null && s.visitante == null))) {
+      return t("results.errNoData");
+    }
     return null;
   };
 
@@ -761,6 +787,11 @@ function MatchResultsSection({
     onSuccess: () => {
       toast.success(t("results.saved"));
       qc.invalidateQueries({ queryKey: ["match-results", eventId] });
+      qc.invalidateQueries({ queryKey: ["match-participations", eventId] });
+      qc.invalidateQueries({ queryKey: ["event", eventId] });
+      qc.invalidateQueries({ queryKey: ["results"] });
+      qc.invalidateQueries({ queryKey: ["team-stats"] });
+      qc.invalidateQueries({ queryKey: ["player-stats"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -773,7 +804,6 @@ function MatchResultsSection({
     }
     save.mutate();
   };
-
 
   if (!hasStarted) {
     return (
@@ -813,22 +843,36 @@ function MatchResultsSection({
     />
   );
 
+  const teamSide = esLocal ? 1 : 2;
+  const nameOf = (uid: string) => {
+    const p = profiles?.find((x) => x.id === uid);
+    return p ? `${p.nombre} ${p.apellidos}`.trim() : "—";
+  };
+
   return (
     <div className="surface-card overflow-hidden">
-      <div className="border-b border-border p-5">
-        <h2 className="text-display text-lg font-bold uppercase tracking-tight">
-          {t("results.title")}
-        </h2>
-        <p className="text-xxs text-muted-foreground">{t("results.subtitle")}</p>
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-5">
+        <div>
+          <h2 className="text-display text-lg font-bold uppercase tracking-tight">
+            {t("results.title")}
+          </h2>
+          <p className="text-xxs text-muted-foreground">{t("results.subtitle")}</p>
+        </div>
+        <OutcomeBadge outcome={summary.outcome} won={summary.won} lost={summary.lost} />
       </div>
       <div className="space-y-4 p-5">
         {rows.map((row, idx) => (
           <div key={row.pista} className="rounded-md border border-border p-4">
-            {isPadel && (
-              <div className="mb-3 text-2xs font-bold uppercase tracking-widest text-primary">
-                {t("results.pista")} {row.pista}
-              </div>
-            )}
+            <div className="mb-3 flex items-center justify-between gap-2">
+              {isPadel ? (
+                <div className="text-2xs font-bold uppercase tracking-widest text-primary">
+                  {t("results.pista")} {row.pista}
+                </div>
+              ) : (
+                <span />
+              )}
+              <CourtBadge winner={winners[idx]} teamSide={teamSide} />
+            </div>
             {isPadel ? (
               <div className="space-y-2">
                 <div className="grid grid-cols-[80px_repeat(3,1fr)] items-center gap-2 text-2xs font-bold uppercase tracking-widest text-muted-foreground">
@@ -884,17 +928,101 @@ function MatchResultsSection({
             )}
           </div>
         ))}
+
+        <p className="text-2xs text-muted-foreground">{t("results.autoNote")}</p>
+
         {isManager && (
           <div className="flex justify-end">
             <Button
               onClick={handleSave}
+              disabled={save.isPending}
               className="bg-primary text-primary-foreground uppercase tracking-widest font-bold hover:opacity-90"
             >
               {t("results.save")}
             </Button>
           </div>
         )}
+
+        {(participations?.length ?? 0) > 0 && (
+          <div className="rounded-md border border-border p-4">
+            <h3 className="text-2xs mb-3 font-bold uppercase tracking-widest text-muted-foreground">
+              {t("results.participants")}
+            </h3>
+            <ul className="space-y-1 text-sm">
+              {participations!.map((p) => (
+                <li key={p.user_id} className="flex items-center justify-between gap-2">
+                  <span className="truncate">{nameOf(p.user_id)}</span>
+                  <span className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
+                    {p.pista ? `${t("results.pista")} ${p.pista}` : ""}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </div>
   );
 }
+
+function CourtBadge({ winner, teamSide }: { winner: 1 | 2 | null; teamSide: number }) {
+  const { t } = useTranslation();
+  if (winner == null) {
+    return (
+      <span className="rounded-md border border-border px-2 py-0.5 text-2xs font-bold uppercase tracking-widest text-muted-foreground">
+        {t("results.pendingCourt")}
+      </span>
+    );
+  }
+  const won = winner === teamSide;
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-2xs font-bold uppercase tracking-widest",
+        won
+          ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-600"
+          : "border-red-500/40 bg-red-500/10 text-red-500",
+      )}
+    >
+      {won ? <Trophy className="size-3" /> : <XCircle className="size-3" />}
+      {won ? t("results.win") : t("results.loss")}
+    </span>
+  );
+}
+
+function OutcomeBadge({
+  outcome,
+  won,
+  lost,
+}: {
+  outcome: "victoria" | "derrota" | "empate" | null;
+  won: number;
+  lost: number;
+}) {
+  const { t } = useTranslation();
+  if (outcome == null) {
+    return (
+      <span className="rounded-md border border-border px-3 py-1 text-2xs font-bold uppercase tracking-widest text-muted-foreground">
+        {t("results.pendingResult")}
+      </span>
+    );
+  }
+  const cls =
+    outcome === "victoria"
+      ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-600"
+      : outcome === "derrota"
+      ? "border-red-500/40 bg-red-500/10 text-red-500"
+      : "border-amber-500/40 bg-amber-500/10 text-amber-600";
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-2 rounded-md border px-3 py-1 text-2xs font-bold uppercase tracking-widest",
+        cls,
+      )}
+    >
+      {outcome === "victoria" ? <Trophy className="size-3.5" /> : <XCircle className="size-3.5" />}
+      {t(`results.${outcome}`)} · {won}-{lost}
+    </span>
+  );
+}
+
