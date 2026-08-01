@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { Trophy, MapPin, Calendar as CalendarIcon } from "lucide-react";
+import { Trophy, MapPin, Calendar as CalendarIcon, XCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useActiveTeam } from "@/hooks/use-active-team";
 import { TeamPicker } from "@/components/team-picker";
