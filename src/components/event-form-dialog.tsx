@@ -348,7 +348,12 @@ export function EventFormDialog({
                     </Select>
                   </div>
                   <div>
-                    <Label>{t("events.competicionOficial")}</Label>
+                    <Label
+                      htmlFor="registration_id"
+                      className={registrationError ? "text-destructive" : undefined}
+                    >
+                      {t("events.competicionOficial")}
+                    </Label>
                     <Select
                       value={values.registration_id ?? "none"}
                       disabled={!officialCompetitionId}
@@ -356,7 +361,18 @@ export function EventFormDialog({
                         setValues((s) => ({ ...s, registration_id: v === "none" ? null : v }))
                       }
                     >
-                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectTrigger
+                        id="registration_id"
+                        aria-invalid={registrationError ? true : undefined}
+                        aria-describedby={registrationError ? "registration_id-error" : undefined}
+                        className={
+                          registrationError
+                            ? "border-destructive ring-2 ring-destructive/30 focus:ring-destructive"
+                            : undefined
+                        }
+                      >
+                        <SelectValue />
+                      </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="none">{t("events.sinCompeticion")}</SelectItem>
                         {filteredRegistrations.map((r) => (
@@ -372,7 +388,18 @@ export function EventFormDialog({
                         ))}
                       </SelectContent>
                     </Select>
+                    {registrationError && (
+                      <p
+                        id="registration_id-error"
+                        role="alert"
+                        className="mt-1.5 flex items-start gap-1.5 text-xs font-medium text-destructive"
+                      >
+                        <AlertCircle className="mt-0.5 size-3.5 shrink-0" aria-hidden />
+                        <span>{registrationError}</span>
+                      </p>
+                    )}
                   </div>
+
                 </div>
               )}
 
