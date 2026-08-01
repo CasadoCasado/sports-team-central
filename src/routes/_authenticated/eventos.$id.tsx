@@ -12,7 +12,9 @@ import {
   MapPin,
   Pencil,
   Trash2,
+  Trophy,
   Users,
+  XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,6 +24,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { EventFormDialog } from "@/components/event-form-dialog";
 import { toDateTimeLocal, eventTypeStyles, type EventType } from "@/lib/events";
+import {
+  courtWinner,
+  simpleCourtWinner,
+  tieSummary,
+  validatePadelCourt,
+  type SetPair,
+} from "@/lib/padel-scoring";
 import { cn } from "@/lib/utils";
 import type { Database } from "@/integrations/supabase/types";
 
