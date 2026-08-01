@@ -490,7 +490,17 @@
     "pending": "Pendientes",
     "matchesCalled": "Partidos convocado",
     "trainingsCalled": "Entrenamientos convocado",
-    "totalTrainings": "{{count}} entrenamientos totales"
+    "totalTrainings": "{{count}} entrenamientos totales",
+    "winStreak": "Racha de victorias",
+    "lossStreak": "Racha de derrotas",
+    "courtsWon": "Pistas ganadas",
+    "courtsLost": "Pistas perdidas",
+    "courtsDiff": "Diferencia de pistas",
+    "myMatches": "Mis enfrentamientos",
+    "played": "Disputados",
+    "calledUp": "Convocatorias",
+    "lastCallup": "Última convocatoria",
+    "lastMatch": "Último partido"
   },
   "results": {
     "empty": "Aún no hay enfrentamientos jugados",
@@ -510,7 +520,20 @@
     "errPadelSet3Required": "Pista {{pista}}: sets 1-1, debes introducir el Set 3",
     "errPadelSet3NotAllowed": "Pista {{pista}}: no se juega Set 3 si el partido está 2-0",
     "errScore": "Marcador no válido",
-    "errNoData": "Introduce al menos un resultado"
+    "errNoData": "Introduce al menos un resultado",
+    "err_set1": "Pista {{pista}}: Set 1 no válido (6-x con 2 de diferencia, 7-5 o 7-6)",
+    "err_set2": "Pista {{pista}}: Set 2 no válido (6-x con 2 de diferencia, 7-5 o 7-6)",
+    "err_set3Required": "Pista {{pista}}: sets 1-1, debes introducir el Set 3",
+    "err_set3NotAllowed": "Pista {{pista}}: no se juega Set 3 si el partido está 2-0",
+    "autoNote": "El ganador de cada pista y el resultado global se calculan automáticamente según las reglas oficiales.",
+    "participants": "Jugadores participantes",
+    "win": "Victoria",
+    "loss": "Derrota",
+    "victoria": "Victoria",
+    "derrota": "Derrota",
+    "empate": "Empate",
+    "pendingCourt": "Sin resolver",
+    "pendingResult": "Pendiente"
   },
   "a11y": {
     "fontSize": "Tamaño de texto",

@@ -490,7 +490,17 @@
     "pending": "Pending",
     "matchesCalled": "Matches called",
     "trainingsCalled": "Trainings called",
-    "totalTrainings": "{{count}} total trainings"
+    "totalTrainings": "{{count}} total trainings",
+    "winStreak": "Win streak",
+    "lossStreak": "Loss streak",
+    "courtsWon": "Courts won",
+    "courtsLost": "Courts lost",
+    "courtsDiff": "Court difference",
+    "myMatches": "My matches",
+    "played": "Played",
+    "calledUp": "Call-ups",
+    "lastCallup": "Last call-up",
+    "lastMatch": "Last match"
   },
   "results": {
     "empty": "No matches played yet",
@@ -510,7 +520,20 @@
     "errPadelSet3Required": "Court {{pista}}: sets tied 1-1, Set 3 is required",
     "errPadelSet3NotAllowed": "Court {{pista}}: Set 3 is not played when the match is 2-0",
     "errScore": "Invalid score",
-    "errNoData": "Enter at least one result"
+    "errNoData": "Enter at least one result",
+    "err_set1": "Court {{pista}}: invalid Set 1 (6-x with 2 games gap, 7-5 or 7-6)",
+    "err_set2": "Court {{pista}}: invalid Set 2 (6-x with 2 games gap, 7-5 or 7-6)",
+    "err_set3Required": "Court {{pista}}: sets 1-1, you must enter Set 3",
+    "err_set3NotAllowed": "Court {{pista}}: no Set 3 when the match is 2-0",
+    "autoNote": "Each court winner and the overall result are calculated automatically using official padel rules.",
+    "participants": "Participating players",
+    "win": "Win",
+    "loss": "Loss",
+    "victoria": "Win",
+    "derrota": "Loss",
+    "empate": "Draw",
+    "pendingCourt": "Unresolved",
+    "pendingResult": "Pending"
   },
   "a11y": {
     "fontSize": "Text size",
