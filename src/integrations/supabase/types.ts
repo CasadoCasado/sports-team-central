@@ -623,6 +623,60 @@ export type Database = {
           },
         ]
       }
+      match_participations: {
+        Row: {
+          created_at: string
+          event_ganado: boolean | null
+          event_id: string
+          fecha: string
+          ganado: boolean | null
+          id: string
+          jugado: boolean
+          pista: number | null
+          team_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_ganado?: boolean | null
+          event_id: string
+          fecha: string
+          ganado?: boolean | null
+          id?: string
+          jugado?: boolean
+          pista?: number | null
+          team_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_ganado?: boolean | null
+          event_id?: string
+          fecha?: string
+          ganado?: boolean | null
+          id?: string
+          jugado?: boolean
+          pista?: number | null
+          team_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_participations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_participations_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       match_results: {
         Row: {
           created_at: string
@@ -1262,7 +1316,51 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      player_match_stats: {
+        Row: {
+          convocado: number | null
+          derrotas: number | null
+          disputados: number | null
+          team_id: string | null
+          ultima_convocatoria: string | null
+          ultimo_partido: string | null
+          user_id: string | null
+          victorias: number | null
+          win_pct: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_participations_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_match_stats: {
+        Row: {
+          diferencia_pistas: number | null
+          ganados: number | null
+          jugados: number | null
+          perdidos: number | null
+          pistas_ganadas: number | null
+          pistas_perdidas: number | null
+          racha: number | null
+          racha_victorias: boolean | null
+          team_id: string | null
+          win_pct: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       can_access_channel: {
@@ -1289,6 +1387,8 @@ export type Database = {
         Returns: boolean
       }
       join_channel_by_token: { Args: { _token: string }; Returns: string }
+      padel_set_winner: { Args: { a: number; b: number }; Returns: number }
+      recalc_event_result: { Args: { _event_id: string }; Returns: undefined }
       send_event_reminders: { Args: never; Returns: number }
     }
     Enums: {
