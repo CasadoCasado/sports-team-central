@@ -186,6 +186,7 @@ function EventDetail() {
           teamId={event.team_id}
           startISO={event.fecha_inicio}
           padelNumPistas={event.padel_num_pistas}
+          esLocal={event.es_local ?? true}
           isManager={!!isManager}
         />
       )}
