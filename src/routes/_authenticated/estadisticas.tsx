@@ -41,6 +41,35 @@ function Estadisticas() {
     },
   });
 
+  const { data: teamStats } = useQuery({
+    queryKey: ["team-stats", teamId],
+    enabled: !!teamId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("team_match_stats")
+        .select("*")
+        .eq("team_id", teamId!)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: playerStats } = useQuery({
+    queryKey: ["player-stats", teamId, user?.id],
+    enabled: !!teamId && !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("player_match_stats")
+        .select("*")
+        .eq("team_id", teamId!)
+        .eq("user_id", user!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const { data: myResponses } = useQuery({
     queryKey: ["stats-my-responses", teamId, user?.id],
     enabled: !!teamId && !!user,
@@ -58,6 +87,7 @@ function Estadisticas() {
   });
 
   if (!active) return <EmptyTeamState />;
+
 
   const matches = (events ?? []).filter((e) => e.tipo === "partido");
   const withResult = matches.filter(
