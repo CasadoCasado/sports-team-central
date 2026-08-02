@@ -521,6 +521,8 @@
     "errPadelSet3NotAllowed": "Pista {{pista}}: no se juega Set 3 si el partido está 2-0",
     "errScore": "Marcador no válido",
     "errNoData": "Introduce al menos un resultado",
+    "errPadelSetMax7": "Los sets de pádel no pueden superar 7 juegos",
+    "errNegativeSet": "Los juegos de un set no pueden ser negativos",
     "err_set1": "Pista {{pista}}: Set 1 no válido (6-x con 2 de diferencia, 7-5 o 7-6)",
     "err_set2": "Pista {{pista}}: Set 2 no válido (6-x con 2 de diferencia, 7-5 o 7-6)",
     "err_set3Required": "Pista {{pista}}: sets 1-1, debes introducir el Set 3",

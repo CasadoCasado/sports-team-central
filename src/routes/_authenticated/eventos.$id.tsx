@@ -803,7 +803,16 @@ function MatchResultsSection({
       qc.invalidateQueries({ queryKey: ["team-stats"] });
       qc.invalidateQueries({ queryKey: ["player-stats"] });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => {
+      const msg = e.message ?? "";
+      if (msg.includes("padel_set_max_7")) {
+        toast.error(t("results.errPadelSetMax7"));
+      } else if (msg.includes("negative_set_score")) {
+        toast.error(t("results.errNegativeSet"));
+      } else {
+        toast.error(msg || t("common.error"));
+      }
+    },
   });
 
   const handleSave = () => {
