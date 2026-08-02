@@ -913,6 +913,7 @@ function MatchResultsSection({
                             value={row[key] as number | null}
                             onChange={(v) => updateCell(idx, key, v)}
                             disabled={!isManager}
+                            max={7}
                           />
                         </div>
                       );
