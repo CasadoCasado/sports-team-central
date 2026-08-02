@@ -836,18 +836,27 @@ function MatchResultsSection({
     value,
     onChange,
     disabled,
+    max = 99,
   }: {
     value: number | null;
     onChange: (v: string) => void;
     disabled?: boolean;
+    max?: number;
   }) => (
     <input
       type="number"
       min={0}
-      max={99}
+      max={max}
       inputMode="numeric"
       value={value ?? ""}
-      onChange={(e) => onChange(e.target.value)}
+      onChange={(e) => {
+        const v = e.target.value;
+        if (v !== "") {
+          const n = Number(v);
+          if (n > max) return;
+        }
+        onChange(v);
+      }}
       disabled={disabled}
       className="w-14 rounded-md border border-border bg-background px-2 py-1 text-center text-sm font-bold disabled:opacity-60"
     />
