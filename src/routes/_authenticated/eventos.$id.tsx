@@ -794,15 +794,25 @@ function MatchResultsSection({
         .upsert(payload, { onConflict: "event_id,pista" });
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success(t("results.saved"));
-      qc.invalidateQueries({ queryKey: ["match-results", eventId] });
-      qc.invalidateQueries({ queryKey: ["match-participations", eventId] });
-      qc.invalidateQueries({ queryKey: ["event", eventId] });
-      qc.invalidateQueries({ queryKey: ["results"] });
-      qc.invalidateQueries({ queryKey: ["team-stats"] });
-      qc.invalidateQueries({ queryKey: ["player-stats"] });
+      // El backend recalcula el resultado del enfrentamiento y las
+      // participaciones de los convocados al guardar; refrescamos todo
+      // lo que depende de ello para verlo al instante.
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: ["match-results", eventId] }),
+        qc.invalidateQueries({ queryKey: ["match-participations", eventId] }),
+        qc.invalidateQueries({ queryKey: ["match-participation-profiles", eventId] }),
+        qc.invalidateQueries({ queryKey: ["event", eventId] }),
+        qc.invalidateQueries({ queryKey: ["event-responses", eventId] }),
+        qc.invalidateQueries({ queryKey: ["events"] }),
+        qc.invalidateQueries({ queryKey: ["results"] }),
+        qc.invalidateQueries({ queryKey: ["stats-events"] }),
+        qc.invalidateQueries({ queryKey: ["team-stats"] }),
+        qc.invalidateQueries({ queryKey: ["player-stats"] }),
+      ]);
     },
+
     onError: (e: Error) => {
       const msg = e.message ?? "";
       if (msg.includes("padel_set_max_7")) {
