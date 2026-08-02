@@ -990,6 +990,63 @@ function MatchResultsSection({
           </div>
         )}
 
+        <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+          <AlertDialogContent className="max-h-[85vh] overflow-y-auto">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-display uppercase tracking-tight">
+                {t("results.confirmTitle")}
+              </AlertDialogTitle>
+              <AlertDialogDescription>{t("results.confirmDesc")}</AlertDialogDescription>
+            </AlertDialogHeader>
+
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border p-3">
+                <span className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
+                  {t("results.confirmCourts")}: {summary.won}-{summary.lost}
+                </span>
+                <OutcomeBadge outcome={summary.outcome} won={summary.won} lost={summary.lost} />
+              </div>
+
+              <ul className="space-y-2">
+                {rows.map((row, idx) => {
+                  const sets = setsOf(row).filter(
+                    (s) => s.local != null || s.visitante != null,
+                  );
+                  return (
+                    <li
+                      key={row.pista}
+                      className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border p-3"
+                    >
+                      <span className="text-2xs font-bold uppercase tracking-widest text-primary">
+                        {isPadel ? `${t("results.pista")} ${row.pista}` : t("results.title")}
+                      </span>
+                      <span className="text-sm font-bold tabular-nums">
+                        {sets.length === 0
+                          ? t("results.confirmEmptyCourt")
+                          : sets
+                              .map((s) => `${s.local ?? "-"}-${s.visitante ?? "-"}`)
+                              .join(isPadel ? " · " : "")}
+                      </span>
+                      <CourtBadge winner={winners[idx]} teamSide={teamSide} />
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+
+            <AlertDialogFooter>
+              <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={confirmSave}
+                className="bg-primary text-primary-foreground uppercase tracking-widest font-bold hover:opacity-90"
+              >
+                {t("results.confirmSave")}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+
         {(participations?.length ?? 0) > 0 && (
           <div className="rounded-md border border-border p-4">
             <h3 className="text-2xs mb-3 font-bold uppercase tracking-widest text-muted-foreground">
