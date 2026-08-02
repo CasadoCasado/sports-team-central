@@ -825,14 +825,22 @@ function MatchResultsSection({
     },
   });
 
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
   const handleSave = () => {
     const err = validate();
     if (err) {
       toast.error(err);
       return;
     }
+    setConfirmOpen(true);
+  };
+
+  const confirmSave = () => {
+    setConfirmOpen(false);
     save.mutate();
   };
+
 
   if (!hasStarted) {
     return (
