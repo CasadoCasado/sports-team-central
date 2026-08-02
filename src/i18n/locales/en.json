@@ -503,6 +503,11 @@
     "lastMatch": "Last match"
   },
   "results": {
+    "confirmTitle": "Confirm results",
+    "confirmDesc": "Review the tie summary and each court's sets before saving.",
+    "confirmCourts": "Courts won",
+    "confirmSave": "Save results",
+    "confirmEmptyCourt": "No score",
     "empty": "No matches played yet",
     "notPlayed": "No result",
     "title": "Results",

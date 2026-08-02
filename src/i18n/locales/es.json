@@ -503,6 +503,11 @@
     "lastMatch": "Último partido"
   },
   "results": {
+    "confirmTitle": "Confirmar resultados",
+    "confirmDesc": "Revisa el resumen del enfrentamiento y los sets de cada pista antes de guardar.",
+    "confirmCourts": "Pistas ganadas",
+    "confirmSave": "Guardar resultados",
+    "confirmEmptyCourt": "Sin marcador",
     "empty": "Aún no hay enfrentamientos jugados",
     "notPlayed": "Sin resultado",
     "title": "Resultados",
