@@ -521,6 +521,8 @@
     "errPadelSet3NotAllowed": "Court {{pista}}: Set 3 is not played when the match is 2-0",
     "errScore": "Invalid score",
     "errNoData": "Enter at least one result",
+    "errPadelSetMax7": "Padel sets cannot exceed 7 games",
+    "errNegativeSet": "Set games cannot be negative",
     "err_set1": "Court {{pista}}: invalid Set 1 (6-x with 2 games gap, 7-5 or 7-6)",
     "err_set2": "Court {{pista}}: invalid Set 2 (6-x with 2 games gap, 7-5 or 7-6)",
     "err_set3Required": "Court {{pista}}: sets 1-1, you must enter Set 3",
