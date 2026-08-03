@@ -54,22 +54,29 @@ function Landing() {
           <Link
             to="/auth"
             search={{ mode: "signup" }}
-            className="rounded-md bg-primary px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-primary-foreground transition-opacity hover:opacity-90"
+            className="btn-primary-brand rounded-md px-4 py-1.5 text-xs font-bold uppercase tracking-widest"
           >
             {t("auth.signup")}
           </Link>
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-6 py-24">
-        <section className="text-center">
-          <span className="inline-block rounded-full border border-border bg-card px-3 py-1 text-2xs font-bold uppercase tracking-widest text-primary">
+      <main className="mx-auto max-w-6xl px-6 py-16 sm:py-24">
+        <section className="hero-band px-6 py-16 text-center sm:px-12 sm:py-20">
+          <img
+            src={teamupLogo.url}
+            alt="TeamUp"
+            className="mx-auto size-16 object-contain sm:size-20"
+            width={80}
+            height={80}
+          />
+          <span className="mt-6 inline-block rounded-full border border-white/15 bg-white/5 px-3 py-1 text-2xs font-bold uppercase tracking-[0.28em] text-[color:var(--color-ink-muted)]">
             {t("app.name")}
           </span>
-          <h1 className="text-display mt-6 text-5xl font-black leading-[1.05] tracking-tight sm:text-6xl">
-            {t("app.tagline")}
+          <h1 className="text-display mx-auto mt-5 max-w-3xl text-4xl font-black leading-[1.05] tracking-tight sm:text-6xl">
+            <span className="text-gradient-brand">{t("app.tagline")}</span>
           </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
+          <p className="mx-auto mt-6 max-w-2xl text-base text-[color:var(--color-ink-muted)] sm:text-lg">
             Calendario, convocatorias, encuestas, chat y estadísticas — todo lo que tu equipo
             necesita para funcionar como un club profesional.
           </p>
@@ -77,24 +84,24 @@ function Landing() {
             <Link
               to="/auth"
               search={{ mode: "signup" }}
-              className="rounded-md bg-primary px-6 py-3 text-sm font-bold uppercase tracking-widest text-primary-foreground transition-opacity hover:opacity-90"
+              className="btn-primary-brand rounded-md px-6 py-3 text-sm font-bold uppercase tracking-widest"
             >
               {t("auth.signup")}
             </Link>
             <Link
               to="/auth"
-              className="rounded-md border border-border bg-card px-6 py-3 text-sm font-bold uppercase tracking-widest transition-colors hover:border-primary/50"
+              className="rounded-md border border-white/20 px-6 py-3 text-sm font-bold uppercase tracking-widest text-[color:var(--color-ink-foreground)] transition-colors hover:bg-white/10"
             >
               {t("auth.login")}
             </Link>
           </div>
         </section>
 
-        <section className="mt-24 grid grid-cols-2 gap-4 sm:grid-cols-3">
+        <section className="mt-16 grid grid-cols-2 gap-4 sm:mt-24 sm:grid-cols-3">
           {features.map(({ icon: Icon, key }) => (
             <div
               key={key}
-              className="surface-card flex flex-col items-start gap-3 p-6 transition-colors hover:border-primary/40"
+              className="surface-card hover-lift flex flex-col items-start gap-3 p-6 hover:border-primary/40"
             >
               <div className="flex size-10 items-center justify-center rounded-md bg-primary/10 text-primary">
                 <Icon className="size-5" />
