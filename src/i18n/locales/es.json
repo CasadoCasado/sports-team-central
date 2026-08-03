@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "Vestuario",
+    "name": "TeamUp",
     "tagline": "La plataforma para gestionar tu equipo deportivo"
   },
   "nav": {
@@ -28,7 +28,7 @@
     "admin": "Administración"
   },
   "auth": {
-    "welcome": "Bienvenido a Vestuario",
+    "welcome": "Bienvenido a TeamUp",
     "login": "Iniciar sesión",
     "signup": "Crear cuenta",
     "logout": "Cerrar sesión",

@@ -1,3 +1,4 @@
+import teamupLogo from "@/assets/teamup-logo.png.asset.json";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
@@ -37,9 +38,7 @@ function Landing() {
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-border bg-background/80 px-6 backdrop-blur">
         <div className="flex items-center gap-3">
-          <div className="flex size-8 items-center justify-center rounded-md bg-primary">
-            <div className="size-3.5 rotate-45 rounded-sm bg-primary-foreground" />
-          </div>
+          <img src={teamupLogo.url} alt="TeamUp" className="size-8 object-contain" width={32} height={32} />
           <span className="text-display text-lg font-extrabold uppercase tracking-tight">
             {t("app.name")}
           </span>

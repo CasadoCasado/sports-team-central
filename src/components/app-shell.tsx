@@ -27,6 +27,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/use-profile";
 import { useSession } from "@/hooks/use-session";
 import { LangToggle } from "./lang-toggle";
+import teamupLogo from "@/assets/teamup-logo.png.asset.json";
 
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -181,15 +182,19 @@ export function AppShell({ children }: { children: ReactNode }) {
         aria-label="Navegación principal"
       >
         <div className="flex h-16 items-center gap-3 px-6">
-          <div className="flex size-9 items-center justify-center rounded-lg bg-primary shadow-[0_6px_20px_-6px_color-mix(in_oklab,var(--color-primary)_60%,transparent)]">
-            <div className="size-3.5 rotate-45 rounded-[3px] bg-primary-foreground" />
-          </div>
+          <img
+            src={teamupLogo.url}
+            alt="TeamUp"
+            className="size-9 shrink-0 object-contain"
+            width={36}
+            height={36}
+          />
           <div className="flex flex-col leading-none">
             <span className="text-display text-base font-bold uppercase tracking-[0.14em]">
               {t("app.name")}
             </span>
             <span className="mt-1 text-3xs font-semibold uppercase tracking-[0.28em] text-[color:var(--color-ink-muted)]">
-              Team OS
+              Sports Management
             </span>
           </div>
         </div>

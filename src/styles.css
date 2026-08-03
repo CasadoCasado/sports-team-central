@@ -62,62 +62,63 @@
   --color-evt-social: var(--evt-social);
   --color-evt-reunion: var(--evt-reunion);
 
-  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
-  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Figtree", ui-sans-serif, system-ui, sans-serif;
 
-  --shadow-card: 0 1px 2px rgba(13, 13, 13, 0.04), 0 4px 12px rgba(13, 13, 13, 0.04);
-  --shadow-elev: 0 6px 24px -8px rgba(13, 13, 13, 0.12), 0 2px 6px rgba(13, 13, 13, 0.04);
+  --shadow-card: 0 1px 2px rgba(31, 41, 55, 0.05), 0 4px 12px rgba(31, 41, 55, 0.05);
+  --shadow-elev: 0 6px 24px -8px rgba(31, 41, 55, 0.16), 0 2px 6px rgba(31, 41, 55, 0.05);
   --shadow-rose: 0 10px 30px -10px color-mix(in oklab, var(--primary) 45%, transparent);
 }
 
 :root {
   --radius: 0.75rem;
 
-  /* Court Rojo — light editorial */
-  --background: oklch(0.965 0.006 80);        /* #F5F3EE cream */
-  --foreground: oklch(0.18 0 0);              /* near-black ink */
+  /* TeamUp — Blue / Emerald / Carbon */
+  --background: oklch(0.984 0.003 247);        /* #F8FAFC */
+  --foreground: oklch(0.279 0.041 260);        /* #1F2937 carbon */
 
-  --card: oklch(1 0 0);                        /* pure white cards */
-  --card-foreground: oklch(0.18 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.279 0.041 260);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0 0);
+  --popover-foreground: oklch(0.279 0.041 260);
 
-  /* Rose primary #E11D48 */
-  --primary: oklch(0.605 0.22 15);
+  /* Electric blue #2563EB */
+  --primary: oklch(0.546 0.215 263);
   --primary-foreground: oklch(0.99 0 0);
 
-  /* Slate secondary #1F2937 */
-  --secondary: oklch(0.29 0.03 260);
+  /* Carbon slate #1F2937 */
+  --secondary: oklch(0.279 0.041 260);
   --secondary-foreground: oklch(0.98 0 0);
 
-  --muted: oklch(0.945 0.006 80);
-  --muted-foreground: oklch(0.45 0.02 260);
+  --muted: oklch(0.962 0.006 247);
+  --muted-foreground: oklch(0.52 0.025 258);
 
-  --accent: oklch(0.94 0.006 80);
-  --accent-foreground: oklch(0.18 0 0);
+  /* Emerald #10B981 */
+  --accent: oklch(0.696 0.149 162);
+  --accent-foreground: oklch(0.16 0.02 260);
 
-  --destructive: oklch(0.605 0.22 15);
+  --destructive: oklch(0.58 0.21 25);
   --destructive-foreground: oklch(0.99 0 0);
 
-  --border: oklch(0.9 0.006 80);
-  --input: oklch(0.93 0.006 80);
-  --ring: oklch(0.605 0.22 15);
+  --border: oklch(0.918 0.008 247);
+  --input: oklch(0.93 0.008 247);
+  --ring: oklch(0.546 0.215 263);
 
   /* Signature dark surfaces (sidebar / hero bands) */
-  --ink: oklch(0.22 0.02 260);                /* slate ink #1F2937 */
-  --ink-foreground: oklch(0.97 0.005 80);
-  --ink-muted: oklch(0.68 0.02 260);
-  --cream: oklch(0.965 0.006 80);
+  --ink: oklch(0.279 0.041 260);               /* carbon #1F2937 */
+  --ink-foreground: oklch(0.98 0.003 247);
+  --ink-muted: oklch(0.72 0.02 258);
+  --cream: oklch(0.984 0.003 247);
 
-  /* Event type colors — sport-inspired */
-  --evt-entreno: oklch(0.65 0.16 155);         /* pitch green */
-  --evt-partido: oklch(0.605 0.22 15);         /* rose (main event) */
-  --evt-torneo: oklch(0.72 0.17 60);           /* trophy amber */
-  --evt-social: oklch(0.62 0.18 285);          /* social purple */
-  --evt-reunion: oklch(0.55 0.15 250);         /* meeting blue */
+  /* Event type colors */
+  --evt-entreno: oklch(0.696 0.149 162);       /* emerald */
+  --evt-partido: oklch(0.546 0.215 263);       /* electric blue */
+  --evt-torneo: oklch(0.75 0.16 70);           /* amber */
+  --evt-social: oklch(0.62 0.18 300);          /* violet */
+  --evt-reunion: oklch(0.62 0.11 220);         /* steel blue */
 
-  --chart-1: var(--evt-entreno);
-  --chart-2: var(--evt-partido);
+  --chart-1: var(--evt-partido);
+  --chart-2: var(--evt-entreno);
   --chart-3: var(--evt-torneo);
   --chart-4: var(--evt-social);
   --chart-5: var(--evt-reunion);
