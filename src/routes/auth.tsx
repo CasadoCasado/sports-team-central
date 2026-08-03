@@ -1,3 +1,4 @@
+import teamupLogo from "@/assets/teamup-logo.png.asset.json";
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";

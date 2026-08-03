@@ -1,3 +1,4 @@
+import teamupLogo from "@/assets/teamup-logo.png.asset.json";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
