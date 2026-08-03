@@ -1,3 +1,4 @@
+import teamupLogo from "@/assets/teamup-logo.png.asset.json";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -207,11 +208,22 @@ function Inicio() {
     const canCreateTeam = profile?.preferred_role === "capitan";
     return (
       <div className="mx-auto max-w-3xl space-y-6">
-        <div>
-          <h1 className="text-display text-3xl font-black tracking-tight sm:text-4xl">
-            {t("dashboard.findTeamTitle")}
-          </h1>
-          <p className="mt-1 text-muted-foreground">{t("dashboard.findTeamSubtitle")}</p>
+        <div className="hero-band flex flex-wrap items-center gap-4 px-5 py-6 sm:px-8">
+          <img
+            src={teamupLogo.url}
+            alt="TeamUp"
+            className="size-12 shrink-0 object-contain"
+            width={48}
+            height={48}
+          />
+          <div className="min-w-0">
+            <h1 className="text-display text-2xl font-black tracking-tight sm:text-3xl">
+              {t("dashboard.findTeamTitle")}
+            </h1>
+            <p className="mt-1 text-sm text-[color:var(--color-ink-muted)]">
+              {t("dashboard.findTeamSubtitle")}
+            </p>
+          </div>
         </div>
 
         {(canCreateTeam || (pendingInvites ?? 0) > 0) && (
@@ -219,7 +231,7 @@ function Inicio() {
             {canCreateTeam && (
               <Link
                 to="/mi-equipo"
-                className="rounded-md bg-primary px-4 py-2 text-xs font-bold uppercase tracking-widest text-primary-foreground hover:opacity-90"
+                className="btn-primary-brand rounded-md px-4 py-2 text-xs font-bold uppercase tracking-widest"
               >
                 {t("team.create")}
               </Link>
@@ -242,12 +254,27 @@ function Inicio() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-8">
-      <div>
-        <h1 className="text-display text-3xl font-black tracking-tight sm:text-4xl">
-          {t("dashboard.welcome", { name: profile?.nombre || "" })}
-        </h1>
-        <p className="mt-1 text-muted-foreground">{t("dashboard.welcomeSubtitle")}</p>
+      <div className="hero-band flex flex-wrap items-center gap-4 px-5 py-6 sm:px-8 sm:py-8">
+        <img
+          src={teamupLogo.url}
+          alt="TeamUp"
+          className="size-12 shrink-0 object-contain sm:size-14"
+          width={56}
+          height={56}
+        />
+        <div className="min-w-0">
+          <p className="text-2xs font-bold uppercase tracking-[0.28em] text-[color:var(--color-ink-muted)]">
+            {t("app.name")}
+          </p>
+          <h1 className="text-display mt-1 text-2xl font-black tracking-tight sm:text-4xl">
+            {t("dashboard.welcome", { name: profile?.nombre || "" })}
+          </h1>
+          <p className="mt-1 text-sm text-[color:var(--color-ink-muted)]">
+            {t("dashboard.welcomeSubtitle")}
+          </p>
+        </div>
       </div>
+
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <StatCard icon={<Shield />} label={t("nav.miEquipo")} value={teams?.length ?? 0} to="/mi-equipo" />

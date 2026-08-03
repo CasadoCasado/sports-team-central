@@ -160,7 +160,7 @@ function MyCallups() {
                     onClick={() => signUp.mutate(e.id)}
                     disabled={signUp.isPending}
                     aria-label={`${t("callups.signUp")}: ${e.titulo}`}
-                    className="btn-primary-rose min-h-11 shrink-0 px-4 text-2xs font-bold uppercase tracking-widest"
+                    className="btn-primary-brand min-h-11 shrink-0 px-4 text-2xs font-bold uppercase tracking-widest"
                   >
                     {t("callups.signUp")}
                   </Button>

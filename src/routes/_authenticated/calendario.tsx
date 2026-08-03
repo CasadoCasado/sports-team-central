@@ -175,7 +175,7 @@ function Calendario() {
           {isManager && (
             <Button
               onClick={() => setCreating(true)}
-              className="btn-primary-rose uppercase tracking-widest font-bold"
+              className="btn-primary-brand uppercase tracking-widest font-bold"
             >
               <Plus className="mr-1 size-4" />
               {t("events.create")}
