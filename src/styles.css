@@ -5,8 +5,8 @@
 @custom-variant dark (&:is(.dark *));
 
 /* =============================================================
- * COURT ROJO — Editorial Sports Design System
- * Cream #F5F3EE · Ink #0D0D0D · Rose #E11D48 · Slate #1F2937
+ * TEAMUP — Sports Management Design System
+ * Blue #2563EB · Emerald #10B981 · Carbon #1F2937 · Outfit + Figtree
  * ============================================================= */
 
 @theme inline {
@@ -67,7 +67,7 @@
 
   --shadow-card: 0 1px 2px rgba(31, 41, 55, 0.05), 0 4px 12px rgba(31, 41, 55, 0.05);
   --shadow-elev: 0 6px 24px -8px rgba(31, 41, 55, 0.16), 0 2px 6px rgba(31, 41, 55, 0.05);
-  --shadow-rose: 0 10px 30px -10px color-mix(in oklab, var(--primary) 45%, transparent);
+  --shadow-brand: 0 10px 30px -10px color-mix(in oklab, var(--primary) 45%, transparent);
 }
 
 :root {
@@ -210,13 +210,13 @@
   text-transform: uppercase;
 }
 
-@utility btn-primary-rose {
+@utility btn-primary-brand {
   background-color: var(--color-primary);
   color: var(--color-primary-foreground);
-  box-shadow: var(--shadow-rose);
+  box-shadow: var(--shadow-brand);
   transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.2s ease;
 }
-@utility btn-primary-rose {
+@utility btn-primary-brand {
   &:hover {
     filter: brightness(1.05);
     transform: translateY(-1px);
