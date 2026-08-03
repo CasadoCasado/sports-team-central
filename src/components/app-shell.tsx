@@ -27,6 +27,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/use-profile";
 import { useSession } from "@/hooks/use-session";
 import { LangToggle } from "./lang-toggle";
+import teamupLogo from "@/assets/teamup-logo.png.asset.json";
 
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
