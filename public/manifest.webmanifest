@@ -1,13 +1,13 @@
 {
-  "name": "Vestuario — Gestión de equipos deportivos",
-  "short_name": "Vestuario",
+  "name": "TeamUp — Gestión de equipos deportivos",
+  "short_name": "TeamUp",
   "description": "Calendario, convocatorias, encuestas, chat y estadísticas de tu equipo, todo en un mismo lugar.",
   "start_url": "/inicio",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0a0a0a",
-  "theme_color": "#0a0a0a",
+  "background_color": "#1F2937",
+  "theme_color": "#2563EB",
   "categories": ["sports", "productivity", "lifestyle"],
   "icons": [
     {

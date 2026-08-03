@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "Vestuario",
+    "name": "TeamUp",
     "tagline": "The platform to run your sports team"
   },
   "nav": {
@@ -28,7 +28,7 @@
     "admin": "Admin"
   },
   "auth": {
-    "welcome": "Welcome to Vestuario",
+    "welcome": "Welcome to TeamUp",
     "login": "Sign in",
     "signup": "Create account",
     "logout": "Sign out",
