@@ -194,6 +194,34 @@
   border-radius: var(--radius-xl);
 }
 
+@utility hero-band {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--color-ink);
+  color: var(--color-ink-foreground);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-elev);
+  &::after {
+    content: "";
+    position: absolute;
+    inset-inline-end: -20%;
+    inset-block-start: -60%;
+    width: 60%;
+    aspect-ratio: 1;
+    background: var(--gradient-brand);
+    opacity: 0.22;
+    filter: blur(40px);
+    pointer-events: none;
+  }
+}
+
+@utility text-gradient-brand {
+  background: var(--gradient-brand);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
 @utility surface-raised {
   background-color: var(--color-card);
   border: 1px solid var(--color-border);
