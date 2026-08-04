@@ -18,6 +18,9 @@ function Notificaciones() {
   const { t } = useTranslation();
   const { user } = useSession();
   const qc = useQueryClient();
+  const [selected, setSelected] = useState<string[]>([]);
+  const [busy, setBusy] = useState(false);
+
 
   const { data: invitations } = useQuery({
     queryKey: ["invitations", user?.id],
