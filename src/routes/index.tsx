@@ -97,19 +97,6 @@ function Landing() {
           </div>
         </section>
 
-        <section className="mt-16 grid grid-cols-2 gap-4 sm:mt-24 sm:grid-cols-3">
-          {features.map(({ icon: Icon, key }) => (
-            <div
-              key={key}
-              className="surface-card hover-lift flex flex-col items-start gap-3 p-6 hover:border-primary/40"
-            >
-              <div className="flex size-10 items-center justify-center rounded-md bg-primary/10 text-primary">
-                <Icon className="size-5" />
-              </div>
-              <p className="text-display text-lg font-bold">{featureLabels[key]}</p>
-            </div>
-          ))}
-        </section>
       </main>
     </div>
   );
