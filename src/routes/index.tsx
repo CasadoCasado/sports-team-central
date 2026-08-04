@@ -3,7 +3,6 @@ import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { LangToggle } from "@/components/lang-toggle";
-import { Shield, Users, Calendar, MessagesSquare, ClipboardList, BarChart3 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   beforeLoad: async () => {
@@ -16,23 +15,8 @@ export const Route = createFileRoute("/")({
 
 function Landing() {
   const { t } = useTranslation();
-  const features = [
-    { icon: Shield, key: "team" },
-    { icon: Users, key: "members" },
-    { icon: Calendar, key: "cal" },
-    { icon: ClipboardList, key: "call" },
-    { icon: MessagesSquare, key: "chat" },
-    { icon: BarChart3, key: "stats" },
-  ] as const;
 
-  const featureLabels: Record<string, string> = {
-    team: t("nav.miEquipo"),
-    members: t("nav.miembros"),
-    cal: t("nav.calendario"),
-    call: t("nav.convocatorias"),
-    chat: t("nav.comunicaciones"),
-    stats: t("nav.estadisticas"),
-  };
+
 
   return (
     <div className="min-h-screen bg-background text-foreground">
