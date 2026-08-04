@@ -240,21 +240,72 @@ function Notificaciones() {
       )}
 
       {(notifications?.length ?? 0) > 0 ? (
-        <div className="surface-card divide-y divide-border">
-          {notifications!.map((n) => (
-            <div key={n.id} className="flex items-start gap-4 p-4">
-              <div className="mt-1 flex size-8 items-center justify-center rounded-full bg-card text-primary ring-1 ring-border">
-                <Bell className="size-4" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold">{n.titulo}</p>
-                {n.cuerpo && <p className="mt-0.5 text-xs text-muted-foreground">{n.cuerpo}</p>}
-                <p className="mt-1 text-2xs uppercase tracking-widest text-muted-foreground">
-                  {new Date(n.created_at).toLocaleString()}
-                </p>
-              </div>
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-2xs font-bold uppercase tracking-widest text-primary">
+              {t("notifications.title")}
+            </h2>
+            <div className="flex flex-wrap items-center gap-2">
+              {readIds.length > 0 && (
+                <Button size="sm" variant="outline" onClick={toggleSelectAllRead}>
+                  {selected.length === readIds.length
+                    ? t("notifications.clearSelection")
+                    : t("notifications.selectAllRead")}
+                </Button>
+              )}
+              {unreadIds.length > 0 && (
+                <Button size="sm" variant="outline" onClick={markAllRead}>
+                  <MailOpen className="mr-1 size-3.5" />
+                  {t("notifications.markAllRead")}
+                </Button>
+              )}
+              <Button
+                size="sm"
+                variant="destructive"
+                disabled={selected.length === 0 || busy}
+                onClick={deleteSelected}
+              >
+                <Trash2 className="mr-1 size-3.5" />
+                {t("notifications.deleteSelected", { count: selected.length })}
+              </Button>
             </div>
-          ))}
+          </div>
+          <div className="surface-card divide-y divide-border">
+            {notifications!.map((n) => (
+              <div
+                key={n.id}
+                className={cn("flex items-start gap-4 p-4", !n.read && "bg-primary/5")}
+              >
+                <div className="mt-1.5">
+                  <Checkbox
+                    checked={selected.includes(n.id)}
+                    disabled={!n.read}
+                    onCheckedChange={() => toggleSelect(n.id)}
+                    aria-label={
+                      n.read
+                        ? t("notifications.selectOne", { title: n.titulo })
+                        : t("notifications.onlyReadDeletable")
+                    }
+                  />
+                </div>
+                <div className="mt-1 flex size-8 items-center justify-center rounded-full bg-card text-primary ring-1 ring-border">
+                  <Bell className="size-4" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold">{n.titulo}</p>
+                  {n.cuerpo && <p className="mt-0.5 text-xs text-muted-foreground">{n.cuerpo}</p>}
+                  <p className="mt-1 text-2xs uppercase tracking-widest text-muted-foreground">
+                    {new Date(n.created_at).toLocaleString()}
+                  </p>
+                </div>
+                {!n.read && (
+                  <Button size="sm" variant="ghost" onClick={() => markRead([n.id])}>
+                    {t("notifications.markRead")}
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       ) : (
         (invitations?.length ?? 0) === 0 && (
