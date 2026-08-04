@@ -1,11 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Bell, Check, X } from "lucide-react";
+import { Bell, Check, X, Trash2, MailOpen } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/hooks/use-session";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/notificaciones")({
   component: Notificaciones,
@@ -15,6 +18,9 @@ function Notificaciones() {
   const { t } = useTranslation();
   const { user } = useSession();
   const qc = useQueryClient();
+  const [selected, setSelected] = useState<string[]>([]);
+  const [busy, setBusy] = useState(false);
+
 
   const { data: invitations } = useQuery({
     queryKey: ["invitations", user?.id],
@@ -137,6 +143,52 @@ function Notificaciones() {
     }
   }
 
+  const readIds = (notifications ?? []).filter((n) => n.read).map((n) => n.id);
+  const unreadIds = (notifications ?? []).filter((n) => !n.read).map((n) => n.id);
+
+  function toggleSelect(id: string) {
+    setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
+  }
+
+  function toggleSelectAllRead() {
+    setSelected((s) => (s.length === readIds.length ? [] : readIds));
+  }
+
+  async function markRead(ids: string[]) {
+    if (ids.length === 0) return;
+    const { error } = await supabase.from("notifications").update({ read: true }).in("id", ids);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    qc.invalidateQueries({ queryKey: ["notifications"] });
+    qc.invalidateQueries({ queryKey: ["shell-unread"] });
+  }
+
+  async function markAllRead() {
+    await markRead(unreadIds);
+  }
+
+  async function deleteSelected() {
+    if (selected.length === 0) return;
+    setBusy(true);
+    const { error } = await supabase
+      .from("notifications")
+      .delete()
+      .in("id", selected)
+      .eq("read", true);
+    setBusy(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success(t("notifications.deleted", { count: selected.length }));
+    setSelected([]);
+    qc.invalidateQueries({ queryKey: ["notifications"] });
+    qc.invalidateQueries({ queryKey: ["shell-unread"] });
+  }
+
+
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <h1 className="text-display text-3xl font-black tracking-tight">{t("notifications.title")}</h1>
@@ -237,21 +289,72 @@ function Notificaciones() {
       )}
 
       {(notifications?.length ?? 0) > 0 ? (
-        <div className="surface-card divide-y divide-border">
-          {notifications!.map((n) => (
-            <div key={n.id} className="flex items-start gap-4 p-4">
-              <div className="mt-1 flex size-8 items-center justify-center rounded-full bg-card text-primary ring-1 ring-border">
-                <Bell className="size-4" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold">{n.titulo}</p>
-                {n.cuerpo && <p className="mt-0.5 text-xs text-muted-foreground">{n.cuerpo}</p>}
-                <p className="mt-1 text-2xs uppercase tracking-widest text-muted-foreground">
-                  {new Date(n.created_at).toLocaleString()}
-                </p>
-              </div>
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-2xs font-bold uppercase tracking-widest text-primary">
+              {t("notifications.title")}
+            </h2>
+            <div className="flex flex-wrap items-center gap-2">
+              {readIds.length > 0 && (
+                <Button size="sm" variant="outline" onClick={toggleSelectAllRead}>
+                  {selected.length === readIds.length
+                    ? t("notifications.clearSelection")
+                    : t("notifications.selectAllRead")}
+                </Button>
+              )}
+              {unreadIds.length > 0 && (
+                <Button size="sm" variant="outline" onClick={markAllRead}>
+                  <MailOpen className="mr-1 size-3.5" />
+                  {t("notifications.markAllRead")}
+                </Button>
+              )}
+              <Button
+                size="sm"
+                variant="destructive"
+                disabled={selected.length === 0 || busy}
+                onClick={deleteSelected}
+              >
+                <Trash2 className="mr-1 size-3.5" />
+                {t("notifications.deleteSelected", { count: selected.length })}
+              </Button>
             </div>
-          ))}
+          </div>
+          <div className="surface-card divide-y divide-border">
+            {notifications!.map((n) => (
+              <div
+                key={n.id}
+                className={cn("flex items-start gap-4 p-4", !n.read && "bg-primary/5")}
+              >
+                <div className="mt-1.5">
+                  <Checkbox
+                    checked={selected.includes(n.id)}
+                    disabled={!n.read}
+                    onCheckedChange={() => toggleSelect(n.id)}
+                    aria-label={
+                      n.read
+                        ? t("notifications.selectOne", { title: n.titulo })
+                        : t("notifications.onlyReadDeletable")
+                    }
+                  />
+                </div>
+                <div className="mt-1 flex size-8 items-center justify-center rounded-full bg-card text-primary ring-1 ring-border">
+                  <Bell className="size-4" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold">{n.titulo}</p>
+                  {n.cuerpo && <p className="mt-0.5 text-xs text-muted-foreground">{n.cuerpo}</p>}
+                  <p className="mt-1 text-2xs uppercase tracking-widest text-muted-foreground">
+                    {new Date(n.created_at).toLocaleString()}
+                  </p>
+                </div>
+                {!n.read && (
+                  <Button size="sm" variant="ghost" onClick={() => markRead([n.id])}>
+                    {t("notifications.markRead")}
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       ) : (
         (invitations?.length ?? 0) === 0 && (
