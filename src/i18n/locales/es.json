@@ -179,7 +179,15 @@
     "rejected": "Invitación rechazada",
     "joinRequests": "Solicitudes para unirse",
     "joinRequestBody": "{{user}} quiere unirse a {{team}}",
-    "approve": "Aprobar"
+    "approve": "Aprobar",
+    "markRead": "Marcar como leída",
+    "markAllRead": "Marcar todas como leídas",
+    "selectAllRead": "Seleccionar leídas",
+    "clearSelection": "Quitar selección",
+    "deleteSelected": "Eliminar ({{count}})",
+    "deleted": "Notificaciones eliminadas",
+    "selectOne": "Seleccionar «{{title}}»",
+    "onlyReadDeletable": "Solo puedes eliminar notificaciones leídas"
   },
   "profile": {
     "title": "Perfil",

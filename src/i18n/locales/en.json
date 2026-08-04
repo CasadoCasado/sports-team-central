@@ -179,7 +179,15 @@
     "rejected": "Invite rejected",
     "joinRequests": "Join requests",
     "joinRequestBody": "{{user}} wants to join {{team}}",
-    "approve": "Approve"
+    "approve": "Approve",
+    "markRead": "Mark as read",
+    "markAllRead": "Mark all as read",
+    "selectAllRead": "Select read",
+    "clearSelection": "Clear selection",
+    "deleteSelected": "Delete ({{count}})",
+    "deleted": "Notifications deleted",
+    "selectOne": "Select “{{title}}”",
+    "onlyReadDeletable": "Only read notifications can be deleted"
   },
   "profile": {
     "title": "Profile",
