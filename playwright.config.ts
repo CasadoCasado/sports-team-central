@@ -9,6 +9,7 @@ export default defineConfig({
   use: {
     baseURL: process.env["E2E_BASE_URL"] ?? "http://localhost:8080",
     viewport: { width: 1280, height: 1000 },
+    locale: "es-ES",
     trace: "off",
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],

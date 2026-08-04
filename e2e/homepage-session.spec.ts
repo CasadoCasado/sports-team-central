@@ -55,6 +55,11 @@ test.describe("Homepage pública (sin sesión)", () => {
         `"${label}" no debe aparecer sin sesión`,
       ).toHaveCount(0);
     }
+
+    // Ningún enlace a rutas de módulos privados.
+    for (const href of ["/inicio", "/mi-equipo", "/miembros", "/calendario", "/convocatorias"]) {
+      await expect(page.locator(`a[href="${href}"]`)).toHaveCount(0);
+    }
   });
 
   test("no permite entrar a rutas privadas y redirige a /auth", async ({ page }) => {
@@ -74,8 +79,8 @@ test.describe("Homepage con sesión iniciada", () => {
     if (page.url().includes("/onboarding")) return;
 
     // Con sesión sí aparecen la navegación y los accesos a módulos.
-    await expect(page.getByRole("link", { name: /mi equipo/i }).first()).toBeVisible();
-    await expect(page.getByRole("link", { name: /calendario/i }).first()).toBeVisible();
-    await expect(page.getByRole("link", { name: /convocatorias/i }).first()).toBeVisible();
+    for (const href of ["/mi-equipo", "/miembros", "/calendario", "/convocatorias"]) {
+      await expect(page.locator(`a[href="${href}"]`).first()).toBeVisible();
+    }
   });
 });
