@@ -143,6 +143,52 @@ function Notificaciones() {
     }
   }
 
+  const readIds = (notifications ?? []).filter((n) => n.read).map((n) => n.id);
+  const unreadIds = (notifications ?? []).filter((n) => !n.read).map((n) => n.id);
+
+  function toggleSelect(id: string) {
+    setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
+  }
+
+  function toggleSelectAllRead() {
+    setSelected((s) => (s.length === readIds.length ? [] : readIds));
+  }
+
+  async function markRead(ids: string[]) {
+    if (ids.length === 0) return;
+    const { error } = await supabase.from("notifications").update({ read: true }).in("id", ids);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    qc.invalidateQueries({ queryKey: ["notifications"] });
+    qc.invalidateQueries({ queryKey: ["shell-unread"] });
+  }
+
+  async function markAllRead() {
+    await markRead(unreadIds);
+  }
+
+  async function deleteSelected() {
+    if (selected.length === 0) return;
+    setBusy(true);
+    const { error } = await supabase
+      .from("notifications")
+      .delete()
+      .in("id", selected)
+      .eq("read", true);
+    setBusy(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success(t("notifications.deleted", { count: selected.length }));
+    setSelected([]);
+    qc.invalidateQueries({ queryKey: ["notifications"] });
+    qc.invalidateQueries({ queryKey: ["shell-unread"] });
+  }
+
+
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <h1 className="text-display text-3xl font-black tracking-tight">{t("notifications.title")}</h1>
