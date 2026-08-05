@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Bell, Check, X, Trash2, MailOpen } from "lucide-react";
@@ -20,6 +20,26 @@ function Notificaciones() {
   const qc = useQueryClient();
   const [selected, setSelected] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
+
+  // Realtime: refresca la lista y el contador al instante.
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`notif-page:${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
+        () => {
+          qc.invalidateQueries({ queryKey: ["notifications", user.id] });
+          qc.invalidateQueries({ queryKey: ["shell-unread", user.id] });
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, qc]);
+
 
 
   const { data: invitations } = useQuery({
