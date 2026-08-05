@@ -329,12 +329,16 @@ function Notificaciones() {
                     : t("notifications.selectAllRead")}
                 </Button>
               )}
-              {unreadIds.length > 0 && (
-                <Button size="sm" variant="outline" onClick={markAllRead}>
-                  <MailOpen className="mr-1 size-3.5" />
-                  {t("notifications.markAllRead")}
-                </Button>
-              )}
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={markAllRead}
+                disabled={unreadIds.length === 0}
+              >
+                <MailOpen className="mr-1 size-3.5" />
+                {t("notifications.markAllRead")}
+              </Button>
+
               <Button
                 size="sm"
                 variant="destructive"
