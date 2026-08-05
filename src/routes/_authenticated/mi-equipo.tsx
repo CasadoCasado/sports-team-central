@@ -53,7 +53,7 @@ function MiEquipo() {
   const [creating, setCreating] = useState(false);
   const [nombre, setNombre] = useState("");
   const [descripcion, setDescripcion] = useState("");
-  const [deporte, setDeporte] = useState("");
+  const [deporte, setDeporte] = useState("padel");
   const [ciudad, setCiudad] = useState("");
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
@@ -89,7 +89,7 @@ function MiEquipo() {
       setCreating(false);
       setNombre("");
       setDescripcion("");
-      setDeporte("");
+      setDeporte("padel");
       setCiudad("");
       setLogoFile(null);
       qc.invalidateQueries({ queryKey: ["my-teams-full"] });
