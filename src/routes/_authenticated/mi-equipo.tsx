@@ -95,7 +95,8 @@ function MiEquipo() {
       qc.invalidateQueries({ queryKey: ["my-teams-full"] });
       qc.invalidateQueries({ queryKey: ["my-teams"] });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("common.error"));
+      const msg = err instanceof Error ? err.message : t("common.error");
+      toast.error(msg.includes("sport_not_allowed") ? t("team.sportOnlyPadel") : msg);
     } finally {
       setSaving(false);
     }
