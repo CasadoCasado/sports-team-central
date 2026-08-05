@@ -149,8 +149,13 @@ function MiEquipo() {
                 <SelectTrigger><SelectValue placeholder={t("team.selectSport")} /></SelectTrigger>
                 <SelectContent>
                   {SPORTS.map((s) => (
-                    <SelectItem key={s.value} value={s.value}>
+                    <SelectItem key={s.value} value={s.value} disabled={s.value !== "padel"}>
                       {sportLabel(s.value, i18n.language)}
+                      {s.value !== "padel" && (
+                        <span className="ml-2 text-2xs uppercase tracking-widest text-muted-foreground">
+                          {t("team.sportComingSoon")}
+                        </span>
+                      )}
                     </SelectItem>
                   ))}
                 </SelectContent>
