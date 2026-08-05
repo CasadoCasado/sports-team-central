@@ -176,18 +176,25 @@ function Notificaciones() {
 
   async function markRead(ids: string[]) {
     if (ids.length === 0) return;
+    // Actualización optimista para reflejar el estado al instante.
+    qc.setQueryData(["notifications", user?.id], (prev: typeof notifications) =>
+      (prev ?? []).map((n) => (ids.includes(n.id) ? { ...n, read: true } : n)),
+    );
     const { error } = await supabase.from("notifications").update({ read: true }).in("id", ids);
     if (error) {
       toast.error(error.message);
-      return;
     }
-    qc.invalidateQueries({ queryKey: ["notifications"] });
-    qc.invalidateQueries({ queryKey: ["shell-unread"] });
+    qc.invalidateQueries({ queryKey: ["notifications", user?.id] });
+    qc.invalidateQueries({ queryKey: ["shell-unread", user?.id] });
+    return !error;
   }
 
   async function markAllRead() {
-    await markRead(unreadIds);
+    const count = unreadIds.length;
+    const ok = await markRead(unreadIds);
+    if (ok) toast.success(t("notifications.allRead", { count }));
   }
+
 
   async function deleteSelected() {
     if (selected.length === 0) return;
