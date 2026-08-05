@@ -53,7 +53,7 @@ function MiEquipo() {
   const [creating, setCreating] = useState(false);
   const [nombre, setNombre] = useState("");
   const [descripcion, setDescripcion] = useState("");
-  const [deporte, setDeporte] = useState("");
+  const [deporte, setDeporte] = useState("padel");
   const [ciudad, setCiudad] = useState("");
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
@@ -89,7 +89,7 @@ function MiEquipo() {
       setCreating(false);
       setNombre("");
       setDescripcion("");
-      setDeporte("");
+      setDeporte("padel");
       setCiudad("");
       setLogoFile(null);
       qc.invalidateQueries({ queryKey: ["my-teams-full"] });
@@ -149,8 +149,13 @@ function MiEquipo() {
                 <SelectTrigger><SelectValue placeholder={t("team.selectSport")} /></SelectTrigger>
                 <SelectContent>
                   {SPORTS.map((s) => (
-                    <SelectItem key={s.value} value={s.value}>
+                    <SelectItem key={s.value} value={s.value} disabled={s.value !== "padel"}>
                       {sportLabel(s.value, i18n.language)}
+                      {s.value !== "padel" && (
+                        <span className="ml-2 text-2xs uppercase tracking-widest text-muted-foreground">
+                          {t("team.sportComingSoon")}
+                        </span>
+                      )}
                     </SelectItem>
                   ))}
                 </SelectContent>
