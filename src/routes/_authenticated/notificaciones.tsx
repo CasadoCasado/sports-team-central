@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Bell, Check, X, Trash2, MailOpen } from "lucide-react";
@@ -20,6 +20,26 @@ function Notificaciones() {
   const qc = useQueryClient();
   const [selected, setSelected] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
+
+  // Realtime: refresca la lista y el contador al instante.
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`notif-page:${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
+        () => {
+          qc.invalidateQueries({ queryKey: ["notifications", user.id] });
+          qc.invalidateQueries({ queryKey: ["shell-unread", user.id] });
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, qc]);
+
 
 
   const { data: invitations } = useQuery({
@@ -156,18 +176,25 @@ function Notificaciones() {
 
   async function markRead(ids: string[]) {
     if (ids.length === 0) return;
+    // Actualización optimista para reflejar el estado al instante.
+    qc.setQueryData(["notifications", user?.id], (prev: typeof notifications) =>
+      (prev ?? []).map((n) => (ids.includes(n.id) ? { ...n, read: true } : n)),
+    );
     const { error } = await supabase.from("notifications").update({ read: true }).in("id", ids);
     if (error) {
       toast.error(error.message);
-      return;
     }
-    qc.invalidateQueries({ queryKey: ["notifications"] });
-    qc.invalidateQueries({ queryKey: ["shell-unread"] });
+    qc.invalidateQueries({ queryKey: ["notifications", user?.id] });
+    qc.invalidateQueries({ queryKey: ["shell-unread", user?.id] });
+    return !error;
   }
 
   async function markAllRead() {
-    await markRead(unreadIds);
+    const count = unreadIds.length;
+    const ok = await markRead(unreadIds);
+    if (ok) toast.success(t("notifications.allRead", { count }));
   }
+
 
   async function deleteSelected() {
     if (selected.length === 0) return;
@@ -302,12 +329,16 @@ function Notificaciones() {
                     : t("notifications.selectAllRead")}
                 </Button>
               )}
-              {unreadIds.length > 0 && (
-                <Button size="sm" variant="outline" onClick={markAllRead}>
-                  <MailOpen className="mr-1 size-3.5" />
-                  {t("notifications.markAllRead")}
-                </Button>
-              )}
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={markAllRead}
+                disabled={unreadIds.length === 0}
+              >
+                <MailOpen className="mr-1 size-3.5" />
+                {t("notifications.markAllRead")}
+              </Button>
+
               <Button
                 size="sm"
                 variant="destructive"

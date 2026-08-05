@@ -181,6 +181,7 @@
     "joinRequestBody": "{{user}} wants to join {{team}}",
     "approve": "Approve",
     "markRead": "Mark as read",
+    "allRead": "{{count}} notifications marked as read",
     "markAllRead": "Mark all as read",
     "selectAllRead": "Select read",
     "clearSelection": "Clear selection",

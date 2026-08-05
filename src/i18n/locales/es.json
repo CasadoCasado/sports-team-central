@@ -181,6 +181,7 @@
     "joinRequestBody": "{{user}} quiere unirse a {{team}}",
     "approve": "Aprobar",
     "markRead": "Marcar como leída",
+    "allRead": "{{count}} notificaciones marcadas como leídas",
     "markAllRead": "Marcar todas como leídas",
     "selectAllRead": "Seleccionar leídas",
     "clearSelection": "Quitar selección",
