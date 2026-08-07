@@ -6,6 +6,16 @@ import { Link2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/comunicaciones/unirse/$token")({
+  head: () => ({
+    meta: [
+      { title: "Unirse a un canal | TeamUp" },
+      { name: "description", content: "Acepta la invitación para entrar en un canal de comunicación del equipo." },
+      { property: "og:title", content: "Unirse a un canal | TeamUp" },
+      { property: "og:description", content: "Acepta la invitación para entrar en un canal de comunicación del equipo." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: JoinChannel,
 });
 

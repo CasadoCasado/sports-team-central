@@ -15,6 +15,16 @@ import { EventFormDialog } from "@/components/event-form-dialog";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/entrenamientos")({
+  head: () => ({
+    meta: [
+      { title: "Entrenamientos | TeamUp" },
+      { name: "description", content: "Consulta los entrenamientos programados y apúntate a las sesiones de tu equipo." },
+      { property: "og:title", content: "Entrenamientos | TeamUp" },
+      { property: "og:description", content: "Consulta los entrenamientos programados y apúntate a las sesiones de tu equipo." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: Trainings,
 });
 

@@ -25,6 +25,16 @@ import {
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/encuestas")({
+  head: () => ({
+    meta: [
+      { title: "Encuestas | TeamUp" },
+      { name: "description", content: "Vota en las encuestas del equipo y consulta los resultados en tiempo real." },
+      { property: "og:title", content: "Encuestas | TeamUp" },
+      { property: "og:description", content: "Vota en las encuestas del equipo y consulta los resultados en tiempo real." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: Encuestas,
 });
 

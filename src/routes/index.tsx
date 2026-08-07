@@ -5,6 +5,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { LangToggle } from "@/components/lang-toggle";
 
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "TeamUp — Gestiona tu equipo de pádel" },
+      { name: "description", content: "Calendario, convocatorias, encuestas, chat, resultados y pagos para tu equipo de pádel, en una sola plataforma." },
+      { property: "og:title", content: "TeamUp — Gestiona tu equipo de pádel" },
+      { property: "og:description", content: "Calendario, convocatorias, encuestas, chat, resultados y pagos para tu equipo de pádel, en una sola plataforma." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   beforeLoad: async () => {
     if (typeof window === "undefined") return;
     const { data } = await supabase.auth.getSession();

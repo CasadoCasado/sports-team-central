@@ -76,6 +76,16 @@ function getCompetitionStatus(c: Pick<Competition, "tipo" | "temporada" | "fecha
 }
 
 export const Route = createFileRoute("/_authenticated/competiciones")({
+  head: () => ({
+    meta: [
+      { title: "Competiciones | TeamUp" },
+      { name: "description", content: "Torneos, copas y amistosos de tu equipo con fechas de inicio, fin y estado actual." },
+      { property: "og:title", content: "Competiciones | TeamUp" },
+      { property: "og:description", content: "Torneos, copas y amistosos de tu equipo con fechas de inicio, fin y estado actual." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: CompetitionsPage,
 });
 

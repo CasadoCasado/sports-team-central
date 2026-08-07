@@ -23,6 +23,16 @@ import { TeamDiscovery } from "@/components/team-discovery";
 import { TeamJoinRequests } from "@/components/team-join-requests";
 
 export const Route = createFileRoute("/_authenticated/mi-equipo")({
+  head: () => ({
+    meta: [
+      { title: "Mi equipo | TeamUp" },
+      { name: "description", content: "Crea o gestiona tu equipo, controla inscripciones y solicitudes de nuevos jugadores." },
+      { property: "og:title", content: "Mi equipo | TeamUp" },
+      { property: "og:description", content: "Crea o gestiona tu equipo, controla inscripciones y solicitudes de nuevos jugadores." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: MiEquipo,
 });
 

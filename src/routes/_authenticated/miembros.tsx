@@ -12,6 +12,16 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/miembros")({
+  head: () => ({
+    meta: [
+      { title: "Miembros | TeamUp" },
+      { name: "description", content: "Gestiona los jugadores del equipo, sus roles y las solicitudes de unión pendientes." },
+      { property: "og:title", content: "Miembros | TeamUp" },
+      { property: "og:description", content: "Gestiona los jugadores del equipo, sus roles y las solicitudes de unión pendientes." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: Miembros,
 });
 

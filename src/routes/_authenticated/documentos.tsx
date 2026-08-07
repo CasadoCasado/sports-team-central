@@ -10,6 +10,16 @@ import { useActiveTeam } from "@/hooks/use-active-team";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/documentos")({
+  head: () => ({
+    meta: [
+      { title: "Documentos | TeamUp" },
+      { name: "description", content: "Comparte y consulta los documentos importantes del equipo en un solo lugar." },
+      { property: "og:title", content: "Documentos | TeamUp" },
+      { property: "og:description", content: "Comparte y consulta los documentos importantes del equipo en un solo lugar." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: Documentos,
 });
 

@@ -9,6 +9,16 @@ import { TeamPicker } from "@/components/team-picker";
 import { EmptyTeamState } from "@/components/empty-team-state";
 
 export const Route = createFileRoute("/_authenticated/estadisticas")({
+  head: () => ({
+    meta: [
+      { title: "Estadísticas | TeamUp" },
+      { name: "description", content: "Rendimiento del equipo y de cada jugador: partidos jugados, victorias y derrotas." },
+      { property: "og:title", content: "Estadísticas | TeamUp" },
+      { property: "og:description", content: "Rendimiento del equipo y de cada jugador: partidos jugados, victorias y derrotas." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: Estadisticas,
 });
 

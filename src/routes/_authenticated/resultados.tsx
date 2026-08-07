@@ -8,6 +8,16 @@ import { TeamPicker } from "@/components/team-picker";
 import { EmptyTeamState } from "@/components/empty-team-state";
 
 export const Route = createFileRoute("/_authenticated/resultados")({
+  head: () => ({
+    meta: [
+      { title: "Resultados | TeamUp" },
+      { name: "description", content: "Registra y consulta los resultados por pista de cada enfrentamiento de pádel." },
+      { property: "og:title", content: "Resultados | TeamUp" },
+      { property: "og:description", content: "Registra y consulta los resultados por pista de cada enfrentamiento de pádel." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: Resultados,
 });
 

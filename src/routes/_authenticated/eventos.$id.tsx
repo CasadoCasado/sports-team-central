@@ -48,6 +48,16 @@ import type { Database } from "@/integrations/supabase/types";
 type ResponseStatus = Database["public"]["Enums"]["response_status"];
 
 export const Route = createFileRoute("/_authenticated/eventos/$id")({
+  head: () => ({
+    meta: [
+      { title: "Detalle del evento | TeamUp" },
+      { name: "description", content: "Información del evento, asistentes, convocados y resultados por pista." },
+      { property: "og:title", content: "Detalle del evento | TeamUp" },
+      { property: "og:description", content: "Información del evento, asistentes, convocados y resultados por pista." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: EventDetail,
 });
 

@@ -11,6 +11,16 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/notificaciones")({
+  head: () => ({
+    meta: [
+      { title: "Notificaciones | TeamUp" },
+      { name: "description", content: "Todos los avisos de tu equipo: convocatorias, mensajes, encuestas y recordatorios." },
+      { property: "og:title", content: "Notificaciones | TeamUp" },
+      { property: "og:description", content: "Todos los avisos de tu equipo: convocatorias, mensajes, encuestas y recordatorios." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: Notificaciones,
 });
 
