@@ -111,7 +111,21 @@ export function AppShell({ children }: { children: ReactNode }) {
     };
   }, [user, qc]);
 
+  // Cierra el menú móvil al navegar y bloquea el scroll de fondo mientras está abierto.
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileOpen]);
+
   const isAdmin = useIsAdmin();
+
 
   const groups: { label: string; items: NavItem[] }[] = [
     {
