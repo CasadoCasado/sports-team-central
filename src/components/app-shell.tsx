@@ -320,9 +320,10 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </header>
 
-        <main className="flex-1 p-4 xl:p-8">
+        <main className="flex-1 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] xl:p-8">
           <div className="animate-fade-in-up">{children}</div>
         </main>
+
       </div>
     </div>
   );
