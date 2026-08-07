@@ -190,19 +190,22 @@ export function AppShell({ children }: { children: ReactNode }) {
       <aside
         id="main-sidebar"
         className={cn(
-          "fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 flex-col bg-[color:var(--color-ink)] text-[color:var(--color-ink-foreground)] transition-transform xl:sticky xl:top-0 xl:h-dvh xl:translate-x-0",
+          "fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 flex-col overscroll-contain bg-[color:var(--color-ink)] pb-[env(safe-area-inset-bottom)] text-[color:var(--color-ink-foreground)] transition-transform duration-200 will-change-transform xl:sticky xl:top-0 xl:h-dvh xl:translate-x-0 xl:pb-0",
           mobileOpen ? "translate-x-0" : "-translate-x-full",
         )}
         aria-label="Navegación principal"
+        aria-hidden={undefined}
       >
         <div className="flex h-16 items-center gap-3 px-6">
           <img
             src={teamupLogo.url}
             alt="TeamUp"
             className="size-9 shrink-0 object-contain"
+            decoding="async"
             width={36}
             height={36}
           />
+
           <div className="flex flex-col leading-none">
             <span className="text-display text-base font-bold uppercase tracking-[0.14em]">
               {t("app.name")}
