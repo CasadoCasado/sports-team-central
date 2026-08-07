@@ -216,7 +216,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </div>
 
-        <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-3">
+        <nav className="flex-1 space-y-5 overflow-y-auto overscroll-contain px-3 py-3">
           {groups.map((group) => (
             <div key={group.label}>
               <div className="px-3 pb-1.5 text-2xs font-bold uppercase tracking-[0.22em] text-[color:var(--color-ink-muted)]">
@@ -232,7 +232,8 @@ export function AppShell({ children }: { children: ReactNode }) {
                       to={item.to}
                       onClick={() => setMobileOpen(false)}
                       className={cn(
-                        "group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all",
+                        "group relative flex min-h-11 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all",
+
                         active
                           ? "bg-white/[0.06] text-white"
                           : "text-[color:var(--color-ink-muted)] hover:bg-white/[0.04] hover:text-white",
