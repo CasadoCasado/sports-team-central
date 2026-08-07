@@ -39,6 +39,16 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/calendario")({
+  head: () => ({
+    meta: [
+      { title: "Calendario | TeamUp" },
+      { name: "description", content: "Consulta entrenamientos, enfrentamientos y torneos del equipo en vista semanal o mensual." },
+      { property: "og:title", content: "Calendario | TeamUp" },
+      { property: "og:description", content: "Consulta entrenamientos, enfrentamientos y torneos del equipo en vista semanal o mensual." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: Calendario,
 });
 

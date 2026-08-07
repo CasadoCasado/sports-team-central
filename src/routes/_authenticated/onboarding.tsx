@@ -8,6 +8,16 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
+  head: () => ({
+    meta: [
+      { title: "Configura tu cuenta | TeamUp" },
+      { name: "description", content: "Completa tu perfil y elige si buscas equipo o quieres crear el tuyo en TeamUp." },
+      { property: "og:title", content: "Configura tu cuenta | TeamUp" },
+      { property: "og:description", content: "Completa tu perfil y elige si buscas equipo o quieres crear el tuyo en TeamUp." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: Onboarding,
 });
 

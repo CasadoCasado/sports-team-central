@@ -27,6 +27,16 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/comunicaciones")({
+  head: () => ({
+    meta: [
+      { title: "Comunicaciones | TeamUp" },
+      { name: "description", content: "Chat del equipo con canales públicos y privados e invitaciones por enlace." },
+      { property: "og:title", content: "Comunicaciones | TeamUp" },
+      { property: "og:description", content: "Chat del equipo con canales públicos y privados e invitaciones por enlace." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: Comunicaciones,
 });
 

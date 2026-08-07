@@ -15,6 +15,16 @@ import type { Database } from "@/integrations/supabase/types";
 type ResponseStatus = Database["public"]["Enums"]["response_status"];
 
 export const Route = createFileRoute("/_authenticated/convocatorias")({
+  head: () => ({
+    meta: [
+      { title: "Convocatorias | TeamUp" },
+      { name: "description", content: "Revisa tus convocatorias abiertas, apúntate o cancela tu participación en cada evento." },
+      { property: "og:title", content: "Convocatorias | TeamUp" },
+      { property: "og:description", content: "Revisa tus convocatorias abiertas, apúntate o cancela tu participación en cada evento." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: MyCallups,
 });
 

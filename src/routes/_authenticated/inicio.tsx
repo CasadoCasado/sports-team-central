@@ -23,6 +23,16 @@ import { TeamDiscovery } from "@/components/team-discovery";
 import { CallupDetailDialog } from "@/components/callup-detail-dialog";
 
 export const Route = createFileRoute("/_authenticated/inicio")({
+  head: () => ({
+    meta: [
+      { title: "Inicio | TeamUp" },
+      { name: "description", content: "Resumen de tu equipo: próximos eventos, convocatorias pendientes y avisos importantes." },
+      { property: "og:title", content: "Inicio | TeamUp" },
+      { property: "og:description", content: "Resumen de tu equipo: próximos eventos, convocatorias pendientes y avisos importantes." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: Inicio,
 });
 

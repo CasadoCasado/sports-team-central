@@ -10,6 +10,16 @@ import { useActiveTeam } from "@/hooks/use-active-team";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/galeria")({
+  head: () => ({
+    meta: [
+      { title: "Galería | TeamUp" },
+      { name: "description", content: "Fotos y recuerdos compartidos por los miembros del equipo." },
+      { property: "og:title", content: "Galería | TeamUp" },
+      { property: "og:description", content: "Fotos y recuerdos compartidos por los miembros del equipo." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: Galeria,
 });
 

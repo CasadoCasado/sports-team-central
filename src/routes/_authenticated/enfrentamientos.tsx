@@ -17,6 +17,16 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/enfrentamientos")({
+  head: () => ({
+    meta: [
+      { title: "Enfrentamientos | TeamUp" },
+      { name: "description", content: "Organiza los enfrentamientos del equipo, pistas de pádel y jugadores convocados." },
+      { property: "og:title", content: "Enfrentamientos | TeamUp" },
+      { property: "og:description", content: "Organiza los enfrentamientos del equipo, pistas de pádel y jugadores convocados." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: Matches,
 });
 

@@ -20,6 +20,16 @@ import {
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/pagos")({
+  head: () => ({
+    meta: [
+      { title: "Pagos | TeamUp" },
+      { name: "description", content: "Controla las cuotas del equipo y el estado de pago de cada jugador." },
+      { property: "og:title", content: "Pagos | TeamUp" },
+      { property: "og:description", content: "Controla las cuotas del equipo y el estado de pago de cada jugador." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: Pagos,
 });
 
