@@ -111,7 +111,21 @@ export function AppShell({ children }: { children: ReactNode }) {
     };
   }, [user, qc]);
 
+  // Cierra el menú móvil al navegar y bloquea el scroll de fondo mientras está abierto.
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileOpen]);
+
   const isAdmin = useIsAdmin();
+
 
   const groups: { label: string; items: NavItem[] }[] = [
     {
@@ -176,19 +190,22 @@ export function AppShell({ children }: { children: ReactNode }) {
       <aside
         id="main-sidebar"
         className={cn(
-          "fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 flex-col bg-[color:var(--color-ink)] text-[color:var(--color-ink-foreground)] transition-transform xl:sticky xl:top-0 xl:h-dvh xl:translate-x-0",
+          "fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 flex-col overscroll-contain bg-[color:var(--color-ink)] pb-[env(safe-area-inset-bottom)] text-[color:var(--color-ink-foreground)] transition-transform duration-200 will-change-transform xl:sticky xl:top-0 xl:h-dvh xl:translate-x-0 xl:pb-0",
           mobileOpen ? "translate-x-0" : "-translate-x-full",
         )}
         aria-label="Navegación principal"
+        aria-hidden={undefined}
       >
         <div className="flex h-16 items-center gap-3 px-6">
           <img
             src={teamupLogo.url}
             alt="TeamUp"
             className="size-9 shrink-0 object-contain"
+            decoding="async"
             width={36}
             height={36}
           />
+
           <div className="flex flex-col leading-none">
             <span className="text-display text-base font-bold uppercase tracking-[0.14em]">
               {t("app.name")}
@@ -199,7 +216,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </div>
 
-        <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-3">
+        <nav className="flex-1 space-y-5 overflow-y-auto overscroll-contain px-3 py-3">
           {groups.map((group) => (
             <div key={group.label}>
               <div className="px-3 pb-1.5 text-2xs font-bold uppercase tracking-[0.22em] text-[color:var(--color-ink-muted)]">
@@ -215,7 +232,8 @@ export function AppShell({ children }: { children: ReactNode }) {
                       to={item.to}
                       onClick={() => setMobileOpen(false)}
                       className={cn(
-                        "group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all",
+                        "group relative flex min-h-11 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all",
+
                         active
                           ? "bg-white/[0.06] text-white"
                           : "text-[color:var(--color-ink-muted)] hover:bg-white/[0.04] hover:text-white",
@@ -264,7 +282,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {/* Main */}
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-border/70 bg-background/85 px-4 backdrop-blur-md xl:px-8">
+        <header className="sticky top-0 z-20 flex h-16 items-center justify-between gap-2 border-b border-border/70 bg-background/85 px-3 pt-[env(safe-area-inset-top)] backdrop-blur-md sm:px-4 xl:px-8">
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -302,9 +320,10 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </header>
 
-        <main className="flex-1 p-4 xl:p-8">
+        <main className="flex-1 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] xl:p-8">
           <div className="animate-fade-in-up">{children}</div>
         </main>
+
       </div>
     </div>
   );
