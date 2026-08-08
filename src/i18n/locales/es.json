@@ -25,7 +25,9 @@
     "gestion": "Gestión",
     "recursos": "Recursos",
     "adminCompeticiones": "Competiciones oficiales",
-    "admin": "Administración"
+    "admin": "Administración",
+    "logros": "Logros",
+    "demo": "Probar sin cuenta"
   },
   "auth": {
     "welcome": "Bienvenido a TeamUp",
@@ -610,5 +612,40 @@
     "updated": "Actualizado",
     "deleted": "Eliminado",
     "deleteConfirm": "¿Eliminar este elemento?"
+  },
+  "achievements": {
+    "title": "Logros",
+    "subtitle": "Insignias por asistencia, victorias y rachas.",
+    "myBadges": "Mis insignias",
+    "leaderboard": "Ranking del equipo",
+    "unlocked": "Desbloqueados",
+    "wins": "Victorias",
+    "bestStreak": "Mejor racha",
+    "noData": "Aún no hay resultados registrados.",
+    "playedShort": "jug.",
+    "winsShort": "vict."
+  },
+  "demo": {
+    "badge": "Modo invitado",
+    "notice": "Estás viendo datos de ejemplo. Ninguna acción se guarda.",
+    "cta": "Crear cuenta gratis",
+    "title": "Explora TeamUp con un equipo de ejemplo",
+    "subtitle": "Navega por los módulos principales sin registrarte.",
+    "nextEvent": "Próximo evento",
+    "confirmedPlayers": "Confirmados",
+    "confirmedHint": "Jugadores para el próximo enfrentamiento",
+    "season": "Temporada",
+    "seasonHint": "Victorias - derrotas",
+    "courts": "pistas",
+    "court": "Pista",
+    "votes": "votos",
+    "disabledAction": "Apuntarme (no disponible en modo invitado)",
+    "footerTitle": "¿Listo para tu equipo real?",
+    "footerText": "Crea tu cuenta y empieza a gestionar convocatorias, resultados y comunicación en minutos.",
+    "kind": {
+      "entrenamiento": "Entrenamiento",
+      "enfrentamiento": "Enfrentamiento",
+      "torneo": "Torneo"
+    }
   }
 }

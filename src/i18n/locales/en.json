@@ -25,7 +25,9 @@
     "gestion": "Management",
     "recursos": "Resources",
     "adminCompeticiones": "Official competitions",
-    "admin": "Admin"
+    "admin": "Admin",
+    "logros": "Achievements",
+    "demo": "Try without an account"
   },
   "auth": {
     "welcome": "Welcome to TeamUp",
@@ -610,5 +612,40 @@
     "updated": "Updated",
     "deleted": "Deleted",
     "deleteConfirm": "Delete this item?"
+  },
+  "achievements": {
+    "title": "Achievements",
+    "subtitle": "Badges for attendance, wins and streaks.",
+    "myBadges": "My badges",
+    "leaderboard": "Team leaderboard",
+    "unlocked": "Unlocked",
+    "wins": "Wins",
+    "bestStreak": "Best streak",
+    "noData": "No results recorded yet.",
+    "playedShort": "pl.",
+    "winsShort": "wins"
+  },
+  "demo": {
+    "badge": "Guest mode",
+    "notice": "You are viewing sample data. Nothing is saved.",
+    "cta": "Create a free account",
+    "title": "Explore TeamUp with a sample team",
+    "subtitle": "Browse the main modules without signing up.",
+    "nextEvent": "Next event",
+    "confirmedPlayers": "Confirmed",
+    "confirmedHint": "Players for the next match",
+    "season": "Season",
+    "seasonHint": "Wins - losses",
+    "courts": "courts",
+    "court": "Court",
+    "votes": "votes",
+    "disabledAction": "Sign up (not available in guest mode)",
+    "footerTitle": "Ready for your real team?",
+    "footerText": "Create your account and start managing call-ups, results and communication in minutes.",
+    "kind": {
+      "entrenamiento": "Training",
+      "enfrentamiento": "Match",
+      "torneo": "Tournament"
+    }
   }
 }
