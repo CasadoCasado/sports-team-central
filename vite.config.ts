@@ -24,6 +24,7 @@ export default defineConfig({
         // We ship our own public/manifest.webmanifest.
         manifest: false,
         filename: "sw.js",
+        outDir: "dist/client",
         includeAssets: ["favicon.png", "icon-512.png", "manifest.webmanifest"],
         workbox: {
           // Keeps web-push handling inside the single service worker registration.
