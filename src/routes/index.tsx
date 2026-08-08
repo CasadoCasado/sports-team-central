@@ -88,6 +88,12 @@ function Landing() {
             >
               {t("auth.login")}
             </Link>
+            <Link
+              to="/demo"
+              className="rounded-md border border-white/20 px-6 py-3 text-sm font-bold uppercase tracking-widest text-[color:var(--color-ink-foreground)] transition-colors hover:bg-white/10"
+            >
+              {t("nav.demo")}
+            </Link>
           </div>
         </section>
 
