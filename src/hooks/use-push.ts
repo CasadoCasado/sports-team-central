@@ -48,9 +48,11 @@ export function usePush() {
   }, [supported]);
 
   const ensureRegistration = useCallback(async () => {
-    const existing = await navigator.serviceWorker.getRegistration("/sw-push.js");
+    const existing = await navigator.serviceWorker.getRegistration("/");
     if (existing) return existing;
-    return navigator.serviceWorker.register("/sw-push.js", { scope: "/" });
+    // En producción /sw.js incluye la lógica de push; en preview/dev se usa el SW de push directo.
+    const url = import.meta.env.PROD ? "/sw.js" : "/sw-push.js";
+    return navigator.serviceWorker.register(url, { scope: "/" });
   }, []);
 
   const subscribe = useCallback(async () => {
@@ -92,7 +94,7 @@ export function usePush() {
     if (!supported) return;
     setBusy(true);
     try {
-      const reg = await navigator.serviceWorker.getRegistration("/sw-push.js");
+      const reg = await navigator.serviceWorker.getRegistration("/");
       const sub = await reg?.pushManager.getSubscription();
       if (sub) {
         await delSub({ data: { endpoint: sub.endpoint } }).catch(() => {});
