@@ -22,6 +22,7 @@ import {
   X,
   Shield,
   Swords,
+  Medal,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/use-profile";
@@ -148,6 +149,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         { to: "/encuestas", label: t("nav.encuestas"), icon: Vote },
         { to: "/resultados", label: t("nav.resultados"), icon: BarChart3 },
         { to: "/estadisticas", label: t("nav.estadisticas"), icon: BarChart3 },
+        { to: "/logros", label: t("nav.logros"), icon: Medal },
       ],
     },
     {
