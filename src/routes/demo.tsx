@@ -17,6 +17,7 @@ import {
 import teamupLogo from "@/assets/teamup-logo.png.asset.json";
 import { LangToggle } from "@/components/lang-toggle";
 import { cn } from "@/lib/utils";
+import { BADGES } from "@/lib/achievements";
 
 export const Route = createFileRoute("/demo")({
   head: () => ({
@@ -66,14 +67,7 @@ const DEMO_POLL = {
   ],
 };
 
-const DEMO_BADGES = [
-  { title: "Debut", desc: "Primer enfrentamiento jugado", unlocked: true },
-  { title: "Racha x3", desc: "3 victorias seguidas", unlocked: true },
-  { title: "Siempre presente", desc: "10 convocatorias confirmadas", unlocked: true },
-  { title: "Veterano", desc: "25 enfrentamientos jugados", unlocked: false },
-  { title: "MVP del equipo", desc: "Máximo ganador del equipo", unlocked: false },
-  { title: "Racha x5", desc: "5 victorias seguidas", unlocked: false },
-];
+const DEMO_UNLOCKED = ["debut", "streak3", "attendance10"];
 
 const DEMO_LEADERBOARD = [
   { name: "Lucía Ferrer", played: 18, wins: 13 },
@@ -317,10 +311,17 @@ function DemoEncuestas({ t }: { t: TFn }) {
 }
 
 function DemoLogros({ t }: { t: TFn }) {
+  const { i18n } = useTranslation();
+  const lang = i18n.language.startsWith("en") ? "en" : "es";
+  const demoBadges = BADGES.slice(0, 6).map((b) => ({
+    title: b.title[lang],
+    desc: b.description[lang],
+    unlocked: DEMO_UNLOCKED.includes(b.id),
+  }));
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {DEMO_BADGES.map((b) => (
+        {demoBadges.map((b) => (
           <div
             key={b.title}
             className={cn(
