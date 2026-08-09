@@ -327,6 +327,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </main>
 
       </div>
+      {tour.ready && <GuidedTour open={tour.open} onFinish={tour.finish} />}
     </div>
   );
 }
