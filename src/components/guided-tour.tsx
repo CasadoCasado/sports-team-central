@@ -64,9 +64,19 @@ export function useGuidedTour() {
     setOpen(false);
   };
 
-  const restart = () => setOpen(true);
+  useEffect(() => {
+    const handler = () => setOpen(true);
+    window.addEventListener(TOUR_RESTART_EVENT, handler);
+    return () => window.removeEventListener(TOUR_RESTART_EVENT, handler);
+  }, []);
 
-  return { open, setOpen, finish, restart, ready };
+  return { open, setOpen, finish, ready };
+}
+
+export const TOUR_RESTART_EVENT = "teamup:tour-restart";
+
+export function restartGuidedTour() {
+  window.dispatchEvent(new Event(TOUR_RESTART_EVENT));
 }
 
 export function GuidedTour({

@@ -20,6 +20,7 @@ import {
 import { PushSettings } from "@/components/push-settings";
 import { ReminderSettings } from "@/components/reminder-settings";
 import { FontSizeControl } from "@/components/font-size-control";
+import { restartGuidedTour } from "@/components/guided-tour";
 import { SPORTS, sportLabel } from "@/lib/sports";
 
 export const Route = createFileRoute("/_authenticated/perfil")({
@@ -214,6 +215,18 @@ function Perfil() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-muted-foreground">{t("profile.fontSizeHint")}</p>
           <FontSizeControl />
+        </div>
+      </section>
+
+      <section className="surface-card p-6">
+        <h2 className="text-2xs mb-4 font-bold uppercase tracking-widest text-primary">
+          {t("tour.title")}
+        </h2>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm text-muted-foreground">{t("tour.restartHint")}</p>
+          <Button type="button" variant="outline" className="min-h-11" onClick={restartGuidedTour}>
+            {t("tour.restart")}
+          </Button>
         </div>
       </section>
 
