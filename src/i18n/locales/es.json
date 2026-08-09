@@ -647,5 +647,68 @@
       "enfrentamiento": "Enfrentamiento",
       "torneo": "Torneo"
     }
+  },
+  "tour": {
+    "stepOf": "Paso {{current}} de {{total}}",
+    "skip": "Saltar tutorial",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "finish": "Empezar",
+    "goTo": "Ir a la sección",
+    "restart": "Ver tutorial guiado",
+    "restartHint": "Repasa los pasos básicos de TeamUp cuando quieras.",
+    "title": "Tutorial guiado",
+    "manager": {
+      "team": {
+        "title": "Crea y configura tu equipo",
+        "desc": "Desde Mi equipo defines nombre, logo, deporte y abres o cierras las inscripciones para nuevos jugadores."
+      },
+      "members": {
+        "title": "Gestiona a tus jugadores",
+        "desc": "En Miembros aceptas solicitudes de unión, asignas roles como co-capitán y das de baja a quien lo necesite."
+      },
+      "calendar": {
+        "title": "Programa la actividad",
+        "desc": "En Calendario creas entrenamientos, enfrentamientos y torneos, con fechas de varios días si hace falta."
+      },
+      "callups": {
+        "title": "Convoca a tu equipo",
+        "desc": "Cuando pides convocatoria, tus jugadores reciben aviso y podrás elegir a los convocados y las parejas por pista."
+      },
+      "results": {
+        "title": "Registra resultados",
+        "desc": "Tras el enfrentamiento introduce los sets por pista: TeamUp calcula el ganador y actualiza las estadísticas."
+      },
+      "chat": {
+        "title": "Comunícate",
+        "desc": "Crea canales privados, invita por enlace y mantén al equipo informado desde Comunicaciones."
+      }
+    },
+    "player": {
+      "find": {
+        "title": "Encuentra tu equipo",
+        "desc": "Busca equipos con inscripciones abiertas y envía tu solicitud; el capitán recibirá un aviso."
+      },
+      "calendar": {
+        "title": "Consulta el calendario",
+        "desc": "Ve todos los entrenamientos, enfrentamientos y torneos de tu equipo en vista semanal o mensual."
+      },
+      "signup": {
+        "title": "Apúntate a las convocatorias",
+        "desc": "Entra en la convocatoria, revisa fecha, hora y sede, y confirma o cancela tu participación."
+      },
+      "polls": {
+        "title": "Participa en las encuestas",
+        "desc": "Vota disponibilidad, horarios o decisiones del equipo antes de la fecha límite."
+      },
+      "badges": {
+        "title": "Gana logros",
+        "desc": "Tu asistencia, victorias y rachas desbloquean insignias y te posicionan en el ranking del equipo."
+      },
+      "alerts": {
+        "title": "No te pierdas nada",
+        "desc": "Activa recordatorios y notificaciones para enterarte de cada convocatoria y cambio de última hora."
+      }
+    }
   }
 }
