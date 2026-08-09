@@ -647,5 +647,68 @@
       "enfrentamiento": "Match",
       "torneo": "Tournament"
     }
+  },
+  "tour": {
+    "stepOf": "Step {{current}} of {{total}}",
+    "skip": "Skip tutorial",
+    "back": "Back",
+    "next": "Next",
+    "finish": "Get started",
+    "goTo": "Go to section",
+    "restart": "Replay guided tour",
+    "restartHint": "Review the TeamUp basics whenever you want.",
+    "title": "Guided tour",
+    "manager": {
+      "team": {
+        "title": "Create and set up your team",
+        "desc": "In My team you set the name, logo and sport, and open or close registrations for new players."
+      },
+      "members": {
+        "title": "Manage your players",
+        "desc": "In Members you approve join requests, assign roles such as co-captain and remove players."
+      },
+      "calendar": {
+        "title": "Plan the activity",
+        "desc": "In Calendar you create trainings, matches and tournaments, including multi-day events."
+      },
+      "callups": {
+        "title": "Call up your team",
+        "desc": "When a call-up is required, players get notified and you pick who plays and the pairs per court."
+      },
+      "results": {
+        "title": "Record results",
+        "desc": "After the match enter the sets per court: TeamUp works out the winner and updates the stats."
+      },
+      "chat": {
+        "title": "Keep everyone talking",
+        "desc": "Create private channels, invite by link and keep the team informed from Communications."
+      }
+    },
+    "player": {
+      "find": {
+        "title": "Find your team",
+        "desc": "Search teams with open registrations and send your request; the captain gets notified."
+      },
+      "calendar": {
+        "title": "Check the calendar",
+        "desc": "See every training, match and tournament in weekly or monthly view."
+      },
+      "signup": {
+        "title": "Sign up for call-ups",
+        "desc": "Open a call-up, check date, time and venue, then confirm or cancel your participation."
+      },
+      "polls": {
+        "title": "Vote in polls",
+        "desc": "Answer availability, schedule or team decision polls before the deadline."
+      },
+      "badges": {
+        "title": "Earn achievements",
+        "desc": "Attendance, wins and streaks unlock badges and place you on the team leaderboard."
+      },
+      "alerts": {
+        "title": "Never miss a thing",
+        "desc": "Turn on reminders and notifications to stay on top of call-ups and last-minute changes."
+      }
+    }
   }
 }

@@ -2,6 +2,7 @@ import { type ReactNode, useState } from "react";
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { useIsAdmin } from "@/hooks/use-is-admin";
+import { GuidedTour, useGuidedTour } from "@/components/guided-tour";
 import {
   Home,
   Users,
@@ -183,6 +184,8 @@ export function AppShell({ children }: { children: ReactNode }) {
     navigate({ to: "/auth", replace: true });
   }
 
+  const tour = useGuidedTour();
+
   const initials =
     ((profile?.nombre?.[0] ?? "") + (profile?.apellidos?.[0] ?? "")).toUpperCase() || "U";
 
@@ -327,6 +330,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </main>
 
       </div>
+      {tour.ready && <GuidedTour open={tour.open} onFinish={tour.finish} />}
     </div>
   );
 }
