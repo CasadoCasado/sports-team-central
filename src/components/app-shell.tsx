@@ -160,6 +160,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         { to: "/documentos", label: t("nav.documentos"), icon: FileText },
         { to: "/pagos", label: t("nav.pagos"), icon: Wallet },
         { to: "/comunicaciones", label: t("nav.comunicaciones"), icon: MessagesSquare },
+        { to: "/ayuda", label: t("nav.ayuda"), icon: LifeBuoy },
       ],
     },
     ...(isAdmin
