@@ -473,6 +473,7 @@ function Notificaciones() {
               </div>
             ))}
           </div>
+          )}
         </div>
       ) : (
         (invitations?.length ?? 0) === 0 && (
