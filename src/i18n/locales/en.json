@@ -27,6 +27,7 @@
     "adminCompeticiones": "Official competitions",
     "admin": "Admin",
     "logros": "Achievements",
+    "ayuda": "Help",
     "demo": "Try without an account"
   },
   "auth": {
@@ -171,6 +172,12 @@
     "myStatus": "My payment",
     "markPaid": "Mark as paid",
     "markedPaid": "Paid"
+  },
+  "help": {
+    "title": "Help",
+    "intro": "A quick guide to every TeamUp screen, with steps, real examples and shortcuts. Tap the help icon in the header to open the guide for the screen you're on.",
+    "steps": "How it works",
+    "contextual": "Help for this screen"
   },
   "notifications": {
     "title": "Notifications",

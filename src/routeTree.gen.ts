@@ -32,6 +32,7 @@ import { Route as AuthenticatedConvocatoriasRouteImport } from './routes/_authen
 import { Route as AuthenticatedComunicacionesRouteImport } from './routes/_authenticated/comunicaciones'
 import { Route as AuthenticatedCompeticionesRouteImport } from './routes/_authenticated/competiciones'
 import { Route as AuthenticatedCalendarioRouteImport } from './routes/_authenticated/calendario'
+import { Route as AuthenticatedAyudaRouteImport } from './routes/_authenticated/ayuda'
 import { Route as AuthenticatedEventosIdRouteImport } from './routes/_authenticated/eventos.$id'
 import { Route as AuthenticatedAdminCompeticionesRouteImport } from './routes/_authenticated/admin/competiciones'
 import { Route as AuthenticatedComunicacionesUnirseTokenRouteImport } from './routes/_authenticated/comunicaciones.unirse.$token'
@@ -157,6 +158,11 @@ const AuthenticatedCalendarioRoute = AuthenticatedCalendarioRouteImport.update({
   path: '/calendario',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAyudaRoute = AuthenticatedAyudaRouteImport.update({
+  id: '/ayuda',
+  path: '/ayuda',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedEventosIdRoute = AuthenticatedEventosIdRouteImport.update({
   id: '/eventos/$id',
   path: '/eventos/$id',
@@ -179,6 +185,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/demo': typeof DemoRoute
+  '/ayuda': typeof AuthenticatedAyudaRoute
   '/calendario': typeof AuthenticatedCalendarioRoute
   '/competiciones': typeof AuthenticatedCompeticionesRoute
   '/comunicaciones': typeof AuthenticatedComunicacionesRouteWithChildren
@@ -206,6 +213,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/demo': typeof DemoRoute
+  '/ayuda': typeof AuthenticatedAyudaRoute
   '/calendario': typeof AuthenticatedCalendarioRoute
   '/competiciones': typeof AuthenticatedCompeticionesRoute
   '/comunicaciones': typeof AuthenticatedComunicacionesRouteWithChildren
@@ -235,6 +243,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/demo': typeof DemoRoute
+  '/_authenticated/ayuda': typeof AuthenticatedAyudaRoute
   '/_authenticated/calendario': typeof AuthenticatedCalendarioRoute
   '/_authenticated/competiciones': typeof AuthenticatedCompeticionesRoute
   '/_authenticated/comunicaciones': typeof AuthenticatedComunicacionesRouteWithChildren
@@ -264,6 +273,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/demo'
+    | '/ayuda'
     | '/calendario'
     | '/competiciones'
     | '/comunicaciones'
@@ -291,6 +301,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/demo'
+    | '/ayuda'
     | '/calendario'
     | '/competiciones'
     | '/comunicaciones'
@@ -319,6 +330,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/demo'
+    | '/_authenticated/ayuda'
     | '/_authenticated/calendario'
     | '/_authenticated/competiciones'
     | '/_authenticated/comunicaciones'
@@ -513,6 +525,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCalendarioRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/ayuda': {
+      id: '/_authenticated/ayuda'
+      path: '/ayuda'
+      fullPath: '/ayuda'
+      preLoaderRoute: typeof AuthenticatedAyudaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/eventos/$id': {
       id: '/_authenticated/eventos/$id'
       path: '/eventos/$id'
@@ -553,6 +572,7 @@ const AuthenticatedComunicacionesRouteWithChildren =
   )
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAyudaRoute: typeof AuthenticatedAyudaRoute
   AuthenticatedCalendarioRoute: typeof AuthenticatedCalendarioRoute
   AuthenticatedCompeticionesRoute: typeof AuthenticatedCompeticionesRoute
   AuthenticatedComunicacionesRoute: typeof AuthenticatedComunicacionesRouteWithChildren
@@ -577,6 +597,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAyudaRoute: AuthenticatedAyudaRoute,
   AuthenticatedCalendarioRoute: AuthenticatedCalendarioRoute,
   AuthenticatedCompeticionesRoute: AuthenticatedCompeticionesRoute,
   AuthenticatedComunicacionesRoute:

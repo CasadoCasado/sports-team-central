@@ -24,6 +24,7 @@ import {
   Shield,
   Swords,
   Medal,
+  LifeBuoy,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/hooks/use-profile";
@@ -32,6 +33,7 @@ import { LangToggle } from "./lang-toggle";
 import teamupLogo from "@/assets/teamup-logo.png.asset.json";
 
 import { cn } from "@/lib/utils";
+import { helpSectionForPath } from "@/lib/help-content";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
@@ -160,6 +162,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         { to: "/documentos", label: t("nav.documentos"), icon: FileText },
         { to: "/pagos", label: t("nav.pagos"), icon: Wallet },
         { to: "/comunicaciones", label: t("nav.comunicaciones"), icon: MessagesSquare },
+        { to: "/ayuda", label: t("nav.ayuda"), icon: LifeBuoy },
       ],
     },
     ...(isAdmin
@@ -303,6 +306,15 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className="flex items-center gap-2">
             
             <LangToggle />
+            <Link
+              to="/ayuda"
+              search={{ screen: helpSectionForPath(pathname) }}
+              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-border bg-card p-2 text-muted-foreground shadow-[var(--shadow-card)] transition-all hover:-translate-y-px hover:text-foreground"
+              aria-label={t("help.contextual")}
+              title={t("help.contextual")}
+            >
+              <LifeBuoy className="size-4" aria-hidden="true" />
+            </Link>
             <Link
               to="/notificaciones"
               className="relative inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-border bg-card p-2 text-muted-foreground shadow-[var(--shadow-card)] transition-all hover:-translate-y-px hover:text-foreground"

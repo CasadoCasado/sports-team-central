@@ -27,6 +27,7 @@
     "adminCompeticiones": "Competiciones oficiales",
     "admin": "Administración",
     "logros": "Logros",
+    "ayuda": "Ayuda",
     "demo": "Probar sin cuenta"
   },
   "auth": {
@@ -171,6 +172,12 @@
     "myStatus": "Mi pago",
     "markPaid": "Marcar como pagado",
     "markedPaid": "Pagado"
+  },
+  "help": {
+    "title": "Ayuda",
+    "intro": "Guía rápida de cada pantalla de TeamUp, con pasos, ejemplos reales y accesos directos. Pulsa el icono de ayuda en la cabecera para abrir la sección de la pantalla en la que estés.",
+    "steps": "Cómo funciona",
+    "contextual": "Ayuda de esta pantalla"
   },
   "notifications": {
     "title": "Notificaciones",
