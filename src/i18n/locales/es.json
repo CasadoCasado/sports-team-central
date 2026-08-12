@@ -192,7 +192,22 @@
     "deleteSelected": "Eliminar ({{count}})",
     "deleted": "Notificaciones eliminadas",
     "selectOne": "Seleccionar «{{title}}»",
-    "onlyReadDeletable": "Solo puedes eliminar notificaciones leídas"
+    "onlyReadDeletable": "Solo puedes eliminar notificaciones leídas",
+    "filterAll": "Todas",
+    "filterUnread": "No leídas",
+    "filterRead": "Leídas",
+    "filterType": "Tipo",
+    "allTypes": "Todos los tipos",
+    "noResults": "No hay notificaciones con estos filtros",
+    "unreadCount": "{{count}} sin leer",
+    "types": {
+      "convocatoria": "Convocatorias",
+      "mensaje": "Mensajes",
+      "encuesta": "Encuestas",
+      "recordatorio": "Recordatorios",
+      "solicitud": "Solicitudes",
+      "evento": "Eventos"
+    }
   },
   "profile": {
     "title": "Perfil",
