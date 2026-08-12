@@ -33,6 +33,7 @@ import { LangToggle } from "./lang-toggle";
 import teamupLogo from "@/assets/teamup-logo.png.asset.json";
 
 import { cn } from "@/lib/utils";
+import { helpSectionForPath } from "@/lib/help-content";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
