@@ -30,6 +30,8 @@ function Notificaciones() {
   const qc = useQueryClient();
   const [selected, setSelected] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<"all" | "unread" | "read">("all");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
 
   // Realtime: refresca la lista y el contador al instante.
   useEffect(() => {
@@ -173,8 +175,19 @@ function Notificaciones() {
     }
   }
 
-  const readIds = (notifications ?? []).filter((n) => n.read).map((n) => n.id);
-  const unreadIds = (notifications ?? []).filter((n) => !n.read).map((n) => n.id);
+  const all = notifications ?? [];
+  const types = Array.from(new Set(all.map((n) => n.tipo).filter(Boolean)));
+  const visible = all.filter(
+    (n) =>
+      (statusFilter === "all" ||
+        (statusFilter === "unread" && !n.read) ||
+        (statusFilter === "read" && n.read)) &&
+      (typeFilter === "all" || n.tipo === typeFilter),
+  );
+  const readIds = visible.filter((n) => n.read).map((n) => n.id);
+  const unreadIds = visible.filter((n) => !n.read).map((n) => n.id);
+  const totalUnread = all.filter((n) => !n.read).length;
+  const typeLabel = (tipo: string) => t(`notifications.types.${tipo}`, { defaultValue: tipo });
 
   function toggleSelect(id: string) {
     setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
@@ -325,13 +338,19 @@ function Notificaciones() {
         </div>
       )}
 
-      {(notifications?.length ?? 0) > 0 ? (
+      {all.length > 0 ? (
         <div className="space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-2xs font-bold uppercase tracking-widest text-primary">
               {t("notifications.title")}
+              {totalUnread > 0 && (
+                <span className="ml-2 rounded-full bg-primary/10 px-2 py-0.5 text-2xs font-bold text-primary">
+                  {t("notifications.unreadCount", { count: totalUnread })}
+                </span>
+              )}
             </h2>
             <div className="flex flex-wrap items-center gap-2">
+
               {readIds.length > 0 && (
                 <Button size="sm" variant="outline" onClick={toggleSelectAllRead}>
                   {selected.length === readIds.length
@@ -360,8 +379,66 @@ function Notificaciones() {
               </Button>
             </div>
           </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            {(["all", "unread", "read"] as const).map((s) => (
+              <Button
+                key={s}
+                size="sm"
+                variant={statusFilter === s ? "default" : "outline"}
+                onClick={() => {
+                  setStatusFilter(s);
+                  setSelected([]);
+                }}
+              >
+                {t(
+                  s === "all"
+                    ? "notifications.filterAll"
+                    : s === "unread"
+                      ? "notifications.filterUnread"
+                      : "notifications.filterRead",
+                )}
+              </Button>
+            ))}
+            {types.length > 1 && (
+              <>
+                <span className="ml-1 text-2xs uppercase tracking-widest text-muted-foreground">
+                  {t("notifications.filterType")}
+                </span>
+                <Button
+                  size="sm"
+                  variant={typeFilter === "all" ? "secondary" : "ghost"}
+                  onClick={() => {
+                    setTypeFilter("all");
+                    setSelected([]);
+                  }}
+                >
+                  {t("notifications.allTypes")}
+                </Button>
+                {types.map((tp) => (
+                  <Button
+                    key={tp}
+                    size="sm"
+                    variant={typeFilter === tp ? "secondary" : "ghost"}
+                    onClick={() => {
+                      setTypeFilter(tp);
+                      setSelected([]);
+                    }}
+                  >
+                    {typeLabel(tp)}
+                  </Button>
+                ))}
+              </>
+            )}
+          </div>
+
+          {visible.length === 0 ? (
+            <div className="surface-card p-8 text-center text-sm text-muted-foreground">
+              {t("notifications.noResults")}
+            </div>
+          ) : (
           <div className="surface-card divide-y divide-border">
-            {notifications!.map((n) => (
+            {visible.map((n) => (
               <div
                 key={n.id}
                 className={cn("flex items-start gap-4 p-4", !n.read && "bg-primary/5")}
@@ -396,6 +473,7 @@ function Notificaciones() {
               </div>
             ))}
           </div>
+          )}
         </div>
       ) : (
         (invitations?.length ?? 0) === 0 && (
