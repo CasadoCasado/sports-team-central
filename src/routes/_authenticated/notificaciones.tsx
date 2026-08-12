@@ -173,8 +173,19 @@ function Notificaciones() {
     }
   }
 
-  const readIds = (notifications ?? []).filter((n) => n.read).map((n) => n.id);
-  const unreadIds = (notifications ?? []).filter((n) => !n.read).map((n) => n.id);
+  const all = notifications ?? [];
+  const types = Array.from(new Set(all.map((n) => n.tipo).filter(Boolean)));
+  const visible = all.filter(
+    (n) =>
+      (statusFilter === "all" ||
+        (statusFilter === "unread" && !n.read) ||
+        (statusFilter === "read" && n.read)) &&
+      (typeFilter === "all" || n.tipo === typeFilter),
+  );
+  const readIds = visible.filter((n) => n.read).map((n) => n.id);
+  const unreadIds = visible.filter((n) => !n.read).map((n) => n.id);
+  const totalUnread = all.filter((n) => !n.read).length;
+  const typeLabel = (tipo: string) => t(`notifications.types.${tipo}`, { defaultValue: tipo });
 
   function toggleSelect(id: string) {
     setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
