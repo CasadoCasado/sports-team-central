@@ -338,13 +338,19 @@ function Notificaciones() {
         </div>
       )}
 
-      {(notifications?.length ?? 0) > 0 ? (
+      {all.length > 0 ? (
         <div className="space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-2xs font-bold uppercase tracking-widest text-primary">
               {t("notifications.title")}
+              {totalUnread > 0 && (
+                <span className="ml-2 rounded-full bg-primary/10 px-2 py-0.5 text-2xs font-bold text-primary">
+                  {t("notifications.unreadCount", { count: totalUnread })}
+                </span>
+              )}
             </h2>
             <div className="flex flex-wrap items-center gap-2">
+
               {readIds.length > 0 && (
                 <Button size="sm" variant="outline" onClick={toggleSelectAllRead}>
                   {selected.length === readIds.length
