@@ -30,6 +30,8 @@ function Notificaciones() {
   const qc = useQueryClient();
   const [selected, setSelected] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<"all" | "unread" | "read">("all");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
 
   // Realtime: refresca la lista y el contador al instante.
   useEffect(() => {
