@@ -306,6 +306,15 @@ export function AppShell({ children }: { children: ReactNode }) {
             
             <LangToggle />
             <Link
+              to="/ayuda"
+              search={{ screen: helpSectionForPath(pathname) }}
+              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-border bg-card p-2 text-muted-foreground shadow-[var(--shadow-card)] transition-all hover:-translate-y-px hover:text-foreground"
+              aria-label={t("help.contextual")}
+              title={t("help.contextual")}
+            >
+              <LifeBuoy className="size-4" aria-hidden="true" />
+            </Link>
+            <Link
               to="/notificaciones"
               className="relative inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-border bg-card p-2 text-muted-foreground shadow-[var(--shadow-card)] transition-all hover:-translate-y-px hover:text-foreground"
               aria-label={`${t("nav.notificaciones")}${(unreadCount ?? 0) > 0 ? ` (${unreadCount} sin leer)` : ""}`}
