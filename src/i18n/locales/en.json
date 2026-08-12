@@ -192,7 +192,22 @@
     "deleteSelected": "Delete ({{count}})",
     "deleted": "Notifications deleted",
     "selectOne": "Select “{{title}}”",
-    "onlyReadDeletable": "Only read notifications can be deleted"
+    "onlyReadDeletable": "Only read notifications can be deleted",
+    "filterAll": "All",
+    "filterUnread": "Unread",
+    "filterRead": "Read",
+    "filterType": "Type",
+    "allTypes": "All types",
+    "noResults": "No notifications match these filters",
+    "unreadCount": "{{count}} unread",
+    "types": {
+      "convocatoria": "Call-ups",
+      "mensaje": "Messages",
+      "encuesta": "Polls",
+      "recordatorio": "Reminders",
+      "solicitud": "Requests",
+      "evento": "Events"
+    }
   },
   "profile": {
     "title": "Profile",
