@@ -379,8 +379,66 @@ function Notificaciones() {
               </Button>
             </div>
           </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            {(["all", "unread", "read"] as const).map((s) => (
+              <Button
+                key={s}
+                size="sm"
+                variant={statusFilter === s ? "default" : "outline"}
+                onClick={() => {
+                  setStatusFilter(s);
+                  setSelected([]);
+                }}
+              >
+                {t(
+                  s === "all"
+                    ? "notifications.filterAll"
+                    : s === "unread"
+                      ? "notifications.filterUnread"
+                      : "notifications.filterRead",
+                )}
+              </Button>
+            ))}
+            {types.length > 1 && (
+              <>
+                <span className="ml-1 text-2xs uppercase tracking-widest text-muted-foreground">
+                  {t("notifications.filterType")}
+                </span>
+                <Button
+                  size="sm"
+                  variant={typeFilter === "all" ? "secondary" : "ghost"}
+                  onClick={() => {
+                    setTypeFilter("all");
+                    setSelected([]);
+                  }}
+                >
+                  {t("notifications.allTypes")}
+                </Button>
+                {types.map((tp) => (
+                  <Button
+                    key={tp}
+                    size="sm"
+                    variant={typeFilter === tp ? "secondary" : "ghost"}
+                    onClick={() => {
+                      setTypeFilter(tp);
+                      setSelected([]);
+                    }}
+                  >
+                    {typeLabel(tp)}
+                  </Button>
+                ))}
+              </>
+            )}
+          </div>
+
+          {visible.length === 0 ? (
+            <div className="surface-card p-8 text-center text-sm text-muted-foreground">
+              {t("notifications.noResults")}
+            </div>
+          ) : (
           <div className="surface-card divide-y divide-border">
-            {notifications!.map((n) => (
+            {visible.map((n) => (
               <div
                 key={n.id}
                 className={cn("flex items-start gap-4 p-4", !n.read && "bg-primary/5")}
