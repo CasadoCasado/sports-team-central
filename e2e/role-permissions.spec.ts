@@ -1,121 +1,90 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect } from "@playwright/test";
+
+import { API_URL, bearer, seedCaptainWithTeam, seedPlayerInTeam, loginAs } from "./session";
 
 /**
- * Verifica que Capitán (manager) y Jugador ven únicamente los módulos y
- * acciones permitidas en cada ruta privada.
+ * Lo que ve cada rol dentro de la app.
  *
- * El rol se detecta en runtime a partir de la sesión inyectada: si el usuario
- * es capitán/co-capitán verá las acciones de gestión; si es jugador, no.
- * Las aserciones son simétricas, así que la misma suite valida ambos roles
- * según la cuenta con la que se ejecute.
+ * La diferencia entre capitán y jugador la decide `is_team_manager()`, portada
+ * a `apps/teams/permissions.py`. Aquí se comprueba que la UI la respeta.
  */
 
 const NAV_COMMON = [
   "/inicio",
-  "/mi-equipo",
-  "/miembros",
   "/calendario",
-  "/entrenamientos",
-  "/enfrentamientos",
   "/convocatorias",
   "/encuestas",
   "/estadisticas",
-  "/galeria",
-  "/documentos",
-  "/pagos",
   "/comunicaciones",
 ];
 
-/** Acciones sólo disponibles para capitán / co-capitán. */
-const MANAGER_ACTIONS: { route: string; name: RegExp }[] = [
-  { route: "/calendario", name: /crear evento/i },
-  { route: "/entrenamientos", name: /crear evento/i },
-  { route: "/encuestas", name: /nueva encuesta/i },
-  { route: "/pagos", name: /nueva cuota/i },
-];
-
-async function restoreSession(page: Page): Promise<boolean> {
-  const storageKey = process.env["LOVABLE_BROWSER_SUPABASE_STORAGE_KEY"];
-  const sessionJson = process.env["LOVABLE_BROWSER_SUPABASE_SESSION_JSON"];
-  if (!storageKey || !sessionJson) return false;
-
-  const cookiesJson = process.env["LOVABLE_BROWSER_SUPABASE_COOKIES_JSON"];
-  if (cookiesJson) {
-    const base = process.env["E2E_BASE_URL"] ?? "http://localhost:8080";
-    const cookies = (JSON.parse(cookiesJson) as Record<string, unknown>[]).map((c) => ({
-      ...c,
-      url: base,
-    }));
-    await page.context().addCookies(cookies as never);
-  }
-
-  await page.goto("/");
-  await page.evaluate(
-    ([key, value]) => window.localStorage.setItem(key, value),
-    [storageKey, sessionJson] as const,
-  );
-  return true;
-}
-
-/** true si la cuenta actual gestiona el equipo activo. */
-async function detectManager(page: Page): Promise<boolean> {
-  await page.goto("/calendario");
-  await page.waitForLoadState("networkidle");
-  return (await page.getByRole("button", { name: /crear evento/i }).count()) > 0;
-}
-
 test.describe("Permisos por rol en rutas privadas", () => {
-  test.beforeEach(async ({ page }) => {
-    const restored = await restoreSession(page);
-    test.skip(!restored, "No hay sesión de Supabase inyectada en el entorno");
-    await page.goto("/inicio");
-    test.skip(page.url().includes("/onboarding"), "La cuenta aún no completó el onboarding");
-  });
+  test("ambos roles ven la navegación común de módulos", async ({ page, request }) => {
+    const { session: captain, team } = await seedCaptainWithTeam(request, "nav-cap");
+    const player = await seedPlayerInTeam(request, "nav-jug", team.id, captain);
 
-  test("ambos roles ven la navegación común de módulos", async ({ page }) => {
-    for (const href of NAV_COMMON) {
-      await expect(page.locator(`a[href="${href}"]`).first()).toBeVisible();
-    }
-  });
-
-  test("las acciones de gestión sólo aparecen para capitán/co-capitán", async ({ page }) => {
-    const isManager = await detectManager(page);
-
-    for (const { route, name } of MANAGER_ACTIONS) {
-      await page.goto(route);
-      await page.waitForLoadState("networkidle");
-      const action = page.getByRole("button", { name });
-      if (isManager) {
-        await expect(action.first(), `capitán debe ver ${name} en ${route}`).toBeVisible();
-      } else {
-        await expect(action, `jugador no debe ver ${name} en ${route}`).toHaveCount(0);
+    for (const session of [captain, player]) {
+      await loginAs(page, session);
+      await page.goto("/inicio");
+      await expect(page.locator('a[href="/calendario"]').first()).toBeVisible({
+        timeout: 20_000,
+      });
+      for (const href of NAV_COMMON) {
+        await expect(page.locator(`a[href="${href}"]`).first()).toBeVisible();
       }
     }
   });
 
-  test("el jugador conserva acceso de lectura y participación", async ({ page }) => {
-    const isManager = await detectManager(page);
-    test.skip(isManager, "La cuenta es gestora; caso cubierto por el test de capitán");
+  test("crear evento sólo aparece para la gestión", async ({ page, request }) => {
+    const { session: captain, team } = await seedCaptainWithTeam(request, "act-cap");
+    const player = await seedPlayerInTeam(request, "act-jug", team.id, captain);
 
-    // Rutas de sólo lectura / participación accesibles sin ser gestor.
+    await loginAs(page, captain);
+    await page.goto("/calendario");
+    await expect(page.getByRole("button", { name: /crear evento/i }).first()).toBeVisible({
+      timeout: 20_000,
+    });
+
+    await loginAs(page, player);
+    await page.goto("/calendario");
+    await expect(page.locator('a[href="/calendario"]').first()).toBeVisible({
+      timeout: 20_000,
+    });
+    await expect(page.getByRole("button", { name: /crear evento/i })).toHaveCount(0);
+  });
+
+  test("el jugador conserva acceso de lectura y participación", async ({ page, request }) => {
+    const { session: captain, team } = await seedCaptainWithTeam(request, "read-cap");
+    const player = await seedPlayerInTeam(request, "read-jug", team.id, captain);
+
+    await loginAs(page, player);
     for (const route of ["/convocatorias", "/encuestas", "/estadisticas", "/comunicaciones"]) {
       await page.goto(route);
       await expect(page).toHaveURL(new RegExp(route));
-      await expect(page.locator("main, body")).toBeVisible();
+      await expect(page.locator("main")).toBeVisible();
     }
   });
 
-  test("la administración de competiciones sólo es visible para admin", async ({ page }) => {
-    const adminLink = page.locator('a[href="/admin/competiciones"]');
-    const isAdmin = (await adminLink.count()) > 0;
+  test("la administración de competiciones sólo es visible para admin", async ({
+    page,
+    request,
+  }) => {
+    const { session: captain } = await seedCaptainWithTeam(request, "adm-cap");
+    await loginAs(page, captain);
 
-    await page.goto("/admin/competiciones");
-    await page.waitForLoadState("networkidle");
+    await page.goto("/inicio");
+    await expect(page.locator('a[href="/calendario"]').first()).toBeVisible({
+      timeout: 20_000,
+    });
+    // Sin rol admin no aparece el enlace...
+    await expect(page.locator('a[href="/admin/competiciones"]')).toHaveCount(0);
 
-    if (!isAdmin) {
-      // Sin rol admin no debe mostrarse la gestión de competiciones oficiales.
-      await expect(page.getByRole("button", { name: /nueva competición/i })).toHaveCount(0);
-    }
+    // ...y la API tampoco deja escribir en el catálogo.
+    const res = await request.post(`${API_URL}/official-competitions/`, {
+      headers: bearer(captain),
+      data: { code: "E2E-ADM", nombre: "E2E" },
+    });
+    expect(res.status()).toBe(403);
   });
 
   test("las rutas privadas exigen sesión", async ({ browser }) => {

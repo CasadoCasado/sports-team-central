@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Trophy, Plus, Pencil, Trash2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { useSession } from "@/hooks/use-session";
 import { useActiveTeam } from "@/hooks/use-active-team";
 import { TeamPicker } from "@/components/team-picker";
@@ -28,9 +28,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { OfficialRegistrationsSection } from "@/components/official-registrations-section";
-import type { Database } from "@/integrations/supabase/types";
+import type { CompetitionType } from "@/lib/types";
 
-type CompType = Database["public"]["Enums"]["competition_type"];
+type CompType = CompetitionType;
 type Competition = {
   id: string;
   nombre: string;
@@ -97,15 +97,11 @@ function CompetitionsPage() {
   const { data } = useQuery({
     queryKey: ["competitions", active?.team_id],
     enabled: !!active,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("competitions")
-        .select("id, nombre, tipo, temporada, descripcion, fecha_inicio, fecha_fin")
-        .eq("team_id", active!.team_id)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as Competition[];
-    },
+    queryFn: () =>
+      api.get<Competition[]>("/competitions/", {
+        team_id: active!.team_id,
+        order: "-created_at",
+      }),
   });
 
   if (!active) return <EmptyTeamState />;
@@ -171,10 +167,7 @@ function CompCard({
   const { t } = useTranslation();
   const qc = useQueryClient();
   const del = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase.from("competitions").delete().eq("id", c.id);
-      if (error) throw error;
-    },
+    mutationFn: () => api.delete(`/competitions/${c.id}/`),
     onSuccess: () => {
       toast.success(t("competitions.deleted"));
       qc.invalidateQueries({ queryKey: ["competitions"] });
@@ -287,14 +280,11 @@ function CompDialog({
         fecha_inicio: !isLiga && fechaInicio ? fechaInicio : null,
         fecha_fin: !isLiga && fechaFin ? fechaFin : null,
         descripcion: descripcion.trim() || null,
-        created_by: user.id,
       };
       if (isEdit) {
-        const { error } = await supabase.from("competitions").update(payload).eq("id", initial.id!);
-        if (error) throw error;
+        await api.patch(`/competitions/${initial.id!}/`, payload);
       } else {
-        const { error } = await supabase.from("competitions").insert(payload);
-        if (error) throw error;
+        await api.post("/competitions/", payload);
       }
     },
     onSuccess: () => {

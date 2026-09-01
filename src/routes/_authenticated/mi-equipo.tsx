@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Search, Shield, Trash2, Upload, Users } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
+import type { Team, TeamMember } from "@/lib/types";
 import { useSession } from "@/hooks/use-session";
 import { useProfile } from "@/hooks/use-profile";
 import { Button } from "@/components/ui/button";
@@ -45,17 +46,8 @@ function MiEquipo() {
   const { data: memberships, isLoading } = useQuery({
     queryKey: ["my-teams-full", user?.id],
     enabled: !!user,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("team_members")
-        .select(
-          "id, team_id, role, status, teams:team_id(id, nombre, logo_url, descripcion, deporte, categoria, ciudad, instalacion, owner_id, inscripciones_abiertas)",
-        )
-        .eq("user_id", user!.id)
-        .eq("status", "activo");
-      if (error) throw error;
-      return data ?? [];
-    },
+    queryFn: () =>
+      api.get<TeamMember[]>("/team-members/", { mine: 1, status: "activo" }),
   });
 
   const canCreateTeam = profile?.preferred_role === "capitan";
@@ -73,28 +65,19 @@ function MiEquipo() {
     if (!user || !nombre.trim()) return;
     setSaving(true);
     try {
-      let logo_url: string | null = null;
-      if (logoFile) {
-        const ext = logoFile.name.split(".").pop() ?? "png";
-        const path = `${user.id}/${Date.now()}.${ext}`;
-        const { error: upErr } = await supabase.storage
-          .from("team-logos")
-          .upload(path, logoFile, { upsert: true });
-        if (upErr) throw upErr;
-        const { data: signed } = await supabase.storage
-          .from("team-logos")
-          .createSignedUrl(path, 60 * 60 * 24 * 365);
-        logo_url = signed?.signedUrl ?? path;
-      }
-      const { error } = await supabase.from("teams").insert({
-        owner_id: user.id,
+      // El escudo se sube después de crear el equipo: la ruta del fichero
+      // cuelga de su identificador, que hasta entonces no existe.
+      const team = await api.post<Team>("/teams/", {
         nombre: nombre.trim(),
         descripcion: descripcion.trim() || null,
         deporte: deporte || null,
         ciudad: ciudad.trim() || null,
-        logo_url,
       });
-      if (error) throw error;
+      if (logoFile) {
+        const form = new FormData();
+        form.append("file", logoFile);
+        await api.upload(`/teams/${team.id}/logo/`, form);
+      }
       toast.success(t("team.created"));
       setCreating(false);
       setNombre("");
@@ -248,7 +231,7 @@ function MiEquipo() {
 
       <div className="grid gap-6 lg:grid-cols-2">
         {memberships!.map((m) => {
-          const team = Array.isArray(m.teams) ? m.teams[0] : m.teams;
+          const team = m.team;
           if (!team) return null;
           return <TeamCard key={m.id} team={team} role={m.role} currentUserId={user?.id ?? null} />;
         })}
@@ -266,16 +249,7 @@ function TeamCard({
   role,
   currentUserId,
 }: {
-  team: {
-    id: string;
-    nombre: string;
-    logo_url: string | null;
-    descripcion: string | null;
-    deporte: string | null;
-    ciudad: string | null;
-    owner_id?: string;
-    inscripciones_abiertas?: boolean;
-  };
+  team: Team;
   role: string;
   currentUserId: string | null;
 }) {
@@ -288,25 +262,16 @@ function TeamCard({
 
   const { data: members } = useQuery({
     queryKey: ["team-members-count", team.id],
-    queryFn: async () => {
-      const { count, error } = await supabase
-        .from("team_members")
-        .select("id", { count: "exact", head: true })
-        .eq("team_id", team.id)
-        .eq("status", "activo");
-      if (error) throw error;
-      return count ?? 0;
-    },
+    // El recuento viene ya con el equipo, así que no hace falta consultarlo.
+    queryFn: async () => team.member_count ?? 0,
   });
 
   async function toggleInscripciones() {
     setTogglingIns(true);
     try {
-      const { error } = await supabase
-        .from("teams")
-        .update({ inscripciones_abiertas: !inscripcionesAbiertas })
-        .eq("id", team.id);
-      if (error) throw error;
+      await api.patch(`/teams/${team.id}/`, {
+        inscripciones_abiertas: !inscripcionesAbiertas,
+      });
       toast.success(t("team.inscripcionesUpdated"));
       qc.invalidateQueries({ queryKey: ["my-teams-full"] });
       qc.invalidateQueries({ queryKey: ["team-discovery"] });
@@ -322,8 +287,7 @@ function TeamCard({
     if (!confirm(confirmMsg)) return;
     setDeleting(true);
     try {
-      const { error } = await supabase.from("teams").delete().eq("id", team.id);
-      if (error) throw error;
+      await api.delete(`/teams/${team.id}/`);
       toast.success(t("team.deleted"));
       qc.invalidateQueries({ queryKey: ["my-teams-full"] });
       qc.invalidateQueries({ queryKey: ["my-teams"] });

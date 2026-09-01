@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Bell, Check, X, Trash2, MailOpen } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
+import type { Notification, TeamInvitation } from "@/lib/types";
 import { useSession } from "@/hooks/use-session";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -33,23 +34,15 @@ function Notificaciones() {
   const [statusFilter, setStatusFilter] = useState<"all" | "unread" | "read">("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
 
-  // Realtime: refresca la lista y el contador al instante.
+  // Sin Realtime, la bandeja se recarga al volver a la pestaña y cada minuto;
+  // la suscripción a `postgres_changes` la ponía Supabase.
   useEffect(() => {
     if (!user) return;
-    const channel = supabase
-      .channel(`notif-page:${user.id}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
-        () => {
-          qc.invalidateQueries({ queryKey: ["notifications", user.id] });
-          qc.invalidateQueries({ queryKey: ["shell-unread", user.id] });
-        },
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    const id = setInterval(() => {
+      qc.invalidateQueries({ queryKey: ["notifications", user.id] });
+      qc.invalidateQueries({ queryKey: ["shell-unread", user.id] });
+    }, 60_000);
+    return () => clearInterval(id);
   }, [user, qc]);
 
 
@@ -57,87 +50,42 @@ function Notificaciones() {
   const { data: invitations } = useQuery({
     queryKey: ["invitations", user?.id],
     enabled: !!user,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("team_invitations")
-        .select(
-          "id, team_id, role, status, mensaje, created_at, es_solicitud, teams:team_id(nombre, logo_url), inviter:invited_by(nombre, apellidos)",
-        )
-        .eq("invited_user_id", user!.id)
-        .eq("status", "pendiente")
-        .eq("es_solicitud", false)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data ?? [];
-    },
+    queryFn: () =>
+      api.get<TeamInvitation[]>("/team-invitations/", {
+        mine: 1,
+        status: "pendiente",
+        es_solicitud: false,
+      }),
   });
 
   // Join requests to teams the current user manages
   const { data: joinRequests } = useQuery({
     queryKey: ["join-requests", user?.id],
     enabled: !!user,
-    queryFn: async () => {
-      // Get teams where user is a manager
-      const { data: managed, error: mErr } = await supabase
-        .from("team_members")
-        .select("team_id")
-        .eq("user_id", user!.id)
-        .eq("status", "activo")
-        .in("role", ["capitan", "co_capitan", "entrenador", "delegado"]);
-      if (mErr) throw mErr;
-      const teamIds = (managed ?? []).map((r) => r.team_id);
-      if (teamIds.length === 0) return [];
-      const { data, error } = await supabase
-        .from("team_invitations")
-        .select(
-          "id, team_id, invited_user_id, created_at, mensaje, teams:team_id(nombre), requester:invited_user_id(nombre, apellidos, email)",
-        )
-        .in("team_id", teamIds)
-        .eq("es_solicitud", true)
-        .eq("status", "pendiente")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data ?? [];
-    },
+    // `managed=1` devuelve lo que llega a los equipos que gestiono, sin tener
+    // que averiguar antes cuáles son.
+    queryFn: () =>
+      api.get<TeamInvitation[]>("/team-invitations/", {
+        managed: 1,
+        es_solicitud: true,
+        status: "pendiente",
+      }),
   });
 
   const { data: notifications } = useQuery({
     queryKey: ["notifications", user?.id],
     enabled: !!user,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("notifications")
-        .select("*")
-        .eq("user_id", user!.id)
-        .order("created_at", { ascending: false })
-        .limit(50);
-      if (error) throw error;
-      return data ?? [];
-    },
+    queryFn: () =>
+      api.get<Notification[]>("/notifications/", {
+        order: "-created_at",
+        limit: 50,
+      }),
   });
 
-  async function respond(invId: string, teamId: string, accept: boolean) {
+  async function respond(invId: string, accept: boolean) {
     if (!user) return;
     try {
-      const { error } = await supabase
-        .from("team_invitations")
-        .update({
-          status: accept ? "aceptada" : "rechazada",
-          responded_at: new Date().toISOString(),
-        })
-        .eq("id", invId);
-      if (error) throw error;
-
-      if (accept) {
-        const { error: memErr } = await supabase.from("team_members").insert({
-          team_id: teamId,
-          user_id: user.id,
-          role: "jugador",
-          status: "activo",
-        });
-        if (memErr && !memErr.message.includes("duplicate")) throw memErr;
-      }
-
+      await api.post(`/team-invitations/${invId}/${accept ? "accept" : "reject"}/`);
       toast.success(accept ? t("notifications.accepted") : t("notifications.rejected"));
       qc.invalidateQueries({ queryKey: ["invitations"] });
       qc.invalidateQueries({ queryKey: ["my-teams"] });
@@ -148,25 +96,9 @@ function Notificaciones() {
     }
   }
 
-  async function respondRequest(invId: string, teamId: string, requesterId: string, accept: boolean) {
+  async function respondRequest(invId: string, accept: boolean) {
     try {
-      const { error } = await supabase
-        .from("team_invitations")
-        .update({
-          status: accept ? "aceptada" : "rechazada",
-          responded_at: new Date().toISOString(),
-        })
-        .eq("id", invId);
-      if (error) throw error;
-      if (accept) {
-        const { error: memErr } = await supabase.from("team_members").insert({
-          team_id: teamId,
-          user_id: requesterId,
-          role: "jugador",
-          status: "activo",
-        });
-        if (memErr && !memErr.message.includes("duplicate")) throw memErr;
-      }
+      await api.post(`/team-invitations/${invId}/${accept ? "accept" : "reject"}/`);
       toast.success(accept ? t("notifications.accepted") : t("notifications.rejected"));
       qc.invalidateQueries({ queryKey: ["join-requests"] });
       qc.invalidateQueries({ queryKey: ["team-members-count"] });
@@ -203,13 +135,16 @@ function Notificaciones() {
     qc.setQueryData(["notifications", user?.id], (prev: typeof notifications) =>
       (prev ?? []).map((n) => (ids.includes(n.id) ? { ...n, read: true } : n)),
     );
-    const { error } = await supabase.from("notifications").update({ read: true }).in("id", ids);
-    if (error) {
-      toast.error(error.message);
+    let ok = true;
+    try {
+      await api.post("/notifications/mark-read/", { ids });
+    } catch (err) {
+      ok = false;
+      toast.error(err instanceof Error ? err.message : t("common.error"));
     }
     qc.invalidateQueries({ queryKey: ["notifications", user?.id] });
     qc.invalidateQueries({ queryKey: ["shell-unread", user?.id] });
-    return !error;
+    return ok;
   }
 
   async function markAllRead() {
@@ -222,16 +157,15 @@ function Notificaciones() {
   async function deleteSelected() {
     if (selected.length === 0) return;
     setBusy(true);
-    const { error } = await supabase
-      .from("notifications")
-      .delete()
-      .in("id", selected)
-      .eq("read", true);
-    setBusy(false);
-    if (error) {
-      toast.error(error.message);
+    // El servidor solo borra las que estén leídas, aunque lleguen otras.
+    try {
+      await api.post("/notifications/delete-read/", { ids: selected });
+    } catch (err) {
+      setBusy(false);
+      toast.error(err instanceof Error ? err.message : t("common.error"));
       return;
     }
+    setBusy(false);
     toast.success(t("notifications.deleted", { count: selected.length }));
     setSelected([]);
     qc.invalidateQueries({ queryKey: ["notifications"] });
@@ -249,8 +183,8 @@ function Notificaciones() {
             {t("notifications.joinRequests")}
           </h2>
           {joinRequests!.map((req) => {
-            const team = Array.isArray(req.teams) ? req.teams[0] : req.teams;
-            const requester = Array.isArray(req.requester) ? req.requester[0] : req.requester;
+            const team = req.team;
+            const requester = req.invited_user_profile;
             return (
               <div key={req.id} className="surface-card p-5">
                 <div className="flex items-start gap-4">
@@ -267,7 +201,7 @@ function Notificaciones() {
                     <div className="mt-3 flex gap-2">
                       <Button
                         size="sm"
-                        onClick={() => respondRequest(req.id, req.team_id, req.invited_user_id, true)}
+                        onClick={() => respondRequest(req.id, true)}
                         className="bg-primary text-primary-foreground uppercase text-2xs font-bold tracking-widest hover:opacity-90"
                       >
                         <Check className="mr-1 size-3.5" />
@@ -276,7 +210,7 @@ function Notificaciones() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => respondRequest(req.id, req.team_id, req.invited_user_id, false)}
+                        onClick={() => respondRequest(req.id, false)}
                       >
                         <X className="mr-1 size-3.5" />
                         {t("notifications.reject")}
@@ -297,8 +231,8 @@ function Notificaciones() {
             {t("nav.notificaciones")}
           </h2>
           {invitations!.map((inv) => {
-            const team = Array.isArray(inv.teams) ? inv.teams[0] : inv.teams;
-            const inviter = Array.isArray(inv.inviter) ? inv.inviter[0] : inv.inviter;
+            const team = inv.team;
+            const inviter = inv.inviter_profile;
             return (
               <div key={inv.id} className="surface-card p-5">
                 <div className="flex items-start gap-4">
@@ -315,7 +249,7 @@ function Notificaciones() {
                     <div className="mt-3 flex gap-2">
                       <Button
                         size="sm"
-                        onClick={() => respond(inv.id, inv.team_id, true)}
+                        onClick={() => respond(inv.id, true)}
                         className="bg-primary text-primary-foreground uppercase text-2xs font-bold tracking-widest hover:opacity-90"
                       >
                         <Check className="mr-1 size-3.5" />
@@ -324,7 +258,7 @@ function Notificaciones() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => respond(inv.id, inv.team_id, false)}
+                        onClick={() => respond(inv.id, false)}
                       >
                         <X className="mr-1 size-3.5" />
                         {t("notifications.reject")}

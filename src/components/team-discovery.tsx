@@ -3,7 +3,8 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Search, Shield } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
+import type { Team, TeamInvitation } from "@/lib/types";
 import { useSession } from "@/hooks/use-session";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -61,19 +62,14 @@ export function TeamDiscovery({
 
   const { data: teams, isLoading } = useQuery({
     queryKey: ["team-discovery", sport, q, onlyOpen],
-    queryFn: async () => {
-      let query = supabase
-        .from("teams")
-        .select("id, nombre, logo_url, deporte, ciudad, descripcion, inscripciones_abiertas")
-        .order("nombre")
-        .limit(30);
-      if (onlyOpen) query = query.eq("inscripciones_abiertas", true);
-      if (sport !== "all") query = query.eq("deporte", sport);
-      if (q.trim()) query = query.ilike("nombre", `%${q.trim()}%`);
-      const { data, error } = await query;
-      if (error) throw error;
-      return data ?? [];
-    },
+    queryFn: () =>
+      api.get<Team[]>("/teams/", {
+        discover: onlyOpen ? 1 : undefined,
+        deporte: sport === "all" ? undefined : sport,
+        search: q.trim() || undefined,
+        order: "nombre",
+        limit: 30,
+      }),
   });
 
   const visibleTeams = useMemo(() => {
@@ -86,29 +82,24 @@ export function TeamDiscovery({
     queryKey: ["my-join-requests", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("team_invitations")
-        .select("team_id, status")
-        .eq("invited_user_id", user!.id)
-        .eq("es_solicitud", true)
-        .eq("status", "pendiente");
-      if (error) throw error;
-      return new Set((data ?? []).map((r) => r.team_id));
+      const rows = await api.get<TeamInvitation[]>("/team-invitations/", {
+        mine: 1,
+        es_solicitud: true,
+        status: "pendiente",
+      });
+      return new Set(rows.map((r) => r.team_id));
     },
   });
 
   async function requestJoin(teamId: string) {
     if (!user) return;
     try {
-      const { error } = await supabase.from("team_invitations").insert({
+      await api.post("/team-invitations/", {
         team_id: teamId,
         invited_user_id: user.id,
-        invited_by: user.id,
         role: "jugador",
-        status: "pendiente",
         es_solicitud: true,
       });
-      if (error) throw error;
       toast.success(t("team.requestSent"));
       qc.invalidateQueries({ queryKey: ["my-join-requests"] });
     } catch (err) {
@@ -223,13 +214,13 @@ export function TeamDiscovery({
                 {reg && (
                   <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-3xs font-bold uppercase tracking-widest">
                     <span className="rounded border border-primary/40 bg-primary/15 px-1.5 py-0.5 text-primary">
-                      {reg.official_competitions?.nombre}
+                      {reg.competition_nombre}
                     </span>
                     <span className="rounded border border-border px-1.5 py-0.5 text-muted-foreground">
-                      {reg.official_competition_categories?.nombre}
+                      {reg.category_nombre}
                     </span>
                     <span className="rounded border border-border px-1.5 py-0.5 text-muted-foreground">
-                      {reg.official_competition_divisions?.nombre}
+                      {reg.division_nombre}
                     </span>
                     <span className={`rounded border px-1.5 py-0.5 ${statusBadgeClass(reg.status)}`}>
                       {t(`registrations.status.${reg.status}`)}

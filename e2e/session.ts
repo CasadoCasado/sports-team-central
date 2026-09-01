@@ -1,0 +1,159 @@
+/**
+ * Utilidades para los tests end-to-end.
+ *
+ * Antes la sesión se inyectaba desde variables de entorno con un token de
+ * Supabase (`LOVABLE_BROWSER_SUPABASE_*`), así que los tests con sesión solo
+ * corrían en el entorno de Lovable y aquí se saltaban siempre. Ahora se crea
+ * una cuenta de verdad contra la API de Django y se guarda su token donde lo
+ * busca la app, así que corren en cualquier máquina con los dos servidores
+ * levantados.
+ */
+
+import { expect, type APIRequestContext, type Locator, type Page } from "@playwright/test";
+
+export const API_URL = process.env["E2E_API_URL"] ?? "http://localhost:8000/api";
+
+/** La misma clave que usa `src/lib/auth.ts` para guardar los tokens. */
+const STORAGE_KEY = "teamup:auth";
+
+export const PASSWORD = "Abrete-Sesamo-9";
+
+export type Session = {
+  access: string;
+  refresh: string;
+  userId: string;
+  email: string;
+};
+
+/** Un correo distinto por test, para que los que corren en paralelo no choquen. */
+export function uniqueEmail(prefix: string): string {
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@e2e.test`;
+}
+
+/** Crea la cuenta y devuelve su sesión. */
+export async function signUp(
+  api: APIRequestContext,
+  email: string,
+  nombre = "Test",
+  apellidos = "E2E",
+): Promise<Session> {
+  const res = await api.post(`${API_URL}/auth/register/`, {
+    data: { email, password: PASSWORD, nombre, apellidos },
+  });
+  if (!res.ok()) {
+    throw new Error(`No se pudo registrar ${email}: ${res.status()} ${await res.text()}`);
+  }
+  return logIn(api, email);
+}
+
+export async function logIn(api: APIRequestContext, email: string): Promise<Session> {
+  const res = await api.post(`${API_URL}/auth/login/`, {
+    data: { email, password: PASSWORD },
+  });
+  if (!res.ok()) {
+    throw new Error(`No se pudo entrar como ${email}: ${res.status()}`);
+  }
+  const { access, refresh } = (await res.json()) as { access: string; refresh: string };
+  const me = await api.get(`${API_URL}/auth/me/`, {
+    headers: { Authorization: `Bearer ${access}` },
+  });
+  const { id } = (await me.json()) as { id: string };
+  return { access, refresh, userId: id, email };
+}
+
+export function bearer(session: Session) {
+  return { Authorization: `Bearer ${session.access}`, "Content-Type": "application/json" };
+}
+
+/** Da por hecho el onboarding, para poder entrar directamente a la app. */
+export async function completeOnboarding(
+  api: APIRequestContext,
+  session: Session,
+  role: "capitan" | "jugador" = "jugador",
+) {
+  await api.patch(`${API_URL}/profiles/me/`, {
+    headers: bearer(session),
+    data: { preferred_role: role, onboarding_completed: true },
+  });
+}
+
+/**
+ * Deja la sesión guardada en el navegador, como si se hubiera hecho login.
+ *
+ * Marca además el tutorial guiado como visto: en la primera visita se abre
+ * encima de todo y tapa la interfaz que los tests quieren mirar.
+ */
+export async function loginAs(page: Page, session: Session) {
+  await page.goto("/");
+  await page.evaluate(
+    ([key, value, tourKey]) => {
+      window.localStorage.setItem(key, value);
+      window.localStorage.setItem(tourKey, "1");
+    },
+    [
+      STORAGE_KEY,
+      JSON.stringify({ access: session.access, refresh: session.refresh }),
+      `teamup:tour-done:${session.userId}`,
+    ] as const,
+  );
+}
+
+/** Una capitana con equipo propio, lista para usar. */
+export async function seedCaptainWithTeam(api: APIRequestContext, prefix: string) {
+  const session = await signUp(api, uniqueEmail(prefix), "Marta", "Casado");
+  await completeOnboarding(api, session, "capitan");
+  const res = await api.post(`${API_URL}/teams/`, {
+    headers: bearer(session),
+    data: { nombre: `Equipo ${prefix}`, deporte: "padel", ciudad: "Vigo" },
+  });
+  const team = (await res.json()) as { id: string; nombre: string };
+  return { session, team };
+}
+
+/** Un jugador ya dentro de un equipo existente. */
+export async function seedPlayerInTeam(
+  api: APIRequestContext,
+  prefix: string,
+  teamId: string,
+  captain: Session,
+) {
+  const session = await signUp(api, uniqueEmail(prefix), "Iván", "Ruiz");
+  await completeOnboarding(api, session, "jugador");
+  const invite = await api.post(`${API_URL}/team-invitations/`, {
+    headers: bearer(captain),
+    data: { team_id: teamId, invited_user_id: session.userId, role: "jugador" },
+  });
+  const { id } = (await invite.json()) as { id: string };
+  await api.post(`${API_URL}/team-invitations/${id}/accept/`, { headers: bearer(session) });
+  return session;
+}
+
+/**
+ * Rellena un formulario de la pantalla de acceso.
+ *
+ * Dos cosas hacen falta aquí y no son evidentes:
+ *
+ * 1. La pantalla se sirve renderizada en el servidor y en desarrollo Vite tarda
+ *    un par de segundos en entregar todos los módulos. Si se escribe antes de
+ *    que React hidrate, los inputs vuelven a estar vacíos al hidratar.
+ * 2. `fill()` asigna el valor y lanza un evento `input`, pero con estos inputs
+ *    controlados el estado de React no siempre se entera: el DOM enseña el
+ *    texto y el formulario se envía vacío. Escribir tecla a tecla sí lo
+ *    actualiza siempre.
+ *
+ * Por eso se teclea, se deja pasar un momento y se comprueba que el valor sigue
+ * ahí; si la hidratación llegó en medio y lo borró, se repite.
+ */
+export async function fillForm(entries: [Locator, string][]) {
+  await expect(async () => {
+    for (const [field, value] of entries) {
+      await field.click();
+      await field.press("ControlOrMeta+a");
+      await field.pressSequentially(value, { delay: 5 });
+    }
+    await entries[0][0].page().waitForTimeout(300);
+    for (const [field, value] of entries) {
+      await expect(field).toHaveValue(value, { timeout: 250 });
+    }
+  }).toPass({ timeout: 30_000 });
+}

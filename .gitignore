@@ -33,3 +33,7 @@ dist-ssr
 
 test-results/
 playwright-report/
+
+# Local env overrides — secretos reales van aquí, nunca en .env (que sí se commitea)
+.env.local
+.env.*.local

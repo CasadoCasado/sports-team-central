@@ -14,7 +14,7 @@ import {
   Medal,
   Lock,
 } from "lucide-react";
-import teamupLogo from "@/assets/teamup-logo.png.asset.json";
+import { LOGO_URL } from "@/lib/brand";
 import { LangToggle } from "@/components/lang-toggle";
 import { cn } from "@/lib/utils";
 import { BADGES } from "@/lib/achievements";
@@ -93,7 +93,7 @@ function DemoPage() {
       <header className="sticky top-0 z-20 border-b border-border bg-background/85 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
           <Link to="/" className="flex items-center gap-3">
-            <img src={teamupLogo.url} alt="TeamUp" className="size-8 object-contain" width={32} height={32} />
+            <img src={LOGO_URL} alt="TeamUp" className="size-8 object-contain" width={32} height={32} />
             <span className="text-display text-lg font-extrabold uppercase tracking-tight">
               {t("app.name")}
             </span>

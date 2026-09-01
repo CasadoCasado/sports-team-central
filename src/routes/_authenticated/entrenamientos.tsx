@@ -6,7 +6,8 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { es as esLocale, enUS } from "date-fns/locale";
 import { Check, Dumbbell, MapPin, Plus, Users } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
+import type { EventResponse, TeamEvent } from "@/lib/types";
 import { useSession } from "@/hooks/use-session";
 import { useActiveTeam } from "@/hooks/use-active-team";
 import { TeamPicker } from "@/components/team-picker";
@@ -40,30 +41,20 @@ function Trainings() {
   const { data } = useQuery({
     queryKey: ["events", active?.team_id, "entrenamiento"],
     enabled: !!active,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("events")
-        .select("id, titulo, fecha_inicio, ubicacion, descripcion, requiere_convocatoria")
-        .eq("team_id", active!.team_id)
-        .eq("tipo", "entrenamiento")
-        .order("fecha_inicio", { ascending: true });
-      if (error) throw error;
-      return data ?? [];
-    },
+    queryFn: () =>
+      api.get<TeamEvent[]>("/events/", {
+        team_id: active!.team_id,
+        tipo: "entrenamiento",
+        order: "fecha_inicio",
+      }),
   });
 
   const eventIds = (data ?? []).map((e) => e.id);
   const { data: responses } = useQuery({
     queryKey: ["training-responses", active?.team_id, eventIds.join(",")],
     enabled: eventIds.length > 0,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("event_responses")
-        .select("id, event_id, user_id")
-        .in("event_id", eventIds);
-      if (error) throw error;
-      return data ?? [];
-    },
+    queryFn: () =>
+      api.get<EventResponse[]>("/event-responses/", { event_id__in: eventIds }),
   });
 
   const countsByEvent = new Map<string, number>();
@@ -76,13 +67,10 @@ function Trainings() {
   const signUp = useMutation({
     mutationFn: async (eventId: string) => {
       if (!user) return;
-      const { error } = await supabase.from("event_responses").insert({
+      await api.post("/event-responses/respond/", {
         event_id: eventId,
-        user_id: user.id,
         status: "confirmado",
-        responded_at: new Date().toISOString(),
       });
-      if (error) throw error;
     },
     onSuccess: () => {
       toast.success(t("callups.signedUp"));
@@ -92,10 +80,7 @@ function Trainings() {
   });
 
   const withdraw = useMutation({
-    mutationFn: async (respId: string) => {
-      const { error } = await supabase.from("event_responses").delete().eq("id", respId);
-      if (error) throw error;
-    },
+    mutationFn: (respId: string) => api.delete(`/event-responses/${respId}/`),
     onSuccess: () => {
       toast.success(t("callups.withdrawn"));
       qc.invalidateQueries({ queryKey: ["training-responses"] });

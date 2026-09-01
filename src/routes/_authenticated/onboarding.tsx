@@ -3,7 +3,8 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Shield, User as UserIcon } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
+import { invalidateUser } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -31,13 +32,13 @@ function Onboarding() {
     if (!role) return;
     setLoading(true);
     try {
-      const { data: u } = await supabase.auth.getUser();
-      if (!u.user) throw new Error("No user");
-      const { error } = await supabase
-        .from("profiles")
-        .update({ preferred_role: role, onboarding_completed: true })
-        .eq("id", u.user.id);
-      if (error) throw error;
+      await api.patch("/profiles/me/", {
+        preferred_role: role,
+        onboarding_completed: true,
+      });
+      // El guardián de /_authenticated mira `onboarding_completed` del usuario
+      // cacheado; sin refrescarlo, la navegación rebotaría aquí otra vez.
+      invalidateUser();
       navigate({ to: "/inicio", replace: true });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("common.error"));

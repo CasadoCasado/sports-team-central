@@ -1,11 +1,10 @@
-import teamupLogo from "@/assets/teamup-logo.png.asset.json";
+import { LOGO_URL } from "@/lib/brand";
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
+import { hasSession, signInWithPassword, signUp } from "@/lib/auth";
 import { LangToggle } from "@/components/lang-toggle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,10 +26,9 @@ export const Route = createFileRoute("/auth")({
     ],
   }),
   validateSearch: authSearchSchema,
-  beforeLoad: async () => {
+  beforeLoad: () => {
     if (typeof window === "undefined") return;
-    const { data } = await supabase.auth.getSession();
-    if (data.session) throw redirect({ to: "/inicio" });
+    if (hasSession()) throw redirect({ to: "/inicio" });
   },
   component: AuthPage,
 });
@@ -84,20 +82,12 @@ function AuthPage() {
     setLoading(true);
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: window.location.origin,
-            data: { nombre, apellidos },
-          },
-        });
-        if (error) throw error;
+        // El alta deja la sesión iniciada, así que se va derecho al onboarding.
+        await signUp({ email, password, nombre, apellidos });
         toast.success(t("auth.signupSuccess"));
         navigate({ to: "/onboarding", replace: true });
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        await signInWithPassword(email, password);
         toast.success(t("auth.loginSuccess"));
         navigate({ to: "/inicio", replace: true });
       }
@@ -108,27 +98,12 @@ function AuthPage() {
     }
   }
 
-  async function handleGoogle() {
-    setLoading(true);
-    try {
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
-      });
-      if (result.error) throw result.error;
-      if (result.redirected) return;
-      navigate({ to: "/inicio", replace: true });
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("common.error"));
-      setLoading(false);
-    }
-  }
-
   return (
     <div className="flex min-h-screen bg-background text-foreground">
       <div className="flex flex-1 flex-col items-center justify-center px-6 py-12">
         <div className="w-full max-w-md">
           <Link to="/" className="mb-8 flex items-center gap-3">
-            <img src={teamupLogo.url} alt="TeamUp" className="size-8 object-contain" width={32} height={32} />
+            <img src={LOGO_URL} alt="TeamUp" className="size-8 object-contain" width={32} height={32} />
             <span className="text-display text-lg font-extrabold uppercase tracking-tight">
               {t("app.name")}
             </span>
@@ -139,26 +114,6 @@ function AuthPage() {
               {mode === "signup" ? t("auth.signup") : t("auth.login")}
             </h1>
             <LangToggle />
-          </div>
-
-          <button
-            type="button"
-            onClick={handleGoogle}
-            disabled={loading}
-            className="mb-4 flex w-full items-center justify-center gap-2 rounded-md border border-border bg-card px-4 py-2.5 text-sm font-medium transition-colors hover:border-primary/40 disabled:opacity-50"
-          >
-            <svg viewBox="0 0 24 24" className="size-4" aria-hidden>
-              <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.4-1.6 4.1-5.5 4.1-3.3 0-6-2.7-6-6.1s2.7-6.1 6-6.1c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.7 3.5 14.6 2.5 12 2.5 6.8 2.5 2.6 6.7 2.6 12s4.2 9.5 9.4 9.5c5.4 0 9-3.8 9-9.2 0-.6-.1-1.1-.2-1.6H12z" />
-            </svg>
-            {t("auth.google")}
-          </button>
-
-          <div className="my-4 flex items-center gap-3">
-            <div className="h-px flex-1 bg-border" />
-            <span className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
-              {t("auth.or")}
-            </span>
-            <div className="h-px flex-1 bg-border" />
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">

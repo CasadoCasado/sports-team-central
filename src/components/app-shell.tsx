@@ -6,7 +6,6 @@ import { GuidedTour, useGuidedTour } from "@/components/guided-tour";
 import {
   Home,
   Users,
-  UserCircle2,
   Calendar,
   Dumbbell,
   Trophy,
@@ -26,11 +25,12 @@ import {
   Medal,
   LifeBuoy,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
+import { signOut as clearSession } from "@/lib/auth";
 import { useProfile } from "@/hooks/use-profile";
 import { useSession } from "@/hooks/use-session";
 import { LangToggle } from "./lang-toggle";
-import teamupLogo from "@/assets/teamup-logo.png.asset.json";
+import { LOGO_URL } from "@/lib/brand";
 
 import { cn } from "@/lib/utils";
 import { helpSectionForPath } from "@/lib/help-content";
@@ -56,64 +56,16 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { data: unreadCount } = useQuery({
     queryKey: ["shell-unread", user?.id],
     enabled: !!user,
+    // Antes esto se refrescaba solo, con una suscripción de Realtime a
+    // `notifications` y `team_invitations`. Django no empuja cambios, así que
+    // el contador se vuelve a pedir cada minuto y al volver a la pestaña.
+    refetchInterval: 60_000,
+    refetchOnWindowFocus: true,
     queryFn: async () => {
-      const [{ count: notifCount }, { count: invCount }, managed] = await Promise.all([
-        supabase
-          .from("notifications")
-          .select("id", { count: "exact", head: true })
-          .eq("user_id", user!.id)
-          .eq("read", false),
-        supabase
-          .from("team_invitations")
-          .select("id", { count: "exact", head: true })
-          .eq("invited_user_id", user!.id)
-          .eq("status", "pendiente")
-          .eq("es_solicitud", false),
-        supabase
-          .from("team_members")
-          .select("team_id")
-          .eq("user_id", user!.id)
-          .eq("status", "activo")
-          .in("role", ["capitan", "co_capitan", "entrenador", "delegado"]),
-      ]);
-      const teamIds = (managed.data ?? []).map((r) => r.team_id);
-      let reqCount = 0;
-      if (teamIds.length > 0) {
-        const { count } = await supabase
-          .from("team_invitations")
-          .select("id", { count: "exact", head: true })
-          .in("team_id", teamIds)
-          .eq("es_solicitud", true)
-          .eq("status", "pendiente");
-        reqCount = count ?? 0;
-      }
-      return (notifCount ?? 0) + (invCount ?? 0) + reqCount;
+      const badge = await api.get<{ total: number }>("/notifications/badge/");
+      return badge.total;
     },
   });
-
-  useEffect(() => {
-    if (!user) return;
-    const ch = supabase
-      .channel(`notif:${user.id}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
-        () => qc.invalidateQueries({ queryKey: ["shell-unread", user.id] }),
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "team_invitations" },
-        () => {
-          qc.invalidateQueries({ queryKey: ["shell-unread", user.id] });
-          qc.invalidateQueries({ queryKey: ["join-requests", user.id] });
-          qc.invalidateQueries({ queryKey: ["invitations", user.id] });
-        },
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(ch);
-    };
-  }, [user, qc]);
 
   // Cierra el menú móvil al navegar y bloquea el scroll de fondo mientras está abierto.
   useEffect(() => {
@@ -139,7 +91,6 @@ export function AppShell({ children }: { children: ReactNode }) {
         { to: "/mi-equipo", label: t("nav.miEquipo"), icon: Shield },
         { to: "/miembros", label: t("nav.miembros"), icon: Users },
         { to: "/calendario", label: t("nav.calendario"), icon: Calendar },
-        { to: "/perfil", label: t("nav.perfil"), icon: UserCircle2 },
       ],
     },
     {
@@ -181,8 +132,9 @@ export function AppShell({ children }: { children: ReactNode }) {
       : []),
   ];
 
-  async function signOut() {
-    await supabase.auth.signOut();
+  function signOut() {
+    clearSession();
+    qc.clear();
     toast.success(t("auth.logoutSuccess"));
     navigate({ to: "/auth", replace: true });
   }
@@ -206,7 +158,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       >
         <div className="flex h-16 items-center gap-3 px-6">
           <img
-            src={teamupLogo.url}
+            src={LOGO_URL}
             alt="TeamUp"
             className="size-9 shrink-0 object-contain"
             decoding="async"
@@ -224,7 +176,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </div>
 
-        <nav className="flex-1 space-y-5 overflow-y-auto overscroll-contain px-3 py-3">
+        <nav className="scrollbar-none flex-1 space-y-5 overflow-y-auto overscroll-contain px-3 py-3">
           {groups.map((group) => (
             <div key={group.label}>
               <div className="px-3 pb-1.5 text-2xs font-bold uppercase tracking-[0.22em] text-[color:var(--color-ink-muted)]">
@@ -347,5 +299,4 @@ export function AppShell({ children }: { children: ReactNode }) {
   );
 }
 
-export { UserCircle2 };
 

@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Check, Search, Trash2, UserPlus, Users, X } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
+import type { Profile, TeamInvitation, TeamMember } from "@/lib/types";
 import { useSession } from "@/hooks/use-session";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,17 +36,11 @@ function Miembros() {
     queryKey: ["my-teams-any-role", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("team_members")
-        .select("team_id, role, teams:team_id(id, nombre)")
-        .eq("user_id", user!.id)
-        .eq("status", "activo");
-      if (error) throw error;
-      return (data ?? []).map((r) => ({
-        team_id: r.team_id,
-        role: r.role,
-        team: Array.isArray(r.teams) ? r.teams[0] : r.teams,
-      }));
+      const rows = await api.get<TeamMember[]>("/team-members/", {
+        mine: 1,
+        status: "activo",
+      });
+      return rows.map((r) => ({ team_id: r.team_id, role: r.role, team: r.team }));
     },
   });
 
@@ -59,15 +54,11 @@ function Miembros() {
   const { data: members } = useQuery({
     queryKey: ["team-members-list", selectedTeamId],
     enabled: !!selectedTeamId,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("team_members")
-        .select("id, role, status, profiles:user_id(id, nombre, apellidos, email, avatar_url)")
-        .eq("team_id", selectedTeamId!)
-        .eq("status", "activo");
-      if (error) throw error;
-      return data ?? [];
-    },
+    queryFn: () =>
+      api.get<TeamMember[]>("/team-members/", {
+        team_id: selectedTeamId!,
+        status: "activo",
+      }),
   });
 
   const [searchBy, setSearchBy] = useState<"nombre" | "email">("nombre");
@@ -81,12 +72,10 @@ function Miembros() {
     !!currentUserRole && ["capitan", "co_capitan", "entrenador", "delegado"].includes(currentUserRole);
 
   async function changeRole(memberId: string, newRole: "capitan" | "co_capitan" | "entrenador" | "delegado" | "jugador") {
-    const { error } = await supabase
-      .from("team_members")
-      .update({ role: newRole })
-      .eq("id", memberId);
-    if (error) {
-      toast.error(error.message);
+    try {
+      await api.patch(`/team-members/${memberId}/`, { role: newRole });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("common.error"));
       return;
     }
     toast.success(t("members.roleUpdated"));
@@ -95,9 +84,10 @@ function Miembros() {
 
   async function removeMember(memberId: string) {
     if (!confirm(t("members.removeConfirm"))) return;
-    const { error } = await supabase.from("team_members").delete().eq("id", memberId);
-    if (error) {
-      toast.error(error.message);
+    try {
+      await api.delete(`/team-members/${memberId}/`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("common.error"));
       return;
     }
     toast.success(t("members.removed"));
@@ -107,38 +97,17 @@ function Miembros() {
   const { data: joinRequests } = useQuery({
     queryKey: ["team-join-requests", selectedTeamId],
     enabled: !!selectedTeamId,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("team_invitations")
-        .select("id, team_id, invited_user_id, created_at, mensaje, requester:invited_user_id(nombre, apellidos, email)")
-        .eq("team_id", selectedTeamId!)
-        .eq("es_solicitud", true)
-        .eq("status", "pendiente")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data ?? [];
-    },
+    queryFn: () =>
+      api.get<TeamInvitation[]>("/team-invitations/", {
+        team_id: selectedTeamId!,
+        es_solicitud: true,
+        status: "pendiente",
+      }),
   });
 
-  async function respondRequest(invId: string, teamId: string, requesterId: string, accept: boolean) {
+  async function respondRequest(invId: string, accept: boolean) {
     try {
-      const { error } = await supabase
-        .from("team_invitations")
-        .update({
-          status: accept ? "aceptada" : "rechazada",
-          responded_at: new Date().toISOString(),
-        })
-        .eq("id", invId);
-      if (error) throw error;
-      if (accept) {
-        const { error: memErr } = await supabase.from("team_members").insert({
-          team_id: teamId,
-          user_id: requesterId,
-          role: "jugador",
-          status: "activo",
-        });
-        if (memErr && !memErr.message.includes("duplicate")) throw memErr;
-      }
+      await api.post(`/team-invitations/${invId}/${accept ? "accept" : "reject"}/`);
       toast.success(accept ? t("notifications.accepted") : t("notifications.rejected"));
       qc.invalidateQueries({ queryKey: ["team-join-requests"] });
       qc.invalidateQueries({ queryKey: ["team-members-list"] });
@@ -153,37 +122,26 @@ function Miembros() {
     queryKey: ["user-search", searchBy, debounced],
     enabled: debounced.length >= 2,
     queryFn: async () => {
-      const q = supabase.from("profiles").select("id, nombre, apellidos, email").limit(20);
-      const term = `%${debounced}%`;
-      const { data, error } =
-        searchBy === "email"
-          ? await q.ilike("email", term)
-          : await q.or(`nombre.ilike.${term},apellidos.ilike.${term}`);
-      if (error) throw error;
-      return (data ?? []).filter((u) => u.id !== user?.id);
+      // Por email hace falta el correo completo: es la única forma de llegar a
+      // alguien con quien todavía no compartes equipo.
+      const rows = await api.get<Profile[]>("/profiles/", {
+        search: debounced,
+        limit: 20,
+      });
+      return rows.filter((u) => u.id !== user?.id);
     },
   });
 
   async function invite(userId: string) {
     if (!selectedTeamId || !user) return;
     try {
-      const { error } = await supabase.from("team_invitations").insert({
+      // La notificación al invitado la escribe el servidor al crear la
+      // invitación; aquí ya no hay que acordarse.
+      await api.post("/team-invitations/", {
         team_id: selectedTeamId,
         invited_user_id: userId,
-        invited_by: user.id,
         role: inviteRole,
       });
-      if (error) throw error;
-
-      const team = myTeams?.find((tt) => tt.team_id === selectedTeamId)?.team;
-      await supabase.from("notifications").insert({
-        user_id: userId,
-        tipo: "invitation",
-        titulo: t("notifications.invitationTitle"),
-        cuerpo: `${team?.nombre ?? ""}`,
-        link: "/notificaciones",
-      });
-
       toast.success(t("members.invited"));
       qc.invalidateQueries({ queryKey: ["team-members-list"] });
     } catch (err) {
@@ -237,7 +195,7 @@ function Miembros() {
         </div>
         <div className="divide-y divide-border">
           {(members ?? []).map((m) => {
-            const p = Array.isArray(m.profiles) ? m.profiles[0] : m.profiles;
+            const p = m.profile;
             if (!p) return null;
             return (
               <div key={m.id} className="flex items-center gap-4 p-4">
@@ -297,7 +255,7 @@ function Miembros() {
           </div>
           <div className="divide-y divide-border">
             {joinRequests!.map((req) => {
-              const p = Array.isArray(req.requester) ? req.requester[0] : req.requester;
+              const p = req.invited_user_profile;
               return (
                 <div key={req.id} className="flex items-center gap-4 p-4">
                   <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary ring-1 ring-border">
@@ -314,7 +272,7 @@ function Miembros() {
                   </div>
                   <Button
                     size="sm"
-                    onClick={() => respondRequest(req.id, req.team_id, req.invited_user_id, true)}
+                    onClick={() => respondRequest(req.id, true)}
                     className="bg-primary text-primary-foreground uppercase text-2xs font-bold tracking-widest hover:opacity-90"
                   >
                     <Check className="mr-1 size-3.5" />
@@ -323,7 +281,7 @@ function Miembros() {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => respondRequest(req.id, req.team_id, req.invited_user_id, false)}
+                    onClick={() => respondRequest(req.id, false)}
                   >
                     <X className="mr-1 size-3.5" />
                     {t("notifications.reject")}

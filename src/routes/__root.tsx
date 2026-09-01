@@ -12,7 +12,7 @@ import { Toaster } from "sonner";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { supabase } from "@/integrations/supabase/client";
+import { onAuthStateChange } from "@/lib/auth";
 import i18n from "@/i18n";
 import { registerServiceWorker } from "@/lib/register-sw";
 
@@ -153,14 +153,14 @@ function RootComponent() {
     if (detected !== i18n.language) i18n.changeLanguage(detected);
     const persist = (lng: string) => localStorage.setItem("i18nextLng", lng);
     i18n.on("languageChanged", persist);
-    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+    const { unsubscribe } = onAuthStateChange((event) => {
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
       router.invalidate();
       if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
     });
     return () => {
       i18n.off("languageChanged", persist);
-      sub.subscription.unsubscribe();
+      unsubscribe();
     };
   }, [router, queryClient]);
 

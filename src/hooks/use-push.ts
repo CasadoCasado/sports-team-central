@@ -1,10 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
-import {
-  getVapidPublicKey,
-  savePushSubscription,
-  deletePushSubscription,
-} from "@/lib/push.functions";
+
+import { api } from "@/lib/api";
+
+/**
+ * Suscripción del navegador a las notificaciones push.
+ *
+ * Antes esto pasaba por funciones de servidor de TanStack que hablaban con
+ * Supabase; ahora las suscripciones son de la API de Django y basta con
+ * llamarla. El envío de los avisos lo decide el servidor, no el navegador.
+ */
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -29,9 +33,16 @@ export function usePush() {
   const [state, setState] = useState<PushState>("unknown");
   const [busy, setBusy] = useState(false);
 
-  const getKey = useServerFn(getVapidPublicKey);
-  const saveSub = useServerFn(savePushSubscription);
-  const delSub = useServerFn(deletePushSubscription);
+  const getKey = useCallback(() => api.get<{ key: string | null }>("/push/vapid-key/"), []);
+  const saveSub = useCallback(
+    (data: { endpoint: string; p256dh: string; auth: string; user_agent?: string }) =>
+      api.post("/push-subscriptions/", data),
+    [],
+  );
+  const delSub = useCallback(
+    (endpoint: string) => api.post("/push-subscriptions/unsubscribe/", { endpoint }),
+    [],
+  );
 
   const supported =
     typeof window !== "undefined" &&
@@ -64,7 +75,7 @@ export function usePush() {
       if (perm !== "granted") return false;
 
       const { key } = await getKey();
-      if (!key) throw new Error("VAPID key missing");
+      if (!key) throw new Error("El servidor no tiene las notificaciones push configuradas");
 
       const reg = await ensureRegistration();
       await navigator.serviceWorker.ready;
@@ -77,12 +88,10 @@ export function usePush() {
       }
       const json = sub.toJSON();
       await saveSub({
-        data: {
-          endpoint: sub.endpoint,
-          p256dh: (json.keys?.p256dh as string) || bufToB64Url(sub.getKey("p256dh")),
-          auth: (json.keys?.auth as string) || bufToB64Url(sub.getKey("auth")),
-          userAgent: navigator.userAgent,
-        },
+        endpoint: sub.endpoint,
+        p256dh: (json.keys?.p256dh as string) || bufToB64Url(sub.getKey("p256dh")),
+        auth: (json.keys?.auth as string) || bufToB64Url(sub.getKey("auth")),
+        user_agent: navigator.userAgent,
       });
       return true;
     } finally {
@@ -97,7 +106,7 @@ export function usePush() {
       const reg = await navigator.serviceWorker.getRegistration("/");
       const sub = await reg?.pushManager.getSubscription();
       if (sub) {
-        await delSub({ data: { endpoint: sub.endpoint } }).catch(() => {});
+        await delSub(sub.endpoint).catch(() => {});
         await sub.unsubscribe().catch(() => {});
       }
     } finally {
@@ -116,12 +125,10 @@ export function usePush() {
         if (!sub) return;
         const json = sub.toJSON();
         await saveSub({
-          data: {
-            endpoint: sub.endpoint,
-            p256dh: (json.keys?.p256dh as string) || bufToB64Url(sub.getKey("p256dh")),
-            auth: (json.keys?.auth as string) || bufToB64Url(sub.getKey("auth")),
-            userAgent: navigator.userAgent,
-          },
+          endpoint: sub.endpoint,
+          p256dh: (json.keys?.p256dh as string) || bufToB64Url(sub.getKey("p256dh")),
+          auth: (json.keys?.auth as string) || bufToB64Url(sub.getKey("auth")),
+          user_agent: navigator.userAgent,
         }).catch(() => {});
       } catch {
         /* ignore */

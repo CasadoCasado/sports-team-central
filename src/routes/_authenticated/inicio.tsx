@@ -1,4 +1,4 @@
-import teamupLogo from "@/assets/teamup-logo.png.asset.json";
+import { LOGO_URL } from "@/lib/brand";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -15,7 +15,8 @@ import {
   ClipboardList,
   Trophy,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
+import type { EventResponse, TeamEvent, TeamMember } from "@/lib/types";
 import { useProfile } from "@/hooks/use-profile";
 import { useSession } from "@/hooks/use-session";
 import { eventTypeStyles } from "@/lib/events";
@@ -47,30 +48,22 @@ function Inicio() {
     queryKey: ["my-response-for", user?.id, callupId],
     enabled: !!user && !!callupId,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("event_responses")
-        .select("id, status")
-        .eq("user_id", user!.id)
-        .eq("event_id", callupId!)
-        .maybeSingle();
-      if (error) throw error;
-      return !!data && data.status === "confirmado";
+      const rows = await api.get<EventResponse[]>("/event-responses/", {
+        user_id: user!.id,
+        event_id: callupId!,
+      });
+      return rows[0]?.status === "confirmado";
     },
   });
 
   const signUp = useMutation({
     mutationFn: async (eventId: string) => {
       if (!user) return;
-      const { error } = await supabase.from("event_responses").upsert(
-        {
-          event_id: eventId,
-          user_id: user.id,
-          status: "confirmado",
-          responded_at: new Date().toISOString(),
-        },
-        { onConflict: "event_id,user_id" },
-      );
-      if (error) throw error;
+      // `respond` crea o actualiza la fila: era el upsert sobre (event_id, user_id).
+      await api.post("/event-responses/respond/", {
+        event_id: eventId,
+        status: "confirmado",
+      });
     },
     onSuccess: (_d, eventId) => {
       toast.success(t("callups.signedUp"));
@@ -84,12 +77,11 @@ function Inicio() {
   const withdraw = useMutation({
     mutationFn: async (eventId: string) => {
       if (!user) return;
-      const { error } = await supabase
-        .from("event_responses")
-        .delete()
-        .eq("event_id", eventId)
-        .eq("user_id", user.id);
-      if (error) throw error;
+      const rows = await api.get<EventResponse[]>("/event-responses/", {
+        user_id: user.id,
+        event_id: eventId,
+      });
+      if (rows[0]) await api.delete(`/event-responses/${rows[0].id}/`);
     },
     onMutate: () => {
       const id = toast.loading(t("callups.withdrawing"));
@@ -105,37 +97,11 @@ function Inicio() {
     onError: (e: Error, _v, ctx) => toast.error(e.message, { id: ctx?.toastId }),
   });
 
-  useEffect(() => {
-    if (!user) return;
-    const channel = supabase
-      .channel(`event_responses:${user.id}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "event_responses", filter: `user_id=eq.${user.id}` },
-        () => {
-          qc.invalidateQueries({ queryKey: ["dash-open-callups"] });
-          qc.invalidateQueries({ queryKey: ["my-response-for", user.id] });
-        },
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user, qc]);
-
-
   const { data: teams } = useQuery({
     queryKey: ["my-teams", user?.id],
     enabled: !!user,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("team_members")
-        .select("team_id, role, status, teams:team_id(id, nombre, logo_url, descripcion)")
-        .eq("user_id", user!.id)
-        .eq("status", "activo");
-      if (error) throw error;
-      return data ?? [];
-    },
+    queryFn: () =>
+      api.get<TeamMember[]>("/team-members/", { mine: 1, status: "activo" }),
   });
 
   const teamIds = (teams ?? [])
@@ -146,54 +112,43 @@ function Inicio() {
     queryKey: ["my-invitations-count", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { count, error } = await supabase
-        .from("team_invitations")
-        .select("id", { count: "exact", head: true })
-        .eq("invited_user_id", user!.id)
-        .eq("status", "pendiente");
-      if (error) throw error;
-      return count ?? 0;
+      const badge = await api.get<{ invitations: number }>("/notifications/badge/");
+      return badge.invitations;
     },
   });
 
   const { data: upcoming } = useQuery({
     queryKey: ["dash-upcoming", teamIds.join(",")],
     enabled: teamIds.length > 0,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("events")
-        .select("id, titulo, tipo, fecha_inicio, ubicacion, rival, es_local, team:team_id(nombre)")
-        .in("team_id", teamIds)
-        .gte("fecha_inicio", new Date().toISOString())
-        .order("fecha_inicio", { ascending: true })
-        .limit(5);
-      if (error) throw error;
-      return data ?? [];
-    },
+    queryFn: () =>
+      api.get<TeamEvent[]>("/events/", {
+        team_id__in: teamIds,
+        fecha_inicio__gte: new Date().toISOString(),
+        order: "fecha_inicio",
+        limit: 5,
+      }),
   });
 
   const { data: myPending } = useQuery({
     queryKey: ["dash-open-callups", user?.id, teamIds.join(",")],
     enabled: !!user && teamIds.length > 0,
     queryFn: async () => {
-      const nowIso = new Date().toISOString();
-      const { data: evs, error } = await supabase
-        .from("events")
-        .select("id, titulo, tipo, fecha_inicio, ubicacion, requiere_convocatoria")
-        .in("team_id", teamIds)
-        .in("tipo", ["partido", "entrenamiento", "torneo"])
-        .gte("fecha_inicio", nowIso)
-        .order("fecha_inicio", { ascending: true });
-      if (error) throw error;
-      const open = (evs ?? []).filter((e) => e.requiere_convocatoria);
+      const open = await api.get<TeamEvent[]>("/events/", {
+        team_id__in: teamIds,
+        tipo__in: ["partido", "entrenamiento", "torneo"],
+        fecha_inicio__gte: new Date().toISOString(),
+        requiere_convocatoria: true,
+        order: "fecha_inicio",
+      });
       if (open.length === 0) return [];
-      const { data: resps, error: rErr } = await supabase
-        .from("event_responses")
-        .select("event_id")
-        .eq("user_id", user!.id)
-        .in("event_id", open.map((e) => e.id));
-      if (rErr) throw rErr;
-      const answered = new Set((resps ?? []).map((r) => r.event_id));
+      const answered = new Set(
+        (
+          await api.get<EventResponse[]>("/event-responses/", {
+            user_id: user!.id,
+            event_id__in: open.map((e) => e.id),
+          })
+        ).map((r) => r.event_id),
+      );
       return open.filter((e) => !answered.has(e.id)).slice(0, 5);
     },
   });
@@ -202,13 +157,8 @@ function Inicio() {
     queryKey: ["unread-notifs", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { count, error } = await supabase
-        .from("notifications")
-        .select("id", { count: "exact", head: true })
-        .eq("user_id", user!.id)
-        .eq("read", false);
-      if (error) throw error;
-      return count ?? 0;
+      const badge = await api.get<{ notifications: number }>("/notifications/badge/");
+      return badge.notifications;
     },
   });
 
@@ -220,7 +170,7 @@ function Inicio() {
       <div className="mx-auto max-w-3xl space-y-6">
         <div className="hero-band flex flex-wrap items-center gap-4 px-5 py-6 sm:px-8">
           <img
-            src={teamupLogo.url}
+            src={LOGO_URL}
             alt="TeamUp"
             className="size-12 shrink-0 object-contain"
             width={48}
@@ -266,7 +216,7 @@ function Inicio() {
     <div className="mx-auto max-w-7xl space-y-8">
       <div className="hero-band flex flex-wrap items-center gap-4 px-5 py-6 sm:px-8 sm:py-8">
         <img
-          src={teamupLogo.url}
+          src={LOGO_URL}
           alt="TeamUp"
           className="size-12 shrink-0 object-contain sm:size-14"
           width={56}
@@ -316,7 +266,6 @@ function Inicio() {
               ) : (
                 upcoming!.map((e) => {
                   const style = eventTypeStyles[e.tipo as keyof typeof eventTypeStyles];
-                  const team = Array.isArray(e.team) ? e.team[0] : e.team;
                   return (
                     <Link
                       key={e.id}
@@ -337,7 +286,7 @@ function Inicio() {
                           <span className={`size-2 rounded-full ${style.dot}`} />
                           <p className="truncate text-sm font-bold">
                             {e.tipo === "partido" && e.rival
-                              ? `${e.es_local ? team?.nombre : e.rival} vs ${e.es_local ? e.rival : team?.nombre}`
+                              ? `${e.es_local ? e.team_nombre : e.rival} vs ${e.es_local ? e.rival : e.team_nombre}`
                               : e.titulo}
                           </p>
                         </div>
@@ -431,7 +380,7 @@ function Inicio() {
           </h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {teams!.map((tm) => {
-              const team = Array.isArray(tm.teams) ? tm.teams[0] : tm.teams;
+              const team = tm.team;
               if (!team) return null;
               return (
                 <Link

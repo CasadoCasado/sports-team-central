@@ -1,6 +1,6 @@
-import type { Database } from "@/integrations/supabase/types";
+import type { EventType } from "@/lib/types";
 
-export type EventType = Database["public"]["Enums"]["event_type"];
+export type { EventType };
 
 /**
  * Semantic type styling driven by CSS tokens defined in styles.css.

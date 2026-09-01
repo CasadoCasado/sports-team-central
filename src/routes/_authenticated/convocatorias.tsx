@@ -5,14 +5,12 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { es as esLocale, enUS } from "date-fns/locale";
 import { ClipboardList, MapPin } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { useSession } from "@/hooks/use-session";
 import { eventTypeStyles, type EventType } from "@/lib/events";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import type { Database } from "@/integrations/supabase/types";
-
-type ResponseStatus = Database["public"]["Enums"]["response_status"];
+import type { EventResponse, ResponseStatus, TeamEvent, TeamMember } from "@/lib/types";
 
 export const Route = createFileRoute("/_authenticated/convocatorias")({
   head: () => ({
@@ -39,13 +37,11 @@ function MyCallups() {
     queryKey: ["my-team-ids", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("team_members")
-        .select("team_id")
-        .eq("user_id", user!.id)
-        .eq("status", "activo");
-      if (error) throw error;
-      return (data ?? []).map((r) => r.team_id);
+      const rows = await api.get<TeamMember[]>("/team-members/", {
+        mine: 1,
+        status: "activo",
+      });
+      return rows.map((r) => r.team_id);
     },
   });
 
@@ -53,18 +49,14 @@ function MyCallups() {
   const { data: events } = useQuery({
     queryKey: ["upcoming-callup-events", teamIds?.join(",")],
     enabled: !!teamIds && teamIds.length > 0,
-    queryFn: async () => {
-      const nowIso = new Date().toISOString();
-      const { data, error } = await supabase
-        .from("events")
-        .select("id, tipo, titulo, fecha_inicio, ubicacion, rival, team_id, requiere_convocatoria")
-        .in("team_id", teamIds!)
-        .in("tipo", ["partido", "entrenamiento", "torneo"])
-        .gte("fecha_inicio", nowIso)
-        .order("fecha_inicio", { ascending: true });
-      if (error) throw error;
-      return (data ?? []).filter((e) => e.requiere_convocatoria);
-    },
+    queryFn: () =>
+      api.get<TeamEvent[]>("/events/", {
+        team_id__in: teamIds!,
+        tipo__in: ["partido", "entrenamiento", "torneo"],
+        fecha_inicio__gte: new Date().toISOString(),
+        requiere_convocatoria: true,
+        order: "fecha_inicio",
+      }),
   });
 
   // My existing responses for these events
@@ -73,34 +65,32 @@ function MyCallups() {
     queryKey: ["my-responses-map", user?.id, eventIds.join(",")],
     enabled: !!user && eventIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("event_responses")
-        .select("id, event_id, status, es_convocado")
-        .eq("user_id", user!.id)
-        .in("event_id", eventIds);
-      if (error) throw error;
-      const m = new Map<string, { id: string; status: ResponseStatus; es_convocado: boolean }>();
-      (data ?? []).forEach((r) =>
-        m.set(r.event_id, {
+      const rows = await api.get<EventResponse[]>("/event-responses/", {
+        user_id: user!.id,
+        event_id__in: eventIds,
+      });
+      const byEvent = new Map<
+        string,
+        { id: string; status: ResponseStatus; es_convocado: boolean }
+      >();
+      rows.forEach((r) =>
+        byEvent.set(r.event_id, {
           id: r.id,
-          status: r.status as ResponseStatus,
+          status: r.status,
           es_convocado: !!r.es_convocado,
         }),
       );
-      return m;
+      return byEvent;
     },
   });
 
   const signUp = useMutation({
     mutationFn: async (eventId: string) => {
       if (!user) return;
-      const { error } = await supabase.from("event_responses").insert({
+      await api.post("/event-responses/respond/", {
         event_id: eventId,
-        user_id: user.id,
         status: "confirmado",
-        responded_at: new Date().toISOString(),
       });
-      if (error) throw error;
     },
     onSuccess: () => {
       toast.success(t("callups.signedUp"));

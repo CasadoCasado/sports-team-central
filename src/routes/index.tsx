@@ -1,7 +1,7 @@
-import teamupLogo from "@/assets/teamup-logo.png.asset.json";
+import { LOGO_URL } from "@/lib/brand";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { supabase } from "@/integrations/supabase/client";
+import { hasSession } from "@/lib/auth";
 import { LangToggle } from "@/components/lang-toggle";
 
 export const Route = createFileRoute("/")({
@@ -15,10 +15,9 @@ export const Route = createFileRoute("/")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  beforeLoad: async () => {
+  beforeLoad: () => {
     if (typeof window === "undefined") return;
-    const { data } = await supabase.auth.getSession();
-    if (data.session) throw redirect({ to: "/inicio" });
+    if (hasSession()) throw redirect({ to: "/inicio" });
   },
   component: Landing,
 });
@@ -32,7 +31,7 @@ function Landing() {
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-border bg-background/80 px-6 backdrop-blur">
         <div className="flex items-center gap-3">
-          <img src={teamupLogo.url} alt="TeamUp" className="size-8 object-contain" width={32} height={32} />
+          <img src={LOGO_URL} alt="TeamUp" className="size-8 object-contain" width={32} height={32} />
           <span className="text-display text-lg font-extrabold uppercase tracking-tight">
             {t("app.name")}
           </span>
@@ -58,7 +57,7 @@ function Landing() {
       <main className="mx-auto max-w-6xl px-6 py-16 sm:py-24">
         <section className="hero-band px-6 py-16 text-center sm:px-12 sm:py-20">
           <img
-            src={teamupLogo.url}
+            src={LOGO_URL}
             alt="TeamUp"
             className="mx-auto size-16 object-contain sm:size-20"
             width={80}

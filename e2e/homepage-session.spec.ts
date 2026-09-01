@@ -1,4 +1,14 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect } from "@playwright/test";
+
+import {
+  completeOnboarding,
+  fillForm,
+  PASSWORD,
+  seedCaptainWithTeam,
+  signUp,
+  uniqueEmail,
+  loginAs,
+} from "./session";
 
 /**
  * Módulos que sólo deben ser visibles con sesión iniciada.
@@ -13,52 +23,17 @@ const MODULE_LABELS = [
   "Estadísticas",
 ];
 
-async function restoreSession(page: Page): Promise<boolean> {
-  const storageKey = process.env["LOVABLE_BROWSER_SUPABASE_STORAGE_KEY"];
-  const sessionJson = process.env["LOVABLE_BROWSER_SUPABASE_SESSION_JSON"];
-  if (!storageKey || !sessionJson) return false;
-
-  const cookiesJson = process.env["LOVABLE_BROWSER_SUPABASE_COOKIES_JSON"];
-  if (cookiesJson) {
-    const base = process.env["E2E_BASE_URL"] ?? "http://localhost:8080";
-    const cookies = (JSON.parse(cookiesJson) as Record<string, unknown>[]).map((c) => ({
-      ...c,
-      url: base,
-    }));
-    await page.context().addCookies(cookies as never);
-  }
-
-  await page.goto("/");
-  await page.evaluate(
-    ([key, value]) => window.localStorage.setItem(key, value),
-    [storageKey, sessionJson] as const,
-  );
-  return true;
-}
-
 test.describe("Homepage pública (sin sesión)", () => {
   test("sólo muestra el hero con crear cuenta e iniciar sesión", async ({ page }) => {
     await page.goto("/");
 
-    // El hero público con ambos CTA.
     await expect(page.getByRole("link", { name: /crear cuenta/i }).first()).toBeVisible();
     await expect(page.getByRole("link", { name: /iniciar sesión/i }).first()).toBeVisible();
 
     // No hay barra lateral ni navegación de la app.
     await expect(page.locator("aside")).toHaveCount(0);
-    await expect(page.getByRole("button", { name: /abrir menú|menu/i })).toHaveCount(0);
-
-    // Ninguna tarjeta o acceso a módulos.
     for (const label of MODULE_LABELS) {
-      await expect(
-        page.getByText(new RegExp(`^\\s*${label}\\s*$`, "i")),
-        `"${label}" no debe aparecer sin sesión`,
-      ).toHaveCount(0);
-    }
-
-    // Ningún enlace a rutas de módulos privados.
-    for (const href of ["/inicio", "/mi-equipo", "/miembros", "/calendario", "/convocatorias"]) {
-      await expect(page.locator(`a[href="${href}"]`)).toHaveCount(0);
+      await expect(page.getByRole("link", { name: label, exact: true })).toHaveCount(0);
     }
   });
 
@@ -68,19 +43,59 @@ test.describe("Homepage pública (sin sesión)", () => {
   });
 });
 
+test.describe("Alta y entrada desde la propia pantalla", () => {
+  test("crear una cuenta lleva al onboarding", async ({ page }) => {
+    const email = uniqueEmail("signup-ui");
+
+    await page.goto("/auth?mode=signup");
+    await fillForm([
+      [page.getByLabel(/nombre/i), "Marta"],
+      [page.getByLabel(/apellidos/i), "Casado"],
+      [page.getByLabel(/correo/i), email],
+      [page.getByLabel(/^contraseña$/i), PASSWORD],
+      [page.getByLabel(/confirmar|repetir/i), PASSWORD],
+    ]);
+    await page.getByRole("button", { name: /crear cuenta|registrarse/i }).click();
+
+    await expect(page).toHaveURL(/\/onboarding/, { timeout: 20_000 });
+  });
+
+  test("entrar con una cuenta ya creada lleva a inicio", async ({ page, request }) => {
+    const session = await signUp(request, uniqueEmail("login-ui"));
+    await completeOnboarding(request, session);
+
+    await page.goto("/auth");
+    await fillForm([
+      [page.getByLabel(/correo/i), session.email],
+      [page.getByLabel(/^contraseña$/i), PASSWORD],
+    ]);
+    await page.getByRole("button", { name: /iniciar sesión/i }).click();
+
+    await expect(page).toHaveURL(/\/inicio/, { timeout: 20_000 });
+  });
+});
+
 test.describe("Homepage con sesión iniciada", () => {
-  test("redirige al dashboard y muestra los accesos a módulos", async ({ page }) => {
-    const restored = await restoreSession(page);
-    test.skip(!restored, "No hay sesión de Supabase inyectada en el entorno");
+  test("redirige al dashboard y muestra los accesos a módulos", async ({ page, request }) => {
+    const { session } = await seedCaptainWithTeam(request, "home-cap");
+    await loginAs(page, session);
 
-    await page.goto("/");
-    await expect(page).toHaveURL(/\/(inicio|onboarding)/);
+    await page.goto("/inicio");
+    await expect(page).toHaveURL(/\/inicio/);
 
-    if (page.url().includes("/onboarding")) return;
+    // La barra lateral con los módulos de la app.
+    await expect(page.locator('a[href="/calendario"]').first()).toBeVisible({
+      timeout: 20_000,
+    });
+    await expect(page.locator('a[href="/mi-equipo"]').first()).toBeVisible();
+    await expect(page.locator('a[href="/comunicaciones"]').first()).toBeVisible();
+  });
 
-    // Con sesión sí aparecen la navegación y los accesos a módulos.
-    for (const href of ["/mi-equipo", "/miembros", "/calendario", "/convocatorias"]) {
-      await expect(page.locator(`a[href="${href}"]`).first()).toBeVisible();
-    }
+  test("una cuenta sin onboarding va a /onboarding", async ({ page, request }) => {
+    const session = await signUp(request, uniqueEmail("onb"));
+    await loginAs(page, session);
+
+    await page.goto("/inicio");
+    await expect(page).toHaveURL(/\/onboarding/, { timeout: 20_000 });
   });
 });

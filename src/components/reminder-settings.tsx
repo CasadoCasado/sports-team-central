@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Bell } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { useProfile } from "@/hooks/use-profile";
 import { useSession } from "@/hooks/use-session";
 import { Button } from "@/components/ui/button";
@@ -39,11 +39,7 @@ export function ReminderSettings() {
     if (!user) return;
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({ reminder_hours: selected })
-        .eq("id", user.id);
-      if (error) throw error;
+      await api.patch("/profiles/me/", { reminder_hours: selected });
       toast.success(t("reminders.saved"));
       refetch();
     } catch (err) {

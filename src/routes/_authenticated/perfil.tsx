@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Mail } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
+import { invalidateUser } from "@/lib/auth";
 import { useProfile } from "@/hooks/use-profile";
 import { useSession } from "@/hooks/use-session";
 import { Button } from "@/components/ui/button";
@@ -72,21 +73,19 @@ function Perfil() {
     if (!user) return;
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({
-          nombre: nombre.trim(),
-          apellidos: apellidos.trim(),
-          telefono: telefono.trim() || null,
-          ciudad: ciudad.trim() || null,
-          deporte: deporte || null,
-          posicion: posicion.trim() || null,
-          mano_dominante: mano.trim() || null,
-          nivel: nivel.trim() || null,
-          descripcion: descripcion.trim() || null,
-        })
-        .eq("id", user.id);
-      if (error) throw error;
+      await api.patch("/profiles/me/", {
+        nombre: nombre.trim(),
+        apellidos: apellidos.trim(),
+        telefono: telefono.trim() || null,
+        ciudad: ciudad.trim() || null,
+        deporte: deporte || null,
+        posicion: posicion.trim() || null,
+        mano_dominante: mano.trim() || null,
+        nivel: nivel.trim() || null,
+        descripcion: descripcion.trim() || null,
+      });
+      // El nombre se pinta en la barra lateral desde el usuario cacheado.
+      invalidateUser();
       toast.success(t("profile.updated"));
       refetch();
     } catch (err) {

@@ -4,7 +4,8 @@ import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { FileUp, FileText, Trash2, Download } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
+import type { TeamDocument } from "@/lib/types";
 import { useSession } from "@/hooks/use-session";
 import { useActiveTeam } from "@/hooks/use-active-team";
 import { Button } from "@/components/ui/button";
@@ -23,16 +24,7 @@ export const Route = createFileRoute("/_authenticated/documentos")({
   component: Documentos,
 });
 
-type Doc = {
-  id: string;
-  storage_path: string;
-  filename: string;
-  category: string | null;
-  size_bytes: number | null;
-  mime_type: string | null;
-  created_at: string;
-  uploader_id: string;
-};
+type Doc = TeamDocument;
 
 function formatBytes(n: number | null) {
   if (!n) return "";
@@ -51,34 +43,20 @@ function Documentos() {
   const { data: docs } = useQuery<Doc[]>({
     queryKey: ["docs", active?.team_id],
     enabled: !!active,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("documents")
-        .select("id, storage_path, filename, category, size_bytes, mime_type, created_at, uploader_id")
-        .eq("team_id", active!.team_id)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data ?? [];
-    },
+    queryFn: () => api.get<Doc[]>("/documents/", { team_id: active!.team_id }),
   });
 
   const upload = useMutation({
+    // Antes eran dos pasos —subir al bucket y luego insertar la fila— y si
+    // fallaba el segundo quedaba un fichero huérfano. Ahora es una petición:
+    // el nombre, el tamaño y el tipo los deduce el servidor del propio fichero,
+    // y `uploader_id` sale del token.
     mutationFn: async (file: File) => {
       if (!active || !user) throw new Error("No team");
-      const path = `${active.team_id}/${crypto.randomUUID()}-${file.name}`;
-      const { error: upErr } = await supabase.storage
-        .from("team-documents")
-        .upload(path, file, { contentType: file.type });
-      if (upErr) throw upErr;
-      const { error } = await supabase.from("documents").insert({
-        team_id: active.team_id,
-        uploader_id: user.id,
-        storage_path: path,
-        filename: file.name,
-        size_bytes: file.size,
-        mime_type: file.type,
-      });
-      if (error) throw error;
+      const form = new FormData();
+      form.append("team_id", active.team_id);
+      form.append("file", file);
+      await api.upload("/documents/", form);
     },
     onSuccess: () => {
       toast.success(t("documents.uploaded"));
@@ -88,26 +66,20 @@ function Documentos() {
   });
 
   const remove = useMutation({
-    mutationFn: async (d: Doc) => {
-      await supabase.storage.from("team-documents").remove([d.storage_path]);
-      const { error } = await supabase.from("documents").delete().eq("id", d.id);
-      if (error) throw error;
-    },
+    // Borrar la fila borra también el fichero.
+    mutationFn: (d: Doc) => api.delete(`/documents/${d.id}/`),
     onSuccess: () => {
       toast.success(t("documents.deleted"));
       qc.invalidateQueries({ queryKey: ["docs"] });
     },
   });
 
-  async function download(d: Doc) {
-    const { data, error } = await supabase.storage
-      .from("team-documents")
-      .createSignedUrl(d.storage_path, 60);
-    if (error) {
-      toast.error(error.message);
+  function download(d: Doc) {
+    if (!d.url) {
+      toast.error(t("common.error"));
       return;
     }
-    window.open(data.signedUrl, "_blank");
+    window.open(d.url, "_blank");
   }
 
   if (!active) {

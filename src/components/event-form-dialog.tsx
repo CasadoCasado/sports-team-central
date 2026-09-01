@@ -4,10 +4,8 @@ import { AlertCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { useSession } from "@/hooks/use-session";
-import { useServerFn } from "@tanstack/react-start";
-import { sendPushToTeam } from "@/lib/push.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,10 +25,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { Database } from "@/integrations/supabase/types";
+import type { EventType, Team } from "@/lib/types";
 import { teamRegistrationsQuery } from "@/lib/official-competitions";
 
-type EventType = Database["public"]["Enums"]["event_type"];
 
 export type EventFormValues = {
   id?: string;
@@ -89,29 +86,17 @@ export function EventFormDialog({
   const { data: competitions } = useQuery({
     queryKey: ["competitions", teamId],
     enabled: !!teamId && open,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("competitions")
-        .select("id, nombre")
-        .eq("team_id", teamId)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data ?? [];
-    },
+    queryFn: () =>
+      api.get<{ id: string; nombre: string }[]>("/competitions/", {
+        team_id: teamId,
+        order: "-created_at",
+      }),
   });
 
   const { data: team } = useQuery({
     queryKey: ["team-sport", teamId],
     enabled: !!teamId && open,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("teams")
-        .select("deporte")
-        .eq("id", teamId)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
+    queryFn: () => api.get<Team>(`/teams/${teamId}/`),
   });
   const isPadel = team?.deporte === "padel";
 
@@ -126,8 +111,9 @@ export function EventFormDialog({
   const officialCompetitions = useMemo(() => {
     const map = new Map<string, { id: string; nombre: string }>();
     for (const r of registrations ?? []) {
-      const c = r.official_competitions;
-      if (c && !map.has(c.id)) map.set(c.id, { id: c.id, nombre: c.nombre });
+      if (!map.has(r.competition_id)) {
+        map.set(r.competition_id, { id: r.competition_id, nombre: r.competition_nombre });
+      }
     }
     return [...map.values()];
   }, [registrations]);
@@ -190,32 +176,18 @@ export function EventFormDialog({
           isPadel && values.tipo === "partido" && values.padel_num_pistas
             ? values.padel_num_pistas
             : null,
-        created_by: user.id,
       };
       if (values.id) {
-        const { error } = await supabase.from("events").update(payload).eq("id", values.id);
-        if (error) throw error;
+        await api.patch(`/events/${values.id}/`, payload);
         return { updated: true };
       }
-      const { error } = await supabase.from("events").insert(payload);
-      if (error) throw error;
+      // Al crear, el servidor avisa al resto del equipo (notificación y push).
+      await api.post("/events/", payload);
       return { updated: false };
     },
     onSuccess: (r) => {
       toast.success(r.updated ? t("events.updated") : t("events.created"));
       qc.invalidateQueries({ queryKey: ["events"] });
-      if (!r.updated) {
-        const tipoLabel = t(`events.tipos.${values.tipo}`, { defaultValue: values.tipo });
-        pushTeam({
-          data: {
-            teamId,
-            title: `${tipoLabel}: ${values.titulo.trim()}`,
-            body: new Date(values.fecha_inicio).toLocaleString(),
-            url: "/calendario",
-            tag: `event-new:${teamId}`,
-          },
-        }).catch(() => {});
-      }
       onOpenChange(false);
     },
     onError: (e: Error) => {
@@ -234,7 +206,6 @@ export function EventFormDialog({
 
     onSettled: () => setSaving(false),
   });
-  const pushTeam = useServerFn(sendPushToTeam);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -380,8 +351,8 @@ export function EventFormDialog({
                         {filteredRegistrations.map((r) => (
                           <SelectItem key={r.id} value={r.id}>
                             {[
-                              r.official_competition_categories?.nombre,
-                              r.official_competition_divisions?.nombre,
+                              r.category_nombre,
+                              r.division_nombre,
                               r.temporada,
                             ]
                               .filter(Boolean)

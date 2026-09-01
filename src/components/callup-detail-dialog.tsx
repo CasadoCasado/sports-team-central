@@ -24,7 +24,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
+import type { TeamEvent } from "@/lib/types";
 import { eventTypeStyles, type EventType } from "@/lib/events";
 import { cn } from "@/lib/utils";
 
@@ -56,17 +57,7 @@ export function CallupDetailDialog({
   const { data: event, isLoading } = useQuery({
     queryKey: ["callup-detail", eventId],
     enabled: open && !!eventId,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("events")
-        .select(
-          "id, tipo, titulo, descripcion, fecha_inicio, fecha_fin, ubicacion, rival, es_local, requiere_convocatoria, convocatoria_cierra_en, competitions:competition_id(nombre)",
-        )
-        .eq("id", eventId!)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
+    queryFn: () => api.get<TeamEvent>(`/events/${eventId!}/`),
   });
 
   const style = event ? eventTypeStyles[event.tipo as EventType] : null;
@@ -124,9 +115,9 @@ export function CallupDetailDialog({
                 {event.ubicacion}
               </Row>
             )}
-            {event.competitions && (
+            {event.competition_nombre && (
               <Row icon={<Trophy className="size-4" />} label={t("events.competicion")}>
-                {(event.competitions as { nombre: string }).nombre}
+                {event.competition_nombre}
               </Row>
             )}
             {cierre && (

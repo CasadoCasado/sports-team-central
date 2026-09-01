@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Medal, Plus, Pencil, Trash2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { useSession } from "@/hooks/use-session";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -112,10 +112,7 @@ function RegistrationRow({
   const { t } = useTranslation();
   const qc = useQueryClient();
   const del = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase.from("competition_registrations").delete().eq("id", r.id);
-      if (error) throw error;
-    },
+    mutationFn: () => api.delete(`/competition-registrations/${r.id}/`),
     onSuccess: () => {
       toast.success(t("registrations.deleted"));
       qc.invalidateQueries({ queryKey: ["competition-registrations"] });
@@ -131,15 +128,15 @@ function RegistrationRow({
       </div>
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-semibold">
-          {r.official_competitions?.nombre ?? "—"}
+          {r.competition_nombre ?? "—"}
           {r.temporada ? ` · ${r.temporada}` : ""}
         </p>
         <div className="mt-1 flex flex-wrap items-center gap-1.5 text-2xs font-bold uppercase tracking-widest">
           <span className="rounded border border-primary/40 bg-primary/15 px-1.5 py-0.5 text-primary">
-            {r.official_competition_categories?.nombre}
+            {r.category_nombre}
           </span>
           <span className="rounded border border-border px-1.5 py-0.5 text-muted-foreground">
-            {r.official_competition_divisions?.nombre}
+            {r.division_nombre}
           </span>
           <span className={`rounded border px-1.5 py-0.5 ${statusBadgeClass(r.status)}`}>
             {t(`registrations.status.${r.status}`)}
@@ -220,17 +217,11 @@ function RegistrationDialog({
         division_id: divisionId,
         temporada: temporada.trim() || null,
         status,
-        created_by: user.id,
       };
       if (isEdit) {
-        const { error } = await supabase
-          .from("competition_registrations")
-          .update(payload)
-          .eq("id", initial.id!);
-        if (error) throw error;
+        await api.patch(`/competition-registrations/${initial.id!}/`, payload);
       } else {
-        const { error } = await supabase.from("competition_registrations").insert(payload);
-        if (error) throw error;
+        await api.post("/competition-registrations/", payload);
       }
     },
     onSuccess: () => {

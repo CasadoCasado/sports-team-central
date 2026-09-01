@@ -17,7 +17,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { useSession } from "@/hooks/use-session";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,9 +43,14 @@ import {
   type SetPair,
 } from "@/lib/padel-scoring";
 import { cn } from "@/lib/utils";
-import type { Database } from "@/integrations/supabase/types";
-
-type ResponseStatus = Database["public"]["Enums"]["response_status"];
+import type {
+  EventResponse,
+  MatchParticipation,
+  ResponseStatus,
+  Team,
+  TeamEvent,
+  TeamMember,
+} from "@/lib/types";
 
 export const Route = createFileRoute("/_authenticated/eventos/$id")({
   head: () => ({
@@ -72,39 +77,25 @@ function EventDetail() {
 
   const { data: event, isLoading } = useQuery({
     queryKey: ["event", id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("events")
-        .select("*, competitions:competition_id(id, nombre)")
-        .eq("id", id)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
+    queryFn: () => api.get<TeamEvent>(`/events/${id}/`),
   });
 
   const { data: membership } = useQuery({
     queryKey: ["event-membership", event?.team_id, user?.id],
     enabled: !!event && !!user,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("team_members")
-        .select("role, status")
-        .eq("team_id", event!.team_id)
-        .eq("user_id", user!.id)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
+      const rows = await api.get<TeamMember[]>("/team-members/", {
+        team_id: event!.team_id,
+        user_id: user!.id,
+      });
+      return rows[0] ?? null;
     },
   });
 
   const isManager = membership && ["capitan", "co_capitan", "entrenador", "delegado"].includes(membership.role);
 
   const del = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase.from("events").delete().eq("id", id);
-      if (error) throw error;
-    },
+    mutationFn: () => api.delete(`/events/${id}/`),
     onSuccess: () => {
       toast.success(t("events.deleted"));
       qc.invalidateQueries({ queryKey: ["events"] });
@@ -183,9 +174,9 @@ function EventDetail() {
               {event.ubicacion}
             </InfoRow>
           )}
-          {event.competitions && (
+          {event.competition_nombre && (
             <InfoRow icon={<ClipboardList className="size-4" />} label={t("events.competicion")}>
-              {(event.competitions as { nombre: string }).nombre}
+              {event.competition_nombre}
             </InfoRow>
           )}
         </div>
@@ -271,15 +262,7 @@ function CallupSection({
 
   const { data: team } = useQuery({
     queryKey: ["team-sport", teamId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("teams")
-        .select("deporte")
-        .eq("id", teamId)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
+    queryFn: () => api.get<Team>(`/teams/${teamId}/`),
   });
   const isPadel = team?.deporte === "padel";
   const showPadelCourts = isPadel && event.tipo === "partido" && (event.padel_num_pistas ?? 0) > 0;
@@ -287,35 +270,21 @@ function CallupSection({
   const { data: members } = useQuery({
     queryKey: ["team-members-full", teamId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("team_members")
-        .select("user_id, role, profiles:user_id(id, nombre, apellidos, avatar_url)")
-        .eq("team_id", teamId)
-        .eq("status", "activo");
-      if (error) throw error;
-      return (data ?? []).map((m) => ({
+      const rows = await api.get<TeamMember[]>("/team-members/", {
+        team_id: teamId,
+        status: "activo",
+      });
+      return rows.map((m) => ({
         user_id: m.user_id,
         role: m.role,
-        profile: (Array.isArray(m.profiles) ? m.profiles[0] : m.profiles) as {
-          id: string;
-          nombre: string;
-          apellidos: string;
-          avatar_url: string | null;
-        } | null,
+        profile: m.profile,
       }));
     },
   });
 
   const { data: responses } = useQuery({
     queryKey: ["event-responses", eventId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("event_responses")
-        .select("id, user_id, status, notas, es_convocado, padel_pista")
-        .eq("event_id", eventId);
-      if (error) throw error;
-      return data ?? [];
-    },
+    queryFn: () => api.get<EventResponse[]>("/event-responses/", { event_id: eventId }),
   });
 
   const respByUser = useMemo(() => {
@@ -350,13 +319,10 @@ function CallupSection({
   const signUp = useMutation({
     mutationFn: async () => {
       if (!userId) return;
-      const { error } = await supabase.from("event_responses").insert({
+      await api.post("/event-responses/respond/", {
         event_id: eventId,
-        user_id: userId,
         status: "confirmado",
-        responded_at: new Date().toISOString(),
       });
-      if (error) throw error;
     },
     onSuccess: () => {
       toast.success(t("callups.signedUp"));
@@ -371,12 +337,7 @@ function CallupSection({
       if (!userId) return;
       const existing = respByUser.get(userId);
       if (!existing) return;
-      const { error } = await supabase
-        .from("event_responses")
-        .delete()
-        .eq("id", existing.id)
-        .eq("user_id", userId);
-      if (error) throw error;
+      await api.delete(`/event-responses/${existing.id}/`);
     },
     onSuccess: () => {
       toast.success(t("callups.withdrawn"));
@@ -391,22 +352,17 @@ function CallupSection({
       const patch: { es_convocado: boolean; padel_pista?: number | null } = {
         es_convocado: value,
       };
+      // Desconvocar libera también la pista asignada.
       if (!value) patch.padel_pista = null;
-      const { error } = await supabase.from("event_responses").update(patch).eq("id", id);
-      if (error) throw error;
+      await api.patch(`/event-responses/${id}/`, patch);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["event-responses", eventId] }),
     onError: (e: Error) => toast.error(e.message),
   });
 
   const assignCourt = useMutation({
-    mutationFn: async ({ id, pista }: { id: string; pista: number | null }) => {
-      const { error } = await supabase
-        .from("event_responses")
-        .update({ padel_pista: pista })
-        .eq("id", id);
-      if (error) throw error;
-    },
+    mutationFn: ({ id, pista }: { id: string; pista: number | null }) =>
+      api.patch(`/event-responses/${id}/`, { padel_pista: pista }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["event-responses", eventId] }),
     onError: (e: Error) => toast.error(e.message),
   });
@@ -603,14 +559,12 @@ function PlayerResponseForm({
   const [notas, setNotas] = useState(response.notas ?? "");
 
   const respond = useMutation({
-    mutationFn: async (status: ResponseStatus) => {
-      const { error } = await supabase
-        .from("event_responses")
-        .update({ status, notas: notas.trim() || null, responded_at: new Date().toISOString() })
-        .eq("id", response.id)
-        .eq("user_id", userId);
-      if (error) throw error;
-    },
+    mutationFn: (status: ResponseStatus) =>
+      api.patch(`/event-responses/${response.id}/`, {
+        status,
+        notas: notas.trim() || null,
+        responded_at: new Date().toISOString(),
+      }),
     onSuccess: () => {
       toast.success(t("callups.responseSaved"));
       qc.invalidateQueries({ queryKey: ["event-responses", eventId] });
@@ -693,15 +647,7 @@ function MatchResultsSection({
 
   const { data: team } = useQuery({
     queryKey: ["team-sport", teamId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("teams")
-        .select("deporte")
-        .eq("id", teamId)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
+    queryFn: () => api.get<Team>(`/teams/${teamId}/`),
   });
   const isPadel = team?.deporte === "padel";
   const courtsCount = isPadel ? Math.max(1, padelNumPistas ?? 1) : 1;
@@ -709,43 +655,23 @@ function MatchResultsSection({
   const { data: existing } = useQuery({
     queryKey: ["match-results", eventId],
     enabled: hasStarted,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("match_results")
-        .select("*")
-        .eq("event_id", eventId)
-        .order("pista", { ascending: true });
-      if (error) throw error;
-      return (data ?? []) as MatchResultRow[];
-    },
+    queryFn: () =>
+      api.get<MatchResultRow[]>("/match-results/", {
+        event_id: eventId,
+        order: "pista",
+      }),
   });
 
   const { data: participations } = useQuery({
     queryKey: ["match-participations", eventId],
     enabled: hasStarted,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("match_participations")
-        .select("user_id, pista, ganado")
-        .eq("event_id", eventId)
-        .order("pista", { ascending: true, nullsFirst: false });
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
-
-  const { data: profiles } = useQuery({
-    queryKey: ["match-participation-profiles", eventId, participations?.length ?? 0],
-    enabled: !!participations?.length,
-    queryFn: async () => {
-      const ids = (participations ?? []).map((p) => p.user_id);
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("id, nombre, apellidos")
-        .in("id", ids);
-      if (error) throw error;
-      return data ?? [];
-    },
+    // Cada participación trae el perfil, así que ya no hace falta pedir los
+    // nombres por separado.
+    queryFn: () =>
+      api.get<MatchParticipation[]>("/match-participations/", {
+        event_id: eventId,
+        order: "pista",
+      }),
   });
 
   const [rows, setRows] = useState<MatchResultRow[]>([]);
@@ -800,20 +726,21 @@ function MatchResultsSection({
 
   const save = useMutation({
     mutationFn: async () => {
-      const payload = rows.map((r) => ({
+      // Todas las pistas van en una sola petición, y el servidor recalcula el
+      // marcador del evento y las participaciones dentro de la misma
+      // transacción.
+      await api.post("/match-results/bulk/", {
         event_id: eventId,
-        pista: r.pista,
-        set1_local: r.set1_local,
-        set1_visitante: r.set1_visitante,
-        set2_local: isPadel ? r.set2_local : null,
-        set2_visitante: isPadel ? r.set2_visitante : null,
-        set3_local: isPadel ? r.set3_local : null,
-        set3_visitante: isPadel ? r.set3_visitante : null,
-      }));
-      const { error } = await supabase
-        .from("match_results")
-        .upsert(payload, { onConflict: "event_id,pista" });
-      if (error) throw error;
+        results: rows.map((r) => ({
+          pista: r.pista,
+          set1_local: r.set1_local,
+          set1_visitante: r.set1_visitante,
+          set2_local: isPadel ? r.set2_local : null,
+          set2_visitante: isPadel ? r.set2_visitante : null,
+          set3_local: isPadel ? r.set3_local : null,
+          set3_visitante: isPadel ? r.set3_visitante : null,
+        })),
+      });
     },
     onSuccess: async () => {
       toast.success(t("results.saved"));
@@ -823,7 +750,6 @@ function MatchResultsSection({
       await Promise.all([
         qc.invalidateQueries({ queryKey: ["match-results", eventId] }),
         qc.invalidateQueries({ queryKey: ["match-participations", eventId] }),
-        qc.invalidateQueries({ queryKey: ["match-participation-profiles", eventId] }),
         qc.invalidateQueries({ queryKey: ["event", eventId] }),
         qc.invalidateQueries({ queryKey: ["event-responses", eventId] }),
         qc.invalidateQueries({ queryKey: ["events"] }),
@@ -912,7 +838,7 @@ function MatchResultsSection({
 
   const teamSide = esLocal ? 1 : 2;
   const nameOf = (uid: string) => {
-    const p = profiles?.find((x) => x.id === uid);
+    const p = participations?.find((x) => x.user_id === uid)?.profile;
     return p ? `${p.nombre} ${p.apellidos}`.trim() : "—";
   };
 

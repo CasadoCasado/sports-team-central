@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Trophy, Dumbbell, CheckCircle2, XCircle, HelpCircle, Percent, Flame, CalendarClock } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
+import type { EventResponse, PlayerStats, TeamStats } from "@/lib/types";
 import { useSession } from "@/hooks/use-session";
 import { useActiveTeam } from "@/hooks/use-active-team";
 import { TeamPicker } from "@/components/team-picker";
@@ -40,59 +41,36 @@ function Estadisticas() {
   const { data: events } = useQuery({
     queryKey: ["stats-events", teamId],
     enabled: !!teamId,
-    queryFn: async (): Promise<EventRow[]> => {
-      const { data, error } = await supabase
-        .from("events")
-        .select("id, tipo, fecha_inicio, resultado_local, resultado_visitante, es_local")
-        .eq("team_id", teamId!)
-        .lte("fecha_inicio", new Date().toISOString());
-      if (error) throw error;
-      return (data ?? []) as EventRow[];
-    },
+    queryFn: () =>
+      api.get<EventRow[]>("/events/", {
+        team_id: teamId!,
+        fecha_inicio__lte: new Date().toISOString(),
+      }),
   });
 
   const { data: teamStats } = useQuery({
     queryKey: ["team-stats", teamId],
     enabled: !!teamId,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("team_match_stats")
-        .select("*")
-        .eq("team_id", teamId!)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
+    // Era la vista SQL `team_match_stats`; ahora la agrega el backend.
+    queryFn: () => api.get<TeamStats>("/stats/team/", { team_id: teamId! }),
   });
 
   const { data: playerStats } = useQuery({
     queryKey: ["player-stats", teamId, user?.id],
     enabled: !!teamId && !!user,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("player_match_stats")
-        .select("*")
-        .eq("team_id", teamId!)
-        .eq("user_id", user!.id)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
+    queryFn: () =>
+      api.get<PlayerStats | null>("/stats/players/", { team_id: teamId!, me: 1 }),
   });
 
   const { data: myResponses } = useQuery({
     queryKey: ["stats-my-responses", teamId, user?.id],
     enabled: !!teamId && !!user,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("event_responses")
-        .select("status, event:event_id(team_id, tipo, fecha_inicio)")
-        .eq("user_id", user!.id);
-      if (error) throw error;
-      return (data ?? []).filter((r) => {
-        const e = Array.isArray(r.event) ? r.event[0] : r.event;
-        return e && e.team_id === teamId && new Date(e.fecha_inicio) <= new Date();
+      const rows = await api.get<EventResponse[]>("/event-responses/", {
+        team_id: teamId!,
+        user_id: user!.id,
       });
+      return rows.filter((r) => new Date(r.event_fecha_inicio) <= new Date());
     },
   });
 
@@ -215,16 +193,10 @@ function Estadisticas() {
         </div>
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
           <BigStat icon={<Trophy />} label={t("stats.matchesCalled")} value={
-            (myResponses ?? []).filter((r) => {
-              const e = Array.isArray(r.event) ? r.event[0] : r.event;
-              return e?.tipo === "partido";
-            }).length
+            (myResponses ?? []).filter((r) => r.event_tipo === "partido").length
           } />
           <BigStat icon={<Dumbbell />} label={t("stats.trainingsCalled")} value={
-            (myResponses ?? []).filter((r) => {
-              const e = Array.isArray(r.event) ? r.event[0] : r.event;
-              return e?.tipo === "entrenamiento";
-            }).length
+            (myResponses ?? []).filter((r) => r.event_tipo === "entrenamiento").length
           } />
           <BigStat icon={<HelpCircle />} label={t("stats.pending")} value={myPending} />
         </div>

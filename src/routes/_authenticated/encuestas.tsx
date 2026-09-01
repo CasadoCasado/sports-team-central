@@ -4,7 +4,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Plus, Trash2, Vote as VoteIcon, X, Lock, CheckCircle2, Clock } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
+import type { Poll as ApiPoll, PollOption } from "@/lib/types";
 import { useSession } from "@/hooks/use-session";
 import { useActiveTeam } from "@/hooks/use-active-team";
 import { TeamPicker } from "@/components/team-picker";
@@ -38,20 +39,8 @@ export const Route = createFileRoute("/_authenticated/encuestas")({
   component: Encuestas,
 });
 
-type Poll = {
-  id: string;
-  team_id: string;
-  created_by: string;
-  pregunta: string;
-  descripcion: string | null;
-  multi_select: boolean;
-  anonymous: boolean;
-  closes_at: string | null;
-  closed: boolean;
-  created_at: string;
-};
-type Option = { id: string; poll_id: string; texto: string; posicion: number };
-type VoteRow = { id: string; poll_id: string; option_id: string; user_id: string };
+type Poll = ApiPoll;
+type Option = PollOption;
 
 type TabKey = "pending" | "active" | "closed" | "all";
 
@@ -69,34 +58,18 @@ function Encuestas() {
   const { data: polls } = useQuery({
     queryKey: ["polls", teamId],
     enabled: !!teamId,
-    queryFn: async (): Promise<Poll[]> => {
-      const { data, error } = await supabase
-        .from("polls")
-        .select("*")
-        .eq("team_id", teamId!)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as Poll[];
-    },
+    queryFn: () =>
+      api.get<Poll[]>("/polls/", { team_id: teamId!, order: "-created_at" }),
   });
 
   const pollIds = useMemo(() => (polls ?? []).map((p) => p.id), [polls]);
 
-  const { data: myVotes } = useQuery({
-    queryKey: ["my-poll-votes", teamId, user?.id, pollIds.join(",")],
-    enabled: !!user && pollIds.length > 0,
-    queryFn: async (): Promise<Set<string>> => {
-      const { data, error } = await supabase
-        .from("poll_votes")
-        .select("poll_id")
-        .eq("user_id", user!.id)
-        .in("poll_id", pollIds);
-      if (error) throw error;
-      return new Set((data ?? []).map((v) => v.poll_id as string));
-    },
-  });
-
-  const votedSet = myVotes ?? new Set<string>();
+  // Cada encuesta trae las opciones que ha votado el usuario, así que saber a
+  // cuáles ha respondido ya no necesita otra consulta.
+  const votedSet = useMemo(
+    () => new Set((polls ?? []).filter((p) => p.my_votes.length > 0).map((p) => p.id)),
+    [polls],
+  );
 
   const filtered = useMemo(() => {
     const list = polls ?? [];
@@ -216,96 +189,51 @@ function PollCard({
   const { user } = useSession();
   const qc = useQueryClient();
 
-  const { data: options } = useQuery({
-    queryKey: ["poll-options", poll.id],
-    queryFn: async (): Promise<Option[]> => {
-      const { data, error } = await supabase
-        .from("poll_options")
-        .select("*")
-        .eq("poll_id", poll.id)
-        .order("posicion");
-      if (error) throw error;
-      return (data ?? []) as Option[];
-    },
-  });
+  // Las opciones y sus recuentos llegan con la encuesta.
+  const options = poll.options;
 
-  const { data: votes } = useQuery({
-    queryKey: ["poll-votes", poll.id],
-    queryFn: async (): Promise<VoteRow[]> => {
-      const { data, error } = await supabase
-        .from("poll_votes")
-        .select("*")
-        .eq("poll_id", poll.id);
-      if (error) throw error;
-      return (data ?? []) as VoteRow[];
-    },
-  });
-
-  const totals = useMemo(() => {
-    const map = new Map<string, number>();
-    (votes ?? []).forEach((v) => map.set(v.option_id, (map.get(v.option_id) ?? 0) + 1));
-    return map;
-  }, [votes]);
-  const totalVotes = votes?.length ?? 0;
-  const uniqueVoters = new Set((votes ?? []).map((v) => v.user_id)).size;
-  const myVotes = useMemo(
-    () => new Set((votes ?? []).filter((v) => v.user_id === user?.id).map((v) => v.option_id)),
-    [votes, user],
+  const totals = useMemo(
+    () => new Map(options.map((o) => [o.id, o.vote_count])),
+    [options],
   );
+  const totalVotes = options.reduce((sum, o) => sum + o.vote_count, 0);
+  const uniqueVoters = poll.voter_count;
+  const myVotes = useMemo(() => new Set(poll.my_votes), [poll.my_votes]);
 
   const isClosed = isPollClosed(poll);
 
+  // Votar lo resuelve el servidor: quitar el voto anterior en las encuestas de
+  // opción única, o desmarcar si se vuelve a pulsar lo ya votado. Eran hasta
+  // tres escrituras desde el navegador.
   async function vote(optionId: string) {
     if (!user || isClosed) return;
-    const already = myVotes.has(optionId);
     try {
-      if (already) {
-        const { error } = await supabase
-          .from("poll_votes")
-          .delete()
-          .eq("option_id", optionId)
-          .eq("user_id", user.id);
-        if (error) throw error;
-      } else {
-        if (!poll.multi_select && myVotes.size > 0) {
-          const { error: delErr } = await supabase
-            .from("poll_votes")
-            .delete()
-            .eq("poll_id", poll.id)
-            .eq("user_id", user.id);
-          if (delErr) throw delErr;
-        }
-        const { error } = await supabase.from("poll_votes").insert({
-          poll_id: poll.id,
-          option_id: optionId,
-          user_id: user.id,
-        });
-        if (error) throw error;
-      }
-      qc.invalidateQueries({ queryKey: ["poll-votes", poll.id] });
-      qc.invalidateQueries({ queryKey: ["my-poll-votes", poll.team_id] });
+      await api.post(`/polls/${poll.id}/vote/`, { option_id: optionId });
+      qc.invalidateQueries({ queryKey: ["polls", poll.team_id] });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("common.error"));
     }
   }
 
   async function toggleClose() {
-    const { error } = await supabase
-      .from("polls")
-      .update({ closed: !poll.closed })
-      .eq("id", poll.id);
-    if (error) return toast.error(error.message);
+    try {
+      await api.patch(`/polls/${poll.id}/`, { closed: !poll.closed });
+    } catch (err) {
+      return toast.error(err instanceof Error ? err.message : t("common.error"));
+    }
     toast.success(poll.closed ? t("polls.reopened") : t("polls.closedToast"));
     qc.invalidateQueries({ queryKey: ["polls", poll.team_id] });
   }
 
   async function cancel() {
     if (!confirm(t("polls.cancelConfirm"))) return;
-    const { error } = await supabase.from("polls").delete().eq("id", poll.id);
-    if (error) return toast.error(error.message);
+    try {
+      await api.delete(`/polls/${poll.id}/`);
+    } catch (err) {
+      return toast.error(err instanceof Error ? err.message : t("common.error"));
+    }
     toast.success(t("polls.cancelled"));
     qc.invalidateQueries({ queryKey: ["polls", poll.team_id] });
-    qc.invalidateQueries({ queryKey: ["my-poll-votes", poll.team_id] });
   }
 
   const pastDeadline = !!poll.closes_at && new Date(poll.closes_at).getTime() < Date.now();
@@ -459,24 +387,17 @@ function NewPollDialog({ teamId }: { teamId: string }) {
     }
     setSaving(true);
     try {
-      const { data: poll, error } = await supabase
-        .from("polls")
-        .insert({
-          team_id: teamId,
-          created_by: user.id,
-          pregunta: pregunta.trim(),
-          descripcion: descripcion.trim() || null,
-          multi_select: multi,
-          anonymous: anon,
-          closes_at: closesAt ? new Date(closesAt).toISOString() : null,
-        })
-        .select()
-        .single();
-      if (error) throw error;
-      const { error: optErr } = await supabase.from("poll_options").insert(
-        cleanOpts.map((texto, i) => ({ poll_id: poll.id, texto, posicion: i })),
-      );
-      if (optErr) throw optErr;
+      // La encuesta y sus opciones se crean juntas o no se crea ninguna: antes
+      // eran dos inserciones y podía quedar una encuesta sin nada que votar.
+      await api.post("/polls/", {
+        team_id: teamId,
+        pregunta: pregunta.trim(),
+        descripcion: descripcion.trim() || null,
+        multi_select: multi,
+        anonymous: anon,
+        closes_at: closesAt ? new Date(closesAt).toISOString() : null,
+        options: cleanOpts,
+      });
       toast.success(t("polls.created"));
       reset();
       setOpen(false);

@@ -1,118 +1,68 @@
-import { supabase } from "@/integrations/supabase/client";
-import type { Database } from "@/integrations/supabase/types";
+/**
+ * El catálogo de competiciones oficiales y las inscripciones de los equipos.
+ *
+ * Son consultas compartidas por varias pantallas, así que viven aquí como
+ * objetos de consulta de react-query listos para pasarle a `useQuery`.
+ */
 
-export type RegistrationStatus = Database["public"]["Enums"]["registration_status"];
+import { api } from "@/lib/api";
+import type {
+  CompetitionRegistration,
+  OfficialCompetition,
+  OfficialCompetitionItem,
+  RegistrationStatus,
+} from "@/lib/types";
 
-export type OfficialCompetition = {
-  id: string;
-  code: string;
-  nombre: string;
-  descripcion: string | null;
-  activa: boolean;
-  reglas?: string | null;
-  inscripciones_abiertas?: boolean;
-  temporada_actual?: string | null;
-  orden?: number;
-};
-
-const COMPETITION_SELECT =
-  "id, code, nombre, descripcion, activa, reglas, inscripciones_abiertas, temporada_actual, orden";
-
-/** Catálogo completo (incluidas inactivas) para la pantalla de administración. */
-export const adminCompetitionsQuery = {
-  queryKey: ["official-competitions-admin"],
-  queryFn: async (): Promise<OfficialCompetition[]> => {
-    const { data, error } = await supabase
-      .from("official_competitions")
-      .select(COMPETITION_SELECT)
-      .order("orden");
-    if (error) throw error;
-    return (data ?? []) as OfficialCompetition[];
-  },
-};
-
-export type CatalogItem = {
-  id: string;
-  competition_id: string;
-  code: string;
-  nombre: string;
-  orden: number;
-};
-
-export type TeamRegistration = {
-  id: string;
-  team_id: string;
-  competition_id: string;
-  category_id: string;
-  division_id: string;
-  temporada: string | null;
-  status: RegistrationStatus;
-  registered_at: string;
-  official_competitions: { id: string; code: string; nombre: string } | null;
-  official_competition_categories: { id: string; code: string; nombre: string } | null;
-  official_competition_divisions: { id: string; code: string; nombre: string } | null;
-};
+export type { OfficialCompetition, RegistrationStatus };
+export type CatalogItem = OfficialCompetitionItem;
+export type TeamRegistration = CompetitionRegistration;
 
 /** Estados que cuentan como "inscripción abierta o activa". */
 export const OPEN_REGISTRATION_STATUSES: RegistrationStatus[] = ["abierta", "activa"];
 
+/** Catálogo completo, incluidas las inactivas: es el de la pantalla de administración. */
+export const adminCompetitionsQuery = {
+  queryKey: ["official-competitions-admin"],
+  queryFn: () => api.get<OfficialCompetition[]>("/official-competitions/", { order: "orden" }),
+};
+
 export const competitionsCatalogQuery = {
   queryKey: ["official-competitions"],
-  queryFn: async (): Promise<OfficialCompetition[]> => {
-    const { data, error } = await supabase
-      .from("official_competitions")
-      .select(COMPETITION_SELECT)
-      .eq("activa", true)
-      .order("orden");
-    if (error) throw error;
-    return (data ?? []) as OfficialCompetition[];
-  },
+  queryFn: () =>
+    api.get<OfficialCompetition[]>("/official-competitions/", {
+      activa: true,
+      order: "orden",
+    }),
 };
 
 export const categoriesCatalogQuery = {
   queryKey: ["official-competition-categories"],
-  queryFn: async (): Promise<CatalogItem[]> => {
-    const { data, error } = await supabase
-      .from("official_competition_categories")
-      .select("id, competition_id, code, nombre, orden")
-      .order("orden");
-    if (error) throw error;
-    return data ?? [];
-  },
+  queryFn: () => api.get<CatalogItem[]>("/official-categories/", { order: "orden" }),
 };
 
 export const divisionsCatalogQuery = {
   queryKey: ["official-competition-divisions"],
-  queryFn: async (): Promise<CatalogItem[]> => {
-    const { data, error } = await supabase
-      .from("official_competition_divisions")
-      .select("id, competition_id, code, nombre, orden")
-      .order("orden");
-    if (error) throw error;
-    return data ?? [];
-  },
+  queryFn: () => api.get<CatalogItem[]>("/official-divisions/", { order: "orden" }),
 };
-
-const REGISTRATION_SELECT =
-  "id, team_id, competition_id, category_id, division_id, temporada, status, registered_at, official_competitions(id, code, nombre), official_competition_categories(id, code, nombre), official_competition_divisions(id, code, nombre)";
 
 export function teamRegistrationsQuery(teamId: string | undefined) {
   return {
     queryKey: ["competition-registrations", teamId],
     enabled: !!teamId,
-    queryFn: async (): Promise<TeamRegistration[]> => {
-      const { data, error } = await supabase
-        .from("competition_registrations")
-        .select(REGISTRATION_SELECT)
-        .eq("team_id", teamId!)
-        .order("registered_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as unknown as TeamRegistration[];
-    },
+    queryFn: () =>
+      api.get<TeamRegistration[]>("/competition-registrations/", {
+        team_id: teamId,
+        order: "-registered_at",
+      }),
   };
 }
 
-/** Inscripciones abiertas/activas, opcionalmente filtradas por competición y categoría. */
+/**
+ * Inscripciones abiertas o activas de cualquier equipo.
+ *
+ * Es lo único del dominio que se ve fuera del propio equipo: sirve para saber
+ * quién compite en qué, en la pantalla de descubrimiento.
+ */
 export function openRegistrationsQuery(opts: {
   competitionId?: string;
   categoryId?: string;
@@ -121,16 +71,12 @@ export function openRegistrationsQuery(opts: {
   return {
     queryKey: ["open-registrations", opts.competitionId ?? "all", opts.categoryId ?? "all"],
     enabled: opts.enabled ?? true,
-    queryFn: async (): Promise<TeamRegistration[]> => {
-      let query = supabase
-        .from("competition_registrations")
-        .select(REGISTRATION_SELECT)
-        .in("status", OPEN_REGISTRATION_STATUSES);
-      if (opts.competitionId) query = query.eq("competition_id", opts.competitionId);
-      if (opts.categoryId) query = query.eq("category_id", opts.categoryId);
-      const { data, error } = await query;
-      if (error) throw error;
-      return (data ?? []) as unknown as TeamRegistration[];
-    },
+    queryFn: () =>
+      api.get<TeamRegistration[]>("/competition-registrations/", {
+        open: 1,
+        status__in: OPEN_REGISTRATION_STATUSES,
+        competition_id: opts.competitionId,
+        category_id: opts.categoryId,
+      }),
   };
 }

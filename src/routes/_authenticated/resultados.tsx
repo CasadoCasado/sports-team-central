@@ -2,7 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Trophy, MapPin, Calendar as CalendarIcon, XCircle } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
+import type { TeamEvent } from "@/lib/types";
 import { useActiveTeam } from "@/hooks/use-active-team";
 import { TeamPicker } from "@/components/team-picker";
 import { EmptyTeamState } from "@/components/empty-team-state";
@@ -29,17 +30,13 @@ function Resultados() {
   const { data: matches } = useQuery({
     queryKey: ["results", teamId],
     enabled: !!teamId,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("events")
-        .select("id, titulo, rival, es_local, fecha_inicio, resultado_local, resultado_visitante, ubicacion, competition:competition_id(nombre)")
-        .eq("team_id", teamId!)
-        .eq("tipo", "partido")
-        .lte("fecha_inicio", new Date().toISOString())
-        .order("fecha_inicio", { ascending: false });
-      if (error) throw error;
-      return data ?? [];
-    },
+    queryFn: () =>
+      api.get<TeamEvent[]>("/events/", {
+        team_id: teamId!,
+        tipo: "partido",
+        fecha_inicio__lte: new Date().toISOString(),
+        order: "-fecha_inicio",
+      }),
   });
 
   if (!active) return <EmptyTeamState />;
@@ -72,7 +69,7 @@ function Resultados() {
               : outcome === "L"
               ? "bg-red-500/15 text-red-500 border border-red-500/40"
               : "bg-muted text-muted-foreground border border-border";
-            const comp = Array.isArray(m.competition) ? m.competition[0] : m.competition;
+            const comp = m.competition_nombre ? { nombre: m.competition_nombre } : null;
             return (
               <Link
                 key={m.id}

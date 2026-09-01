@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Trophy } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { useIsAdmin } from "@/hooks/use-is-admin";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,7 +47,8 @@ export const Route = createFileRoute("/_authenticated/admin/competiciones")({
   }),
 });
 
-type CatalogKind = "official_competition_categories" | "official_competition_divisions";
+/** Las dos colecciones que cuelgan de una competición oficial. */
+type CatalogKind = "official-categories" | "official-divisions";
 
 function AdminCompetitionsPage() {
   const { t } = useTranslation();
@@ -142,7 +143,7 @@ function AdminCompetitionsPage() {
                 >
                   <Pencil className="size-3.5" />
                 </button>
-                <DeleteButton table="official_competitions" id={c.id} />
+                <DeleteButton table="official-competitions" id={c.id} />
               </div>
             </div>
 
@@ -157,13 +158,13 @@ function AdminCompetitionsPage() {
               <div className="mt-3 grid gap-4 sm:grid-cols-2">
                 <CatalogList
                   title={t("registrations.category")}
-                  kind="official_competition_categories"
+                  kind="official-categories"
                   competitionId={c.id}
                   items={(categories ?? []).filter((x) => x.competition_id === c.id)}
                 />
                 <CatalogList
                   title={t("registrations.division")}
-                  kind="official_competition_divisions"
+                  kind="official-divisions"
                   competitionId={c.id}
                   items={(divisions ?? []).filter((x) => x.competition_id === c.id)}
                 />
@@ -180,14 +181,11 @@ function AdminCompetitionsPage() {
   );
 }
 
-function DeleteButton({ table, id }: { table: CatalogKind | "official_competitions"; id: string }) {
+function DeleteButton({ table, id }: { table: CatalogKind | "official-competitions"; id: string }) {
   const { t } = useTranslation();
   const qc = useQueryClient();
   const del = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase.from(table).delete().eq("id", id);
-      if (error) throw error;
-    },
+    mutationFn: () => api.delete(`/${table}/${id}/`),
     onSuccess: () => {
       toast.success(t("adminComps.deleted"));
       qc.invalidateQueries({ queryKey: ["official-competitions-admin"] });
@@ -229,13 +227,12 @@ function CatalogList({
   const add = useMutation({
     mutationFn: async () => {
       if (!code.trim() || !nombre.trim()) throw new Error(t("adminComps.requiredFields"));
-      const { error } = await supabase.from(kind).insert({
+      await api.post(`/${kind}/`, {
         competition_id: competitionId,
         code: code.trim().toUpperCase(),
         nombre: nombre.trim(),
         orden: items.length + 1,
       });
-      if (error) throw error;
     },
     onSuccess: () => {
       setCode("");
@@ -328,14 +325,9 @@ function CompetitionDialog({
         inscripciones_abiertas: abiertas,
       };
       if (isEdit) {
-        const { error } = await supabase
-          .from("official_competitions")
-          .update(payload)
-          .eq("id", initial.id!);
-        if (error) throw error;
+        await api.patch(`/official-competitions/${initial.id!}/`, payload);
       } else {
-        const { error } = await supabase.from("official_competitions").insert(payload);
-        if (error) throw error;
+        await api.post("/official-competitions/", payload);
       }
     },
     onSuccess: () => {

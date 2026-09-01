@@ -1,20 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+
+import { api } from "@/lib/api";
+import type { FullProfile } from "@/lib/types";
+
 import { useSession } from "./use-session";
 
+/** El perfil completo del usuario actual. */
 export function useProfile() {
   const { user } = useSession();
   return useQuery({
     queryKey: ["profile", user?.id],
     enabled: !!user,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user!.id)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
+    queryFn: () => api.get<FullProfile>("/profiles/me/"),
   });
 }

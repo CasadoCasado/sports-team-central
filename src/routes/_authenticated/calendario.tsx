@@ -29,7 +29,7 @@ import {
   CalendarDays,
   Clock,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { useActiveTeam } from "@/hooks/use-active-team";
 import { TeamPicker } from "@/components/team-picker";
 import { EmptyTeamState } from "@/components/empty-team-state";
@@ -121,21 +121,15 @@ function Calendario() {
       range.end.toISOString(),
     ],
     enabled: !!active,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("events")
-        .select(
-          "id, tipo, titulo, fecha_inicio, fecha_fin, ubicacion, rival, requiere_convocatoria",
-        )
-        .eq("team_id", active!.team_id)
-        .lte("fecha_inicio", range.end.toISOString())
-        .or(
-          `fecha_fin.gte.${range.start.toISOString()},and(fecha_fin.is.null,fecha_inicio.gte.${range.start.toISOString()})`,
-        )
-        .order("fecha_inicio", { ascending: true });
-      if (error) throw error;
-      return (data ?? []) as EventRow[];
-    },
+    // `overlaps_*` recoge también los eventos que empezaron antes de la
+    // ventana y todavía duran, como un torneo de varios días.
+    queryFn: () =>
+      api.get<EventRow[]>("/events/", {
+        team_id: active!.team_id,
+        overlaps_start: range.start.toISOString(),
+        overlaps_end: range.end.toISOString(),
+        order: "fecha_inicio",
+      }),
 
   });
 
@@ -572,35 +566,23 @@ function EventList({ teamId }: { teamId: string }) {
   const now = useMemo(() => new Date().toISOString(), []);
   const { data: upcoming } = useQuery({
     queryKey: ["events", teamId, "upcoming"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("events")
-        .select(
-          "id, tipo, titulo, fecha_inicio, fecha_fin, ubicacion, rival, requiere_convocatoria",
-        )
-        .eq("team_id", teamId)
-        .gte("fecha_inicio", now)
-        .order("fecha_inicio", { ascending: true })
-        .limit(50);
-      if (error) throw error;
-      return (data ?? []) as EventRow[];
-    },
+    queryFn: () =>
+      api.get<EventRow[]>("/events/", {
+        team_id: teamId,
+        fecha_inicio__gte: now,
+        order: "fecha_inicio",
+        limit: 50,
+      }),
   });
   const { data: past } = useQuery({
     queryKey: ["events", teamId, "past"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("events")
-        .select(
-          "id, tipo, titulo, fecha_inicio, fecha_fin, ubicacion, rival, resultado_local, resultado_visitante",
-        )
-        .eq("team_id", teamId)
-        .lt("fecha_inicio", now)
-        .order("fecha_inicio", { ascending: false })
-        .limit(30);
-      if (error) throw error;
-      return (data ?? []) as EventRow[];
-    },
+    queryFn: () =>
+      api.get<EventRow[]>("/events/", {
+        team_id: teamId,
+        fecha_inicio__lt: now,
+        order: "-fecha_inicio",
+        limit: 30,
+      }),
   });
   return (
     <div className="grid gap-6 lg:grid-cols-2">

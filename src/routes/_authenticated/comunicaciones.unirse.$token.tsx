@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Link2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { ApiError, api } from "@/lib/api";
 
 export const Route = createFileRoute("/_authenticated/comunicaciones/unirse/$token")({
   head: () => ({
@@ -31,13 +31,20 @@ function JoinChannel() {
     if (ran.current) return;
     ran.current = true;
     (async () => {
-      const { data, error } = await supabase.rpc("join_channel_by_token", { _token: token });
-      if (error || !data) {
-        const code = error?.message ?? "";
-        let msg = t("chat.joinFailed");
-        if (code.includes("invalid_token")) msg = t("chat.inviteInvalid");
-        else if (code.includes("not_team_member")) msg = t("chat.notTeamMember");
-        setMessage(msg);
+      // Port de la función SQL `join_channel_by_token`: sigue exigiendo ser
+      // del equipo, el enlace solo ahorra que un gestor te añada a mano.
+      try {
+        await api.post("/chat-channels/join/", { token });
+      } catch (err) {
+        const status = err instanceof ApiError ? err.status : 0;
+        // 400 es un enlace que no vale; 403, alguien de fuera del equipo.
+        setMessage(
+          status === 400
+            ? t("chat.inviteInvalid")
+            : status === 403
+              ? t("chat.notTeamMember")
+              : t("chat.joinFailed"),
+        );
         setStatus("error");
         return;
       }

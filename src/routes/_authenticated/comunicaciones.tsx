@@ -4,9 +4,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Copy, Hash, Link2, Lock, Plus, RefreshCw, Send, Settings, Trash2, Users } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useServerFn } from "@tanstack/react-start";
-import { sendPushToTeam } from "@/lib/push.functions";
+import { api } from "@/lib/api";
+import type { ChatChannel, ChatChannelMember, ChatMessage, TeamMember } from "@/lib/types";
 import { useProfile } from "@/hooks/use-profile";
 import { useSession } from "@/hooks/use-session";
 import { useActiveTeam } from "@/hooks/use-active-team";
@@ -70,22 +69,17 @@ function useTeamMemberOptions(teamId: string | undefined) {
     queryKey: ["team-member-options", teamId],
     enabled: !!teamId,
     queryFn: async (): Promise<TeamMemberOption[]> => {
-      const { data, error } = await supabase
-        .from("team_members")
-        .select("user_id, role, profiles:user_id(nombre, apellidos, avatar_url)")
-        .eq("team_id", teamId!)
-        .eq("status", "activo");
-      if (error) throw error;
-      return (data ?? []).map((r: any) => {
-        const p = Array.isArray(r.profiles) ? r.profiles[0] : r.profiles;
-        return {
-          user_id: r.user_id,
-          role: r.role,
-          nombre: p?.nombre ?? null,
-          apellidos: p?.apellidos ?? null,
-          avatar_url: p?.avatar_url ?? null,
-        };
+      const rows = await api.get<TeamMember[]>("/team-members/", {
+        team_id: teamId!,
+        status: "activo",
       });
+      return rows.map((r) => ({
+        user_id: r.user_id,
+        role: r.role,
+        nombre: r.profile?.nombre ?? null,
+        apellidos: r.profile?.apellidos ?? null,
+        avatar_url: r.profile?.avatar_url ?? null,
+      }));
     },
   });
 }
@@ -98,16 +92,9 @@ function Comunicaciones() {
   const { data: channels } = useQuery({
     queryKey: ["chat-channels", teamId],
     enabled: !!teamId,
-    queryFn: async (): Promise<Channel[]> => {
-      const { data, error } = await supabase
-        .from("chat_channels")
-        .select("id, team_id, nombre, scope, invite_token")
-        .eq("team_id", teamId!)
-        .order("scope")
-        .order("created_at");
-      if (error) throw error;
-      return (data ?? []) as Channel[];
-    },
+    // La lista ya viene filtrada a los canales en los que se puede entrar: el
+    // general, el de staff si gestionas, y los privados donde estés metido.
+    queryFn: () => api.get<ChatChannel[]>("/chat-channels/", { team_id: teamId! }),
   });
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -286,21 +273,18 @@ function NewChannelDialog({ teamId }: { teamId: string }) {
     }
     setSaving(true);
     try {
-      const { data: channel, error } = await supabase
-        .from("chat_channels")
-        .insert({ team_id: teamId, nombre: nombre.trim(), scope: "custom" })
-        .select("id")
-        .single();
-      if (error) throw error;
+      const channel = await api.post<ChatChannel>("/chat-channels/", {
+        team_id: teamId,
+        nombre: nombre.trim(),
+        scope: "custom",
+      });
 
       const memberIds = new Set(selected);
       if (user) memberIds.add(user.id);
-      const rows = Array.from(memberIds).map((uid) => ({
+      await api.post("/chat-channel-members/set-members/", {
         channel_id: channel.id,
-        user_id: uid,
-      }));
-      const { error: memErr } = await supabase.from("chat_channel_members").insert(rows);
-      if (memErr) throw memErr;
+        user_ids: Array.from(memberIds),
+      });
 
       toast.success(t("chat.channelCreated"));
       setNombre("");
@@ -381,15 +365,12 @@ function InviteLinkSection({ channel }: { channel: Channel }) {
   async function generate() {
     setBusy(true);
     try {
-      const newToken =
-        (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)) +
-        Math.random().toString(36).slice(2, 8);
-      const { error } = await supabase
-        .from("chat_channels")
-        .update({ invite_token: newToken })
-        .eq("id", channel.id);
-      if (error) throw error;
-      setToken(newToken);
+      // El token lo genera el servidor: uno aleatorio de verdad, no derivado
+      // de Math.random() en el navegador.
+      const updated = await api.post<ChatChannel>(
+        `/chat-channels/${channel.id}/invite-token/`,
+      );
+      setToken(updated.invite_token);
       qc.invalidateQueries({ queryKey: ["chat-channels", channel.team_id] });
       toast.success(t("chat.inviteGenerated"));
     } catch (err) {
@@ -402,11 +383,7 @@ function InviteLinkSection({ channel }: { channel: Channel }) {
   async function revoke() {
     setBusy(true);
     try {
-      const { error } = await supabase
-        .from("chat_channels")
-        .update({ invite_token: null })
-        .eq("id", channel.id);
-      if (error) throw error;
+      await api.post(`/chat-channels/${channel.id}/invite-token/`, { revoke: true });
       setToken(null);
       qc.invalidateQueries({ queryKey: ["chat-channels", channel.team_id] });
       toast.success(t("chat.inviteRevoked"));
@@ -488,12 +465,10 @@ function ManageMembersDialog({
     queryKey: ["channel-members", channel.id],
     enabled: open,
     queryFn: async (): Promise<string[]> => {
-      const { data, error } = await supabase
-        .from("chat_channel_members")
-        .select("user_id")
-        .eq("channel_id", channel.id);
-      if (error) throw error;
-      return (data ?? []).map((r) => r.user_id);
+      const rows = await api.get<ChatChannelMember[]>("/chat-channel-members/", {
+        channel_id: channel.id,
+      });
+      return rows.map((r) => r.user_id);
     },
   });
 
@@ -522,23 +497,12 @@ function ManageMembersDialog({
       const desired = new Set(selected);
       if (user) desired.add(user.id);
 
-      const toAdd = Array.from(desired).filter((id) => !current.has(id));
-      const toRemove = Array.from(current).filter((id) => !desired.has(id));
-
-      if (toAdd.length) {
-        const { error } = await supabase
-          .from("chat_channel_members")
-          .insert(toAdd.map((uid) => ({ channel_id: channel.id, user_id: uid })));
-        if (error) throw error;
-      }
-      if (toRemove.length) {
-        const { error } = await supabase
-          .from("chat_channel_members")
-          .delete()
-          .eq("channel_id", channel.id)
-          .in("user_id", toRemove);
-        if (error) throw error;
-      }
+      // Se manda la lista final y el servidor calcula altas y bajas en una
+      // transacción; antes eran dos escrituras desde el navegador.
+      await api.post("/chat-channel-members/set-members/", {
+        channel_id: channel.id,
+        user_ids: Array.from(desired),
+      });
       toast.success(t("chat.membersUpdated"));
       setOpen(false);
       qc.invalidateQueries({ queryKey: ["channel-members", channel.id] });
@@ -598,64 +562,35 @@ function ChannelView({ channel, isManager }: { channel: Channel; isManager: bool
   const { user } = useSession();
   const qc = useQueryClient();
   const { data: me } = useProfile();
-  const pushTeam = useServerFn(sendPushToTeam);
 
   const messagesKey = useMemo(() => ["chat-messages", channel.id] as const, [channel.id]);
 
   const { data: messages } = useQuery({
     queryKey: messagesKey,
-    queryFn: async (): Promise<Message[]> => {
-      const { data, error } = await supabase
-        .from("chat_messages")
-        .select("id, channel_id, user_id, contenido, edited, created_at")
-        .eq("channel_id", channel.id)
-        .order("created_at", { ascending: true })
-        .limit(200);
-      if (error) throw error;
-      return (data ?? []) as Message[];
-    },
+    // Cada mensaje trae el perfil de su autor, así que ya no hace falta la
+    // segunda consulta a `profiles`.
+    queryFn: () =>
+      api.get<ChatMessage[]>("/chat-messages/", {
+        channel_id: channel.id,
+        order: "created_at",
+        limit: 200,
+      }),
+    // Sin Realtime, el chat se refresca cada pocos segundos mientras está abierto.
+    refetchInterval: 5_000,
   });
 
-  const userIds = useMemo(
-    () => Array.from(new Set((messages ?? []).map((m) => m.user_id))),
-    [messages],
-  );
-
-  const { data: profiles } = useQuery({
-    queryKey: ["chat-profiles", userIds.sort().join(",")],
-    enabled: userIds.length > 0,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("id, nombre, apellidos, avatar_url")
-        .in("id", userIds);
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
-
+  // El perfil del autor viene con cada mensaje; antes hacía falta pedirlos
+  // aparte y cruzarlos por identificador.
   const profileMap = useMemo(() => {
-    const map = new Map<string, { nombre: string | null; apellidos: string | null; avatar_url: string | null }>();
-    (profiles ?? []).forEach((p) => map.set(p.id, p));
+    const map = new Map<
+      string,
+      { nombre: string | null; apellidos: string | null; avatar_url: string | null }
+    >();
+    (messages ?? []).forEach((m) => {
+      if (m.profile) map.set(m.user_id, m.profile);
+    });
     return map;
-  }, [profiles]);
-
-  // Realtime subscription
-  useEffect(() => {
-    const ch = supabase
-      .channel(`chat:${channel.id}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "chat_messages", filter: `channel_id=eq.${channel.id}` },
-        () => {
-          qc.invalidateQueries({ queryKey: messagesKey });
-        },
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(ch);
-    };
-  }, [channel.id, messagesKey, qc]);
+  }, [messages]);
 
   // Auto-scroll to bottom on new messages
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -673,28 +608,14 @@ function ChannelView({ channel, isManager }: { channel: Channel; isManager: bool
     if (!content || !user) return;
     setSending(true);
     try {
-      const { error } = await supabase.from("chat_messages").insert({
+      // El aviso al resto del canal lo manda el servidor, que sabe quién puede
+      // leerlo (incluso en los canales privados).
+      await api.post("/chat-messages/", {
         channel_id: channel.id,
-        user_id: user.id,
         contenido: content,
       });
-      if (error) throw error;
       setText("");
       qc.invalidateQueries({ queryKey: messagesKey });
-      // Skip team-wide push for custom (private) channels — audience is restricted.
-      if (channel.scope !== "custom") {
-        const author = [me?.nombre, me?.apellidos].filter(Boolean).join(" ") || "Nuevo mensaje";
-        pushTeam({
-          data: {
-            teamId: channel.team_id,
-            title: `#${channel.nombre} · ${author}`,
-            body: content.slice(0, 140),
-            url: "/comunicaciones",
-            tag: `chat:${channel.id}`,
-            managersOnly: channel.scope === "staff",
-          },
-        }).catch(() => {});
-      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("common.error"));
     } finally {
@@ -704,9 +625,10 @@ function ChannelView({ channel, isManager }: { channel: Channel; isManager: bool
 
   async function remove(id: string) {
     if (!confirm(t("chat.deleteConfirm"))) return;
-    const { error } = await supabase.from("chat_messages").delete().eq("id", id);
-    if (error) {
-      toast.error(error.message);
+    try {
+      await api.delete(`/chat-messages/${id}/`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("common.error"));
       return;
     }
     qc.invalidateQueries({ queryKey: messagesKey });
@@ -714,9 +636,10 @@ function ChannelView({ channel, isManager }: { channel: Channel; isManager: bool
 
   async function removeChannel() {
     if (!confirm(t("chat.deleteChannelConfirm"))) return;
-    const { error } = await supabase.from("chat_channels").delete().eq("id", channel.id);
-    if (error) {
-      toast.error(error.message);
+    try {
+      await api.delete(`/chat-channels/${channel.id}/`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("common.error"));
       return;
     }
     toast.success(t("chat.channelDeleted"));

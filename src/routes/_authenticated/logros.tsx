@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Trophy, Flame, CalendarCheck, Star, Target, Medal, Lock } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
+import type { EventResponse, TeamMember } from "@/lib/types";
 import { useSession } from "@/hooks/use-session";
 import { useActiveTeam } from "@/hooks/use-active-team";
 import { TeamPicker } from "@/components/team-picker";
@@ -50,34 +51,25 @@ function Logros() {
   const { data: participations } = useQuery({
     queryKey: ["achievements-participations", teamId],
     enabled: !!teamId,
-    queryFn: async (): Promise<ParticipationRow[]> => {
-      const { data, error } = await supabase
-        .from("match_participations")
-        .select("user_id, jugado, ganado, event_ganado, fecha, event_id")
-        .eq("team_id", teamId!);
-      if (error) throw error;
-      return (data ?? []) as ParticipationRow[];
-    },
+    queryFn: () =>
+      api.get<ParticipationRow[]>("/match-participations/", { team_id: teamId! }),
   });
 
   const { data: roster } = useQuery({
     queryKey: ["achievements-roster", teamId],
     enabled: !!teamId,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("team_members")
-        .select("user_id, profiles:user_id(nombre, apellidos, avatar_url)")
-        .eq("team_id", teamId!)
-        .eq("status", "activo");
-      if (error) throw error;
-      return (data ?? []).map((m) => {
-        const p = Array.isArray(m.profiles) ? m.profiles[0] : m.profiles;
-        return {
-          userId: m.user_id,
-          name: [p?.nombre, p?.apellidos].filter(Boolean).join(" ").trim() || "—",
-          avatar: p?.avatar_url ?? null,
-        };
+      const rows = await api.get<TeamMember[]>("/team-members/", {
+        team_id: teamId!,
+        status: "activo",
       });
+      return rows.map((m) => ({
+        userId: m.user_id,
+        name:
+          [m.profile?.nombre, m.profile?.apellidos].filter(Boolean).join(" ").trim() ||
+          "—",
+        avatar: m.profile?.avatar_url ?? null,
+      }));
     },
   });
 
@@ -85,14 +77,9 @@ function Logros() {
     queryKey: ["achievements-attendance", teamId, user?.id],
     enabled: !!teamId && !!user,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("event_responses")
-        .select("status, es_convocado, event:event_id(team_id)")
-        .eq("user_id", user!.id);
-      if (error) throw error;
-      const rows = (data ?? []).filter((r) => {
-        const ev = Array.isArray(r.event) ? r.event[0] : r.event;
-        return ev?.team_id === teamId;
+      const rows = await api.get<EventResponse[]>("/event-responses/", {
+        team_id: teamId!,
+        user_id: user!.id,
       });
       return {
         confirmed: rows.filter((r) => r.status === "confirmado").length,

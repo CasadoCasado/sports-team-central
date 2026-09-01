@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { ImagePlus, Trash2, Images } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
+import type { GalleryItem } from "@/lib/types";
 import { useSession } from "@/hooks/use-session";
 import { useActiveTeam } from "@/hooks/use-active-team";
 import { Button } from "@/components/ui/button";
@@ -23,13 +24,7 @@ export const Route = createFileRoute("/_authenticated/galeria")({
   component: Galeria,
 });
 
-type Item = {
-  id: string;
-  storage_path: string;
-  caption: string | null;
-  uploader_id: string;
-  created_at: string;
-};
+type Item = GalleryItem;
 
 function Galeria() {
   const { t } = useTranslation();
@@ -41,54 +36,20 @@ function Galeria() {
   const { data: items } = useQuery<Item[]>({
     queryKey: ["gallery", active?.team_id],
     enabled: !!active,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("gallery_items")
-        .select("id, storage_path, caption, uploader_id, created_at")
-        .eq("team_id", active!.team_id)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data ?? [];
-    },
+    queryFn: () =>
+      api.get<Item[]>("/gallery-items/", {
+        team_id: active!.team_id,
+        order: "-created_at",
+      }),
   });
-
-  const [urls, setUrls] = useState<Record<string, string>>({});
-  useEffect(() => {
-    if (!items || items.length === 0) return;
-    let cancelled = false;
-    (async () => {
-      const paths = items.map((i) => i.storage_path);
-      const { data } = await supabase.storage
-        .from("team-gallery")
-        .createSignedUrls(paths, 3600);
-      if (cancelled) return;
-      const map: Record<string, string> = {};
-      data?.forEach((d, i) => {
-        if (d.signedUrl) map[items[i].id] = d.signedUrl;
-      });
-      setUrls(map);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [items]);
 
   const upload = useMutation({
     mutationFn: async (file: File) => {
       if (!active || !user) throw new Error("No team");
-      const ext = file.name.split(".").pop() ?? "jpg";
-      const path = `${active.team_id}/${crypto.randomUUID()}.${ext}`;
-      const { error: upErr } = await supabase.storage
-        .from("team-gallery")
-        .upload(path, file, { contentType: file.type });
-      if (upErr) throw upErr;
-      const { error } = await supabase.from("gallery_items").insert({
-        team_id: active.team_id,
-        uploader_id: user.id,
-        storage_path: path,
-        caption: file.name,
-      });
-      if (error) throw error;
+      const form = new FormData();
+      form.append("team_id", active.team_id);
+      form.append("file", file);
+      await api.upload("/gallery-items/", form);
     },
     onSuccess: () => {
       toast.success(t("gallery.uploaded"));
@@ -98,11 +59,8 @@ function Galeria() {
   });
 
   const remove = useMutation({
-    mutationFn: async (item: Item) => {
-      await supabase.storage.from("team-gallery").remove([item.storage_path]);
-      const { error } = await supabase.from("gallery_items").delete().eq("id", item.id);
-      if (error) throw error;
-    },
+    // La imagen se borra con la fila.
+    mutationFn: (item: Item) => api.delete(`/gallery-items/${item.id}/`),
     onSuccess: () => {
       toast.success(t("gallery.deleted"));
       qc.invalidateQueries({ queryKey: ["gallery"] });
@@ -158,9 +116,9 @@ function Galeria() {
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
           {items?.map((it) => (
             <div key={it.id} className="group relative overflow-hidden rounded-md border border-border bg-card aspect-square">
-              {urls[it.id] ? (
+              {it.url ? (
                 <img
-                  src={urls[it.id]}
+                  src={it.url}
                   alt={it.caption ?? ""}
                   loading="lazy"
                   className="h-full w-full object-cover"

@@ -1,7 +1,6 @@
 import { createStart, createMiddleware } from "@tanstack/react-start";
 
 import { renderErrorPage } from "./lib/error-page";
-import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";
 
 const errorMiddleware = createMiddleware().server(async ({ next }) => {
   try {
@@ -19,6 +18,8 @@ const errorMiddleware = createMiddleware().server(async ({ next }) => {
 });
 
 export const startInstance = createStart(() => ({
-  functionMiddleware: [attachSupabaseAuth],
+  // Ya no hace falta el middleware que adjuntaba el token de Supabase a las
+  // funciones de servidor: la app habla directamente con la API de Django y
+  // es `src/lib/api.ts` quien pone la cabecera Authorization.
   requestMiddleware: [errorMiddleware],
 }));

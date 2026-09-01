@@ -1,21 +1,24 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+
 import { useSession } from "@/hooks/use-session";
+import { api } from "@/lib/api";
+import { MANAGER_ROLES, type TeamMember, type TeamRole } from "@/lib/types";
 
 const STORAGE_KEY = "vestuario:active-team";
 
 export type ActiveTeamMembership = {
   team_id: string;
-  role: "capitan" | "co_capitan" | "entrenador" | "delegado" | "jugador";
-  team: {
-    id: string;
-    nombre: string;
-    logo_url: string | null;
-    owner_id: string;
-  };
+  role: TeamRole;
+  team: TeamMember["team"];
 };
 
+/**
+ * El equipo con el que se está trabajando.
+ *
+ * Un usuario puede estar en varios; el elegido se recuerda en el navegador y,
+ * si no hay ninguno guardado, se usa el primero.
+ */
 export function useActiveTeam() {
   const { user } = useSession();
 
@@ -23,17 +26,13 @@ export function useActiveTeam() {
     queryKey: ["active-team-memberships", user?.id],
     enabled: !!user,
     queryFn: async (): Promise<ActiveTeamMembership[]> => {
-      const { data, error } = await supabase
-        .from("team_members")
-        .select("team_id, role, teams:team_id(id, nombre, logo_url, owner_id)")
-        .eq("user_id", user!.id)
-        .eq("status", "activo");
-      if (error) throw error;
-      return (data ?? []).map((m) => ({
-        team_id: m.team_id,
-        role: m.role as ActiveTeamMembership["role"],
-        team: Array.isArray(m.teams) ? m.teams[0] : m.teams,
-      })).filter((m) => m.team);
+      const rows = await api.get<TeamMember[]>("/team-members/", {
+        mine: 1,
+        status: "activo",
+      });
+      return rows
+        .filter((m) => m.team)
+        .map((m) => ({ team_id: m.team_id, role: m.role, team: m.team }));
     },
   });
 
@@ -45,16 +44,14 @@ export function useActiveTeam() {
   }, []);
 
   const memberships = query.data ?? [];
-  const active =
-    memberships.find((m) => m.team_id === activeId) ?? memberships[0] ?? null;
+  const active = memberships.find((m) => m.team_id === activeId) ?? memberships[0] ?? null;
 
   const setActiveId = (id: string) => {
     localStorage.setItem(STORAGE_KEY, id);
     setActiveIdState(id);
   };
 
-  const isManager =
-    !!active && ["capitan", "co_capitan", "entrenador", "delegado"].includes(active.role);
+  const isManager = !!active && MANAGER_ROLES.includes(active.role);
 
   return {
     memberships,

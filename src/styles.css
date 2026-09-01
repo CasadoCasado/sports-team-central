@@ -176,6 +176,17 @@
   }
 }
 
+@utility scrollbar-none {
+  /* Oculta la barra de scroll sin quitar el scroll: la barra lateral sigue
+     desplazándose con la rueda, el teclado y el gesto táctil. */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Edge antiguo */
+
+  &::-webkit-scrollbar {
+    display: none; /* Chrome, Safari */
+  }
+}
+
 @utility text-display {
   font-family: var(--font-display);
   letter-spacing: -0.03em;

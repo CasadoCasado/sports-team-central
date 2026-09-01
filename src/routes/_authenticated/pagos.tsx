@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Plus, Wallet, Check, Clock, Trash2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
+import type { FeePayment, TeamFee, TeamMember } from "@/lib/types";
 import { useSession } from "@/hooks/use-session";
 import { useActiveTeam } from "@/hooks/use-active-team";
 import { Button } from "@/components/ui/button";
@@ -60,13 +61,13 @@ function Pagos() {
     queryKey: ["fees", active?.team_id],
     enabled: !!active,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("team_fees")
-        .select("id, concepto, amount, currency, due_date, created_at")
-        .eq("team_id", active!.team_id)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []).map((f) => ({ ...f, amount: Number(f.amount) }));
+      const rows = await api.get<TeamFee[]>("/team-fees/", {
+        team_id: active!.team_id,
+        order: "-created_at",
+      });
+      // El importe llega como cadena decimal, para no perder céntimos por el
+      // camino; la UI lo pinta como número.
+      return rows.map((f) => ({ ...f, amount: Number(f.amount) }));
     },
   });
 
@@ -74,30 +75,18 @@ function Pagos() {
   const { data: payments } = useQuery<Payment[]>({
     queryKey: ["fee-payments", feeIds.join(",")],
     enabled: feeIds.length > 0,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("fee_payments")
-        .select("id, fee_id, user_id, status, paid_at")
-        .in("fee_id", feeIds);
-      if (error) throw error;
-      return data ?? [];
-    },
+    queryFn: () => api.get<FeePayment[]>("/fee-payments/", { fee_id__in: feeIds }),
   });
 
   const { data: members } = useQuery({
     queryKey: ["team-members-fees", active?.team_id],
     enabled: !!active && isManager,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("team_members")
-        .select("user_id, profiles:user_id(id, nombre, apellidos)")
-        .eq("team_id", active!.team_id)
-        .eq("status", "activo");
-      if (error) throw error;
-      return (data ?? []).map((m) => ({
-        user_id: m.user_id,
-        profile: Array.isArray(m.profiles) ? m.profiles[0] : m.profiles,
-      }));
+      const rows = await api.get<TeamMember[]>("/team-members/", {
+        team_id: active!.team_id,
+        status: "activo",
+      });
+      return rows.map((m) => ({ user_id: m.user_id, profile: m.profile }));
     },
   });
 
@@ -109,14 +98,12 @@ function Pagos() {
   const createFee = useMutation({
     mutationFn: async () => {
       if (!active || !user) throw new Error("No team");
-      const { error } = await supabase.from("team_fees").insert({
+      await api.post("/team-fees/", {
         team_id: active.team_id,
-        created_by: user.id,
         concepto,
-        amount: parseFloat(amount),
+        amount,
         due_date: dueDate || null,
       });
-      if (error) throw error;
     },
     onSuccess: () => {
       toast.success(t("fees.created"));
@@ -130,27 +117,20 @@ function Pagos() {
   });
 
   const togglePaid = useMutation({
-    mutationFn: async ({ feeId, userId, paid }: { feeId: string; userId: string; paid: boolean }) => {
-      const { error } = await supabase.from("fee_payments").upsert(
-        {
-          fee_id: feeId,
-          user_id: userId,
-          status: paid ? "pagado" : "pendiente",
-          paid_at: paid ? new Date().toISOString() : null,
-        },
-        { onConflict: "fee_id,user_id" },
-      );
-      if (error) throw error;
-    },
+    // La fila del pago puede no existir todavía: `set-status` la crea o la
+    // actualiza, que es lo que hacía el upsert.
+    mutationFn: ({ feeId, userId, paid }: { feeId: string; userId: string; paid: boolean }) =>
+      api.post("/fee-payments/set-status/", {
+        fee_id: feeId,
+        user_id: userId,
+        paid,
+      }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["fee-payments"] }),
     onError: (e) => toast.error(e instanceof Error ? e.message : t("common.error")),
   });
 
   const deleteFee = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("team_fees").delete().eq("id", id);
-      if (error) throw error;
-    },
+    mutationFn: (id: string) => api.delete(`/team-fees/${id}/`),
     onSuccess: () => {
       toast.success(t("fees.deleted"));
       qc.invalidateQueries({ queryKey: ["fees"] });

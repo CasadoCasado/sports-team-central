@@ -1,31 +1,50 @@
 import { useEffect, useState } from "react";
-import type { Session, User } from "@supabase/supabase-js";
-import { supabase } from "@/integrations/supabase/client";
 
+import { type AuthUser, fetchUser, getCachedUser, hasSession, onAuthStateChange } from "@/lib/auth";
+
+/**
+ * El usuario autenticado y su perfil.
+ *
+ * Antes esto venía de `supabase.auth.getSession()` más una consulta a
+ * `profiles`; ahora `/auth/me/` devuelve las dos cosas de una vez, así que
+ * `user.profile` está siempre disponible.
+ */
 export function useSession() {
-  const [session, setSession] = useState<Session | null>(null);
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<AuthUser | null>(() => getCachedUser());
+  const [loading, setLoading] = useState(() => !getCachedUser() && hasSession());
 
   useEffect(() => {
     let mounted = true;
-    supabase.auth.getSession().then(({ data }) => {
-      if (!mounted) return;
-      setSession(data.session);
-      setUser(data.session?.user ?? null);
-      setLoading(false);
-    });
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
-      setSession(s);
-      setUser(s?.user ?? null);
+    const load = async () => {
+      if (!hasSession()) {
+        if (mounted) {
+          setUser(null);
+          setLoading(false);
+        }
+        return;
+      }
+      const next = await fetchUser();
+      if (!mounted) return;
+      setUser(next);
+      setLoading(false);
+    };
+
+    void load();
+    const { unsubscribe } = onAuthStateChange((event) => {
+      if (event === "SIGNED_OUT") {
+        setUser(null);
+        setLoading(false);
+        return;
+      }
+      void fetchUser(true).then((next) => mounted && setUser(next));
     });
 
     return () => {
       mounted = false;
-      sub.subscription.unsubscribe();
+      unsubscribe();
     };
   }, []);
 
-  return { session, user, loading };
+  return { user, profile: user?.profile ?? null, loading };
 }
