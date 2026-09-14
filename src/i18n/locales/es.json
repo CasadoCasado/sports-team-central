@@ -144,7 +144,8 @@
     "uploaded": "Foto subida",
     "deleted": "Foto eliminada",
     "deleteConfirm": "¿Eliminar esta foto?",
-    "empty": "Aún no hay fotos. ¡Sube la primera!"
+    "empty": "Aún no hay fotos. ¡Sube la primera!",
+    "emptyPaused": "Aún no hay fotos. La subida se abrirá en cuanto esté listo el almacenamiento."
   },
   "documents": {
     "subtitle": "Archivos y documentos del equipo.",
@@ -154,6 +155,16 @@
     "download": "Descargar",
     "deleteConfirm": "¿Eliminar este documento?",
     "empty": "Aún no hay documentos"
+  },
+  "maintenance": {
+    "badge": "En obras",
+    "title": "Estamos trabajando en ello",
+    "description": "Esta sección estará disponible próximamente.",
+    "galleryTitle": "La galería está en obras",
+    "galleryDescription": "De momento no se pueden subir fotos nuevas: estamos montando dónde guardarlas para que no se pierdan. Lo que ya está subido se sigue viendo y se puede borrar.",
+    "documentsTitle": "Los documentos están en obras",
+    "documentsDescription": "La subida de archivos nuevos está pausada mientras montamos el almacenamiento. Los documentos que ya están se consultan y se descargan con normalidad.",
+    "uploadPaused": "Subida pausada"
   },
   "fees": {
     "subtitle": "Gestiona cuotas y pagos del equipo.",

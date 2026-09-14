@@ -9,6 +9,8 @@ import type { TeamDocument } from "@/lib/types";
 import { useSession } from "@/hooks/use-session";
 import { useActiveTeam } from "@/hooks/use-active-team";
 import { Button } from "@/components/ui/button";
+import { MaintenanceNotice } from "@/components/maintenance-notice";
+import { FEATURES } from "@/lib/feature-flags";
 
 export const Route = createFileRoute("/_authenticated/documentos")({
   head: () => ({
@@ -99,7 +101,7 @@ function Documentos() {
           </h1>
           <p className="text-sm text-muted-foreground">{t("documents.subtitle")}</p>
         </div>
-        {isManager && (
+        {isManager && FEATURES.documentUploads && (
           <>
             <input
               ref={fileRef}
@@ -122,6 +124,13 @@ function Documentos() {
           </>
         )}
       </div>
+
+      {!FEATURES.documentUploads && (
+        <MaintenanceNotice
+          title={t("maintenance.documentsTitle")}
+          description={t("maintenance.documentsDescription")}
+        />
+      )}
 
       <div className="surface-card divide-y divide-border">
         {(docs?.length ?? 0) === 0 ? (

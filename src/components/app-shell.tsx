@@ -2,6 +2,7 @@ import { type ReactNode, useState } from "react";
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { useIsAdmin } from "@/hooks/use-is-admin";
+import { UNDER_MAINTENANCE } from "@/lib/feature-flags";
 import { GuidedTour, useGuidedTour } from "@/components/guided-tour";
 import {
   Home,
@@ -204,6 +205,19 @@ export function AppShell({ children }: { children: ReactNode }) {
                       )}
                       <Icon className={cn("size-4 shrink-0 transition-colors", active ? "text-primary" : "text-[color:var(--color-ink-muted)] group-hover:text-white")} />
                       <span className="truncate">{item.label}</span>
+                      {UNDER_MAINTENANCE[item.to] && (
+                        <span
+                          className="ml-auto flex shrink-0 items-center"
+                          title={t("maintenance.badge")}
+                        >
+                          <span
+                            aria-hidden="true"
+                            className="size-1.5 rounded-full"
+                            style={{ backgroundColor: "var(--color-evt-torneo)" }}
+                          />
+                          <span className="sr-only">{t("maintenance.badge")}</span>
+                        </span>
+                      )}
                     </Link>
                   );
                 })}
