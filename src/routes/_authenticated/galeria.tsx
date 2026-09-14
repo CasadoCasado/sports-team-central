@@ -9,6 +9,8 @@ import type { GalleryItem } from "@/lib/types";
 import { useSession } from "@/hooks/use-session";
 import { useActiveTeam } from "@/hooks/use-active-team";
 import { Button } from "@/components/ui/button";
+import { MaintenanceNotice } from "@/components/maintenance-notice";
+import { FEATURES } from "@/lib/feature-flags";
 
 export const Route = createFileRoute("/_authenticated/galeria")({
   head: () => ({
@@ -84,33 +86,44 @@ function Galeria() {
           </h1>
           <p className="text-sm text-muted-foreground">{t("gallery.subtitle")}</p>
         </div>
-        <>
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) upload.mutate(f);
-              e.target.value = "";
-            }}
-          />
-          <Button
-            onClick={() => fileRef.current?.click()}
-            disabled={upload.isPending}
-            className="bg-primary text-primary-foreground uppercase text-2xs tracking-widest font-bold"
-          >
-            <ImagePlus className="mr-2 size-4" />
-            {upload.isPending ? t("common.loading") : t("gallery.upload")}
-          </Button>
-        </>
+        {FEATURES.galleryUploads && (
+          <>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) upload.mutate(f);
+                e.target.value = "";
+              }}
+            />
+            <Button
+              onClick={() => fileRef.current?.click()}
+              disabled={upload.isPending}
+              className="bg-primary text-primary-foreground uppercase text-2xs tracking-widest font-bold"
+            >
+              <ImagePlus className="mr-2 size-4" />
+              {upload.isPending ? t("common.loading") : t("gallery.upload")}
+            </Button>
+          </>
+        )}
       </div>
+
+      {!FEATURES.galleryUploads && (
+        <MaintenanceNotice
+          title={t("maintenance.galleryTitle")}
+          description={t("maintenance.galleryDescription")}
+        />
+      )}
 
       {(items?.length ?? 0) === 0 ? (
         <div className="surface-card flex flex-col items-center gap-3 p-16 text-center">
           <Images className="size-10 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">{t("gallery.empty")}</p>
+          <p className="text-sm text-muted-foreground">
+            {FEATURES.galleryUploads ? t("gallery.empty") : t("gallery.emptyPaused")}
+          </p>
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">

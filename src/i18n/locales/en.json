@@ -144,7 +144,8 @@
     "uploaded": "Photo uploaded",
     "deleted": "Photo deleted",
     "deleteConfirm": "Delete this photo?",
-    "empty": "No photos yet. Upload the first one!"
+    "empty": "No photos yet. Upload the first one!",
+    "emptyPaused": "No photos yet. Uploading will open once storage is ready."
   },
   "documents": {
     "subtitle": "Team files and documents.",
@@ -154,6 +155,16 @@
     "download": "Download",
     "deleteConfirm": "Delete this document?",
     "empty": "No documents yet"
+  },
+  "maintenance": {
+    "badge": "Under construction",
+    "title": "We're working on it",
+    "description": "This section will be available soon.",
+    "galleryTitle": "The gallery is under construction",
+    "galleryDescription": "New photos can't be uploaded yet: we're still setting up where to keep them safely. Whatever is already here can still be viewed and deleted.",
+    "documentsTitle": "Documents are under construction",
+    "documentsDescription": "New uploads are paused while we set up storage. Documents already here can be opened and downloaded as usual.",
+    "uploadPaused": "Uploads paused"
   },
   "fees": {
     "subtitle": "Manage team fees and payments.",
