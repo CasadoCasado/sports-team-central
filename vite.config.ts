@@ -6,6 +6,37 @@
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 import { VitePWA } from "vite-plugin-pwa";
+import { loadEnv, type Plugin } from "vite";
+
+/**
+ * `VITE_API_URL` se hornea en el bundle en tiempo de compilación.
+ *
+ * Si falta, `src/lib/auth.ts` deduce la API del mismo host en el puerto 8000.
+ * En desarrollo es justo lo que se quiere; en Cloudflare Workers ese host no
+ * existe, así que la app se despliega "bien", carga, y no llama a ninguna
+ * parte. Es un fallo silencioso y caro de diagnosticar, así que aquí se
+ * convierte en un error de compilación.
+ *
+ * Para compilar en local sin definirla (probar el bundle de producción, por
+ * ejemplo): `TEAMUP_ALLOW_NO_API_URL=1 npm run build`.
+ */
+function requireApiUrl(): Plugin {
+  return {
+    name: "teamup:require-api-url",
+    apply: "build",
+    config(_config, { mode }) {
+      const env = loadEnv(mode, process.cwd(), "");
+      const apiUrl = env["VITE_API_URL"] || process.env["VITE_API_URL"];
+      const optOut = env["TEAMUP_ALLOW_NO_API_URL"] || process.env["TEAMUP_ALLOW_NO_API_URL"];
+      if (apiUrl || optOut) return;
+      throw new Error(
+        "Falta VITE_API_URL: sin ella la app compilada no sabe a qué API llamar.\n" +
+          "  En el despliegue:  VITE_API_URL=https://teamup-api.onrender.com/api\n" +
+          "  Solo para probar:  TEAMUP_ALLOW_NO_API_URL=1 npm run build",
+      );
+    },
+  };
+}
 
 export default defineConfig({
   tanstackStart: {
@@ -15,6 +46,7 @@ export default defineConfig({
   },
   vite: {
     plugins: [
+      requireApiUrl(),
       VitePWA({
         strategies: "generateSW",
         registerType: "autoUpdate",
