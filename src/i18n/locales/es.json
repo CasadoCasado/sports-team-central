@@ -224,7 +224,8 @@
       "encuesta": "Encuestas",
       "recordatorio": "Recordatorios",
       "solicitud": "Solicitudes",
-      "evento": "Eventos"
+      "evento": "Eventos",
+      "event_reminder": "Recordatorios de eventos"
     }
   },
   "profile": {
