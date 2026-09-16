@@ -1,0 +1,10 @@
+{
+  // Nitro genera `.output/server/wrangler.json` en cada compilación y fusiona
+  // ESTE fichero dentro (ver `readWranglerConfig` del preset `cloudflare-module`).
+  // Sin él, el nombre se deduce del repositorio de GitHub y el Worker sale como
+  // `casadocasado-sports-team-central.<sub>.workers.dev`.
+  //
+  // El nombre decide la URL pública, y esa URL tiene que coincidir **exacta**
+  // con `CORS_ALLOWED_ORIGINS` en Render (paso 4 del despliegue).
+  "name": "teamup"
+}
