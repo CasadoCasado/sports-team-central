@@ -202,11 +202,13 @@ function Miembros() {
                 <div className="flex size-10 items-center justify-center rounded-full bg-card text-xs font-bold ring-1 ring-border">
                   {(p.nombre?.[0] ?? "") + (p.apellidos?.[0] ?? "")}
                 </div>
-                <div className="flex-1">
+                <div className="min-w-0 flex-1">
                   <p className="text-sm font-bold">
                     {p.nombre} {p.apellidos}
                   </p>
-                  <p className="text-xs text-muted-foreground">{p.email}</p>
+                  {/* Sin `min-w-0` arriba, un correo largo ensancha la fila y
+                      saca el botón de borrar fuera de la tarjeta. */}
+                  <EmailCell email={p.email} />
                 </div>
                 {canManageRoles && p.id !== user?.id ? (
                   <>
@@ -265,7 +267,7 @@ function Miembros() {
                     <p className="truncate text-sm font-bold">
                       {p?.nombre} {p?.apellidos}
                     </p>
-                    <p className="truncate text-xs text-muted-foreground">{p?.email}</p>
+                    <EmailCell email={p?.email} />
                     {req.mensaje && (
                       <p className="mt-1 text-xs text-muted-foreground italic">"{req.mensaje}"</p>
                     )}
@@ -373,7 +375,7 @@ function Miembros() {
                 <p className="truncate text-sm font-medium">
                   {r.nombre} {r.apellidos}
                 </p>
-                <p className="truncate text-xs text-muted-foreground">{r.email}</p>
+                <EmailCell email={r.email} />
               </div>
               <Button
                 size="sm"
@@ -391,6 +393,35 @@ function Miembros() {
   );
 }
 
+
+/**
+ * El correo de un usuario, cortado con «…» cuando no cabe en su columna.
+ *
+ * Los correos no llevan espacios, así que sin `truncate` ensanchan la fila
+ * entera y sacan los controles fuera de la tarjeta.
+ *
+ * Para leerlo completo hay dos caminos porque hay dos tipos de dispositivo: en
+ * escritorio, el tooltip nativo del `title`; en el móvil, donde no existe el
+ * hover, tocarlo lo despliega. `break-all` es lo que parte un correo largo en
+ * varias líneas en vez de dejarlo desbordar otra vez al expandirse.
+ */
+function EmailCell({ email }: { email: string | null | undefined }) {
+  const [expanded, setExpanded] = useState(false);
+  if (!email) return null;
+  return (
+    <button
+      type="button"
+      title={email}
+      onClick={() => setExpanded((open) => !open)}
+      className={cn(
+        "block max-w-full text-left text-xs text-muted-foreground",
+        expanded ? "break-all" : "truncate",
+      )}
+    >
+      {email}
+    </button>
+  );
+}
 
 function useDebounced(value: string, delay: number) {
   const [debounced, setDebounced] = useState(value);
