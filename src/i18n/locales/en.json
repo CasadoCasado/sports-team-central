@@ -338,7 +338,8 @@
     "errors": {
       "registrationMismatch": "The selected registration doesn't belong to this team or no longer exists.",
       "registrationNotActive": "The selected registration is not open or active."
-    }
+    },
+    "competicionEntrenoHint": "Put it inside a competition and its result counts towards that competition standings."
   },
   "competitions": {
     "title": "Competitions",
@@ -744,5 +745,63 @@
         "desc": "Turn on reminders and notifications to stay on top of call-ups and last-minute changes."
       }
     }
+  },
+  "training": {
+    "title": "Training results",
+    "subtitle": "Final court order and who won on each one",
+    "needsCompetition": "This training is not part of any competition, so its results count towards no standings. Edit it and pick one.",
+    "notYetPlayed": "Results can be filled in once the training has started.",
+    "pista": "Court",
+    "posicion": "Final position",
+    "addCourt": "Add court",
+    "removeCourt": "Remove court",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "addPlayer": "Add player",
+    "removePlayer": "Remove from the split",
+    "noPlayers": "No players",
+    "winner": "Won",
+    "loser": "Lost",
+    "markWinner": "Mark as winner",
+    "empty": "This training has not been closed yet.",
+    "emptyManager": "Add the courts as they ended up and mark who won on each one.",
+    "unassigned": "No court",
+    "allAssigned": "Everyone signed up has a court",
+    "save": "Save results",
+    "saved": "Training results saved",
+    "closed": "The competition is finished: its results can no longer be changed.",
+    "errNoCourts": "Add at least one court with players",
+    "errEmptyCourt": "There is a court with no players",
+    "errPlayerTwice": "A player cannot be on two courts",
+    "errNotMember": "Someone in the split is no longer on the team",
+    "errDuplicateCourt": "Two courts share the same number"
+  },
+  "standings": {
+    "title": "Standings",
+    "subtitle": "Built from the trainings played inside this competition",
+    "empty": "No training in this competition has results yet.",
+    "podium": "Podium",
+    "puesto": "Rank",
+    "jugador": "Player",
+    "entrenamientos": "Sessions",
+    "jugados": "P",
+    "ganados": "W",
+    "perdidos": "L",
+    "diferencia": "Diff",
+    "winPct": "%",
+    "posicionMedia": "Avg. court",
+    "trainings": "Trainings",
+    "trainingsCount_one": "{{count}} training closed",
+    "trainingsCount_other": "{{count}} trainings closed",
+    "noTrainings": "This competition has no trainings yet.",
+    "finish": "Finish competition",
+    "finishConfirm": "Call the competition finished? The standings freeze, the podium shows up and its trainings stop taking results.",
+    "reopen": "Reopen competition",
+    "finished": "Competition finished",
+    "reopened": "Competition reopened",
+    "finishedOn": "Finished on {{date}}",
+    "tieNote": "With the same wins and difference, the average court position decides.",
+    "back": "Back to competitions",
+    "seeStandings": "See standings"
   }
 }

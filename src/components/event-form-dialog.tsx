@@ -271,34 +271,41 @@ export function EventFormDialog({
               maxLength={200}
             />
           </div>
+          {/* Un entrenamiento también puede colgar de una competición: es lo
+              que hace que su resultado cuente para la clasificación. */}
+          {(values.tipo === "partido" || values.tipo === "entrenamiento") && (
+            <div>
+              <Label>{t("events.competicion")}</Label>
+              <Select
+                value={values.competition_id ?? "none"}
+                onValueChange={(v) =>
+                  setValues((s) => ({ ...s, competition_id: v === "none" ? null : v }))
+                }
+              >
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">{t("events.sinCompeticion")}</SelectItem>
+                  {competitions?.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.nombre}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {values.tipo === "entrenamiento" && (
+                <p className="mt-1.5 text-xxs text-muted-foreground">
+                  {t("events.competicionEntrenoHint")}
+                </p>
+              )}
+            </div>
+          )}
           {values.tipo === "partido" && (
             <>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div>
-                  <Label>{t("events.rival")}</Label>
-                  <Input
-                    value={values.rival}
-                    onChange={(e) => setValues((s) => ({ ...s, rival: e.target.value }))}
-                    maxLength={100}
-                  />
-                </div>
-                <div>
-                  <Label>{t("events.competicion")}</Label>
-                  <Select
-                    value={values.competition_id ?? "none"}
-                    onValueChange={(v) =>
-                      setValues((s) => ({ ...s, competition_id: v === "none" ? null : v }))
-                    }
-                  >
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">{t("events.sinCompeticion")}</SelectItem>
-                      {competitions?.map((c) => (
-                        <SelectItem key={c.id} value={c.id}>{c.nombre}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div>
+                <Label>{t("events.rival")}</Label>
+                <Input
+                  value={values.rival}
+                  onChange={(e) => setValues((s) => ({ ...s, rival: e.target.value }))}
+                  maxLength={100}
+                />
               </div>
               {(registrations?.length ?? 0) > 0 && (
                 <div className="grid gap-3 sm:grid-cols-2">

@@ -60,7 +60,7 @@ export const HELP_SECTIONS: HelpSection[] = [
   },
   {
     id: "calendario",
-    routes: ["/calendario", "/entrenamientos", "/enfrentamientos", "/competiciones"],
+    routes: ["/calendario", "/entrenamientos", "/enfrentamientos"],
     title: { es: "Calendario", en: "Calendar" },
     summary: {
       es: "Toda la actividad del equipo en un solo sitio: entrenamientos, enfrentamientos, torneos y reuniones, en vista de semana o mes.",
@@ -96,6 +96,45 @@ export const HELP_SECTIONS: HelpSection[] = [
       { to: "/calendario", es: "Abrir Calendario", en: "Open Calendar" },
       { to: "/entrenamientos", es: "Entrenamientos", en: "Trainings" },
       { to: "/enfrentamientos", es: "Enfrentamientos", en: "Matches" },
+    ],
+  },
+  {
+    id: "competiciones",
+    routes: ["/competiciones"],
+    title: { es: "Competiciones", en: "Competitions" },
+    summary: {
+      es: "Agrupa entrenamientos y enfrentamientos bajo una liga, copa o torneo del equipo. Si dentro juegas entrenamientos, la competición lleva la cuenta de quién gana más y acaba en podio.",
+      en: "Group trainings and matches under a team league, cup or tournament. If you play trainings inside it, the competition counts who wins most and ends in a podium.",
+    },
+    steps: [
+      {
+        es: "Capitán o co-capitán: pulsa «Nueva competición», ponle nombre y elige liga, copa, torneo o amistoso.",
+        en: "Captain or co-captain: tap “New competition”, name it and pick league, cup, tournament or friendly.",
+      },
+      {
+        es: "Al crear un entrenamiento, elígela en «Competición»: sin eso sus resultados no cuentan para nada.",
+        en: "When creating a training, pick it under “Competition”: without that its results count for nothing.",
+      },
+      {
+        es: "Cuando acabe el entreno, ábrelo y en «Resultados del entreno» coloca las pistas en el orden en que quedaron y marca quién ganó en cada una.",
+        en: "Once the training is over, open it and under “Training results” put the courts in the order they ended up and mark who won on each one.",
+      },
+      {
+        es: "En la competición, «Ver clasificación» suma las victorias de todos los entrenos. A igualdad de victorias y diferencia, manda la posición media de las pistas.",
+        en: "In the competition, “See standings” adds up the wins from every training. With the same wins and difference, the average court position decides.",
+      },
+      {
+        es: "Cuando termine la temporada, pulsa «Finalizar competición»: sale el podio y los entrenos dejan de admitir cambios. Siempre puedes reabrirla.",
+        en: "When the season is over, tap “Finish competition”: the podium shows up and the trainings stop taking changes. You can always reopen it.",
+      },
+    ],
+    example: {
+      es: "Ejemplo: creas la «Liga interna 2025/26», metes en ella el americano de cada jueves, y en junio la finalizas: el podio enseña a los tres que más partidos ganaron.",
+      en: "Example: you create the “Internal league 2025/26”, put every Thursday's americano inside it, and finish it in June: the podium shows the three who won most matches.",
+    },
+    links: [
+      { to: "/competiciones", es: "Abrir Competiciones", en: "Open Competitions" },
+      { to: "/entrenamientos", es: "Entrenamientos", en: "Trainings" },
     ],
   },
   {
