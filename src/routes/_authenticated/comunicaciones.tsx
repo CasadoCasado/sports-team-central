@@ -15,7 +15,7 @@ import {
   Trash2,
   Users,
 } from "lucide-react";
-import { api } from "@/lib/api";
+import { api, mediaUrl } from "@/lib/api";
 import type {
   ChatChannel,
   ChatChannelMember,
@@ -836,7 +836,7 @@ function ChannelView({ channel, isManager }: { channel: Channel; isManager: bool
                   {!sameAuthor &&
                     (p?.avatar_url ? (
                       <img
-                        src={p.avatar_url}
+                        src={mediaUrl(p.avatar_url)}
                         alt=""
                         className="size-8 rounded-full object-cover sm:size-9"
                       />

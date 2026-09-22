@@ -1,10 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Mail } from "lucide-react";
 import { api } from "@/lib/api";
 import { invalidateUser } from "@/lib/auth";
+import { traducirErrorDeImagen } from "@/lib/images";
+import { ImageUpload } from "@/components/image-upload";
 import { useProfile } from "@/hooks/use-profile";
 import { useSession } from "@/hooks/use-session";
 import { Button } from "@/components/ui/button";
@@ -28,9 +31,17 @@ export const Route = createFileRoute("/_authenticated/perfil")({
   head: () => ({
     meta: [
       { title: "Perfil | TeamUp" },
-      { name: "description", content: "Actualiza tus datos, recordatorios, notificaciones push y preferencias de la aplicación." },
+      {
+        name: "description",
+        content:
+          "Actualiza tus datos, recordatorios, notificaciones push y preferencias de la aplicación.",
+      },
       { property: "og:title", content: "Perfil | TeamUp" },
-      { property: "og:description", content: "Actualiza tus datos, recordatorios, notificaciones push y preferencias de la aplicación." },
+      {
+        property: "og:description",
+        content:
+          "Actualiza tus datos, recordatorios, notificaciones push y preferencias de la aplicación.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -42,6 +53,7 @@ function Perfil() {
   const { t, i18n } = useTranslation();
   const { user } = useSession();
   const { data: profile, refetch } = useProfile();
+  const qc = useQueryClient();
 
   const [nombre, setNombre] = useState("");
   const [apellidos, setApellidos] = useState("");
@@ -95,20 +107,44 @@ function Perfil() {
     }
   }
 
+  // `null` quita la foto; un fichero la pone o la sustituye.
+  const avatar = useMutation({
+    mutationFn: async (file: File | null) => {
+      if (file === null) return api.delete("/profiles/me/avatar/");
+      const form = new FormData();
+      form.append("file", file);
+      return api.upload("/profiles/me/avatar/", form);
+    },
+    onSuccess: (_d, file) => {
+      toast.success(file ? t("images.saved") : t("images.removed"));
+      // La foto se pinta también en el chat y en la barra lateral.
+      invalidateUser();
+      refetch();
+      qc.invalidateQueries({ queryKey: ["team-member-options"] });
+      qc.invalidateQueries({ queryKey: ["chat-messages"] });
+    },
+    onError: (e: Error) => toast.error(traducirErrorDeImagen(e.message, t)),
+  });
+
   const initials =
     ((profile?.nombre?.[0] ?? "") + (profile?.apellidos?.[0] ?? "")).toUpperCase() || "U";
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <h1 className="text-display text-3xl font-black tracking-tight">
-        {t("profile.myProfile")}
-      </h1>
+      <h1 className="text-display text-3xl font-black tracking-tight">{t("profile.myProfile")}</h1>
 
       {/* Resumen de cuenta */}
       <section className="surface-card flex flex-col gap-4 p-6 sm:flex-row sm:items-center">
-        <div className="flex size-14 shrink-0 items-center justify-center rounded-full bg-primary/15 text-base font-bold text-primary ring-1 ring-primary/30">
-          {initials}
-        </div>
+        <ImageUpload
+          url={profile?.avatar_url ?? null}
+          alt={[profile?.nombre, profile?.apellidos].filter(Boolean).join(" ")}
+          fallback={<span className="text-base font-bold">{initials}</span>}
+          redonda
+          canEdit
+          busy={avatar.isPending}
+          onPick={(file) => avatar.mutate(file)}
+          onRemove={() => avatar.mutate(null)}
+        />
         <div className="min-w-0 flex-1">
           <p className="text-display truncate text-lg font-bold">
             {[profile?.nombre, profile?.apellidos].filter(Boolean).join(" ") || "—"}
@@ -131,11 +167,21 @@ function Perfil() {
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <Label htmlFor="nombre">{t("auth.nombre")}</Label>
-              <Input id="nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} maxLength={80} />
+              <Input
+                id="nombre"
+                value={nombre}
+                onChange={(e) => setNombre(e.target.value)}
+                maxLength={80}
+              />
             </div>
             <div>
               <Label htmlFor="apellidos">{t("auth.apellidos")}</Label>
-              <Input id="apellidos" value={apellidos} onChange={(e) => setApellidos(e.target.value)} maxLength={120} />
+              <Input
+                id="apellidos"
+                value={apellidos}
+                onChange={(e) => setApellidos(e.target.value)}
+                maxLength={120}
+              />
             </div>
             <div>
               <Label htmlFor="email">{t("profile.email")}</Label>
@@ -143,11 +189,21 @@ function Perfil() {
             </div>
             <div>
               <Label htmlFor="telefono">{t("profile.telefono")}</Label>
-              <Input id="telefono" value={telefono} onChange={(e) => setTelefono(e.target.value)} maxLength={30} />
+              <Input
+                id="telefono"
+                value={telefono}
+                onChange={(e) => setTelefono(e.target.value)}
+                maxLength={30}
+              />
             </div>
             <div>
               <Label htmlFor="ciudad">{t("profile.ciudad")}</Label>
-              <Input id="ciudad" value={ciudad} onChange={(e) => setCiudad(e.target.value)} maxLength={100} />
+              <Input
+                id="ciudad"
+                value={ciudad}
+                onChange={(e) => setCiudad(e.target.value)}
+                maxLength={100}
+              />
             </div>
           </div>
         </section>
@@ -174,15 +230,30 @@ function Perfil() {
             </div>
             <div>
               <Label htmlFor="posicion">{t("profile.posicion")}</Label>
-              <Input id="posicion" value={posicion} onChange={(e) => setPosicion(e.target.value)} maxLength={50} />
+              <Input
+                id="posicion"
+                value={posicion}
+                onChange={(e) => setPosicion(e.target.value)}
+                maxLength={50}
+              />
             </div>
             <div>
               <Label htmlFor="mano">{t("profile.manoDominante")}</Label>
-              <Input id="mano" value={mano} onChange={(e) => setMano(e.target.value)} maxLength={20} />
+              <Input
+                id="mano"
+                value={mano}
+                onChange={(e) => setMano(e.target.value)}
+                maxLength={20}
+              />
             </div>
             <div>
               <Label htmlFor="nivel">{t("profile.nivel")}</Label>
-              <Input id="nivel" value={nivel} onChange={(e) => setNivel(e.target.value)} maxLength={30} />
+              <Input
+                id="nivel"
+                value={nivel}
+                onChange={(e) => setNivel(e.target.value)}
+                maxLength={30}
+              />
             </div>
           </div>
           <div className="mt-4">
@@ -204,7 +275,6 @@ function Perfil() {
         >
           {t("profile.save")}
         </Button>
-
       </form>
 
       <section className="surface-card p-6">

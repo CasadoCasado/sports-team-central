@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { mediaUrl } from "@/lib/api";
 import { Shield, ChevronDown } from "lucide-react";
 import { useActiveTeam } from "@/hooks/use-active-team";
 import {
@@ -20,7 +21,11 @@ export function TeamPicker() {
     <DropdownMenu>
       <DropdownMenuTrigger className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-bold uppercase tracking-widest transition-colors hover:border-primary/40">
         {active.team.logo_url ? (
-          <img src={active.team.logo_url} alt="" className="size-5 rounded-sm object-cover" />
+          <img
+            src={mediaUrl(active.team.logo_url)}
+            alt=""
+            className="size-5 rounded-sm object-cover"
+          />
         ) : (
           <Shield className="size-3.5 text-primary" />
         )}
@@ -37,7 +42,11 @@ export function TeamPicker() {
             <DropdownMenuItem key={m.team_id} onClick={() => setActiveId(m.team_id)}>
               <div className="flex w-full items-center gap-2">
                 {m.team.logo_url ? (
-                  <img src={m.team.logo_url} alt="" className="size-5 rounded-sm object-cover" />
+                  <img
+                    src={mediaUrl(m.team.logo_url)}
+                    alt=""
+                    className="size-5 rounded-sm object-cover"
+                  />
                 ) : (
                   <Shield className="size-4 text-primary" />
                 )}

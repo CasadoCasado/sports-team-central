@@ -1,11 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Search, Shield, Trash2, Upload, Users } from "lucide-react";
 import { api } from "@/lib/api";
-import type { Team, TeamMember } from "@/lib/types";
+import { ImageUpload } from "@/components/image-upload";
+import { traducirErrorDeImagen } from "@/lib/images";
+import { MANAGER_ROLES, type Team, type TeamMember, type TeamRole } from "@/lib/types";
 import { useSession } from "@/hooks/use-session";
 import { useProfile } from "@/hooks/use-profile";
 import { Button } from "@/components/ui/button";
@@ -255,6 +257,7 @@ function TeamCard({
 }) {
   const { t, i18n } = useTranslation();
   const qc = useQueryClient();
+  const isManager = MANAGER_ROLES.includes(role as TeamRole);
   const [deleting, setDeleting] = useState(false);
   const [togglingIns, setTogglingIns] = useState(false);
   const isOwner = !!currentUserId && team.owner_id === currentUserId;
@@ -298,21 +301,38 @@ function TeamCard({
     }
   }
 
+  // `null` quita el escudo; un fichero lo pone o lo sustituye.
+  const logo = useMutation({
+    mutationFn: async (file: File | null) => {
+      if (file === null) return api.delete(`/teams/${team.id}/logo/`);
+      const form = new FormData();
+      form.append("file", file);
+      return api.upload(`/teams/${team.id}/logo/`, form);
+    },
+    onSuccess: (_d: unknown, file: File | null) => {
+      toast.success(file ? t("images.saved") : t("images.removed"));
+      qc.invalidateQueries({ queryKey: ["my-teams-full"] });
+      qc.invalidateQueries({ queryKey: ["my-teams"] });
+      qc.invalidateQueries({ queryKey: ["active-team-memberships"] });
+    },
+    onError: (e: Error) => toast.error(traducirErrorDeImagen(e.message, t)),
+  });
+
   return (
     <div className="surface-card overflow-hidden">
-      <div className="flex items-center gap-4 border-b border-border p-6">
-        {team.logo_url ? (
-          <img
-            src={team.logo_url}
-            alt={team.nombre}
-            className="size-16 rounded-lg object-cover ring-1 ring-border"
-          />
-        ) : (
-          <div className="flex size-16 items-center justify-center rounded-lg bg-primary/10 text-primary">
-            <Shield className="size-8" />
-          </div>
-        )}
-        <div className="min-w-0 flex-1">
+      {/* Envuelve: con el escudo, sus botones, el nombre y el de borrar en
+          una sola fila, en una tarjeta estrecha se pisan unos a otros. */}
+      <div className="flex flex-wrap items-center gap-4 border-b border-border p-6">
+        <ImageUpload
+          url={team.logo_url}
+          alt={team.nombre}
+          fallback={<Shield className="size-8" />}
+          canEdit={isManager}
+          busy={logo.isPending}
+          onPick={(file) => logo.mutate(file)}
+          onRemove={() => logo.mutate(null)}
+        />
+        <div className="min-w-[12rem] flex-1">
           <h3 className="text-display truncate text-2xl font-black">{team.nombre}</h3>
           <p className="mt-1 text-2xs font-bold uppercase tracking-widest text-primary">
             {role}
