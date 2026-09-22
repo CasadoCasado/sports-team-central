@@ -189,19 +189,27 @@ export type TrainingCourt = {
   players: TrainingCourtPlayer[];
 };
 
-/** Una fila de la clasificación de una competición. */
+/**
+ * Una fila de la clasificación de una competición.
+ *
+ * Los entrenamientos se juegan a rey de pista, así que no se cuentan partidos:
+ * de cada noche sale el escalón en el que acabaste. `nota` es la media
+ * bayesiana de esos escalones —de 0 a 100— y es lo que ordena la tabla.
+ */
 export type CompetitionStanding = {
   user_id: string;
   profile: Profile | null;
   puesto: number;
+  /** Noches a las que vino. */
   entrenamientos: number;
-  jugados: number;
-  ganados: number;
-  perdidos: number;
-  diferencia: number;
-  win_pct: number;
-  mejor_posicion: number | null;
-  posicion_media: number | null;
+  /** Veces que acabó en el escalón más alto de la noche. */
+  veces_rey: number;
+  /** El mejor escalón que ha hecho, 1 el más alto. */
+  mejor_puesto: number;
+  puesto_medio: number;
+  nota: number;
+  /** Si llega al mínimo de noches que pide el podio. */
+  clasificado: boolean;
 };
 
 /** Lo que devuelve `/api/competitions/{id}/standings/`. */
@@ -209,7 +217,14 @@ export type CompetitionStandings = {
   competition_id: string;
   finalizada: boolean;
   finalizada_en: string | null;
+  /** Entrenamientos con las pistas ya puestas. */
   entrenamientos: number;
+  /** Media de la competición, hacia la que tira la nota de quien vino poco. */
+  media: number;
+  /** Noches que hay que haber jugado para poder subir al podio. */
+  minimo_podio: number;
+  /** Noches de margen antes de creerse la media de alguien. */
+  margen: number;
   standings: CompetitionStanding[];
   /** Solo llega lleno cuando la competición está finalizada. */
   podium: CompetitionStanding[];

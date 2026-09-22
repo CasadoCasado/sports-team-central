@@ -12,7 +12,17 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { ChevronDown, ChevronUp, ListOrdered, Lock, Plus, Trash2, Trophy, X } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  Crown,
+  ListOrdered,
+  Lock,
+  Plus,
+  Trash2,
+  Trophy,
+  X,
+} from "lucide-react";
 
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -274,6 +284,10 @@ export function TrainingResultsSection({
       )}
 
       <div className="space-y-4 p-5">
+        {canEdit && shown.length > 0 && (
+          <p className="text-2xs text-muted-foreground">{t("training.reyesHint")}</p>
+        )}
+
         {shown.length === 0 && (
           <p className="text-sm text-muted-foreground">
             {canEdit ? t("training.emptyManager") : t("training.empty")}
@@ -367,7 +381,7 @@ export function TrainingResultsSection({
                           canEdit ? "hover:bg-card" : "cursor-default",
                         )}
                       >
-                        <Trophy className="size-3" />
+                        <Crown className="size-3" />
                         {player.ganador ? t("training.winner") : t("training.loser")}
                       </button>
                       {canEdit && (

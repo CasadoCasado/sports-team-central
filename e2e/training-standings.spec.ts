@@ -10,9 +10,9 @@ import {
 } from "./session";
 
 /**
- * Un entrenamiento dentro de una competición: se cierra con el orden de sus
- * pistas y sus ganadores, y eso alimenta la clasificación de la competición
- * hasta que se da por terminada y sale el podio.
+ * Un entrenamiento dentro de una competición, a rey de pista: se cierra con el
+ * orden en que quedaron las pistas y quién aguantaba cada una, y de ahí sale la
+ * clasificación de la competición hasta que se da por terminada y hay podio.
  */
 
 /** Una competición del equipo, creada por la API. */
@@ -60,21 +60,21 @@ test.describe("Entrenamientos dentro de una competición", () => {
     await loginAs(page, captain);
     await page.goto(`/eventos/${training.id}`);
 
-    const results = page.getByRole("heading", { name: /resultados del entreno/i });
+    const results = page.getByRole("heading", { name: /cómo quedó el entreno/i });
     await expect(results).toBeVisible({ timeout: 20_000 });
 
-    // Una pista, con la capitana ganando a su jugador.
+    // Una pista: la capitana la aguanta y su jugador reta.
     await page.getByRole("button", { name: /añadir pista/i }).click();
     const addPlayer = page.getByRole("combobox").last();
     for (const nombre of [/marta/i, /iván/i]) {
       await addPlayer.click();
       await page.getByRole("option", { name: nombre }).click();
     }
-    await page.getByRole("button", { name: /marcar como ganador/i }).first().click();
+    await page.getByRole("button", { name: /marcar como pareja que aguanta la pista/i }).first().click();
     await page.getByRole("button", { name: /guardar resultados/i }).click();
     await expect(page.getByText(/resultados del entreno guardados/i)).toBeVisible();
 
-    // La clasificación de la competición ya cuenta esa victoria.
+    // La clasificación de la competición ya cuenta ese puesto.
     await page.goto(`/competiciones/${competition.id}`);
     await expect(page.getByRole("heading", { name: /clasificación/i })).toBeVisible({
       timeout: 20_000,
@@ -119,7 +119,7 @@ test.describe("Entrenamientos dentro de una competición", () => {
 
     await loginAs(page, player);
     await page.goto(`/eventos/${training.id}`);
-    await expect(page.getByRole("heading", { name: /resultados del entreno/i })).toBeVisible({
+    await expect(page.getByRole("heading", { name: /cómo quedó el entreno/i })).toBeVisible({
       timeout: 20_000,
     });
     await expect(page.getByText(/marta casado/i).first()).toBeVisible();

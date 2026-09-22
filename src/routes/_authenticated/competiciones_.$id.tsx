@@ -9,7 +9,16 @@ import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
 import { es as esLocale, enUS } from "date-fns/locale";
 import { toast } from "sonner";
-import { ArrowLeft, Dumbbell, ListOrdered, Lock, LockOpen, Medal, Trophy } from "lucide-react";
+import {
+  ArrowLeft,
+  Crown,
+  Dumbbell,
+  ListOrdered,
+  Lock,
+  LockOpen,
+  Medal,
+  Trophy,
+} from "lucide-react";
 
 import { api } from "@/lib/api";
 import { useActiveTeam } from "@/hooks/use-active-team";
@@ -136,6 +145,11 @@ function CompetitionDetail() {
                     count: standings?.entrenamientos ?? 0,
                   })}
                 </span>
+                {(standings?.entrenamientos ?? 0) > 0 && (
+                  <span className="text-muted-foreground">
+                    {t("standings.minimoPodio", { count: standings!.minimo_podio })}
+                  </span>
+                )}
               </div>
               {competition.finalizada && competition.finalizada_en && (
                 <p className="mt-2 text-xxs text-muted-foreground">
@@ -202,42 +216,61 @@ function CompetitionDetail() {
                     <th className="px-3 py-2 text-left">{t("standings.puesto")}</th>
                     <th className="px-3 py-2 text-left">{t("standings.jugador")}</th>
                     <th className="px-3 py-2 text-right">{t("standings.entrenamientos")}</th>
-                    <th className="px-3 py-2 text-right">{t("standings.jugados")}</th>
-                    <th className="px-3 py-2 text-right">{t("standings.ganados")}</th>
-                    <th className="px-3 py-2 text-right">{t("standings.perdidos")}</th>
-                    <th className="px-3 py-2 text-right">{t("standings.diferencia")}</th>
-                    <th className="px-3 py-2 text-right">{t("standings.winPct")}</th>
-                    <th className="px-3 py-2 text-right">{t("standings.posicionMedia")}</th>
+                    <th className="px-3 py-2 text-right">{t("standings.vecesRey")}</th>
+                    <th className="px-3 py-2 text-right">{t("standings.mejorPuesto")}</th>
+                    <th className="px-3 py-2 text-right">{t("standings.puestoMedio")}</th>
+                    <th className="px-3 py-2 text-right">{t("standings.nota")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {rows.map((row) => (
-                    <tr key={row.user_id} className="hover:bg-card">
+                    <tr
+                      key={row.user_id}
+                      className={cn("hover:bg-card", !row.clasificado && "opacity-60")}
+                    >
                       <td className="px-3 py-2 font-black tabular-nums">{row.puesto}</td>
-                      <td className="max-w-[12rem] truncate px-3 py-2">{nameOf(row.profile)}</td>
+                      <td className="max-w-[12rem] px-3 py-2">
+                        <span className="block truncate">{nameOf(row.profile)}</span>
+                        {!row.clasificado && (
+                          <span className="text-xxs text-muted-foreground">
+                            {t("standings.noClasificado")}
+                          </span>
+                        )}
+                      </td>
                       <td className="px-3 py-2 text-right tabular-nums">{row.entrenamientos}</td>
-                      <td className="px-3 py-2 text-right tabular-nums">{row.jugados}</td>
-                      <td className="px-3 py-2 text-right font-bold tabular-nums text-emerald-600">
-                        {row.ganados}
-                      </td>
-                      <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">
-                        {row.perdidos}
-                      </td>
                       <td className="px-3 py-2 text-right tabular-nums">
-                        {row.diferencia > 0 ? `+${row.diferencia}` : row.diferencia}
+                        {row.veces_rey > 0 ? (
+                          <span className="inline-flex items-center gap-1 font-bold text-amber-500">
+                            <Crown className="size-3.5" />
+                            {row.veces_rey}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">0</span>
+                        )}
                       </td>
-                      <td className="px-3 py-2 text-right tabular-nums">{row.win_pct}</td>
                       <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">
-                        {row.posicion_media ?? "—"}
+                        {row.mejor_puesto}.º
                       </td>
+                      <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">
+                        {row.puesto_medio}
+                      </td>
+                      <td className="px-3 py-2 text-right font-bold tabular-nums">{row.nota}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-            <p className="border-t border-border px-5 py-3 text-2xs text-muted-foreground">
-              {t("standings.tieNote")}
-            </p>
+            <details className="border-t border-border px-5 py-3">
+              <summary className="cursor-pointer text-2xs font-bold uppercase tracking-widest text-muted-foreground">
+                {t("standings.reglaTitulo")}
+              </summary>
+              <p className="mt-2 text-xs text-muted-foreground">
+                {t("standings.regla", {
+                  media: standings?.media ?? 50,
+                  margen: standings?.margen ?? 5,
+                })}
+              </p>
+            </details>
           </>
         )}
       </section>
@@ -312,7 +345,8 @@ function Podium({ rows }: { rows: CompetitionStanding[] }) {
                     <div key={row.user_id}>
                       <p className="text-sm font-bold leading-tight">{nameOf(row.profile)}</p>
                       <p className="text-xxs text-muted-foreground">
-                        {row.ganados} {t("standings.ganados")}
+                        {row.nota} · {row.veces_rey}
+                        <Crown className="ml-0.5 inline size-3 text-amber-500" />
                       </p>
                     </div>
                   ))
