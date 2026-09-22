@@ -12,7 +12,17 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { ChevronDown, ChevronUp, ListOrdered, Lock, Plus, Trash2, Trophy, X } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  Crown,
+  ListOrdered,
+  Lock,
+  Plus,
+  Trash2,
+  Trophy,
+  X,
+} from "lucide-react";
 
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -24,7 +34,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import type { Competition, Profile, TeamMember, TrainingCourt, EventResponse } from "@/lib/types";
+import { TrainingCountSection, TrainingHeader } from "@/components/training-count-section";
+import type {
+  Competition,
+  EventResponse,
+  Profile,
+  TeamMember,
+  TrainingCourt,
+  TrainingFormat,
+} from "@/lib/types";
 
 /** Una pista mientras se edita: la posición final es su sitio en la lista. */
 type DraftCourt = {
@@ -40,7 +58,8 @@ function saveErrorKey(message: string): string | null {
   if (message.includes("training_empty_court")) return "training.errEmptyCourt";
   if (message.includes("training_player_twice")) return "training.errPlayerTwice";
   if (message.includes("training_player_not_member")) return "training.errNotMember";
-  if (message.includes("training_needs_competition")) return "training.needsCompetition";
+  if (message.includes("training_needs_format")) return "training.errNeedsFormat";
+  if (message.includes("training_wrong_format")) return "training.errWrongFormat";
   if (message.includes("competition_finished")) return "training.closed";
   return null;
 }
@@ -50,12 +69,14 @@ export function TrainingResultsSection({
   teamId,
   competitionId,
   competitionNombre,
+  formatoEntreno,
   startISO,
   isManager,
 }: {
   eventId: string;
   teamId: string;
   competitionId: string | null;
+  formatoEntreno: TrainingFormat | null;
   competitionNombre: string | null;
   startISO: string;
   isManager: boolean;
@@ -223,11 +244,56 @@ export function TrainingResultsSection({
 
   // --- pantalla ----------------------------------------------------------
 
-  if (!competitionId) {
+  // Dentro de una competición manda el formato de ella; un entreno suelto usa
+  // el suyo. Es la misma regla que aplica el servidor en `formato_efectivo`.
+  const formato: TrainingFormat | null = competitionId
+    ? (competition?.formato ?? null)
+    : formatoEntreno;
+
+  // Con competición pero sin cargar todavía no se sabe el formato, y enseñar
+  // el aviso de «sin formato» un instante sería mentir.
+  if (competitionId && !competition) return null;
+
+  const enlaceCompeticion = competitionId ? (
+    <Link
+      to="/competiciones/$id"
+      params={{ id: competitionId }}
+      className="inline-flex items-center gap-1.5 rounded-md border border-primary/40 bg-primary/10 px-2.5 py-1 text-2xs font-bold uppercase tracking-widest text-primary hover:bg-primary/15"
+    >
+      <Trophy className="size-3" />
+      {competitionNombre ?? t("standings.seeStandings")}
+    </Link>
+  ) : null;
+
+  if (formato === null) {
     return (
       <div className="surface-card p-5 text-xs text-muted-foreground">
-        {t("training.needsCompetition")}
+        {t("training.sinFormato")}
       </div>
+    );
+  }
+
+  if (formato !== "rey_pista") {
+    return (
+      <TrainingCountSection
+        eventId={eventId}
+        teamId={teamId}
+        formato={formato}
+        closed={closed}
+        hasStarted={hasStarted}
+        isManager={isManager}
+        header={
+          <TrainingHeader
+            titulo={t("training.countTitle")}
+            subtitulo={t(
+              formato === "americano"
+                ? "training.countSubtitleAmericano"
+                : "training.countSubtitlePartidos",
+            )}
+            action={enlaceCompeticion}
+          />
+        }
+      />
     );
   }
 
@@ -240,27 +306,11 @@ export function TrainingResultsSection({
 
   return (
     <div className="surface-card overflow-hidden">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-5">
-        <div className="flex items-center gap-3">
-          <div className="flex size-10 items-center justify-center rounded-md bg-primary/10 text-primary">
-            <ListOrdered className="size-5" />
-          </div>
-          <div>
-            <h2 className="text-display text-lg font-bold uppercase tracking-tight">
-              {t("training.title")}
-            </h2>
-            <p className="text-xxs text-muted-foreground">{t("training.subtitle")}</p>
-          </div>
-        </div>
-        <Link
-          to="/competiciones/$id"
-          params={{ id: competitionId }}
-          className="inline-flex items-center gap-1.5 rounded-md border border-primary/40 bg-primary/10 px-2.5 py-1 text-2xs font-bold uppercase tracking-widest text-primary hover:bg-primary/15"
-        >
-          <Trophy className="size-3" />
-          {competitionNombre ?? t("standings.seeStandings")}
-        </Link>
-      </div>
+      <TrainingHeader
+        titulo={t("training.title")}
+        subtitulo={t("training.subtitle")}
+        action={enlaceCompeticion}
+      />
 
       {closed && (
         <p className="flex items-center gap-2 border-b border-border bg-muted/50 px-5 py-3 text-xxs text-muted-foreground">
@@ -274,6 +324,10 @@ export function TrainingResultsSection({
       )}
 
       <div className="space-y-4 p-5">
+        {canEdit && shown.length > 0 && (
+          <p className="text-2xs text-muted-foreground">{t("training.reyesHint")}</p>
+        )}
+
         {shown.length === 0 && (
           <p className="text-sm text-muted-foreground">
             {canEdit ? t("training.emptyManager") : t("training.empty")}
@@ -367,7 +421,7 @@ export function TrainingResultsSection({
                           canEdit ? "hover:bg-card" : "cursor-default",
                         )}
                       >
-                        <Trophy className="size-3" />
+                        <Crown className="size-3" />
                         {player.ganador ? t("training.winner") : t("training.loser")}
                       </button>
                       {canEdit && (

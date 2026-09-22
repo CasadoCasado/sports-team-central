@@ -196,11 +196,12 @@ function EventDetail() {
       {/* Un entrenamiento dentro de una competición cierra con el orden de
           sus pistas; sin competición no hay nada que contar, así que solo se
           le enseña el aviso a quien puede arreglarlo. */}
-      {event.tipo === "entrenamiento" && (event.competition_id || isManager) && (
+      {event.tipo === "entrenamiento" && (event.competition_id || event.formato_entreno || isManager) && (
         <TrainingResultsSection
           eventId={event.id}
           teamId={event.team_id}
           competitionId={event.competition_id}
+          formatoEntreno={event.formato_entreno}
           competitionNombre={event.competition_nombre}
           startISO={event.fecha_inicio}
           isManager={!!isManager}
@@ -237,6 +238,7 @@ function EventDetail() {
             requiere_convocatoria: event.requiere_convocatoria,
             convocatoria_cierra_en: toDateTimeLocal(event.convocatoria_cierra_en),
             padel_num_pistas: event.padel_num_pistas,
+            formato_entreno: event.formato_entreno,
           }}
         />
       )}

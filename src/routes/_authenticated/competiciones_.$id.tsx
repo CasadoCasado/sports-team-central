@@ -4,12 +4,22 @@
  */
 
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
 import { es as esLocale, enUS } from "date-fns/locale";
 import { toast } from "sonner";
-import { ArrowLeft, Dumbbell, ListOrdered, Lock, LockOpen, Medal, Trophy } from "lucide-react";
+import {
+  ArrowLeft,
+  Crown,
+  Dumbbell,
+  ListOrdered,
+  Lock,
+  LockOpen,
+  Medal,
+  Trophy,
+} from "lucide-react";
 
 import { api } from "@/lib/api";
 import { useActiveTeam } from "@/hooks/use-active-team";
@@ -17,6 +27,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type {
   Competition,
+  TrainingFormat,
   CompetitionStanding,
   CompetitionStandings,
   Profile,
@@ -46,6 +57,65 @@ export const Route = createFileRoute("/_authenticated/competiciones_/$id")({
   }),
   component: CompetitionDetail,
 });
+
+type Columna = {
+  key: string;
+  label: string;
+  value: (row: CompetitionStanding) => React.ReactNode;
+};
+
+/**
+ * Las columnas del medio, que son las que dependen del formato.
+ *
+ * Puesto, jugador, noches y nota salen siempre: son las que significan lo
+ * mismo se juegue a lo que se juegue. Lo de en medio cambia porque cada
+ * formato mide otra cosa, y enseñar columnas vacías sería peor que no
+ * enseñarlas.
+ */
+function columnsFor(formato: TrainingFormat | null, t: (key: string) => string): Columna[] {
+  if (formato === "rey_pista") {
+    return [
+      {
+        key: "reinados",
+        label: t("standings.vecesRey"),
+        value: (row) =>
+          (row.veces_rey ?? 0) > 0 ? (
+            <span className="inline-flex items-center gap-1 font-bold text-amber-500">
+              <Crown className="size-3.5" />
+              {row.veces_rey}
+            </span>
+          ) : (
+            0
+          ),
+      },
+      {
+        key: "mejor",
+        label: t("standings.mejorPuesto"),
+        value: (row) => `${row.mejor_puesto}.º`,
+      },
+      {
+        key: "medio",
+        label: t("standings.puestoMedio"),
+        value: (row) => row.puesto_medio,
+      },
+    ];
+  }
+  if (formato === "partidos") {
+    return [
+      { key: "g", label: t("standings.ganados"), value: (row) => row.ganados },
+      { key: "p", label: t("standings.perdidos"), value: (row) => row.perdidos },
+      { key: "pct", label: t("standings.winPct"), value: (row) => row.win_pct },
+    ];
+  }
+  if (formato === "americano") {
+    return [
+      { key: "jf", label: t("standings.juegosFavor"), value: (row) => row.juegos_favor },
+      { key: "jc", label: t("standings.juegosContra"), value: (row) => row.juegos_contra },
+      { key: "pct", label: t("standings.winPct"), value: (row) => row.juegos_pct },
+    ];
+  }
+  return [];
+}
 
 const nameOf = (profile: Profile | null) =>
   profile ? `${profile.nombre} ${profile.apellidos}`.trim() : "—";
@@ -90,6 +160,11 @@ function CompetitionDetail() {
     },
     onError: (e: Error) => toast.error(e.message || t("common.error")),
   });
+
+  // Antes de que cargue la clasificación vale el de la competición, para que
+  // la tabla no cambie de columnas a mitad de carga.
+  const formato = standings?.formato ?? competition?.formato ?? null;
+  const columnas = useMemo(() => columnsFor(formato, t), [formato, t]);
 
   if (isLoading) {
     return <div className="p-8 text-sm text-muted-foreground">{t("common.loading")}</div>;
@@ -136,6 +211,11 @@ function CompetitionDetail() {
                     count: standings?.entrenamientos ?? 0,
                   })}
                 </span>
+                {(standings?.entrenamientos ?? 0) > 0 && (
+                  <span className="text-muted-foreground">
+                    {t("standings.minimoPodio", { count: standings!.minimo_podio })}
+                  </span>
+                )}
               </div>
               {competition.finalizada && competition.finalizada_en && (
                 <p className="mt-2 text-xxs text-muted-foreground">
@@ -187,11 +267,15 @@ function CompetitionDetail() {
             <h2 className="text-display text-lg font-bold uppercase tracking-tight">
               {t("standings.title")}
             </h2>
-            <p className="text-xxs text-muted-foreground">{t("standings.subtitle")}</p>
+            <p className="text-xxs text-muted-foreground">
+              {formato ? t(`standings.formatos.${formato}`) : t("standings.subtitle")}
+            </p>
           </div>
         </div>
 
-        {rows.length === 0 ? (
+        {formato === null ? (
+          <p className="p-6 text-sm text-muted-foreground">{t("standings.sinFormato")}</p>
+        ) : rows.length === 0 ? (
           <p className="p-6 text-sm text-muted-foreground">{t("standings.empty")}</p>
         ) : (
           <>
@@ -202,42 +286,55 @@ function CompetitionDetail() {
                     <th className="px-3 py-2 text-left">{t("standings.puesto")}</th>
                     <th className="px-3 py-2 text-left">{t("standings.jugador")}</th>
                     <th className="px-3 py-2 text-right">{t("standings.entrenamientos")}</th>
-                    <th className="px-3 py-2 text-right">{t("standings.jugados")}</th>
-                    <th className="px-3 py-2 text-right">{t("standings.ganados")}</th>
-                    <th className="px-3 py-2 text-right">{t("standings.perdidos")}</th>
-                    <th className="px-3 py-2 text-right">{t("standings.diferencia")}</th>
-                    <th className="px-3 py-2 text-right">{t("standings.winPct")}</th>
-                    <th className="px-3 py-2 text-right">{t("standings.posicionMedia")}</th>
+                    {columnas.map((col) => (
+                      <th key={col.key} className="px-3 py-2 text-right">
+                        {col.label}
+                      </th>
+                    ))}
+                    <th className="px-3 py-2 text-right">{t("standings.nota")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {rows.map((row) => (
-                    <tr key={row.user_id} className="hover:bg-card">
+                    <tr
+                      key={row.user_id}
+                      className={cn("hover:bg-card", !row.clasificado && "opacity-60")}
+                    >
                       <td className="px-3 py-2 font-black tabular-nums">{row.puesto}</td>
-                      <td className="max-w-[12rem] truncate px-3 py-2">{nameOf(row.profile)}</td>
+                      <td className="max-w-[12rem] px-3 py-2">
+                        <span className="block truncate">{nameOf(row.profile)}</span>
+                        {!row.clasificado && (
+                          <span className="text-xxs text-muted-foreground">
+                            {t("standings.noClasificado")}
+                          </span>
+                        )}
+                      </td>
                       <td className="px-3 py-2 text-right tabular-nums">{row.entrenamientos}</td>
-                      <td className="px-3 py-2 text-right tabular-nums">{row.jugados}</td>
-                      <td className="px-3 py-2 text-right font-bold tabular-nums text-emerald-600">
-                        {row.ganados}
-                      </td>
-                      <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">
-                        {row.perdidos}
-                      </td>
-                      <td className="px-3 py-2 text-right tabular-nums">
-                        {row.diferencia > 0 ? `+${row.diferencia}` : row.diferencia}
-                      </td>
-                      <td className="px-3 py-2 text-right tabular-nums">{row.win_pct}</td>
-                      <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">
-                        {row.posicion_media ?? "—"}
-                      </td>
+                      {columnas.map((col) => (
+                        <td
+                          key={col.key}
+                          className="px-3 py-2 text-right tabular-nums text-muted-foreground"
+                        >
+                          {col.value(row)}
+                        </td>
+                      ))}
+                      <td className="px-3 py-2 text-right font-bold tabular-nums">{row.nota}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-            <p className="border-t border-border px-5 py-3 text-2xs text-muted-foreground">
-              {t("standings.tieNote")}
-            </p>
+            <details className="border-t border-border px-5 py-3">
+              <summary className="cursor-pointer text-2xs font-bold uppercase tracking-widest text-muted-foreground">
+                {t("standings.reglaTitulo")}
+              </summary>
+              <p className="mt-2 text-xs text-muted-foreground">
+                {t("standings.regla", {
+                  media: standings?.media ?? 50,
+                  margen: standings?.margen ?? 5,
+                })}
+              </p>
+            </details>
           </>
         )}
       </section>
@@ -312,7 +409,7 @@ function Podium({ rows }: { rows: CompetitionStanding[] }) {
                     <div key={row.user_id}>
                       <p className="text-sm font-bold leading-tight">{nameOf(row.profile)}</p>
                       <p className="text-xxs text-muted-foreground">
-                        {row.ganados} {t("standings.ganados")}
+                        {t("standings.nota")} {row.nota}
                       </p>
                     </div>
                   ))

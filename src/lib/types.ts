@@ -9,6 +9,12 @@
 export type AppRole = "admin" | "user";
 export type ChannelScope = "general" | "staff" | "custom";
 export type CompetitionType = "liga" | "copa" | "torneo" | "amistoso";
+/**
+ * Cómo se mide un entrenamiento que puntúa. Una competición es de un formato y
+ * solo uno, porque su clasificación suma noches y sumar noches medidas de
+ * formas distintas no significa nada.
+ */
+export type TrainingFormat = "rey_pista" | "partidos" | "americano";
 export type EventType = "entrenamiento" | "partido" | "reunion" | "otro" | "torneo";
 export type InvitationStatus = "pendiente" | "aceptada" | "rechazada";
 export type MemberStatus = "pendiente" | "activo" | "expulsado";
@@ -107,6 +113,8 @@ export type TeamEvent = {
   resultado_local: number | null;
   resultado_visitante: number | null;
   padel_num_pistas: number | null;
+  /** Formato de un entreno suelto. Dentro de una competición manda el de ella. */
+  formato_entreno: TrainingFormat | null;
   competition_nombre: string | null;
   team_nombre: string;
   created_at: string;
@@ -163,6 +171,8 @@ export type Competition = {
   temporada: string | null;
   fecha_inicio: string | null;
   fecha_fin: string | null;
+  /** Sin formato agrupa partidos, pero no tiene clasificación. */
+  formato: TrainingFormat | null;
   /** Una competición finalizada ya no admite resultados y enseña su podio. */
   finalizada: boolean;
   finalizada_en: string | null;
@@ -189,19 +199,39 @@ export type TrainingCourt = {
   players: TrainingCourtPlayer[];
 };
 
-/** Una fila de la clasificación de una competición. */
+/**
+ * Una fila de la clasificación de una competición.
+ *
+ * `nota` es lo que ordena la tabla: la media bayesiana de tus noches, de 0 a
+ * 100. Lo demás depende del formato, porque cada uno mide una cosa distinta, y
+ * solo vienen los campos del formato de esa competición.
+ */
 export type CompetitionStanding = {
   user_id: string;
   profile: Profile | null;
   puesto: number;
+  /** Noches a las que vino. */
   entrenamientos: number;
-  jugados: number;
-  ganados: number;
-  perdidos: number;
-  diferencia: number;
-  win_pct: number;
-  mejor_posicion: number | null;
-  posicion_media: number | null;
+  nota: number;
+  /** Si llega al mínimo de noches que pide el podio. */
+  clasificado: boolean;
+
+  /** Rey de pista: veces que acabó en el escalón más alto de la noche. */
+  veces_rey?: number;
+  /** Rey de pista: el mejor escalón que ha hecho, 1 el más alto. */
+  mejor_puesto?: number;
+  /** Rey de pista: escalón medio. */
+  puesto_medio?: number;
+
+  /** Por partidos. */
+  ganados?: number;
+  perdidos?: number;
+  win_pct?: number;
+
+  /** Americano por juegos. */
+  juegos_favor?: number;
+  juegos_contra?: number;
+  juegos_pct?: number;
 };
 
 /** Lo que devuelve `/api/competitions/{id}/standings/`. */
@@ -209,10 +239,31 @@ export type CompetitionStandings = {
   competition_id: string;
   finalizada: boolean;
   finalizada_en: string | null;
+  /** Null si la competición no puntúa: entonces no hay clasificación. */
+  formato: TrainingFormat | null;
+  /** Entrenamientos con resultados ya puestos. */
   entrenamientos: number;
+  /** Media de la competición, hacia la que tira la nota de quien vino poco. */
+  media: number;
+  /** Noches que hay que haber jugado para poder subir al podio. */
+  minimo_podio: number;
+  /** Noches de margen antes de creerse la media de alguien. */
+  margen: number;
   standings: CompetitionStanding[];
   /** Solo llega lleno cuando la competición está finalizada. */
   podium: CompetitionStanding[];
+};
+
+/** El recuento de un jugador en una noche que no es de rey de pista. */
+export type TrainingScore = {
+  id: string;
+  event_id: string;
+  user_id: string;
+  ganados: number;
+  perdidos: number;
+  juegos_favor: number;
+  juegos_contra: number;
+  profile: Profile | null;
 };
 
 export type OfficialCompetitionItem = {

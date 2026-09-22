@@ -339,7 +339,10 @@
       "registrationMismatch": "The selected registration doesn't belong to this team or no longer exists.",
       "registrationNotActive": "The selected registration is not open or active."
     },
-    "competicionEntrenoHint": "Put it inside a competition and its result counts towards that competition standings."
+    "competicionEntrenoHint": "Put it inside a competition and its result counts towards that competition standings.",
+    "formatoEntreno": "Training format",
+    "formatoEntrenoHint": "Only for a standalone training. Inside a competition its format wins.",
+    "formatoDeLaCompeticion": "Set by the competition: {{formato}}"
   },
   "competitions": {
     "title": "Competitions",
@@ -368,6 +371,20 @@
       "proxima": "Upcoming",
       "enCurso": "Ongoing",
       "finalizada": "Finished"
+    },
+    "formato": "Format",
+    "formatoHint": "All its trainings are measured the same way. To mix formats, make two competitions.",
+    "formatos": {
+      "ninguno": "No standings",
+      "rey_pista": "King of the court",
+      "partidos": "By matches won",
+      "americano": "Americano by games"
+    },
+    "formatoDesc": {
+      "ninguno": "Groups matches and trainings, but produces no standings or podium.",
+      "rey_pista": "Courts end in an order and where you finish each night is what counts.",
+      "partidos": "You record the matches each player won and lost.",
+      "americano": "You record the games each player won and lost."
     }
   },
   "callups": {
@@ -747,8 +764,8 @@
     }
   },
   "training": {
-    "title": "Training results",
-    "subtitle": "Final court order and who won on each one",
+    "title": "How the training ended",
+    "subtitle": "King of the court: the final order of the courts and who was holding each one",
     "needsCompetition": "This training is not part of any competition, so its results count towards no standings. Edit it and pick one.",
     "notYetPlayed": "Results can be filled in once the training has started.",
     "pista": "Court",
@@ -760,11 +777,11 @@
     "addPlayer": "Add player",
     "removePlayer": "Remove from the split",
     "noPlayers": "No players",
-    "winner": "Won",
-    "loser": "Lost",
-    "markWinner": "Mark as winner",
+    "winner": "Kings",
+    "loser": "Challengers",
+    "markWinner": "Mark as the pair holding the court",
     "empty": "This training has not been closed yet.",
-    "emptyManager": "Add the courts as they ended up and mark who won on each one.",
+    "emptyManager": "Put the courts in the order they ended up and say who was holding each one.",
     "unassigned": "No court",
     "allAssigned": "Everyone signed up has a court",
     "save": "Save results",
@@ -774,22 +791,31 @@
     "errEmptyCourt": "There is a court with no players",
     "errPlayerTwice": "A player cannot be on two courts",
     "errNotMember": "Someone in the split is no longer on the team",
-    "errDuplicateCourt": "Two courts share the same number"
+    "errDuplicateCourt": "Two courts share the same number",
+    "reyesHint": "Within each court, whoever was holding it at the end finishes above the challengers.",
+    "sinFormato": "This training has no format, so no results are recorded. Edit it and pick one, or put it in a competition.",
+    "countTitle": "How the training ended",
+    "countSubtitlePartidos": "The matches each player won and lost",
+    "countSubtitleAmericano": "The games each player won and lost",
+    "ganados": "Won",
+    "perdidos": "Lost",
+    "juegosFavor": "Games for",
+    "juegosContra": "Games against",
+    "countEmpty": "This training has not been closed yet.",
+    "countEmptyManager": "Add whoever turned up and record what they did.",
+    "errEmptyNight": "Add at least one player",
+    "errNegative": "Counts cannot be negative",
+    "errWrongFormat": "This training is measured a different way",
+    "errNeedsFormat": "This training has no format, so it does not score"
   },
   "standings": {
     "title": "Standings",
-    "subtitle": "Built from the trainings played inside this competition",
+    "subtitle": "Built from where you finished each night, not from individual matches",
     "empty": "No training in this competition has results yet.",
     "podium": "Podium",
     "puesto": "Rank",
     "jugador": "Player",
-    "entrenamientos": "Sessions",
-    "jugados": "P",
-    "ganados": "W",
-    "perdidos": "L",
-    "diferencia": "Diff",
-    "winPct": "%",
-    "posicionMedia": "Avg. court",
+    "entrenamientos": "Nights",
     "trainings": "Trainings",
     "trainingsCount_one": "{{count}} training closed",
     "trainingsCount_other": "{{count}} trainings closed",
@@ -800,8 +826,28 @@
     "finished": "Competition finished",
     "reopened": "Competition reopened",
     "finishedOn": "Finished on {{date}}",
-    "tieNote": "With the same wins and difference, the average court position decides.",
     "back": "Back to competitions",
-    "seeStandings": "See standings"
+    "seeStandings": "See standings",
+    "nota": "Score",
+    "notaLarga": "Score (0-100)",
+    "vecesRey": "Reigns",
+    "mejorPuesto": "Best",
+    "puestoMedio": "Avg. place",
+    "noClasificado": "Not enough nights for the podium yet",
+    "minimoPodio": "The podium needs {{count}} nights",
+    "minimoPodio_one": "The podium needs 1 night",
+    "reglaTitulo": "How the score works",
+    "regla": "Each night gives you a step —the court you finished on, and within it the kings above the challengers— worth 100 at the very top and 0 at the very bottom, whatever the number of courts. Your score is the average of your nights, pulled towards the competition average ({{media}}) while you have played few: it takes about {{margen}} nights to become fully yours. That way neither the one who came once and finished top wins, nor the one who always comes and finishes mid-table.",
+    "sinFormato": "This competition has no format, so it produces no standings. Edit it and pick one so its trainings score.",
+    "ganados": "W",
+    "perdidos": "L",
+    "winPct": "%",
+    "juegosFavor": "GF",
+    "juegosContra": "GA",
+    "formatos": {
+      "rey_pista": "Built from where you finished each night, not from individual matches",
+      "partidos": "Built from the matches you won and lost each night",
+      "americano": "Built from the games you won and lost each night"
+    }
   }
 }

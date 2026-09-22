@@ -25,7 +25,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { EventType, Team } from "@/lib/types";
+import type { EventType, Team, TrainingFormat } from "@/lib/types";
+
+const FORMATOS: TrainingFormat[] = ["rey_pista", "partidos", "americano"];
 import { teamRegistrationsQuery } from "@/lib/official-competitions";
 
 
@@ -44,6 +46,7 @@ export type EventFormValues = {
   requiere_convocatoria: boolean;
   convocatoria_cierra_en: string;
   padel_num_pistas: number | null;
+  formato_entreno: TrainingFormat | null;
 };
 
 const emptyValues = (): EventFormValues => ({
@@ -60,6 +63,7 @@ const emptyValues = (): EventFormValues => ({
   requiere_convocatoria: false,
   convocatoria_cierra_en: "",
   padel_num_pistas: null,
+  formato_entreno: null,
 });
 
 export function EventFormDialog({
@@ -87,11 +91,15 @@ export function EventFormDialog({
     queryKey: ["competitions", teamId],
     enabled: !!teamId && open,
     queryFn: () =>
-      api.get<{ id: string; nombre: string }[]>("/competitions/", {
-        team_id: teamId,
-        order: "-created_at",
-      }),
+      api.get<{ id: string; nombre: string; formato: TrainingFormat | null }[]>(
+        "/competitions/",
+        { team_id: teamId, order: "-created_at" },
+      ),
   });
+
+  // Dentro de una competición manda su formato, así que el selector propio
+  // solo tiene sentido —y solo se manda— cuando el entreno va suelto.
+  const competicionElegida = competitions?.find((c) => c.id === values.competition_id);
 
   const { data: team } = useQuery({
     queryKey: ["team-sport", teamId],
@@ -175,6 +183,10 @@ export function EventFormDialog({
         padel_num_pistas:
           isPadel && values.tipo === "partido" && values.padel_num_pistas
             ? values.padel_num_pistas
+            : null,
+        formato_entreno:
+          values.tipo === "entrenamiento" && !values.competition_id
+            ? values.formato_entreno
             : null,
       };
       if (values.id) {
@@ -297,6 +309,42 @@ export function EventFormDialog({
               )}
             </div>
           )}
+          {values.tipo === "entrenamiento" &&
+            (values.competition_id ? (
+              <p className="rounded-md border border-border p-3 text-xxs text-muted-foreground">
+                {t("events.formatoDeLaCompeticion", {
+                  formato: t(
+                    `competitions.formatos.${competicionElegida?.formato ?? "ninguno"}`,
+                  ),
+                })}
+              </p>
+            ) : (
+              <div>
+                <Label>{t("events.formatoEntreno")}</Label>
+                <Select
+                  value={values.formato_entreno ?? "none"}
+                  onValueChange={(v) =>
+                    setValues((s) => ({
+                      ...s,
+                      formato_entreno: v === "none" ? null : (v as TrainingFormat),
+                    }))
+                  }
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">{t("competitions.formatos.ninguno")}</SelectItem>
+                    {FORMATOS.map((f) => (
+                      <SelectItem key={f} value={f}>
+                        {t(`competitions.formatos.${f}`)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="mt-1.5 text-xxs text-muted-foreground">
+                  {t("events.formatoEntrenoHint")}
+                </p>
+              </div>
+            ))}
           {values.tipo === "partido" && (
             <>
               <div>

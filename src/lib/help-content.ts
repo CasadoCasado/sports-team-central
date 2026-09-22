@@ -112,16 +112,20 @@ export const HELP_SECTIONS: HelpSection[] = [
         en: "Captain or co-captain: tap “New competition”, name it and pick league, cup, tournament or friendly.",
       },
       {
-        es: "Al crear un entrenamiento, elígela en «Competición»: sin eso sus resultados no cuentan para nada.",
-        en: "When creating a training, pick it under “Competition”: without that its results count for nothing.",
+        es: "Elige su formato: rey de pista, por partidos ganados o americano por juegos. Todos sus entrenamientos se miden igual; para mezclar, haz dos competiciones.",
+        en: "Pick its format: king of the court, by matches won, or americano by games. All its trainings are measured the same way; to mix, make two competitions.",
       },
       {
-        es: "Cuando acabe el entreno, ábrelo y en «Resultados del entreno» coloca las pistas en el orden en que quedaron y marca quién ganó en cada una.",
-        en: "Once the training is over, open it and under “Training results” put the courts in the order they ended up and mark who won on each one.",
+        es: "Al crear un entrenamiento, elígela en «Competición»: sin eso sus resultados no cuentan para nada. Un entreno suelto puede elegir su propio formato, y si no elige ninguno no puntúa.",
+        en: "When creating a training, pick it under “Competition”: without that its results count for nothing. A standalone training can pick its own format, and scores nothing if it picks none.",
       },
       {
-        es: "En la competición, «Ver clasificación» suma las victorias de todos los entrenos. A igualdad de victorias y diferencia, manda la posición media de las pistas.",
-        en: "In the competition, “See standings” adds up the wins from every training. With the same wins and difference, the average court position decides.",
+        es: "Cuando acabe el entreno, ábrelo y apunta cómo quedó. En rey de pista, las pistas en el orden en que terminaron y quién aguantaba cada una; en los otros dos, lo que hizo cada jugador.",
+        en: "Once the training is over, open it and record how it ended. In king of the court, the courts in the order they finished and who was holding each one; in the other two, what each player did.",
+      },
+      {
+        es: "En la competición, «Ver clasificación» da a cada noche una nota de 0 a 100 y las junta. Quien ha venido poco tira hacia la media hasta que acumule noches, para que no gane quien vino un día y lo hizo bien.",
+        en: "In the competition, “See standings” turns each night into a score from 0 to 100 and puts them together. Whoever has come rarely is pulled towards the average until they build up nights, so the one who came once and did well does not win.",
       },
       {
         es: "Cuando termine la temporada, pulsa «Finalizar competición»: sale el podio y los entrenos dejan de admitir cambios. Siempre puedes reabrirla.",
@@ -129,8 +133,8 @@ export const HELP_SECTIONS: HelpSection[] = [
       },
     ],
     example: {
-      es: "Ejemplo: creas la «Liga interna 2025/26», metes en ella el americano de cada jueves, y en junio la finalizas: el podio enseña a los tres que más partidos ganaron.",
-      en: "Example: you create the “Internal league 2025/26”, put every Thursday's americano inside it, and finish it in June: the podium shows the three who won most matches.",
+      es: "Ejemplo: creas la «Liga interna 2025/26» a rey de pista, metes en ella el entreno de cada jueves, y en junio la finalizas: el podio enseña a los tres que mejor acabaron noche tras noche.",
+      en: "Example: you create the “Internal league 2025/26” as king of the court, put every Thursday's training inside it, and finish it in June: the podium shows the three who finished highest night after night.",
     },
     links: [
       { to: "/competiciones", es: "Abrir Competiciones", en: "Open Competitions" },

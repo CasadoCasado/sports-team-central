@@ -82,20 +82,44 @@ export async function completeOnboarding(
  *
  * Marca además el tutorial guiado como visto: en la primera visita se abre
  * encima de todo y tapa la interfaz que los tests quieren mirar.
+ *
+ * Se guarda por dos vías a propósito. El `addInitScript` la reinyecta antes de
+ * cada documento, y es la que de verdad aguanta: visitar "/" sin sesión
+ * dispara la redirección a /auth, y si el `evaluate` cae mientras esa
+ * navegación está en vuelo escribe en un documento que el navegador está a
+ * punto de tirar, así que la sesión se pierde y el test acaba en la pantalla
+ * de login. El `evaluate` se queda para el documento que ya está abierto,
+ * porque `addInitScript` solo actúa en las cargas siguientes.
  */
 export async function loginAs(page: Page, session: Session) {
-  await page.goto("/");
-  await page.evaluate(
-    ([key, value, tourKey]) => {
-      window.localStorage.setItem(key, value);
-      window.localStorage.setItem(tourKey, "1");
-    },
-    [
-      STORAGE_KEY,
-      JSON.stringify({ access: session.access, refresh: session.refresh }),
-      `teamup:tour-done:${session.userId}`,
-    ] as const,
-  );
+  const entries = [
+    [STORAGE_KEY, JSON.stringify({ access: session.access, refresh: session.refresh })],
+    [`teamup:tour-done:${session.userId}`, "1"],
+  ] as const;
+
+  await page.addInitScript((pairs: readonly (readonly [string, string])[]) => {
+    for (const [key, value] of pairs) {
+      try {
+        window.localStorage.setItem(key, value);
+      } catch {
+        // Ventana privada o almacenamiento bloqueado: el test lo dirá solo.
+      }
+    }
+  }, entries);
+
+  // Y se comprueba que cuajó. Contra el servidor de desarrollo, con varios
+  // navegadores a la vez, una petición lenta puede acabar en 401 -> refresco
+  // fallido -> `signOut()`, que vacía el almacenamiento y manda a /auth. Ahí
+  // ya no vale el `addInitScript`, porque ese documento ya estaba cargado.
+  // Reintentar es más barato que perseguirlo, y si no cuaja el test lo dice.
+  await expect(async () => {
+    await page.goto("/");
+    await page.evaluate((pairs: readonly (readonly [string, string])[]) => {
+      for (const [key, value] of pairs) window.localStorage.setItem(key, value);
+    }, entries);
+    await page.goto("/inicio");
+    await expect(page).not.toHaveURL(/\/auth/, { timeout: 5_000 });
+  }).toPass({ timeout: 45_000 });
 }
 
 /** Una capitana con equipo propio, lista para usar. */
