@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
+import { invalidateEventQueries } from "@/lib/query-keys";
 import { useSession } from "@/hooks/use-session";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -97,9 +98,9 @@ function EventDetail() {
 
   const del = useMutation({
     mutationFn: () => api.delete(`/events/${id}/`),
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success(t("events.deleted"));
-      qc.invalidateQueries({ queryKey: ["events"] });
+      await invalidateEventQueries(qc);
       navigate({ to: "/calendario" });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -767,13 +768,10 @@ function MatchResultsSection({
       await Promise.all([
         qc.invalidateQueries({ queryKey: ["match-results", eventId] }),
         qc.invalidateQueries({ queryKey: ["match-participations", eventId] }),
-        qc.invalidateQueries({ queryKey: ["event", eventId] }),
         qc.invalidateQueries({ queryKey: ["event-responses", eventId] }),
-        qc.invalidateQueries({ queryKey: ["events"] }),
-        qc.invalidateQueries({ queryKey: ["results"] }),
-        qc.invalidateQueries({ queryKey: ["stats-events"] }),
         qc.invalidateQueries({ queryKey: ["team-stats"] }),
         qc.invalidateQueries({ queryKey: ["player-stats"] }),
+        invalidateEventQueries(qc),
       ]);
     },
 

@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Trophy, Plus, Pencil, Trash2, ListOrdered } from "lucide-react";
 import { api } from "@/lib/api";
+import { invalidateCompetitionQueries } from "@/lib/query-keys";
 import { useSession } from "@/hooks/use-session";
 import { useActiveTeam } from "@/hooks/use-active-team";
 import { TeamPicker } from "@/components/team-picker";
@@ -179,7 +180,7 @@ function CompCard({
     mutationFn: () => api.delete(`/competitions/${c.id}/`),
     onSuccess: () => {
       toast.success(t("competitions.deleted"));
-      qc.invalidateQueries({ queryKey: ["competitions"] });
+      invalidateCompetitionQueries(qc);
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -308,7 +309,7 @@ function CompDialog({
     },
     onSuccess: () => {
       toast.success(isEdit ? t("competitions.updated") : t("competitions.created"));
-      qc.invalidateQueries({ queryKey: ["competitions"] });
+      invalidateCompetitionQueries(qc);
       onClose();
     },
     onError: (e: Error) => toast.error(e.message || t("common.error")),
