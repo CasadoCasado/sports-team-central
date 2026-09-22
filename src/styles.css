@@ -132,6 +132,25 @@
     border-color: var(--color-border);
   }
 
+  /* La manita en todo lo que se pulsa.
+   *
+   * Tailwind 4 cambió el preflight y pone `cursor: default` en los <button>,
+   * al revés que la v3 y que lo que hace el resto de la web. El resultado era
+   * que solo tenían manita los que la llevaban escrita a mano —el <Button> de
+   * shadcn la trae, los cincuenta y pico <button> sueltos no— y salían cosas
+   * como "Cerrar sesión" con la flecha.
+   *
+   * Va aquí y no clase a clase porque a mano se arregla lo de hoy y se vuelve
+   * a romper con el siguiente botón que alguien escriba. Al estar en `base`,
+   * cualquier utilidad `cursor-*` puesta a propósito sigue mandando, porque la
+   * capa de utilidades va después.
+   *
+   * Lo deshabilitado se queda fuera: no se puede pulsar, así que no toca. */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+
   html,
   body {
     background-color: var(--color-background);
