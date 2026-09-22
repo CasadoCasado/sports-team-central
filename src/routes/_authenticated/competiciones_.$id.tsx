@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 
 import { api } from "@/lib/api";
+import { invalidateCompetitionQueries } from "@/lib/query-keys";
 import { useActiveTeam } from "@/hooks/use-active-team";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -152,11 +153,7 @@ function CompetitionDetail() {
       api.post<Competition>(`/competitions/${id}/finalizar/`, { finalizada }),
     onSuccess: async (_data, finalizada) => {
       toast.success(finalizada ? t("standings.finished") : t("standings.reopened"));
-      await Promise.all([
-        qc.invalidateQueries({ queryKey: ["competition", id] }),
-        qc.invalidateQueries({ queryKey: ["competition-standings", id] }),
-        qc.invalidateQueries({ queryKey: ["competitions"] }),
-      ]);
+      await invalidateCompetitionQueries(qc);
     },
     onError: (e: Error) => toast.error(e.message || t("common.error")),
   });

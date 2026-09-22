@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
+import { invalidateEventQueries } from "@/lib/query-keys";
 import { useSession } from "@/hooks/use-session";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -197,9 +198,12 @@ export function EventFormDialog({
       await api.post("/events/", payload);
       return { updated: false };
     },
-    onSuccess: (r) => {
+    onSuccess: async (r) => {
       toast.success(r.updated ? t("events.updated") : t("events.created"));
-      qc.invalidateQueries({ queryKey: ["events"] });
+      // Diez pantallas leen eventos y sus claves no comparten prefijo; ver
+      // `lib/query-keys.ts`. Invalidar solo `["events"]` dejaba el detalle
+      // —que es justo desde donde se edita— enseñando lo de antes.
+      await invalidateEventQueries(qc);
       onOpenChange(false);
     },
     onError: (e: Error) => {
