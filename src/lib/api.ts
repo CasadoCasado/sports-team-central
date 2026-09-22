@@ -110,3 +110,24 @@ export const api = {
   /** Subida de ficheros: el cuerpo es `multipart/form-data`. */
   upload: <T>(path: string, form: FormData) => request<T>(path, { method: "POST", body: form }),
 };
+
+/**
+ * La dirección de una imagen subida, lista para un `<img src>`.
+ *
+ * El servidor guarda la ruta —`/media/team-logos/...`— y no una URL entera, a
+ * propósito: con el host dentro, un escudo subido desde `localhost` deja de
+ * verse en cuanto abres la web desde el móvil por la IP de la red, porque esa
+ * URL apunta al `localhost` del móvil. La resolución se hace aquí, contra la
+ * API que esta pestaña esté usando, que es la que sirve los ficheros.
+ *
+ * Si ya viene absoluta —un bucket S3— se devuelve tal cual.
+ */
+export function mediaUrl(value: string | null | undefined): string | undefined {
+  if (!value) return undefined;
+  if (value.includes("://")) return value;
+  try {
+    return new URL(value, API_URL).toString();
+  } catch {
+    return undefined;
+  }
+}

@@ -857,5 +857,15 @@
       "partidos": "Built from the matches you won and lost each night",
       "americano": "Built from the games you won and lost each night"
     }
+  },
+  "images": {
+    "upload": "Upload image",
+    "change": "Change",
+    "remove": "Remove",
+    "saved": "Image saved",
+    "removed": "Image removed",
+    "broken": "The saved image does not load; upload another or remove it.",
+    "errType": "It has to be an image (JPG, PNG, WEBP or GIF).",
+    "errSize": "The image cannot be larger than 5 MB."
   }
 }

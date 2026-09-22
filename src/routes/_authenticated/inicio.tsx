@@ -15,7 +15,7 @@ import {
   ClipboardList,
   Trophy,
 } from "lucide-react";
-import { api } from "@/lib/api";
+import { api, mediaUrl } from "@/lib/api";
 import type { EventResponse, TeamEvent, TeamMember } from "@/lib/types";
 import { useProfile } from "@/hooks/use-profile";
 import { useSession } from "@/hooks/use-session";
@@ -390,7 +390,11 @@ function Inicio() {
                 >
                   <div className="flex size-12 items-center justify-center rounded-md bg-primary/10 text-primary">
                     {team.logo_url ? (
-                      <img src={team.logo_url} alt="" className="size-12 rounded-md object-cover" />
+                      <img
+                        src={mediaUrl(team.logo_url)}
+                        alt=""
+                        className="size-12 rounded-md object-cover"
+                      />
                     ) : (
                       <Shield className="size-6" />
                     )}

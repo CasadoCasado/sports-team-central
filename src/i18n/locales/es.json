@@ -857,5 +857,15 @@
       "partidos": "Sale de los partidos que ganaste y perdiste cada noche",
       "americano": "Sale de los juegos que hiciste a favor y en contra cada noche"
     }
+  },
+  "images": {
+    "upload": "Subir imagen",
+    "change": "Cambiar",
+    "remove": "Quitar",
+    "saved": "Imagen guardada",
+    "removed": "Imagen quitada",
+    "broken": "La imagen guardada no carga; sube otra o quítala.",
+    "errType": "Tiene que ser una imagen (JPG, PNG, WEBP o GIF).",
+    "errSize": "La imagen no puede pasar de 5 MB."
   }
 }
