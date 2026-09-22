@@ -16,10 +16,21 @@ import {
  */
 
 /** Una competición del equipo, creada por la API. */
-async function seedCompetition(api: APIRequestContext, captain: Session, teamId: string) {
+async function seedCompetition(
+  api: APIRequestContext,
+  captain: Session,
+  teamId: string,
+  formato: "rey_pista" | "partidos" | "americano" = "rey_pista",
+) {
   const res = await api.post(`${API_URL}/competitions/`, {
     headers: bearer(captain),
-    data: { team_id: teamId, nombre: "Liga interna", tipo: "liga", temporada: "2025/26" },
+    data: {
+      team_id: teamId,
+      nombre: "Liga interna",
+      tipo: "liga",
+      temporada: "2025/26",
+      formato,
+    },
   });
   expect(res.ok(), await res.text()).toBeTruthy();
   return (await res.json()) as { id: string; nombre: string };
@@ -70,7 +81,10 @@ test.describe("Entrenamientos dentro de una competición", () => {
       await addPlayer.click();
       await page.getByRole("option", { name: nombre }).click();
     }
-    await page.getByRole("button", { name: /marcar como pareja que aguanta la pista/i }).first().click();
+    await page
+      .getByRole("button", { name: /marcar como pareja que aguanta la pista/i })
+      .first()
+      .click();
     await page.getByRole("button", { name: /guardar resultados/i }).click();
     await expect(page.getByText(/resultados del entreno guardados/i)).toBeVisible();
 
@@ -90,10 +104,7 @@ test.describe("Entrenamientos dentro de una competición", () => {
     await expect(page.getByRole("button", { name: /reabrir competición/i })).toBeVisible();
   });
 
-  test("el jugador ve el resultado del entreno pero no lo edita", async ({
-    page,
-    request,
-  }) => {
+  test("el jugador ve el resultado del entreno pero no lo edita", async ({ page, request }) => {
     const { session: captain, team } = await seedCaptainWithTeam(request, "entreno-ro-cap");
     const player = await seedPlayerInTeam(request, "entreno-ro-jug", team.id, captain);
     const competition = await seedCompetition(request, captain, team.id);
@@ -131,10 +142,7 @@ test.describe("Entrenamientos dentro de una competición", () => {
     await expect(page.getByRole("button", { name: /finalizar competición/i })).toHaveCount(0);
   });
 
-  test("un entreno fuera de una competición avisa a quien lo gestiona", async ({
-    page,
-    request,
-  }) => {
+  test("un entreno sin formato avisa a quien lo gestiona", async ({ page, request }) => {
     const { session: captain, team } = await seedCaptainWithTeam(request, "entreno-sin-cap");
     const ayer = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     const res = await request.post(`${API_URL}/events/`, {
@@ -150,8 +158,54 @@ test.describe("Entrenamientos dentro de una competición", () => {
 
     await loginAs(page, captain);
     await page.goto(`/eventos/${training.id}`);
-    await expect(page.getByText(/no está dentro de ninguna competición/i)).toBeVisible({
+    await expect(page.getByText(/no tiene formato/i)).toBeVisible({
       timeout: 20_000,
     });
+  });
+});
+
+test.describe("Otros formatos de entrenamiento", () => {
+  test("un americano se cierra contando juegos y sale en la clasificación", async ({
+    page,
+    request,
+  }) => {
+    const { session: captain, team } = await seedCaptainWithTeam(request, "ame-cap");
+    await seedPlayerInTeam(request, "ame-jug", team.id, captain);
+    const competition = await seedCompetition(request, captain, team.id, "americano");
+    const training = await seedTraining(request, captain, team.id, competition.id);
+
+    await loginAs(page, captain);
+    await page.goto(`/eventos/${training.id}`);
+    await expect(page.getByText(/los juegos a favor y en contra/i)).toBeVisible({
+      timeout: 20_000,
+    });
+
+    // No hay pistas que ordenar: se apunta lo que hizo cada uno.
+    await expect(page.getByRole("button", { name: /añadir pista/i })).toHaveCount(0);
+    const addPlayer = page.getByRole("combobox").last();
+    await addPlayer.click();
+    await page.getByRole("option", { name: /marta/i }).click();
+    await page.getByRole("spinbutton", { name: /juegos a favor/i }).fill("18");
+    await page.getByRole("spinbutton", { name: /juegos en contra/i }).fill("6");
+    await page.getByRole("button", { name: /guardar resultados/i }).click();
+    await expect(page.getByText(/resultados del entreno guardados/i)).toBeVisible();
+
+    await page.goto(`/competiciones/${competition.id}`);
+    const primera = page.locator("tbody tr").first();
+    await expect(primera).toContainText(/marta/i);
+    await expect(primera).toContainText("18");
+  });
+
+  test("una competición sin formato no saca clasificación", async ({ page, request }) => {
+    const { session: captain, team } = await seedCaptainWithTeam(request, "sinf-cap");
+    const res = await request.post(`${API_URL}/competitions/`, {
+      headers: bearer(captain),
+      data: { team_id: team.id, nombre: "Solo partidos", tipo: "copa" },
+    });
+    const competition = (await res.json()) as { id: string };
+
+    await loginAs(page, captain);
+    await page.goto(`/competiciones/${competition.id}`);
+    await expect(page.getByText(/no tiene formato/i)).toBeVisible({ timeout: 20_000 });
   });
 });

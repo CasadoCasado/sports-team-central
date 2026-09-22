@@ -107,10 +107,19 @@ export async function loginAs(page: Page, session: Session) {
     }
   }, entries);
 
-  await page.goto("/");
-  await page.evaluate((pairs: readonly (readonly [string, string])[]) => {
-    for (const [key, value] of pairs) window.localStorage.setItem(key, value);
-  }, entries);
+  // Y se comprueba que cuajó. Contra el servidor de desarrollo, con varios
+  // navegadores a la vez, una petición lenta puede acabar en 401 -> refresco
+  // fallido -> `signOut()`, que vacía el almacenamiento y manda a /auth. Ahí
+  // ya no vale el `addInitScript`, porque ese documento ya estaba cargado.
+  // Reintentar es más barato que perseguirlo, y si no cuaja el test lo dice.
+  await expect(async () => {
+    await page.goto("/");
+    await page.evaluate((pairs: readonly (readonly [string, string])[]) => {
+      for (const [key, value] of pairs) window.localStorage.setItem(key, value);
+    }, entries);
+    await page.goto("/inicio");
+    await expect(page).not.toHaveURL(/\/auth/, { timeout: 5_000 });
+  }).toPass({ timeout: 45_000 });
 }
 
 /** Una capitana con equipo propio, lista para usar. */

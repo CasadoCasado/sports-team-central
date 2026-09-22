@@ -339,7 +339,10 @@
       "registrationMismatch": "La inscripción seleccionada no pertenece a este equipo o no existe.",
       "registrationNotActive": "La inscripción seleccionada no está abierta ni activa."
     },
-    "competicionEntrenoHint": "Si lo metes en una competición, su resultado cuenta para la clasificación de esa competición."
+    "competicionEntrenoHint": "Si lo metes en una competición, su resultado cuenta para la clasificación de esa competición.",
+    "formatoEntreno": "Formato del entreno",
+    "formatoEntrenoHint": "Solo si el entreno va suelto. Dentro de una competición manda el formato de ella.",
+    "formatoDeLaCompeticion": "Lo pone la competición: {{formato}}"
   },
   "competitions": {
     "title": "Competiciones",
@@ -368,6 +371,20 @@
       "proxima": "Próxima",
       "enCurso": "En curso",
       "finalizada": "Finalizada"
+    },
+    "formato": "Formato",
+    "formatoHint": "Todos sus entrenamientos se miden igual. Si quieres mezclar formatos, haz dos competiciones.",
+    "formatos": {
+      "ninguno": "Sin clasificación",
+      "rey_pista": "Rey de pista",
+      "partidos": "Por partidos ganados",
+      "americano": "Americano por juegos"
+    },
+    "formatoDesc": {
+      "ninguno": "Agrupa partidos y entrenos, pero no saca clasificación ni podio.",
+      "rey_pista": "Las pistas acaban en un orden y cuenta dónde terminas cada noche.",
+      "partidos": "Se apuntan los partidos que gana y pierde cada jugador.",
+      "americano": "Se apuntan los juegos a favor y en contra de cada jugador."
     }
   },
   "callups": {
@@ -775,7 +792,21 @@
     "errPlayerTwice": "Un jugador no puede estar en dos pistas",
     "errNotMember": "Alguien del reparto ya no está en el equipo",
     "errDuplicateCourt": "Hay dos pistas con el mismo número",
-    "reyesHint": "Dentro de cada pista, quien la aguantaba al acabar queda por delante de quien retaba."
+    "reyesHint": "Dentro de cada pista, quien la aguantaba al acabar queda por delante de quien retaba.",
+    "sinFormato": "Este entrenamiento no tiene formato, así que no se le apuntan resultados. Edítalo y elige uno, o mételo en una competición.",
+    "countTitle": "Cómo quedó el entreno",
+    "countSubtitlePartidos": "Los partidos que ganó y perdió cada jugador",
+    "countSubtitleAmericano": "Los juegos a favor y en contra de cada jugador",
+    "ganados": "Ganados",
+    "perdidos": "Perdidos",
+    "juegosFavor": "Juegos a favor",
+    "juegosContra": "Juegos en contra",
+    "countEmpty": "Todavía no se ha cerrado este entrenamiento.",
+    "countEmptyManager": "Añade a quien vino y apunta lo que hizo.",
+    "errEmptyNight": "Añade al menos un jugador",
+    "errNegative": "Los recuentos no pueden ser negativos",
+    "errWrongFormat": "Este entreno se mide de otra manera",
+    "errNeedsFormat": "Este entreno no tiene formato, así que no puntúa"
   },
   "standings": {
     "title": "Clasificación",
@@ -806,6 +837,17 @@
     "minimoPodio": "Para el podio hacen falta {{count}} noches",
     "minimoPodio_one": "Para el podio hace falta 1 noche",
     "reglaTitulo": "Cómo se calcula la nota",
-    "regla": "De cada noche sale un escalón —la pista en la que acabaste, y dentro de ella los reyes por delante de los retadores— que vale de 100 arriba del todo a 0 abajo del todo, sea cual sea el número de pistas. La nota es la media de tus noches, pero tirando hacia la media de la competición ({{media}}) mientras hayas venido poco: hacen falta unas {{margen}} noches para que sea del todo tuya. Así ni gana quien vino un día y acabó arriba, ni gana quien viene siempre y acaba en medio."
+    "regla": "De cada noche sale un escalón —la pista en la que acabaste, y dentro de ella los reyes por delante de los retadores— que vale de 100 arriba del todo a 0 abajo del todo, sea cual sea el número de pistas. La nota es la media de tus noches, pero tirando hacia la media de la competición ({{media}}) mientras hayas venido poco: hacen falta unas {{margen}} noches para que sea del todo tuya. Así ni gana quien vino un día y acabó arriba, ni gana quien viene siempre y acaba en medio.",
+    "sinFormato": "Esta competición no tiene formato, así que no saca clasificación. Edítala y elige uno para que sus entrenamientos puntúen.",
+    "ganados": "PG",
+    "perdidos": "PP",
+    "winPct": "%",
+    "juegosFavor": "JF",
+    "juegosContra": "JC",
+    "formatos": {
+      "rey_pista": "Sale del puesto en el que acabaste cada noche, no de los partidos sueltos",
+      "partidos": "Sale de los partidos que ganaste y perdiste cada noche",
+      "americano": "Sale de los juegos que hiciste a favor y en contra cada noche"
+    }
   }
 }

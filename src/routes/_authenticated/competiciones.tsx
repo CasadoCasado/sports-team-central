@@ -28,7 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { OfficialRegistrationsSection } from "@/components/official-registrations-section";
-import type { CompetitionType } from "@/lib/types";
+import type { CompetitionType, TrainingFormat } from "@/lib/types";
 
 type CompType = CompetitionType;
 type Competition = {
@@ -39,8 +39,11 @@ type Competition = {
   descripcion: string | null;
   fecha_inicio: string | null;
   fecha_fin: string | null;
+  formato: TrainingFormat | null;
   finalizada: boolean;
 };
+
+const FORMATOS: TrainingFormat[] = ["rey_pista", "partidos", "americano"];
 
 type CompStatus = "proxima" | "enCurso" | "finalizada";
 
@@ -268,6 +271,7 @@ function CompDialog({
   const [fechaInicio, setFechaInicio] = useState("");
   const [fechaFin, setFechaFin] = useState("");
   const [descripcion, setDescripcion] = useState("");
+  const [formato, setFormato] = useState<TrainingFormat | null>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -277,6 +281,7 @@ function CompDialog({
     setFechaInicio(initial.fecha_inicio ?? "");
     setFechaFin(initial.fecha_fin ?? "");
     setDescripcion(initial.descripcion ?? "");
+    setFormato(initial.formato ?? null);
   }, [initial]);
 
   const isEdit = !!initial.id;
@@ -293,6 +298,7 @@ function CompDialog({
         fecha_inicio: !isLiga && fechaInicio ? fechaInicio : null,
         fecha_fin: !isLiga && fechaFin ? fechaFin : null,
         descripcion: descripcion.trim() || null,
+        formato,
       };
       if (isEdit) {
         await api.patch(`/competitions/${initial.id!}/`, payload);
@@ -356,6 +362,27 @@ function CompDialog({
             </div>
           )}
 
+          <div>
+            <Label>{t("competitions.formato")}</Label>
+            <Select
+              value={formato ?? "none"}
+              onValueChange={(v) => setFormato(v === "none" ? null : (v as TrainingFormat))}
+            >
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">{t("competitions.formatos.ninguno")}</SelectItem>
+                {FORMATOS.map((f) => (
+                  <SelectItem key={f} value={f}>{t(`competitions.formatos.${f}`)}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="mt-1.5 text-xxs text-muted-foreground">
+              {t(`competitions.formatoDesc.${formato ?? "ninguno"}`)}
+            </p>
+            <p className="mt-1 text-xxs text-muted-foreground">
+              {t("competitions.formatoHint")}
+            </p>
+          </div>
           <div>
             <Label>{t("competitions.descripcion")}</Label>
             <Textarea value={descripcion} onChange={(e) => setDescripcion(e.target.value)} rows={3} maxLength={500} />
