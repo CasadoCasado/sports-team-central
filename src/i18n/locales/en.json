@@ -494,7 +494,15 @@
     "joinFailedTitle": "Invitation failed",
     "inviteInvalid": "This invitation link is invalid or has been revoked.",
     "notTeamMember": "You need to be a member of this team to join the channel.",
-    "backToChannels": "Back to channels"
+    "backToChannels": "Back to channels",
+    "channelTeam": "Team",
+    "grupos": {
+      "todos": "Everyone",
+      "capitanes": "Captains",
+      "entrenadores": "Coaches",
+      "delegados": "Staff",
+      "jugadores": "Players"
+    }
   },
   "polls": {
     "title": "Polls",

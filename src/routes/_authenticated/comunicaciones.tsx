@@ -3,9 +3,27 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Copy, Hash, Link2, Lock, Plus, RefreshCw, Send, Settings, Trash2, Users } from "lucide-react";
+import {
+  Copy,
+  Hash,
+  Link2,
+  Lock,
+  Plus,
+  RefreshCw,
+  Send,
+  Settings,
+  Trash2,
+  Users,
+} from "lucide-react";
 import { api } from "@/lib/api";
-import type { ChatChannel, ChatChannelMember, ChatMessage, TeamMember } from "@/lib/types";
+import type {
+  ChatChannel,
+  ChatChannelMember,
+  ChatMessage,
+  TeamMember,
+  TeamRole,
+} from "@/lib/types";
+import { MANAGER_ROLES } from "@/lib/types";
 import { useProfile } from "@/hooks/use-profile";
 import { useSession } from "@/hooks/use-session";
 import { useActiveTeam } from "@/hooks/use-active-team";
@@ -23,15 +41,28 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/comunicaciones")({
   head: () => ({
     meta: [
       { title: "Comunicaciones | TeamUp" },
-      { name: "description", content: "Chat del equipo con canales públicos y privados e invitaciones por enlace." },
+      {
+        name: "description",
+        content: "Chat del equipo con canales públicos y privados e invitaciones por enlace.",
+      },
       { property: "og:title", content: "Comunicaciones | TeamUp" },
-      { property: "og:description", content: "Chat del equipo con canales públicos y privados e invitaciones por enlace." },
+      {
+        property: "og:description",
+        content: "Chat del equipo con canales públicos y privados e invitaciones por enlace.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -58,7 +89,7 @@ type Message = {
 
 type TeamMemberOption = {
   user_id: string;
-  role: string;
+  role: TeamRole;
   nombre: string | null;
   apellidos: string | null;
   avatar_url: string | null;
@@ -200,6 +231,34 @@ function Comunicaciones() {
   );
 }
 
+/**
+ * Los atajos para marcar gente de golpe.
+ *
+ * Marcar uno a uno a doce personas para avisar a los capitanes es el camino
+ * largo de algo que se dice en dos palabras. Solo se pintan los grupos que
+ * tienen a alguien: en un equipo sin entrenador, el botón de entrenadores no
+ * aparece en vez de salir vacío y no hacer nada al pulsarlo.
+ */
+const GRUPOS: { key: string; match: (role: TeamRole) => boolean }[] = [
+  { key: "todos", match: () => true },
+  { key: "capitanes", match: (r) => r === "capitan" || r === "co_capitan" },
+  { key: "entrenadores", match: (r) => r === "entrenador" },
+  { key: "delegados", match: (r) => r === "delegado" },
+  { key: "jugadores", match: (r) => r === "jugador" },
+];
+
+function gruposCon(options: TeamMemberOption[], selfId: string | undefined) {
+  const conGente = GRUPOS.map((g) => {
+    const ids = options.filter((o) => g.match(o.role)).map((o) => o.user_id);
+    return { ...g, ids, otros: ids.filter((id) => id !== selfId) };
+  })
+    // Uno mismo va siempre en el canal y no se puede desmarcar, así que un
+    // grupo donde solo estás tú no hace nada al pulsarlo: mejor no pintarlo.
+    .filter((g) => g.otros.length > 0);
+
+  // Con un solo grupo, "Todos" y ese grupo son la misma gente: sobra uno.
+  return conGente.length === 2 ? conGente.filter((g) => g.key !== "todos") : conGente;
+}
 
 function MemberPicker({
   options,
@@ -212,6 +271,7 @@ function MemberPicker({
   onToggle: (id: string) => void;
   currentUserId?: string;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="max-h-64 space-y-1 overflow-y-auto rounded-md border border-border p-2">
       {options.length === 0 ? (
@@ -235,7 +295,7 @@ function MemberPicker({
               />
               <span className="flex-1 truncate font-medium">{name}</span>
               <span className="text-2xs uppercase tracking-widest text-muted-foreground">
-                {m.role}
+                {t(`roles.${m.role}`)}
               </span>
             </label>
           );
@@ -245,21 +305,47 @@ function MemberPicker({
   );
 }
 
-function NewChannelDialog({ teamId }: { teamId: string }) {
+function NewChannelDialog({ teamId: teamIdActivo }: { teamId: string }) {
   const { t } = useTranslation();
   const qc = useQueryClient();
   const { user } = useSession();
+  const { memberships, setActiveId } = useActiveTeam();
   const [open, setOpen] = useState(false);
   const [nombre, setNombre] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
+
+  // Crear un canal es cosa de la gestión, así que solo salen los equipos
+  // donde se pueda; ofrecer uno que el servidor va a rechazar no ayuda.
+  const equipos = memberships.filter((m) => MANAGER_ROLES.includes(m.role));
+  const [teamId, setTeamId] = useState(teamIdActivo);
+  useEffect(() => {
+    if (open) {
+      setTeamId(teamIdActivo);
+      setSelected(new Set());
+    }
+  }, [open, teamIdActivo]);
+
   const { data: options = [] } = useTeamMemberOptions(open ? teamId : undefined);
+  const grupos = useMemo(() => gruposCon(options, user?.id), [options, user?.id]);
 
   function toggle(id: string) {
     setSelected((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
+      return next;
+    });
+  }
+
+  /** Marca el grupo entero, o lo desmarca si ya estaba entero. */
+  function toggleGrupo(ids: string[]) {
+    // A uno mismo no se le puede quitar: el canal lo crea él.
+    const otros = ids.filter((id) => id !== user?.id);
+    setSelected((prev) => {
+      const next = new Set(prev);
+      const completo = otros.every((id) => next.has(id));
+      otros.forEach((id) => (completo ? next.delete(id) : next.add(id)));
       return next;
     });
   }
@@ -290,6 +376,9 @@ function NewChannelDialog({ teamId }: { teamId: string }) {
       setNombre("");
       setSelected(new Set());
       setOpen(false);
+      // Si el canal es de otro equipo, se cambia a él: la lista de canales es
+      // la del equipo activo, y si no, el canal recién creado no se vería.
+      if (teamId !== teamIdActivo) setActiveId(teamId);
       qc.invalidateQueries({ queryKey: ["chat-channels", teamId] });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("common.error"));
@@ -313,6 +402,23 @@ function NewChannelDialog({ teamId }: { teamId: string }) {
           <DialogTitle>{t("chat.newChannel")}</DialogTitle>
         </DialogHeader>
         <form onSubmit={create} className="space-y-4">
+          {equipos.length > 1 && (
+            <div>
+              <Label>{t("chat.channelTeam")}</Label>
+              <Select value={teamId} onValueChange={setTeamId}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {equipos.map((m) => (
+                    <SelectItem key={m.team_id} value={m.team_id}>
+                      {m.team.nombre}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div>
             <Label htmlFor="channel-name">{t("chat.channelName")}</Label>
             <Input
@@ -325,6 +431,29 @@ function NewChannelDialog({ teamId }: { teamId: string }) {
           </div>
           <div>
             <Label>{t("chat.selectMembers")}</Label>
+            {grupos.length > 0 && (
+              <div className="mb-2 flex flex-wrap gap-1.5">
+                {grupos.map((g) => {
+                  const completo = g.otros.every((id) => selected.has(id));
+                  return (
+                    <button
+                      key={g.key}
+                      type="button"
+                      onClick={() => toggleGrupo(g.ids)}
+                      aria-pressed={completo}
+                      className={cn(
+                        "rounded-full border px-2.5 py-1 text-2xs font-bold uppercase tracking-widest transition-colors",
+                        completo
+                          ? "border-primary/40 bg-primary/15 text-primary"
+                          : "border-border text-muted-foreground hover:bg-card",
+                      )}
+                    >
+                      {t(`chat.grupos.${g.key}`)} ({g.ids.length})
+                    </button>
+                  );
+                })}
+              </div>
+            )}
             <MemberPicker
               options={options}
               selected={selected}
@@ -367,9 +496,7 @@ function InviteLinkSection({ channel }: { channel: Channel }) {
     try {
       // El token lo genera el servidor: uno aleatorio de verdad, no derivado
       // de Math.random() en el navegador.
-      const updated = await api.post<ChatChannel>(
-        `/chat-channels/${channel.id}/invite-token/`,
-      );
+      const updated = await api.post<ChatChannel>(`/chat-channels/${channel.id}/invite-token/`);
       setToken(updated.invite_token);
       qc.invalidateQueries({ queryKey: ["chat-channels", channel.team_id] });
       toast.success(t("chat.inviteGenerated"));
@@ -417,7 +544,13 @@ function InviteLinkSection({ channel }: { channel: Channel }) {
         <div className="space-y-2">
           <div className="flex gap-2">
             <Input value={link} readOnly className="flex-1 font-mono text-xs" />
-            <Button type="button" variant="outline" size="icon" onClick={copy} aria-label={t("chat.copyLink")}>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={copy}
+              aria-label={t("chat.copyLink")}
+            >
               <Copy className="size-4" />
             </Button>
           </div>
@@ -447,13 +580,7 @@ function InviteLinkSection({ channel }: { channel: Channel }) {
   );
 }
 
-function ManageMembersDialog({
-  channel,
-  teamId,
-}: {
-  channel: Channel;
-  teamId: string;
-}) {
+function ManageMembersDialog({ channel, teamId }: { channel: Channel; teamId: string }) {
   const { t } = useTranslation();
   const qc = useQueryClient();
   const { user } = useSession();
@@ -684,7 +811,6 @@ function ChannelView({ channel, isManager }: { channel: Channel; isManager: bool
         )}
       </header>
 
-
       <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto px-3 py-3 sm:px-5 sm:py-4">
         {(messages?.length ?? 0) === 0 ? (
           <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
@@ -693,25 +819,32 @@ function ChannelView({ channel, isManager }: { channel: Channel; isManager: bool
         ) : (
           messages!.map((m, i) => {
             const prev = messages![i - 1];
-            const sameAuthor = prev && prev.user_id === m.user_id &&
-              new Date(m.created_at).getTime() - new Date(prev.created_at).getTime() < 5 * 60 * 1000;
+            const sameAuthor =
+              prev &&
+              prev.user_id === m.user_id &&
+              new Date(m.created_at).getTime() - new Date(prev.created_at).getTime() <
+                5 * 60 * 1000;
             const p = profileMap.get(m.user_id);
             const name = `${p?.nombre ?? ""} ${p?.apellidos ?? ""}`.trim() || t("chat.unknownUser");
-            const initials = ((p?.nombre?.[0] ?? "") + (p?.apellidos?.[0] ?? "")).toUpperCase() || "?";
+            const initials =
+              ((p?.nombre?.[0] ?? "") + (p?.apellidos?.[0] ?? "")).toUpperCase() || "?";
             const own = m.user_id === user?.id;
             const canDelete = own || isManager;
             return (
               <div key={m.id} className={cn("group flex gap-2 sm:gap-3", sameAuthor && "mt-0")}>
                 <div className="w-8 shrink-0 sm:w-9">
-                  {!sameAuthor && (
-                    p?.avatar_url ? (
-                      <img src={p.avatar_url} alt="" className="size-8 rounded-full object-cover sm:size-9" />
+                  {!sameAuthor &&
+                    (p?.avatar_url ? (
+                      <img
+                        src={p.avatar_url}
+                        alt=""
+                        className="size-8 rounded-full object-cover sm:size-9"
+                      />
                     ) : (
                       <div className="flex size-8 items-center justify-center rounded-full bg-card text-xs font-bold ring-1 ring-border sm:size-9">
                         {initials}
                       </div>
-                    )
-                  )}
+                    ))}
                 </div>
 
                 <div className="min-w-0 flex-1">
@@ -719,12 +852,17 @@ function ChannelView({ channel, isManager }: { channel: Channel; isManager: bool
                     <div className="flex min-w-0 flex-wrap items-baseline gap-x-2">
                       <span className="truncate text-sm font-bold">{name}</span>
                       <span className="text-2xs uppercase tracking-widest text-muted-foreground">
-                        {new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        {new Date(m.created_at).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
                       </span>
                     </div>
                   )}
                   <div className="flex items-start gap-2">
-                    <p className="min-w-0 flex-1 whitespace-pre-wrap break-words text-sm">{m.contenido}</p>
+                    <p className="min-w-0 flex-1 whitespace-pre-wrap break-words text-sm">
+                      {m.contenido}
+                    </p>
                     {canDelete && (
                       <button
                         onClick={() => remove(m.id)}
@@ -758,7 +896,6 @@ function ChannelView({ channel, isManager }: { channel: Channel; isManager: bool
           <Send className="size-4" />
         </Button>
       </form>
-
     </>
   );
 }

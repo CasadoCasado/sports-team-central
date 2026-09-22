@@ -494,7 +494,15 @@
     "joinFailedTitle": "Invitación fallida",
     "inviteInvalid": "Este enlace de invitación no es válido o ha sido revocado.",
     "notTeamMember": "Necesitas ser miembro de este equipo para unirte al canal.",
-    "backToChannels": "Volver a canales"
+    "backToChannels": "Volver a canales",
+    "channelTeam": "Equipo",
+    "grupos": {
+      "todos": "Todos",
+      "capitanes": "Capitanes",
+      "entrenadores": "Entrenadores",
+      "delegados": "Delegados",
+      "jugadores": "Jugadores"
+    }
   },
   "polls": {
     "title": "Encuestas",
