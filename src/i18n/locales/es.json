@@ -338,7 +338,8 @@
     "errors": {
       "registrationMismatch": "La inscripción seleccionada no pertenece a este equipo o no existe.",
       "registrationNotActive": "La inscripción seleccionada no está abierta ni activa."
-    }
+    },
+    "competicionEntrenoHint": "Si lo metes en una competición, su resultado cuenta para la clasificación de esa competición."
   },
   "competitions": {
     "title": "Competiciones",
@@ -744,5 +745,63 @@
         "desc": "Activa recordatorios y notificaciones para enterarte de cada convocatoria y cambio de última hora."
       }
     }
+  },
+  "training": {
+    "title": "Resultados del entreno",
+    "subtitle": "Orden final de las pistas y quién ganó en cada una",
+    "needsCompetition": "Este entrenamiento no está dentro de ninguna competición, así que sus resultados no cuentan para ninguna clasificación. Edítalo y elige una.",
+    "notYetPlayed": "Los resultados se pueden apuntar cuando empiece el entrenamiento.",
+    "pista": "Pista",
+    "posicion": "Posición final",
+    "addCourt": "Añadir pista",
+    "removeCourt": "Quitar pista",
+    "moveUp": "Subir",
+    "moveDown": "Bajar",
+    "addPlayer": "Añadir jugador",
+    "removePlayer": "Quitar del reparto",
+    "noPlayers": "Sin jugadores",
+    "winner": "Ganó",
+    "loser": "Perdió",
+    "markWinner": "Marcar como ganador",
+    "empty": "Todavía no se ha cerrado este entrenamiento.",
+    "emptyManager": "Añade las pistas tal y como quedaron y marca quién ganó en cada una.",
+    "unassigned": "Sin pista",
+    "allAssigned": "Todos los apuntados están repartidos",
+    "save": "Guardar resultados",
+    "saved": "Resultados del entreno guardados",
+    "closed": "La competición está finalizada: sus resultados ya no se tocan.",
+    "errNoCourts": "Añade al menos una pista con jugadores",
+    "errEmptyCourt": "Hay una pista sin jugadores",
+    "errPlayerTwice": "Un jugador no puede estar en dos pistas",
+    "errNotMember": "Alguien del reparto ya no está en el equipo",
+    "errDuplicateCourt": "Hay dos pistas con el mismo número"
+  },
+  "standings": {
+    "title": "Clasificación",
+    "subtitle": "Sale de los entrenamientos jugados dentro de esta competición",
+    "empty": "Todavía no hay entrenamientos con resultados en esta competición.",
+    "podium": "Podio",
+    "puesto": "Puesto",
+    "jugador": "Jugador",
+    "entrenamientos": "Entrenos",
+    "jugados": "PJ",
+    "ganados": "PG",
+    "perdidos": "PP",
+    "diferencia": "Dif.",
+    "winPct": "%",
+    "posicionMedia": "Pista media",
+    "trainings": "Entrenamientos",
+    "trainingsCount_one": "{{count}} entrenamiento cerrado",
+    "trainingsCount_other": "{{count}} entrenamientos cerrados",
+    "noTrainings": "Esta competición aún no tiene entrenamientos.",
+    "finish": "Finalizar competición",
+    "finishConfirm": "¿Dar por terminada la competición? Se congela la clasificación, se enseña el podio y sus entrenamientos dejan de admitir resultados.",
+    "reopen": "Reabrir competición",
+    "finished": "Competición finalizada",
+    "reopened": "Competición reabierta",
+    "finishedOn": "Finalizada el {{date}}",
+    "tieNote": "A igualdad de victorias y diferencia, manda la posición media de las pistas.",
+    "back": "Volver a competiciones",
+    "seeStandings": "Ver clasificación"
   }
 }

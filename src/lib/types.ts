@@ -163,6 +163,56 @@ export type Competition = {
   temporada: string | null;
   fecha_inicio: string | null;
   fecha_fin: string | null;
+  /** Una competición finalizada ya no admite resultados y enseña su podio. */
+  finalizada: boolean;
+  finalizada_en: string | null;
+};
+
+/** Un jugador dentro de una pista de entrenamiento, y si ganó ahí. */
+export type TrainingCourtPlayer = {
+  id: string;
+  court_id: string;
+  user_id: string;
+  ganador: boolean;
+  profile: Profile | null;
+};
+
+/**
+ * Cómo quedó una pista al final de un entrenamiento: `pista` es el número de
+ * la pista y `posicion` el puesto en el que terminó, con 1 arriba.
+ */
+export type TrainingCourt = {
+  id: string;
+  event_id: string;
+  pista: number;
+  posicion: number;
+  players: TrainingCourtPlayer[];
+};
+
+/** Una fila de la clasificación de una competición. */
+export type CompetitionStanding = {
+  user_id: string;
+  profile: Profile | null;
+  puesto: number;
+  entrenamientos: number;
+  jugados: number;
+  ganados: number;
+  perdidos: number;
+  diferencia: number;
+  win_pct: number;
+  mejor_posicion: number | null;
+  posicion_media: number | null;
+};
+
+/** Lo que devuelve `/api/competitions/{id}/standings/`. */
+export type CompetitionStandings = {
+  competition_id: string;
+  finalizada: boolean;
+  finalizada_en: string | null;
+  entrenamientos: number;
+  standings: CompetitionStanding[];
+  /** Solo llega lleno cuando la competición está finalizada. */
+  podium: CompetitionStanding[];
 };
 
 export type OfficialCompetitionItem = {

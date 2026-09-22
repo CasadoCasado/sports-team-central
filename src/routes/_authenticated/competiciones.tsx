@@ -1,9 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Trophy, Plus, Pencil, Trash2 } from "lucide-react";
+import { Trophy, Plus, Pencil, Trash2, ListOrdered } from "lucide-react";
 import { api } from "@/lib/api";
 import { useSession } from "@/hooks/use-session";
 import { useActiveTeam } from "@/hooks/use-active-team";
@@ -39,11 +39,17 @@ type Competition = {
   descripcion: string | null;
   fecha_inicio: string | null;
   fecha_fin: string | null;
+  finalizada: boolean;
 };
 
 type CompStatus = "proxima" | "enCurso" | "finalizada";
 
-function getCompetitionStatus(c: Pick<Competition, "tipo" | "temporada" | "fecha_inicio" | "fecha_fin">): CompStatus | null {
+function getCompetitionStatus(
+  c: Pick<Competition, "tipo" | "temporada" | "fecha_inicio" | "fecha_fin" | "finalizada">,
+): CompStatus | null {
+  // Cerrarla a mano manda sobre lo que digan las fechas: es una decisión de
+  // quien la gestiona, no una deducción del calendario.
+  if (c.finalizada) return "finalizada";
   let start: Date | null = null;
   let end: Date | null = null;
   if (c.fecha_inicio) start = new Date(c.fecha_inicio);
@@ -233,6 +239,13 @@ function CompCard({
       {c.descripcion && (
         <p className="mt-3 text-sm text-muted-foreground">{c.descripcion}</p>
       )}
+      <Link
+        to="/competiciones/$id"
+        params={{ id: c.id }}
+        className="mt-4 inline-flex items-center gap-1.5 text-2xs font-bold uppercase tracking-widest text-primary hover:underline"
+      >
+        <ListOrdered className="size-3.5" /> {t("standings.seeStandings")}
+      </Link>
     </div>
   );
 }

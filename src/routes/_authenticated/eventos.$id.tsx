@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 import { EventFormDialog } from "@/components/event-form-dialog";
+import { TrainingResultsSection } from "@/components/training-results-section";
 import { toDateTimeLocal, eventTypeStyles, type EventType } from "@/lib/events";
 import {
   courtWinner,
@@ -190,6 +191,20 @@ function EventDetail() {
 
       {(event.requiere_convocatoria || event.tipo === "entrenamiento") && (
         <CallupSection event={event} isManager={!!isManager} userId={user?.id ?? null} />
+      )}
+
+      {/* Un entrenamiento dentro de una competición cierra con el orden de
+          sus pistas; sin competición no hay nada que contar, así que solo se
+          le enseña el aviso a quien puede arreglarlo. */}
+      {event.tipo === "entrenamiento" && (event.competition_id || isManager) && (
+        <TrainingResultsSection
+          eventId={event.id}
+          teamId={event.team_id}
+          competitionId={event.competition_id}
+          competitionNombre={event.competition_nombre}
+          startISO={event.fecha_inicio}
+          isManager={!!isManager}
+        />
       )}
 
       {event.tipo === "partido" && (
