@@ -15,7 +15,8 @@ import {
   ClipboardList,
   Trophy,
 } from "lucide-react";
-import { api, mediaUrl } from "@/lib/api";
+import { api } from "@/lib/api";
+import { Picture } from "@/components/picture";
 import type { EventResponse, TeamEvent, TeamMember } from "@/lib/types";
 import { useProfile } from "@/hooks/use-profile";
 import { useSession } from "@/hooks/use-session";
@@ -388,17 +389,12 @@ function Inicio() {
                   to="/mi-equipo"
                   className="surface-card group flex items-start gap-4 p-5 transition-colors hover:border-primary/40"
                 >
-                  <div className="flex size-12 items-center justify-center rounded-md bg-primary/10 text-primary">
-                    {team.logo_url ? (
-                      <img
-                        src={mediaUrl(team.logo_url)}
-                        alt=""
-                        className="size-12 rounded-md object-cover"
-                      />
-                    ) : (
-                      <Shield className="size-6" />
-                    )}
-                  </div>
+                  <Picture
+                    url={team.logo_url}
+                    alt=""
+                    className="size-12 rounded-md bg-primary/10 text-primary"
+                    fallback={<Shield className="size-6" />}
+                  />
                   <div className="min-w-0">
                     <p className="text-display truncate text-lg font-bold">{team.nombre}</p>
                     <p className="mt-0.5 text-2xs font-bold uppercase tracking-widest text-primary">

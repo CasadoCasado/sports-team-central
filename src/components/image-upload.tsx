@@ -7,12 +7,13 @@
  * ahí para siempre sin forma de arreglarlo desde la web.
  */
 
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Trash2, Upload } from "lucide-react";
 
+import { Picture } from "@/components/picture";
 import { Button } from "@/components/ui/button";
-import { mediaUrl } from "@/lib/api";
+import { FEATURES } from "@/lib/feature-flags";
 import { cn } from "@/lib/utils";
 
 /** Lo que acepta el servidor; se repite aquí para avisar antes de subir. */
@@ -41,39 +42,32 @@ export function ImageUpload({
 }) {
   const { t } = useTranslation();
   const input = useRef<HTMLInputElement>(null);
-  // Una URL guardada puede apuntar a un fichero que ya no está. Sin esto se
-  // vería el icono de imagen rota del navegador, que es lo que pasaba.
-  const [rota, setRota] = useState(false);
-  const src = mediaUrl(url);
-  const enseñaImagen = !!src && !rota;
 
   function elegir(file: File | null | undefined) {
     if (!file) return;
     if (!TIPOS.includes(file.type)) return alert(t("images.errType"));
     if (file.size > MAXIMO) return alert(t("images.errSize"));
-    setRota(false);
     onPick(file);
   }
 
+  const hueco = (
+    <Picture
+      url={url}
+      alt={alt}
+      fallback={fallback}
+      className={cn(
+        "size-16 bg-primary/10 text-primary ring-1 ring-border",
+        redonda ? "rounded-full" : "rounded-lg",
+      )}
+    />
+  );
+
+  // Con las imágenes cerradas no hay nada que ofrecer: solo el hueco.
+  if (!FEATURES.images) return hueco;
+
   return (
     <div className="flex items-center gap-4">
-      <div
-        className={cn(
-          "flex size-16 shrink-0 items-center justify-center overflow-hidden bg-primary/10 text-primary ring-1 ring-border",
-          redonda ? "rounded-full" : "rounded-lg",
-        )}
-      >
-        {enseñaImagen ? (
-          <img
-            src={src}
-            alt={alt}
-            onError={() => setRota(true)}
-            className="size-full object-cover"
-          />
-        ) : (
-          fallback
-        )}
-      </div>
+      {hueco}
 
       {canEdit && (
         <div className="flex flex-wrap items-center gap-2">
@@ -110,9 +104,6 @@ export function ImageUpload({
               <Trash2 className="mr-1 size-3.5" />
               {t("images.remove")}
             </Button>
-          )}
-          {rota && url && (
-            <span className="text-2xs text-muted-foreground">{t("images.broken")}</span>
           )}
         </div>
       )}

@@ -3,7 +3,8 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Search, Shield } from "lucide-react";
-import { api, mediaUrl } from "@/lib/api";
+import { api } from "@/lib/api";
+import { Picture } from "@/components/picture";
 import type { Team, TeamInvitation } from "@/lib/types";
 import { useSession } from "@/hooks/use-session";
 import { Button } from "@/components/ui/button";
@@ -198,13 +199,12 @@ export function TeamDiscovery({
               key={tm.id}
               className="flex flex-wrap items-center gap-3 rounded-md border border-border bg-card p-3"
             >
-              {tm.logo_url ? (
-                <img src={mediaUrl(tm.logo_url)} alt="" className="size-10 rounded object-cover" />
-              ) : (
-                <div className="flex size-10 items-center justify-center rounded bg-primary/10 text-primary">
-                  <Shield className="size-5" />
-                </div>
-              )}
+              <Picture
+                url={tm.logo_url}
+                alt=""
+                className="size-10 rounded bg-primary/10 text-primary"
+                fallback={<Shield className="size-5" />}
+              />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold">{tm.nombre}</p>
                 <p className="text-xxs text-muted-foreground">
