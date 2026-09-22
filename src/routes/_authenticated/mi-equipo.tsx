@@ -320,9 +320,7 @@ function TeamCard({
 
   return (
     <div className="surface-card overflow-hidden">
-      {/* Envuelve: con el escudo, sus botones, el nombre y el de borrar en
-          una sola fila, en una tarjeta estrecha se pisan unos a otros. */}
-      <div className="flex flex-wrap items-center gap-4 border-b border-border p-6">
+      <div className="flex items-center gap-4 border-b border-border p-6">
         <ImageUpload
           url={team.logo_url}
           alt={team.nombre}
@@ -332,7 +330,7 @@ function TeamCard({
           onPick={(file) => logo.mutate(file)}
           onRemove={() => logo.mutate(null)}
         />
-        <div className="min-w-[12rem] flex-1">
+        <div className="min-w-0 flex-1">
           <h3 className="text-display truncate text-2xl font-black">{team.nombre}</h3>
           <p className="mt-1 text-2xs font-bold uppercase tracking-widest text-primary">
             {role}

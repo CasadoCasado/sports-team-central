@@ -18,6 +18,20 @@ const enabled = (v: unknown) => v === "true";
 export const FEATURES = {
   galleryUploads: enabled(import.meta.env.VITE_ENABLE_GALLERY_UPLOADS),
   documentUploads: enabled(import.meta.env.VITE_ENABLE_DOCUMENT_UPLOADS),
+  /**
+   * El escudo del equipo y la foto de perfil.
+   *
+   * Apagado, no se puede subir ninguna de las dos **y tampoco se enseñan las
+   * que ya estuvieran guardadas**: en su hueco va siempre el mismo dibujo, el
+   * escudo para un equipo y las iniciales para una persona. Las dos cosas van
+   * juntas a propósito: dejar de poder cambiarlas pero seguir enseñando una
+   * imagen vieja que no carga es el peor de los dos mundos, y es justo de
+   * donde se viene.
+   *
+   * La API sigue aceptándolas, igual que con la galería y los documentos: lo
+   * que está cerrado es la pantalla, no el servidor.
+   */
+  images: enabled(import.meta.env.VITE_ENABLE_IMAGES),
 } as const;
 
 /** Las secciones cuya subida está pausada salen marcadas en el menú. */

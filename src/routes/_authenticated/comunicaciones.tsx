@@ -15,7 +15,8 @@ import {
   Trash2,
   Users,
 } from "lucide-react";
-import { api, mediaUrl } from "@/lib/api";
+import { api } from "@/lib/api";
+import { Picture } from "@/components/picture";
 import type {
   ChatChannel,
   ChatChannelMember,
@@ -833,18 +834,14 @@ function ChannelView({ channel, isManager }: { channel: Channel; isManager: bool
             return (
               <div key={m.id} className={cn("group flex gap-2 sm:gap-3", sameAuthor && "mt-0")}>
                 <div className="w-8 shrink-0 sm:w-9">
-                  {!sameAuthor &&
-                    (p?.avatar_url ? (
-                      <img
-                        src={mediaUrl(p.avatar_url)}
-                        alt=""
-                        className="size-8 rounded-full object-cover sm:size-9"
-                      />
-                    ) : (
-                      <div className="flex size-8 items-center justify-center rounded-full bg-card text-xs font-bold ring-1 ring-border sm:size-9">
-                        {initials}
-                      </div>
-                    ))}
+                  {!sameAuthor && (
+                    <Picture
+                      url={p?.avatar_url}
+                      alt=""
+                      className="size-8 rounded-full bg-card text-xs font-bold ring-1 ring-border sm:size-9"
+                      fallback={initials}
+                    />
+                  )}
                 </div>
 
                 <div className="min-w-0 flex-1">
