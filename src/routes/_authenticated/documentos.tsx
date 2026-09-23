@@ -94,9 +94,9 @@ function Documentos() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-display text-3xl font-black tracking-tight">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-display text-2xl font-black tracking-tight sm:text-3xl">
             {t("nav.documentos")}
           </h1>
           <p className="text-sm text-muted-foreground">{t("documents.subtitle")}</p>
@@ -140,34 +140,39 @@ function Documentos() {
           </div>
         ) : (
           docs?.map((d) => (
-            <div key={d.id} className="flex items-center gap-4 p-4">
-              <div className="flex size-10 items-center justify-center rounded-md bg-primary/10 text-primary">
+            /* El nombre del fichero ocupa toda la línea y los botones caen a
+               la derecha de la siguiente: un «Acta de la reunión de junio.pdf»
+               compartiendo fila con descargar y borrar se quedaba en la mitad. */
+            <div key={d.id} className="grid grid-cols-[2.5rem_minmax(0,1fr)] items-center gap-x-3 gap-y-2 p-4 sm:flex sm:gap-4">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
                 <FileText className="size-5" />
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="truncate text-sm font-bold">{d.filename}</p>
+              <div className="min-w-0 sm:flex-1">
+                <p className="text-sm font-bold break-words">{d.filename}</p>
                 <p className="text-xs text-muted-foreground">
                   {formatBytes(d.size_bytes)} · {new Date(d.created_at).toLocaleDateString()}
                 </p>
               </div>
-              <button
-                onClick={() => download(d)}
-                className="rounded-md p-2 text-muted-foreground hover:bg-card hover:text-foreground"
-                aria-label={t("documents.download")}
-              >
-                <Download className="size-4" />
-              </button>
-              {(isManager || d.uploader_id === user?.id) && (
+              <div className="col-span-2 flex shrink-0 items-center justify-end gap-1 sm:col-auto">
                 <button
-                  onClick={() => {
-                    if (confirm(t("documents.deleteConfirm"))) remove.mutate(d);
-                  }}
-                  className="rounded-md p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                  aria-label={t("common.delete")}
+                  onClick={() => download(d)}
+                  className="inline-flex size-10 items-center justify-center rounded-md text-muted-foreground hover:bg-card hover:text-foreground sm:size-9"
+                  aria-label={t("documents.download")}
                 >
-                  <Trash2 className="size-4" />
+                  <Download className="size-4" />
                 </button>
-              )}
+                {(isManager || d.uploader_id === user?.id) && (
+                  <button
+                    onClick={() => {
+                      if (confirm(t("documents.deleteConfirm"))) remove.mutate(d);
+                    }}
+                    className="inline-flex size-10 items-center justify-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive sm:size-9"
+                    aria-label={t("common.delete")}
+                  >
+                    <Trash2 className="size-4" />
+                  </button>
+                )}
+              </div>
             </div>
           ))
         )}

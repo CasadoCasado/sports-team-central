@@ -79,9 +79,9 @@ function Galeria() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-display text-3xl font-black tracking-tight">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-display text-2xl font-black tracking-tight sm:text-3xl">
             {t("nav.galeria")}
           </h1>
           <p className="text-sm text-muted-foreground">{t("gallery.subtitle")}</p>

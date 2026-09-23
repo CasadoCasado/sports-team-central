@@ -131,7 +131,7 @@ function Perfil() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <h1 className="text-display text-3xl font-black tracking-tight">{t("profile.myProfile")}</h1>
+      <h1 className="text-display text-2xl font-black tracking-tight sm:text-3xl">{t("profile.myProfile")}</h1>
 
       {/* Resumen de cuenta */}
       <section className="surface-card flex flex-col gap-4 p-6 sm:flex-row sm:items-center">

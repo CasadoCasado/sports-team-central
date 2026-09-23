@@ -19,15 +19,15 @@ export function TeamPicker() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-bold uppercase tracking-widest transition-colors hover:border-primary/40">
+      <DropdownMenuTrigger className="inline-flex min-h-9 min-w-0 max-w-full items-center gap-2 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-bold uppercase tracking-widest transition-colors hover:border-primary/40">
         <Picture
           url={active.team.logo_url}
           alt=""
-          className="size-5 rounded-sm"
+          className="size-5 shrink-0 rounded-sm"
           fallback={<Shield className="size-3.5 text-primary" />}
         />
-        <span className="max-w-[180px] truncate">{active.team.nombre}</span>
-        {memberships.length > 1 && <ChevronDown className="size-3.5 opacity-60" />}
+        <span className="min-w-0 truncate">{active.team.nombre}</span>
+        {memberships.length > 1 && <ChevronDown className="size-3.5 shrink-0 opacity-60" />}
       </DropdownMenuTrigger>
       {memberships.length > 1 && (
         <DropdownMenuContent align="start" className="w-56">

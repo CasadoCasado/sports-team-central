@@ -64,35 +64,46 @@ export function TeamJoinRequests({
           requests!.map((req) => {
             const p = req.invited_user_profile;
             return (
-              <div key={req.id} className="flex items-center gap-3 p-4">
-                <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary ring-1 ring-border">
-                  {(p?.nombre?.[0] ?? "") + (p?.apellidos?.[0] ?? "")}
+              /* Quién pide entrar arriba, los dos botones debajo. En una sola
+                 fila el nombre se quedaba en nada —los botones no se encogen y
+                 se llevaban el ancho entero—, que es justo el dato que hace
+                 falta para decidir. Desde `sm` ya caben en la misma línea. */
+              <div key={req.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
+                <div className="flex min-w-0 flex-1 items-center gap-3">
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary ring-1 ring-border">
+                    {(p?.nombre?.[0] ?? "") + (p?.apellidos?.[0] ?? "")}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-bold break-words">
+                      {p?.nombre} {p?.apellidos}
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground" title={p?.email ?? undefined}>
+                      {p?.email}
+                    </p>
+                    {req.mensaje && (
+                      <p className="mt-1 text-xs italic text-muted-foreground">"{req.mensaje}"</p>
+                    )}
+                  </div>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-bold">
-                    {p?.nombre} {p?.apellidos}
-                  </p>
-                  <p className="truncate text-xs text-muted-foreground">{p?.email}</p>
-                  {req.mensaje && (
-                    <p className="mt-1 text-xs italic text-muted-foreground">"{req.mensaje}"</p>
-                  )}
+                <div className="flex shrink-0 gap-2">
+                  <Button
+                    size="sm"
+                    onClick={() => respond(req.id, true)}
+                    className="flex-1 bg-primary text-primary-foreground uppercase text-2xs font-bold tracking-widest hover:opacity-90 sm:flex-none"
+                  >
+                    <Check className="mr-1 size-3.5" />
+                    {t("notifications.approve")}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex-1 sm:flex-none"
+                    onClick={() => respond(req.id, false)}
+                  >
+                    <X className="mr-1 size-3.5" />
+                    {t("notifications.reject")}
+                  </Button>
                 </div>
-                <Button
-                  size="sm"
-                  onClick={() => respond(req.id, true)}
-                  className="bg-primary text-primary-foreground uppercase text-2xs font-bold tracking-widest hover:opacity-90"
-                >
-                  <Check className="mr-1 size-3.5" />
-                  {t("notifications.approve")}
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => respond(req.id, false)}
-                >
-                  <X className="mr-1 size-3.5" />
-                  {t("notifications.reject")}
-                </Button>
               </div>
             );
           })

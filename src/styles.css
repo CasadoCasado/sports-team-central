@@ -151,6 +151,25 @@
     cursor: pointer;
   }
 
+  /* Red de seguridad contra el desbordamiento lateral.
+   *
+   * En un móvil, un solo elemento que se pase tres píxeles convierte la
+   * pantalla entera en un carrusel horizontal: el contenido se descoloca, los
+   * títulos se salen y la app parece rota aunque solo falle una tarjeta.
+   *
+   * Esto no arregla nada —cada desbordamiento se corrige donde nace, casi
+   * siempre con un `min-w-0` en el hijo de un grid o un flex que lleva texto
+   * con `truncate` dentro—, pero evita que el próximo se lleve por delante
+   * toda la pantalla.
+   *
+   * Es `clip` y no `hidden` a propósito: `hidden` crea un contenedor de
+   * desplazamiento y rompe todos los `position: sticky` de dentro (la cabecera
+   * y la barra lateral, sin ir más lejos). `clip` recorta sin crear ese
+   * contenedor, así que los pegajosos siguen funcionando. */
+  html {
+    overflow-x: clip;
+  }
+
   html,
   body {
     background-color: var(--color-background);

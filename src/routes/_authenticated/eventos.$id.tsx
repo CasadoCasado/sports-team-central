@@ -117,20 +117,20 @@ function EventDetail() {
     <div className="mx-auto max-w-5xl space-y-6">
       <Link
         to="/calendario"
-        className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground"
+        className="-ml-2 inline-flex min-h-11 items-center gap-2 rounded-md px-2 text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="size-3.5" /> {t("events.backToCalendar")}
       </Link>
 
       <div className="surface-card overflow-hidden">
-        <div className="border-b border-border p-6">
+        <div className="border-b border-border p-4 sm:p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="min-w-0">
               <span className={cn("inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-2xs font-bold uppercase tracking-widest", style.badge)}>
                 <span className={cn("size-1.5 rounded-full", style.dot)} />
                 {t(`events.types.${event.tipo}`)}
               </span>
-              <h1 className="text-display mt-3 text-3xl font-black tracking-tight sm:text-4xl">
+              <h1 className="text-display mt-3 text-2xl font-black tracking-tight break-words sm:text-4xl">
                 {event.titulo}
               </h1>
               {event.rival && (
@@ -145,7 +145,7 @@ function EventDetail() {
               )}
             </div>
             {isManager && (
-              <div className="flex gap-2">
+              <div className="flex shrink-0 flex-wrap gap-2">
                 <Button variant="outline" size="sm" onClick={() => setEditing(true)}>
                   <Pencil className="mr-1 size-3.5" /> {t("common.edit")}
                 </Button>
@@ -164,7 +164,7 @@ function EventDetail() {
           </div>
         </div>
 
-        <div className="grid gap-4 p-6 sm:grid-cols-2">
+        <div className="grid gap-4 p-4 sm:grid-cols-2 sm:p-6">
           <InfoRow icon={<CalIcon className="size-4" />} label={t("events.fechaInicio")}>
             {format(start, "PPPP", { locale })}
           </InfoRow>
@@ -184,7 +184,7 @@ function EventDetail() {
         </div>
 
         {event.descripcion && (
-          <div className="border-t border-border p-6 text-sm text-muted-foreground whitespace-pre-wrap">
+          <div className="border-t border-border p-4 text-sm text-muted-foreground whitespace-pre-wrap sm:p-6">
             {event.descripcion}
           </div>
         )}
@@ -418,7 +418,7 @@ function CallupSection({
       </div>
 
       {userId && myResp && (
-        <div className="border-b border-border p-5">
+        <div className="border-b border-border p-4 sm:p-5">
           <div className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
             {t("callups.myStatus")}
           </div>
@@ -432,14 +432,20 @@ function CallupSection({
         </div>
       )}
 
-      <div className="p-5">
+      <div className="p-4 sm:p-5">
         <h3 className="mb-3 text-2xs font-bold uppercase tracking-widest text-muted-foreground">
           {t("callups.signedUpList")} ({signedUp.length})
         </h3>
         {signedUp.length === 0 && (
           <p className="text-xs text-muted-foreground">{t("callups.noSignedUp")}</p>
         )}
-        <div className="grid gap-2 sm:grid-cols-2">
+        {/* Nombre y estado no caben en la misma línea de un móvil: la etiqueta
+            «Confirmado» mide sus buenos noventa píxeles y dejaba el nombre en
+            «Alejandro Rod…» o, dentro de una tarjeta con `overflow-hidden`,
+            directamente cortado por el borde. Por debajo de `sm` cada ficha
+            baja el estado a su propia línea; las dos columnas esperan a `lg`,
+            porque a 640 px media columna vuelve a ser demasiado estrecha. */}
+        <div className="grid gap-2 lg:grid-cols-2">
           {signedUp.map((r) => {
             const m = members?.find((x) => x.user_id === r.user_id);
             const status = r.status as ResponseStatus;
@@ -447,44 +453,47 @@ function CallupSection({
               <div
                 key={r.id}
                 className={cn(
-                  "flex items-center gap-3 rounded-md border p-3",
+                  "grid grid-cols-[2.25rem_minmax(0,1fr)] items-center gap-x-3 gap-y-2 rounded-md border p-3 sm:flex",
                   r.es_convocado ? "border-primary/40 bg-primary/5" : "border-border",
                 )}
               >
-                <div className="flex size-9 items-center justify-center rounded-full bg-card text-xs font-bold ring-1 ring-border">
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-card text-xs font-bold ring-1 ring-border">
                   {(m?.profile?.nombre?.[0] ?? "") + (m?.profile?.apellidos?.[0] ?? "") || "?"}
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">
+                <div className="min-w-0 sm:flex-1">
+                  <p className="text-sm font-medium break-words">
                     {m?.profile?.nombre} {m?.profile?.apellidos}
                   </p>
                   <p className="text-2xs uppercase tracking-widest text-muted-foreground">
                     {m?.role}
                   </p>
                 </div>
-                <span
-                  className={cn(
-                    "rounded-full border px-2 py-0.5 text-2xs font-bold uppercase tracking-widest",
-                    status === "confirmado" && "border-emerald-500/40 bg-emerald-500/15 text-emerald-300",
-                    status === "rechazado" && "border-red-500/40 bg-red-500/15 text-red-300",
-                    status === "duda" && "border-amber-500/40 bg-amber-500/15 text-amber-300",
-                    status === "convocado" && "border-border bg-muted text-muted-foreground",
+                <div className="col-span-2 flex shrink-0 items-center justify-between gap-2 sm:col-auto sm:justify-end">
+                  <span
+                    className={cn(
+                      "rounded-full border px-2 py-0.5 text-2xs font-bold uppercase tracking-widest",
+                      status === "confirmado" && "border-emerald-500/40 bg-emerald-500/15 text-emerald-300",
+                      status === "rechazado" && "border-red-500/40 bg-red-500/15 text-red-300",
+                      status === "duda" && "border-amber-500/40 bg-amber-500/15 text-amber-300",
+                      status === "convocado" && "border-border bg-muted text-muted-foreground",
+                    )}
+                  >
+                    {t(`callups.response_${status}`)}
+                  </span>
+                  {isManager && (
+                    <label className="flex min-h-9 cursor-pointer items-center gap-1 text-2xs font-bold uppercase tracking-widest">
+                      <input
+                        type="checkbox"
+                        className="size-4"
+                        checked={r.es_convocado}
+                        onChange={(e) =>
+                          toggleConvocado.mutate({ id: r.id, value: e.target.checked })
+                        }
+                      />
+                      ★
+                    </label>
                   )}
-                >
-                  {t(`callups.response_${status}`)}
-                </span>
-                {isManager && (
-                  <label className="flex items-center gap-1 text-2xs font-bold uppercase tracking-widest">
-                    <input
-                      type="checkbox"
-                      checked={r.es_convocado}
-                      onChange={(e) =>
-                        toggleConvocado.mutate({ id: r.id, value: e.target.checked })
-                      }
-                    />
-                    ★
-                  </label>
-                )}
+                </div>
               </div>
             );
           })}
@@ -847,7 +856,7 @@ function MatchResultsSection({
         onChange(v);
       }}
       disabled={disabled}
-      className="w-14 rounded-md border border-border bg-background px-2 py-1 text-center text-sm font-bold disabled:opacity-60"
+      className="w-full max-w-14 min-h-9 rounded-md border border-border bg-background px-1 py-1 text-center text-sm font-bold disabled:opacity-60"
     />
   );
 
@@ -868,9 +877,9 @@ function MatchResultsSection({
         </div>
         <OutcomeBadge outcome={summary.outcome} won={summary.won} lost={summary.lost} />
       </div>
-      <div className="space-y-4 p-5">
+      <div className="space-y-4 p-4 sm:p-5">
         {rows.map((row, idx) => (
-          <div key={row.pista} className="rounded-md border border-border p-4">
+          <div key={row.pista} className="rounded-md border border-border p-3 sm:p-4">
             <div className="mb-3 flex items-center justify-between gap-2">
               {isPadel ? (
                 <div className="text-2xs font-bold uppercase tracking-widest text-primary">
@@ -883,15 +892,15 @@ function MatchResultsSection({
             </div>
             {isPadel ? (
               <div className="space-y-2">
-                <div className="grid grid-cols-[80px_repeat(3,1fr)] items-center gap-2 text-2xs font-bold uppercase tracking-widest text-muted-foreground">
+                <div className="grid grid-cols-[3.25rem_repeat(3,minmax(0,1fr))] items-center gap-1.5 text-2xs font-bold uppercase tracking-widest text-muted-foreground sm:grid-cols-[80px_repeat(3,minmax(0,1fr))] sm:gap-2">
                   <span />
                   <span className="text-center">{t("results.set")} 1</span>
                   <span className="text-center">{t("results.set")} 2</span>
                   <span className="text-center">{t("results.set")} 3</span>
                 </div>
                 {(["local", "visitante"] as const).map((side) => (
-                  <div key={side} className="grid grid-cols-[80px_repeat(3,1fr)] items-center gap-2">
-                    <span className="text-xs font-bold uppercase tracking-widest">
+                  <div key={side} className="grid grid-cols-[3.25rem_repeat(3,minmax(0,1fr))] items-center gap-1.5 sm:grid-cols-[80px_repeat(3,minmax(0,1fr))] sm:gap-2">
+                    <span className="truncate text-3xs font-bold uppercase tracking-widest sm:text-xs">
                       {t(`results.${side}`)}
                     </span>
                     {[1, 2, 3].map((setNum) => {

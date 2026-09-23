@@ -56,7 +56,7 @@ export function ImageUpload({
       alt={alt}
       fallback={fallback}
       className={cn(
-        "size-16 bg-primary/10 text-primary ring-1 ring-border",
+        "size-14 shrink-0 bg-primary/10 text-primary ring-1 ring-border sm:size-16",
         redonda ? "rounded-full" : "rounded-lg",
       )}
     />
@@ -66,7 +66,7 @@ export function ImageUpload({
   if (!FEATURES.images) return hueco;
 
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex min-w-0 flex-wrap items-center gap-3 sm:gap-4">
       {hueco}
 
       {canEdit && (

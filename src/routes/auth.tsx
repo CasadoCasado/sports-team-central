@@ -100,7 +100,7 @@ function AuthPage() {
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">
-      <div className="flex flex-1 flex-col items-center justify-center px-6 py-12">
+      <div className="flex flex-1 flex-col items-center justify-center px-4 py-10 sm:px-6 sm:py-12">
         <div className="w-full max-w-md">
           <Link to="/" className="mb-8 flex items-center gap-3">
             <img src={LOGO_URL} alt="TeamUp" className="size-8 object-contain" width={32} height={32} />
@@ -110,7 +110,7 @@ function AuthPage() {
           </Link>
 
           <div className="mb-6 flex items-center justify-between">
-            <h1 className="text-display text-3xl font-black tracking-tight">
+            <h1 className="text-display text-2xl font-black tracking-tight sm:text-3xl">
               {mode === "signup" ? t("auth.signup") : t("auth.login")}
             </h1>
             <LangToggle />
@@ -118,7 +118,7 @@ function AuthPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {mode === "signup" && (
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2">
                 <div>
                   <Label htmlFor="nombre">{t("auth.nombre")}</Label>
                   <Input
@@ -197,7 +197,7 @@ function AuthPage() {
             {mode === "signup" ? t("auth.hasAccount") : t("auth.noAccount")}{" "}
             <button
               type="button"
-              className="font-bold text-primary hover:underline"
+              className="inline-flex min-h-11 items-center rounded-md px-1 font-bold text-primary hover:underline"
               onClick={() => setMode(mode === "signup" ? "login" : "signup")}
             >
               {mode === "signup" ? t("auth.loginHere") : t("auth.signupHere")}

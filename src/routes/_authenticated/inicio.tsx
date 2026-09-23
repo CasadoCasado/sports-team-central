@@ -247,14 +247,14 @@ function Inicio() {
       {hasTeam && (
         <div className="grid gap-6 lg:grid-cols-2">
           {/* Upcoming events */}
-          <div>
-            <div className="mb-4 flex items-center justify-between">
+          <div className="min-w-0">
+            <div className="mb-4 flex min-w-0 items-center justify-between gap-2">
               <h2 className="text-display text-xl font-bold uppercase tracking-tight">
                 {t("dashboard.upcomingEvents")}
               </h2>
               <Link
                 to="/calendario"
-                className="text-2xs font-bold uppercase tracking-widest text-primary hover:underline"
+                className="inline-flex min-h-11 shrink-0 items-center rounded-md pl-2 text-2xs font-bold uppercase tracking-widest text-primary hover:underline"
               >
                 {t("dashboard.viewAll")}
               </Link>
@@ -272,9 +272,9 @@ function Inicio() {
                       key={e.id}
                       to="/eventos/$id"
                       params={{ id: e.id }}
-                      className="surface-card group flex items-center gap-4 p-4 transition-colors hover:border-primary/40"
+                      className="surface-card group flex min-w-0 items-center gap-3 p-3 transition-colors hover:border-primary/40 sm:gap-4 sm:p-4"
                     >
-                      <div className={`flex size-12 flex-col items-center justify-center rounded-md border ${style.badge}`}>
+                      <div className={`flex size-12 shrink-0 flex-col items-center justify-center rounded-md border ${style.badge}`}>
                         <span className="text-xs font-bold">
                           {new Date(e.fecha_inicio).toLocaleDateString([], { day: "numeric" })}
                         </span>
@@ -283,23 +283,23 @@ function Inicio() {
                         </span>
                       </div>
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className={`size-2 rounded-full ${style.dot}`} />
-                          <p className="truncate text-sm font-bold">
+                        <div className="flex min-w-0 items-center gap-2">
+                          <span className={`size-2 shrink-0 rounded-full ${style.dot}`} />
+                          <p className="text-sm font-bold break-words">
                             {e.tipo === "partido" && e.rival
                               ? `${e.es_local ? e.team_nombre : e.rival} vs ${e.es_local ? e.rival : e.team_nombre}`
                               : e.titulo}
                           </p>
                         </div>
                         <div className="mt-1 flex flex-wrap items-center gap-3 text-xxs text-muted-foreground">
-                          <span className="inline-flex items-center gap-1">
+                          <span className="inline-flex shrink-0 items-center gap-1">
                             <Clock className="size-3" />
                             {new Date(e.fecha_inicio).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                           </span>
                           {e.ubicacion && (
-                            <span className="inline-flex items-center gap-1">
-                              <MapPin className="size-3" />
-                              <span className="truncate max-w-[160px]">{e.ubicacion}</span>
+                            <span className="inline-flex min-w-0 max-w-full items-center gap-1">
+                              <MapPin className="size-3 shrink-0" />
+                              <span className="truncate">{e.ubicacion}</span>
                             </span>
                           )}
                         </div>
@@ -312,15 +312,15 @@ function Inicio() {
           </div>
 
           {/* Pending callups + quick actions */}
-          <div className="space-y-6">
+          <div className="min-w-0 space-y-6">
             <div>
-              <div className="mb-4 flex items-center justify-between">
+              <div className="mb-4 flex min-w-0 items-center justify-between gap-2">
                 <h2 className="text-display text-xl font-bold uppercase tracking-tight">
                   {t("dashboard.pendingCallups")}
                 </h2>
                 <Link
                   to="/convocatorias"
-                  className="text-2xs font-bold uppercase tracking-widest text-primary hover:underline"
+                  className="inline-flex min-h-11 shrink-0 items-center rounded-md pl-2 text-2xs font-bold uppercase tracking-widest text-primary hover:underline"
                 >
                   {t("dashboard.viewAll")}
                 </Link>
@@ -343,7 +343,7 @@ function Inicio() {
                           <ClipboardList className="size-4" aria-hidden="true" />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-bold">{e!.titulo}</p>
+                          <p className="line-clamp-2 text-sm font-bold break-words">{e!.titulo}</p>
                           <p className="text-xxs text-muted-foreground">
                             {new Date(e!.fecha_inicio).toLocaleString([], { dateStyle: "short", timeStyle: "short" })}
                           </p>
@@ -363,7 +363,9 @@ function Inicio() {
               <h2 className="text-display mb-4 text-xl font-bold uppercase tracking-tight">
                 {t("dashboard.quickAccess")}
               </h2>
-              <div className="grid grid-cols-2 gap-3">
+              {/* Una sola columna en los móviles más estrechos: a dos, «Comuni-
+                  caciones» no cabe de una pieza y se parte por la mitad. */}
+              <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2">
                 <QuickLink to="/comunicaciones" icon={<MessagesSquare />} label={t("nav.comunicaciones")} />
                 <QuickLink to="/estadisticas" icon={<Trophy />} label={t("nav.estadisticas")} />
                 <QuickLink to="/entrenamientos" icon={<Calendar />} label={t("nav.entrenamientos")} />
@@ -387,16 +389,16 @@ function Inicio() {
                 <Link
                   key={tm.team_id}
                   to="/mi-equipo"
-                  className="surface-card group flex items-start gap-4 p-5 transition-colors hover:border-primary/40"
+                  className="surface-card group flex min-w-0 items-start gap-4 p-5 transition-colors hover:border-primary/40"
                 >
                   <Picture
                     url={team.logo_url}
                     alt=""
-                    className="size-12 rounded-md bg-primary/10 text-primary"
+                    className="size-12 shrink-0 rounded-md bg-primary/10 text-primary"
                     fallback={<Shield className="size-6" />}
                   />
                   <div className="min-w-0">
-                    <p className="text-display truncate text-lg font-bold">{team.nombre}</p>
+                    <p className="text-display text-lg font-bold break-words">{team.nombre}</p>
                     <p className="mt-0.5 text-2xs font-bold uppercase tracking-widest text-primary">
                       {tm.role}
                     </p>
@@ -459,12 +461,12 @@ function QuickLink({ to, icon, label }: { to: string; icon: React.ReactNode; lab
   return (
     <Link
       to={to}
-      className="surface-card flex min-h-14 items-center gap-3 p-4 transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className="surface-card flex min-h-14 min-w-0 items-center gap-3 p-3 transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:p-4"
     >
       <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary [&>svg]:size-4" aria-hidden="true">
         {icon}
       </div>
-      <span className="min-w-0 truncate text-sm font-bold">{label}</span>
+      <span className="min-w-0 text-xs font-bold leading-tight break-words sm:text-sm">{label}</span>
     </Link>
 
   );

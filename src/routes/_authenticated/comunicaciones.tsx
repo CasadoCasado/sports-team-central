@@ -142,15 +142,20 @@ function Comunicaciones() {
   if (!active) return <EmptyTeamState />;
 
   return (
-    <div className="mx-auto flex h-[calc(100dvh-8.5rem)] max-w-7xl flex-col gap-3 lg:h-[calc(100dvh-9rem)] lg:gap-4">
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 sm:flex sm:flex-wrap sm:items-center sm:justify-between">
-        <div className="min-w-0">
-          <h1 className="text-display truncate text-2xl font-black tracking-tight sm:text-3xl">
+    <div className="mx-auto flex h-[calc(100dvh-11rem)] max-w-7xl flex-col gap-3 sm:h-[calc(100dvh-8.5rem)] lg:h-[calc(100dvh-9rem)] lg:gap-4">
+      {/* El título y el selector de equipo, uno encima de otro mientras no
+          quepan al lado. Compartiendo línea, «Comunicaciones» se quedaba en
+          «Com…» para dejarle sitio al nombre del club. */}
+      <div className="flex flex-col items-start gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-3">
+        <div className="min-w-0 max-w-full">
+          <h1 className="text-display text-2xl font-black tracking-tight sm:text-3xl">
             {t("chat.title")}
           </h1>
           <p className="hidden text-sm text-muted-foreground sm:block">{t("chat.subtitle")}</p>
         </div>
-        <TeamPicker />
+        <div className="flex min-w-0 max-w-full">
+          <TeamPicker />
+        </div>
       </div>
 
       {/* Mobile channel strip */}
@@ -392,7 +397,7 @@ function NewChannelDialog({ teamId: teamIdActivo }: { teamId: string }) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <button
-          className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-card hover:text-foreground"
+          className="inline-flex size-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-card hover:text-foreground"
           aria-label={t("chat.newChannel")}
         >
           <Plus className="size-4" />
@@ -645,7 +650,7 @@ function ManageMembersDialog({ channel, teamId }: { channel: Channel; teamId: st
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <button
-          className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-card hover:text-foreground"
+          className="inline-flex size-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-card hover:text-foreground"
           aria-label={t("chat.manageMembers")}
           title={t("chat.manageMembers")}
         >
@@ -802,7 +807,7 @@ function ChannelView({ channel, isManager }: { channel: Channel; isManager: bool
             <ManageMembersDialog channel={channel} teamId={channel.team_id} />
             <button
               onClick={removeChannel}
-              className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-card hover:text-destructive"
+              className="inline-flex size-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-card hover:text-destructive"
               aria-label={t("chat.deleteChannel")}
               title={t("chat.deleteChannel")}
             >
@@ -863,7 +868,7 @@ function ChannelView({ channel, isManager }: { channel: Channel; isManager: bool
                     {canDelete && (
                       <button
                         onClick={() => remove(m.id)}
-                        className="shrink-0 p-1 text-muted-foreground transition-opacity hover:text-destructive sm:opacity-0 sm:group-hover:opacity-100"
+                        className="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-opacity hover:text-destructive sm:opacity-0 sm:group-hover:opacity-100"
                         aria-label={t("common.delete")}
                       >
                         <Trash2 className="size-3.5" />

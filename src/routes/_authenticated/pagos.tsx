@@ -147,9 +147,9 @@ function Pagos() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-display text-3xl font-black tracking-tight">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-display text-2xl font-black tracking-tight sm:text-3xl">
             {t("nav.pagos")}
           </h1>
           <p className="text-sm text-muted-foreground">{t("fees.subtitle")}</p>
@@ -171,7 +171,7 @@ function Pagos() {
                   <Label>{t("fees.concept")}</Label>
                   <Input value={concepto} onChange={(e) => setConcepto(e.target.value)} />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2">
                   <div>
                     <Label>{t("fees.amount")} (€)</Label>
                     <Input
@@ -218,16 +218,16 @@ function Pagos() {
 
             return (
               <div key={fee.id} className="surface-card overflow-hidden">
-                <div className="flex items-center justify-between gap-4 border-b border-border p-4">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold">{fee.concepto}</p>
+                <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-border p-4">
+                  <div className="min-w-[8rem] flex-1">
+                    <p className="text-sm font-bold break-words">{fee.concepto}</p>
                     <p className="text-xs text-muted-foreground">
                       {fee.due_date
                         ? t("fees.dueOn", { date: new Date(fee.due_date).toLocaleDateString() })
                         : t("fees.noDueDate")}
                     </p>
                   </div>
-                  <div className="text-right">
+                  <div className="shrink-0 text-right">
                     <p className="text-display text-xl font-black text-primary">
                       {fee.amount.toFixed(2)} €
                     </p>
@@ -242,7 +242,8 @@ function Pagos() {
                       onClick={() => {
                         if (confirm(t("fees.deleteConfirm"))) deleteFee.mutate(fee.id);
                       }}
-                      className="rounded-md p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                      aria-label={t("common.delete")}
+                      className="inline-flex size-10 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive sm:size-9"
                     >
                       <Trash2 className="size-4" />
                     </button>
@@ -256,7 +257,7 @@ function Pagos() {
                         feePayments.find((p) => p.user_id === m.user_id)?.status === "pagado";
                       return (
                         <div key={m.user_id} className="flex items-center gap-3 p-3">
-                          <span className="flex-1 text-sm">
+                          <span className="min-w-0 flex-1 text-sm break-words">
                             {m.profile?.nombre} {m.profile?.apellidos}
                           </span>
                           <button
@@ -268,7 +269,7 @@ function Pagos() {
                               })
                             }
                             className={cn(
-                              "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-2xs font-bold uppercase tracking-widest transition",
+                              "flex min-h-9 shrink-0 items-center gap-1.5 rounded-md px-3 text-2xs font-bold uppercase tracking-widest transition",
                               paid
                                 ? "bg-primary/20 text-primary"
                                 : "bg-card text-muted-foreground hover:bg-muted",
@@ -294,7 +295,7 @@ function Pagos() {
                         })
                       }
                       className={cn(
-                        "flex items-center gap-1.5 rounded-md px-4 py-2 text-xs font-bold uppercase tracking-widest transition",
+                        "flex min-h-10 shrink-0 items-center gap-1.5 rounded-md px-4 text-xs font-bold uppercase tracking-widest transition",
                         myPaid
                           ? "bg-primary/20 text-primary"
                           : "bg-card text-muted-foreground hover:bg-muted",

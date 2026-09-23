@@ -147,11 +147,22 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-dvh bg-background text-foreground">
-      {/* Sidebar — signature ink surface */}
+      {/* La barra lateral.
+
+          Es un cajón que entra desde la izquierda en móvil y tableta vertical,
+          y una columna fija desde `lg`. El corte estaba en `xl` (1280 px), así
+          que una tableta en horizontal —1024, que es el iPad— se quedaba con
+          el cajón y un botón de menú aunque le sobrara sitio para las dos
+          cosas: con 1024 y 256 de barra quedan 768 de contenido, tanto como
+          una tableta vertical entera.
+
+          El ancho del cajón se limita a 85vw para que en un móvil estrecho
+          siempre asome un trozo del fondo: es lo que dice «esto se cierra
+          tocando fuera». Fija ya no hace falta y vuelve a los 256. */}
       <aside
         id="main-sidebar"
         className={cn(
-          "fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 flex-col overscroll-contain bg-[color:var(--color-ink)] pb-[env(safe-area-inset-bottom)] text-[color:var(--color-ink-foreground)] transition-transform duration-200 will-change-transform xl:sticky xl:top-0 xl:h-dvh xl:translate-x-0 xl:pb-0",
+          "fixed inset-y-0 left-0 z-40 flex w-[17rem] max-w-[85vw] shrink-0 flex-col overscroll-contain bg-[color:var(--color-ink)] pb-[env(safe-area-inset-bottom)] text-[color:var(--color-ink-foreground)] transition-transform duration-200 will-change-transform lg:sticky lg:top-0 lg:h-dvh lg:w-64 lg:max-w-none lg:translate-x-0 lg:pb-0",
           mobileOpen ? "translate-x-0" : "-translate-x-full",
         )}
         aria-label="Navegación principal"
@@ -248,7 +259,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       {mobileOpen && (
         <button
           type="button"
-          className="fixed inset-0 z-30 bg-black/50 backdrop-blur-sm xl:hidden"
+          className="fixed inset-0 z-30 bg-black/50 backdrop-blur-sm lg:hidden"
           onClick={() => setMobileOpen(false)}
           aria-label="Cerrar menú"
         />
@@ -256,11 +267,11 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {/* Main */}
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-20 flex h-16 items-center justify-between gap-2 border-b border-border/70 bg-background/85 px-3 pt-[env(safe-area-inset-top)] backdrop-blur-md sm:px-4 xl:px-8">
+        <header className="sticky top-0 z-20 flex h-16 items-center justify-between gap-2 border-b border-border/70 bg-background/85 px-3 pt-[env(safe-area-inset-top)] backdrop-blur-md sm:px-4 lg:px-6 xl:px-8">
           <div className="flex items-center gap-3">
             <button
               type="button"
-              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-border bg-card p-2 shadow-[var(--shadow-card)] xl:hidden"
+              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-border bg-card p-2 shadow-[var(--shadow-card)] lg:hidden"
               onClick={() => setMobileOpen((v) => !v)}
               aria-label={mobileOpen ? "Cerrar menú" : "Abrir menú"}
               aria-expanded={mobileOpen}
@@ -303,7 +314,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </header>
 
-        <main className="flex-1 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] xl:p-8">
+        <main className="flex-1 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:p-6 xl:p-8">
           <div className="animate-fade-in-up">{children}</div>
         </main>
 

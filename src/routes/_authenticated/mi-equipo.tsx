@@ -221,8 +221,8 @@ function MiEquipo() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-display text-3xl font-black tracking-tight">{t("nav.miEquipo")}</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-display text-2xl font-black tracking-tight sm:text-3xl">{t("nav.miEquipo")}</h1>
         <Button
           onClick={() => setCreating(true)}
           className="bg-primary text-primary-foreground uppercase tracking-widest font-bold hover:opacity-90"
@@ -319,8 +319,8 @@ function TeamCard({
   });
 
   return (
-    <div className="surface-card overflow-hidden">
-      <div className="flex items-center gap-4 border-b border-border p-6">
+    <div className="surface-card min-w-0 overflow-hidden">
+      <div className="flex items-center gap-3 border-b border-border p-4 sm:gap-4 sm:p-6">
         <ImageUpload
           url={team.logo_url}
           alt={team.nombre}
@@ -331,7 +331,9 @@ function TeamCard({
           onRemove={() => logo.mutate(null)}
         />
         <div className="min-w-0 flex-1">
-          <h3 className="text-display truncate text-2xl font-black">{team.nombre}</h3>
+          {/* Sin `truncate`: el nombre de un club no se entiende cortado por la
+              mitad («Club Depor…»), y aquí es el título de la tarjeta. */}
+          <h3 className="text-display text-xl font-black break-words sm:text-2xl">{team.nombre}</h3>
           <p className="mt-1 text-2xs font-bold uppercase tracking-widest text-primary">
             {role}
           </p>
@@ -342,7 +344,7 @@ function TeamCard({
             size="sm"
             onClick={deleteTeam}
             disabled={deleting}
-            className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+            className="shrink-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
             aria-label={t("team.delete")}
           >
             <Trash2 className="size-4" />
@@ -353,7 +355,7 @@ function TeamCard({
         )}
       </div>
       {team.descripcion && (
-        <p className="border-b border-border p-6 text-sm text-muted-foreground">
+        <p className="border-b border-border p-4 text-sm text-muted-foreground sm:p-6">
           {team.descripcion}
         </p>
       )}
@@ -384,7 +386,10 @@ function TeamCard({
           </Button>
         </div>
       )}
-      <div className="grid grid-cols-3 divide-x divide-border">
+      {/* Tres columnas en un móvil dejan setenta píxeles por celda, y ahí
+          «Santiago de Compostela» se queda en «Santiago d…». En vertical cada
+          dato se lee entero; desde `sm` vuelven a ir en fila. */}
+      <div className="grid grid-cols-1 divide-y divide-border sm:grid-cols-3 sm:divide-x sm:divide-y-0">
         <MetaCell label={t("team.members")} value={String(members ?? 0)} icon={<Users className="size-4" />} />
         <MetaCell label={t("team.deporte")} value={sportLabel(team.deporte, i18n.language)} />
         <MetaCell label={t("team.ciudad")} value={team.ciudad || "—"} />
@@ -410,9 +415,9 @@ function MetaCell({
       <div className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
         {label}
       </div>
-      <div className="mt-1 flex items-center gap-2 text-sm font-medium">
+      <div className="mt-1 flex min-w-0 items-center gap-2 text-sm font-medium">
         {icon}
-        <span className="truncate">{value}</span>
+        <span className="min-w-0 break-words">{value}</span>
       </div>
     </div>
   );

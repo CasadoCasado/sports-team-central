@@ -26,7 +26,7 @@ export function FontSizeControl() {
         onClick={reset}
         aria-label={`${t("a11y.fontSizeReset")} (${percent}%)`}
         title={`${t("a11y.fontSize")}: ${percent}%`}
-        className="inline-flex min-h-10 items-center justify-center gap-1 rounded-md px-1.5 text-2xs font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="inline-flex min-h-10 min-w-10 items-center justify-center gap-1 rounded-md px-1.5 text-2xs font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <Type className="size-3.5" aria-hidden="true" />
         <span className="hidden sm:inline tabular-nums">{percent}%</span>

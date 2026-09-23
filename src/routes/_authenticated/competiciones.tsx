@@ -119,11 +119,11 @@ function CompetitionsPage() {
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-display text-3xl font-black tracking-tight">
+        <div className="min-w-0">
+          <h1 className="text-display text-2xl font-black tracking-tight sm:text-3xl">
             {t("nav.competiciones")}
           </h1>
-          <div className="mt-1"><TeamPicker /></div>
+          <div className="mt-1 flex"><TeamPicker /></div>
         </div>
         {isManager && (
           <Button
@@ -186,13 +186,13 @@ function CompCard({
   });
 
   return (
-    <div className="surface-card p-5">
+    <div className="surface-card min-w-0 p-4 sm:p-5">
       <div className="flex items-start gap-3">
-        <div className="flex size-11 items-center justify-center rounded-md bg-primary/10 text-primary">
+        <div className="flex size-11 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
           <Trophy className="size-5" />
         </div>
         <div className="min-w-0 flex-1">
-          <h3 className="text-display truncate text-lg font-bold">{c.nombre}</h3>
+          <h3 className="text-display text-lg font-bold break-words">{c.nombre}</h3>
           <div className="mt-1 flex flex-wrap items-center gap-2 text-2xs font-bold uppercase tracking-widest">
             <span className="rounded border border-primary/40 bg-primary/15 px-1.5 py-0.5 text-primary">
               {t(`competitions.types.${c.tipo}`)}
@@ -224,15 +224,15 @@ function CompCard({
           </div>
         </div>
         {canManage && (
-          <div className="flex gap-1">
-            <button onClick={onEdit} className="rounded-md border border-border p-1.5 hover:bg-card" aria-label={t("common.edit")}>
+          <div className="flex shrink-0 gap-1">
+            <button onClick={onEdit} className="inline-flex size-9 items-center justify-center rounded-md border border-border hover:bg-card" aria-label={t("common.edit")}>
               <Pencil className="size-3.5" />
             </button>
             <button
               onClick={() => {
                 if (confirm(t("competitions.delete") + "?")) del.mutate();
               }}
-              className="rounded-md border border-border p-1.5 text-destructive hover:bg-card"
+              className="inline-flex size-9 items-center justify-center rounded-md border border-border text-destructive hover:bg-card"
               aria-label={t("common.delete")}
             >
               <Trash2 className="size-3.5" />
@@ -246,7 +246,7 @@ function CompCard({
       <Link
         to="/competiciones/$id"
         params={{ id: c.id }}
-        className="mt-4 inline-flex items-center gap-1.5 text-2xs font-bold uppercase tracking-widest text-primary hover:underline"
+        className="-ml-2 mt-2 inline-flex min-h-11 items-center gap-1.5 rounded-md px-2 text-2xs font-bold uppercase tracking-widest text-primary hover:underline"
       >
         <ListOrdered className="size-3.5" /> {t("standings.seeStandings")}
       </Link>
