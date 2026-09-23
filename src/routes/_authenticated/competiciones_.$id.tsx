@@ -81,7 +81,7 @@ function columnsFor(formato: TrainingFormat | null, t: (key: string) => string):
         label: t("standings.vecesRey"),
         value: (row) =>
           (row.veces_rey ?? 0) > 0 ? (
-            <span className="inline-flex items-center gap-1 font-bold text-amber-500">
+            <span className="inline-flex items-center gap-1 font-bold text-warn">
               <Crown className="size-3.5" />
               {row.veces_rey}
             </span>
@@ -198,7 +198,7 @@ function CompetitionDetail() {
                   <span className="text-muted-foreground">{competition.temporada}</span>
                 )}
                 {competition.finalizada && (
-                  <span className="inline-flex items-center gap-1 rounded border border-amber-500/40 bg-amber-500/15 px-1.5 py-0.5 text-amber-600">
+                  <span className="inline-flex items-center gap-1 rounded border border-warn/40 bg-warn/15 px-1.5 py-0.5 text-warn">
                     <Lock className="size-3" />
                     {t("competitions.status.finalizada")}
                   </span>
@@ -354,7 +354,7 @@ function CompetitionDetail() {
                 params={{ id: e.id }}
                 className="flex items-center gap-4 p-4 hover:bg-card"
               >
-                <div className="flex size-10 items-center justify-center rounded-md bg-sky-400/10 text-sky-300 ring-1 ring-sky-400/30">
+                <div className="flex size-10 items-center justify-center rounded-md bg-info/10 text-info ring-1 ring-info/30">
                   <Dumbbell className="size-5" />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -381,15 +381,17 @@ function CompetitionDetail() {
 function Podium({ rows }: { rows: CompetitionStanding[] }) {
   const { t } = useTranslation();
   const steps: { puesto: number; height: string; color: string }[] = [
-    { puesto: 2, height: "h-16", color: "text-slate-400" },
-    { puesto: 1, height: "h-24", color: "text-amber-500" },
-    { puesto: 3, height: "h-10", color: "text-orange-600" },
+    // Oro, plata y bronce con tokens: un `slate-400` y un `orange-600` fijos
+    // se apagan o se pierden según el tema.
+    { puesto: 2, height: "h-16", color: "text-muted-foreground" },
+    { puesto: 1, height: "h-24", color: "text-warn" },
+    { puesto: 3, height: "h-10", color: "text-warn/60" },
   ];
 
   return (
     <section className="surface-card overflow-hidden">
       <div className="flex items-center gap-3 border-b border-border p-4 sm:p-5">
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-amber-400/10 text-amber-500">
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-warn/10 text-warn">
           <Medal className="size-5" />
         </div>
         <h2 className="text-display text-lg font-bold uppercase tracking-tight">

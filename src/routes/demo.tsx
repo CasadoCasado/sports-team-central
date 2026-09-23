@@ -15,6 +15,7 @@ import {
   Lock,
 } from "lucide-react";
 import { LOGO_URL } from "@/lib/brand";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { LangToggle } from "@/components/lang-toggle";
 import { cn } from "@/lib/utils";
 import { BADGES } from "@/lib/achievements";
@@ -102,6 +103,7 @@ function DemoPage() {
           </Link>
           <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
             <LangToggle />
+            <ThemeToggle />
             <Link
               to="/auth"
               search={{ mode: "signup" }}
@@ -236,7 +238,7 @@ function DemoCalendario({ t }: { t: TFn }) {
               ev.kind === "enfrentamiento"
                 ? "bg-primary/10 text-primary"
                 : ev.kind === "torneo"
-                ? "bg-emerald-500/10 text-emerald-600"
+                ? "bg-ok/10 text-ok"
                 : "bg-muted text-muted-foreground",
             )}
           >
@@ -250,8 +252,8 @@ function DemoCalendario({ t }: { t: TFn }) {
 
 function DemoConvocatorias({ t }: { t: TFn }) {
   const icon = {
-    confirmado: <CheckCircle2 className="size-4 text-emerald-600" />,
-    duda: <HelpCircle className="size-4 text-amber-500" />,
+    confirmado: <CheckCircle2 className="size-4 text-ok" />,
+    duda: <HelpCircle className="size-4 text-warn" />,
     rechazado: <XCircle className="size-4 text-destructive" />,
   };
   return (

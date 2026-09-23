@@ -176,9 +176,9 @@ function MyCallups() {
 }
 
 const STATUS_STYLES: Record<ResponseStatus, string> = {
-  confirmado: "bg-emerald-500/15 text-emerald-300 border-emerald-500/40",
-  rechazado: "bg-red-500/15 text-red-300 border-red-500/40",
-  duda: "bg-amber-500/15 text-amber-300 border-amber-500/40",
+  confirmado: "bg-ok/15 text-ok border-ok/40",
+  rechazado: "bg-danger/15 text-danger border-danger/40",
+  duda: "bg-warn/15 text-warn border-warn/40",
   convocado: "bg-muted text-muted-foreground border-border",
 };
 

@@ -878,5 +878,11 @@
     "broken": "La imagen guardada no carga; sube otra o quítala.",
     "errType": "Tiene que ser una imagen (JPG, PNG, WEBP o GIF).",
     "errSize": "La imagen no puede pasar de 5 MB."
+  },
+  "theme": {
+    "label": "Tema",
+    "light": "Claro",
+    "dark": "Oscuro",
+    "system": "El del sistema"
   }
 }

@@ -15,6 +15,23 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { onAuthStateChange } from "@/lib/auth";
 import i18n from "@/i18n";
 import { registerServiceWorker } from "@/lib/register-sw";
+import { TEMA_KEY, useTheme } from "@/hooks/use-theme";
+
+/**
+ * Pone la clase del tema antes del primer pintado.
+ *
+ * Va como script en el <head> y no en un efecto de React a propósito: la
+ * página se sirve renderizada desde el servidor, que no sabe qué tema tiene
+ * guardado cada persona. Decidirlo al hidratar significa pintar primero en
+ * claro y corregir después —el fogonazo blanco de toda la vida—, y en una app
+ * que se abre de noche eso se nota.
+ *
+ * Todo dentro de un try: en una ventana privada `localStorage` puede lanzar, y
+ * quedarse sin app por no poder leer una preferencia de color sería absurdo.
+ */
+const SCRIPT_TEMA = `(function(){try{var t=localStorage.getItem(${JSON.stringify(
+  TEMA_KEY,
+)});var d=t==='dark'||((!t||t==='system')&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d)}catch(e){}})()`;
 
 function NotFoundComponent() {
   return (
@@ -120,9 +137,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="es">
+    // `suppressHydrationWarning`: el script de arriba le añade la clase `dark`
+    // al <html> antes de que React hidrate, así que el marcado del servidor y
+    // el del navegador no coinciden a propósito.
+    <html lang="es" suppressHydrationWarning>
       <head>
         <HeadContent />
+        <script dangerouslySetInnerHTML={{ __html: SCRIPT_TEMA }} />
       </head>
       <body>
         {children}
@@ -135,6 +156,7 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
+  const { oscuro } = useTheme();
 
   useEffect(() => {
     void registerServiceWorker();
@@ -167,7 +189,9 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
-      <Toaster theme="light" richColors position="top-right" />
+      {/* Los avisos se pintan fuera del árbol de la app, así que no heredan
+          los tokens: hay que decirles el tema a mano. */}
+      <Toaster theme={oscuro ? "dark" : "light"} richColors position="top-right" />
     </QueryClientProvider>
   );
 }

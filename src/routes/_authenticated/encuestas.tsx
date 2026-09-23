@@ -254,7 +254,7 @@ function PollCard({
                 <CheckCircle2 className="size-3" /> {t("polls.voted")}
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-2xs font-bold uppercase tracking-widest text-amber-500">
+              <span className="inline-flex items-center gap-1 rounded-full border border-warn/40 bg-warn/10 px-2 py-0.5 text-2xs font-bold uppercase tracking-widest text-warn">
                 <Clock className="size-3" /> {t("polls.pendingLabel")}
               </span>
             )}

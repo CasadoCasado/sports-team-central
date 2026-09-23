@@ -106,7 +106,7 @@ function AdminCompetitionsPage() {
                   <span
                     className={`rounded border px-1.5 py-0.5 ${
                       c.activa
-                        ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-600"
+                        ? "border-ok/40 bg-ok/15 text-ok"
                         : "border-border text-muted-foreground"
                     }`}
                   >
@@ -115,7 +115,7 @@ function AdminCompetitionsPage() {
                   <span
                     className={`rounded border px-1.5 py-0.5 ${
                       c.inscripciones_abiertas
-                        ? "border-sky-500/40 bg-sky-500/15 text-sky-600"
+                        ? "border-info/40 bg-info/15 text-info"
                         : "border-destructive/40 bg-destructive/10 text-destructive"
                     }`}
                   >

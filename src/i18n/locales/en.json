@@ -878,5 +878,11 @@
     "broken": "The saved image does not load; upload another or remove it.",
     "errType": "It has to be an image (JPG, PNG, WEBP or GIF).",
     "errSize": "The image cannot be larger than 5 MB."
+  },
+  "theme": {
+    "label": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
   }
 }

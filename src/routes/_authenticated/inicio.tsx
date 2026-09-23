@@ -348,7 +348,7 @@ function Inicio() {
                             {new Date(e!.fecha_inicio).toLocaleString([], { dateStyle: "short", timeStyle: "short" })}
                           </p>
                         </div>
-                        <span className="shrink-0 rounded-full border border-amber-400/40 bg-amber-400/10 px-2 py-0.5 text-3xs font-bold uppercase tracking-widest text-amber-300">
+                        <span className="shrink-0 rounded-full border border-warn/40 bg-warn/10 px-2 py-0.5 text-3xs font-bold uppercase tracking-widest text-warn">
                           {t("callups.pending")}
                         </span>
                       </button>

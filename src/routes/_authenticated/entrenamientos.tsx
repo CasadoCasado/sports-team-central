@@ -135,7 +135,7 @@ function Trainings() {
                   params={{ id: e.id }}
                   className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4"
                 >
-                  <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-sky-400/10 text-sky-300 ring-1 ring-sky-400/30">
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-info/10 text-info ring-1 ring-info/30">
                     <Dumbbell className="size-5" />
                   </div>
                   <div className="min-w-0 flex-1">
