@@ -11,7 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
+import { cn, inicialesDe } from "@/lib/utils";
 import { api } from "@/lib/api";
 import { ImageUpload } from "@/components/image-upload";
 import { traducirErrorDeImagen } from "@/lib/images";
@@ -295,20 +295,6 @@ function MiEquipo() {
 }
 
 
-
-/**
- * «Los Niños» → «LN». El hueco del escudo cuando no hay imagen.
- *
- * Con las imágenes cerradas, ahí iba un escudo genérico igual para todos los
- * equipos, que no identifica nada. Las iniciales sí, y es lo que ya se hace
- * con las personas en el resto de la web.
- */
-function inicialesDe(nombre: string) {
-  const palabras = nombre.trim().split(/\s+/).filter(Boolean);
-  if (palabras.length === 0) return "";
-  if (palabras.length === 1) return palabras[0].slice(0, 2).toUpperCase();
-  return palabras.slice(0, 2).map((p) => p[0]).join("").toUpperCase();
-}
 
 function TeamCard({
   team,

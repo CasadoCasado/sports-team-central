@@ -11,6 +11,7 @@ import {
   Clock,
   MapPin,
   Pencil,
+  Settings,
   Trash2,
   Trophy,
   Users,
@@ -34,6 +35,12 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { EventFormDialog } from "@/components/event-form-dialog";
 import { TrainingResultsSection } from "@/components/training-results-section";
 import { toDateTimeLocal, eventTypeStyles, type EventType } from "@/lib/events";
@@ -44,7 +51,7 @@ import {
   validatePadelCourt,
   type SetPair,
 } from "@/lib/padel-scoring";
-import { cn } from "@/lib/utils";
+import { cn, inicialesDe } from "@/lib/utils";
 import type {
   EventResponse,
   MatchParticipation,
@@ -113,6 +120,26 @@ function EventDetail() {
   const start = new Date(event.fecha_inicio);
   const end = event.fecha_fin ? new Date(event.fecha_fin) : null;
 
+  /* Un enfrentamiento son dos equipos, y así se cuenta: nuestro equipo a la
+     izquierda siempre —esta es nuestra app, no un periódico— con la chapa de
+     local o visitante, y el rival enfrente. Lo demás (entrenos, torneos,
+     reuniones) sigue siendo un título: no hay contra quién. */
+  const esEnfrentamiento = event.tipo === "partido" && !!event.rival;
+  const antetitulo = esEnfrentamiento ? event.titulo : t(`events.types.${event.tipo}`);
+  const jugado = event.resultado_local != null && event.resultado_visitante != null;
+  // `resultado_local` es del local, no nuestro: si jugamos fuera, el nuestro
+  // es el de visitante.
+  const nuestroTanteo = event.es_local === false ? event.resultado_visitante : event.resultado_local;
+  const suTanteo = event.es_local === false ? event.resultado_local : event.resultado_visitante;
+  const resultado =
+    !jugado || nuestroTanteo == null || suTanteo == null
+      ? null
+      : nuestroTanteo > suTanteo
+        ? "ganado"
+        : nuestroTanteo < suTanteo
+          ? "perdido"
+          : "empate";
+
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <Link
@@ -122,73 +149,139 @@ function EventDetail() {
         <ArrowLeft className="size-3.5" /> {t("events.backToCalendar")}
       </Link>
 
-      <div className="surface-card overflow-hidden">
-        <div className="border-b border-border p-4 sm:p-6">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="min-w-0">
-              <span className={cn("inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-2xs font-bold uppercase tracking-widest", style.badge)}>
-                <span className={cn("size-1.5 rounded-full", style.dot)} />
-                {t(`events.types.${event.tipo}`)}
-              </span>
-              <h1 className="text-display mt-3 text-2xl font-black tracking-tight break-words sm:text-4xl">
-                {event.titulo}
-              </h1>
-              {event.rival && (
-                <p className="text-display mt-1 text-lg text-muted-foreground">
-                  vs <span className="text-foreground">{event.rival}</span>
-                  {event.es_local != null && (
-                    <span className="ml-2 text-2xs font-bold uppercase tracking-widest text-primary">
-                      {event.es_local ? t("events.local") : t("events.visitante")}
-                    </span>
-                  )}
-                </p>
-              )}
-            </div>
-            {isManager && (
-              <div className="flex shrink-0 flex-wrap gap-2">
-                <Button variant="outline" size="sm" onClick={() => setEditing(true)}>
-                  <Pencil className="mr-1 size-3.5" /> {t("common.edit")}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="text-destructive"
+      <article className="surface-raised min-w-0 overflow-hidden">
+        <div className="relative overflow-hidden bg-[color:var(--color-ink)] p-4 sm:p-5">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -top-24 left-1/2 size-56 -translate-x-1/2 rounded-full opacity-30 sm:-top-36 sm:size-80"
+            style={{
+              background: `radial-gradient(circle, ${
+                resultado === "ganado" ? "var(--color-accent)" : "var(--color-primary)"
+              } 0%, transparent 70%)`,
+            }}
+          />
+
+          {/* Editar y borrar vivían como dos botones debajo del título, justo
+              donde ahora va el marcador. Recogidos aquí, y solo para quien
+              gestiona, que es quien los tenía. */}
+          {isManager && (
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                aria-label={t("events.settings")}
+                className="absolute right-2.5 top-2.5 z-10 inline-flex size-10 items-center justify-center rounded-xl bg-white/10 text-[color:var(--color-ink-foreground)] ring-1 ring-white/20 transition-colors hover:bg-white/[0.16] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 sm:right-3 sm:top-3"
+              >
+                <Settings className="size-[17px]" aria-hidden="true" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem className="min-h-11 gap-2.5" onClick={() => setEditing(true)}>
+                  <Pencil className="size-4" aria-hidden="true" />
+                  {t("events.edit")}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="min-h-11 gap-2.5 text-destructive focus:text-destructive"
                   onClick={() => {
                     if (confirm(t("events.deleteConfirm"))) del.mutate();
                   }}
                 >
-                  <Trash2 className="mr-1 size-3.5" /> {t("common.delete")}
-                </Button>
+                  <Trash2 className="size-4" aria-hidden="true" />
+                  {t("events.delete")}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+
+          {/* En un enfrentamiento el antetítulo es el nombre que le puso quien
+             lo creó —«Jornada 8»—, porque quién juega contra quién ya lo dice
+             el marcador. En lo demás es el tipo de evento, porque el título va
+             debajo en grande y repetirlo dos veces parece un fallo.
+
+             A una línea y con hueco a los dos lados: centrado y a varias
+             líneas se metía debajo de la rueda. */}
+          <p className="relative flex items-center justify-center gap-2 px-12 text-3xs font-bold uppercase tracking-[0.2em] text-[color:var(--color-ink-muted)]">
+            <span className={cn("size-1.5 shrink-0 rounded-full", style.dot)} aria-hidden="true" />
+            <span className="min-w-0 truncate" title={antetitulo}>
+              {antetitulo}
+            </span>
+          </p>
+
+          {esEnfrentamiento ? (
+            <div className="relative mt-3 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-start gap-2 sm:gap-4">
+              <Lado nombre={event.team_nombre} nuestro>
+                {event.es_local != null && (
+                  <span className="rounded-full bg-primary/25 px-2 py-0.5 text-3xs font-bold uppercase tracking-[0.14em] text-[color:#BFD3FD] ring-1 ring-primary/40">
+                    {event.es_local ? t("events.local") : t("events.visitante")}
+                  </span>
+                )}
+              </Lado>
+
+              <div className="flex min-w-[58px] flex-col items-center pt-3 sm:min-w-[92px]">
+                {jugado ? (
+                  <div className="text-display whitespace-nowrap text-2xl font-black leading-none text-white sm:text-[32px]">
+                    {nuestroTanteo}
+                    <span className="mx-1.5 text-muted-foreground">–</span>
+                    {suTanteo}
+                  </div>
+                ) : (
+                  <span className="text-display text-lg font-extrabold tracking-[0.08em] text-muted-foreground sm:text-xl">
+                    VS
+                  </span>
+                )}
               </div>
-            )}
-          </div>
+
+              <Lado nombre={event.rival!} />
+            </div>
+          ) : (
+            <h1 className="text-display relative mt-2 text-center text-xl font-black tracking-tight text-white break-words sm:text-2xl">
+              {event.titulo}
+            </h1>
+          )}
+
+          {/* La chapa, en su propia línea y no en la columna del marcador:
+              ahí es más ancha que la columna y se montaba encima de los
+              nombres de los dos equipos. */}
+          {resultado && (
+            <div className="relative mt-3 flex justify-center">
+              <span
+                className={cn(
+                  "rounded-full px-2.5 py-0.5 text-3xs font-bold uppercase tracking-[0.14em] ring-1",
+                  resultado === "ganado" &&
+                    "bg-accent/20 text-[color:var(--color-accent)] ring-accent/40",
+                  resultado === "perdido" && "bg-red-500/15 text-red-300 ring-red-500/40",
+                  resultado === "empate" &&
+                    "bg-white/10 text-[color:var(--color-ink-muted)] ring-white/20",
+                )}
+              >
+                {t(`events.outcome.${resultado}`)}
+              </span>
+            </div>
+          )}
         </div>
 
-        <div className="grid gap-4 p-4 sm:grid-cols-2 sm:p-6">
-          <InfoRow icon={<CalIcon className="size-4" />} label={t("events.fechaInicio")}>
-            {format(start, "PPPP", { locale })}
-          </InfoRow>
-          <InfoRow icon={<Clock className="size-4" />} label={t("events.fechaFin")}>
-            {format(start, "HH:mm")}{end && ` — ${format(end, "HH:mm")}`}
-          </InfoRow>
-          {event.ubicacion && (
-            <InfoRow icon={<MapPin className="size-4" />} label={t("events.ubicacion")}>
-              {event.ubicacion}
-            </InfoRow>
-          )}
+        {/* Cuándo, a qué hora y dónde en una sola fila. Antes eran cuatro
+            bloques con su etiqueta en mayúsculas, y dos de ellos —inicio y
+            fin— decían entre los dos una sola cosa. */}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 text-sm sm:px-5">
+          {/* Con el día de la semana: en un equipo, «sábado» dice más que el
+              número. Abreviado, que la fila va apretada. */}
+          <Dato icon={<CalIcon className="size-4" />}>
+            {format(start, "EEE d LLL yyyy", { locale })}
+          </Dato>
+          <Dato icon={<Clock className="size-4" />}>
+            {format(start, "HH:mm")}
+            {end && ` — ${format(end, "HH:mm")}`}
+          </Dato>
+          {event.ubicacion && <Dato icon={<MapPin className="size-4" />}>{event.ubicacion}</Dato>}
           {event.competition_nombre && (
-            <InfoRow icon={<ClipboardList className="size-4" />} label={t("events.competicion")}>
-              {event.competition_nombre}
-            </InfoRow>
+            <Dato icon={<ClipboardList className="size-4" />}>{event.competition_nombre}</Dato>
           )}
         </div>
 
         {event.descripcion && (
-          <div className="border-t border-border p-4 text-sm text-muted-foreground whitespace-pre-wrap sm:p-6">
+          <p className="border-t border-border px-4 py-3 text-sm text-muted-foreground whitespace-pre-wrap sm:px-5">
             {event.descripcion}
-          </div>
+          </p>
         )}
-      </div>
+      </article>
 
       {(event.requiere_convocatoria || event.tipo === "entrenamiento") && (
         <CallupSection event={event} isManager={!!isManager} userId={user?.id ?? null} />
@@ -247,17 +340,50 @@ function EventDetail() {
   );
 }
 
-function InfoRow({ icon, label, children }: { icon: React.ReactNode; label: string; children: React.ReactNode }) {
+/** Un equipo del marcador: escudo, nombre y lo que se le cuelgue debajo. */
+function Lado({
+  nombre,
+  nuestro,
+  children,
+}: {
+  nombre: string;
+  nuestro?: boolean;
+  children?: React.ReactNode;
+}) {
   return (
-    <div className="flex items-start gap-3">
-      <div className="mt-0.5 flex size-8 items-center justify-center rounded-md bg-primary/10 text-primary">{icon}</div>
-      <div className="min-w-0">
-        <div className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">{label}</div>
-        <div className="mt-0.5 text-sm">{children}</div>
+    <div className="flex min-w-0 flex-col items-center gap-2 text-center">
+      <div
+        className={cn(
+          "flex size-11 shrink-0 items-center justify-center rounded-xl text-sm font-extrabold sm:size-12 sm:text-base",
+          "text-display",
+          nuestro
+            ? "bg-white/10 text-white ring-1 ring-white/20"
+            : "bg-white/[0.06] text-[color:var(--color-ink-foreground)] ring-1 ring-white/[0.14]",
+        )}
+        aria-hidden="true"
+      >
+        {inicialesDe(nombre)}
       </div>
+      <div className="text-display min-w-0 text-sm font-extrabold leading-tight text-white break-words sm:text-base">
+        {nombre}
+      </div>
+      {children}
     </div>
   );
 }
+
+/** Un dato de la fila de abajo: icono y valor, sin etiqueta. */
+function Dato({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <span className="inline-flex min-w-0 max-w-full items-center gap-2">
+      <span className="shrink-0 text-muted-foreground" aria-hidden="true">
+        {icon}
+      </span>
+      <span className="min-w-0 break-words font-medium">{children}</span>
+    </span>
+  );
+}
+
 
 function CallupSection({
   event,

@@ -41,7 +41,10 @@ test.describe("Editar un evento se ve sin recargar", () => {
     await page.goto(`/eventos/${event.id}`);
     await expect(page.getByRole("heading", { name: "Entreno de siempre" })).toBeVisible();
 
-    await page.getByRole("button", { name: /^editar$/i }).click();
+    // Editar vive en la rueda de la cabecera desde que es un marcador: los
+    // dos botones sueltos ocupaban justo el sitio del resultado.
+    await page.getByRole("button", { name: /ajustes del evento/i }).click();
+    await page.getByRole("menuitem", { name: /editar evento/i }).click();
     // Las etiquetas del diálogo no están asociadas a sus campos, así que no
     // vale `getByLabel`. El primer campo de texto del diálogo es el título.
     const titulo = page.getByRole("dialog").getByRole("textbox").first();
