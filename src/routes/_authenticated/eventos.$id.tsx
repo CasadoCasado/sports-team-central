@@ -249,7 +249,7 @@ function EventDetail() {
                   "rounded-full px-2.5 py-0.5 text-3xs font-bold uppercase tracking-[0.14em] ring-1",
                   resultado === "ganado" &&
                     "bg-accent/20 text-[color:var(--color-accent)] ring-accent/40",
-                  resultado === "perdido" && "bg-red-500/15 text-red-300 ring-red-500/40",
+                  resultado === "perdido" && "bg-danger/15 text-danger ring-danger/40",
                   resultado === "empate" &&
                     "bg-white/10 text-[color:var(--color-ink-muted)] ring-white/20",
                 )}
@@ -604,9 +604,9 @@ function CallupSection({
                   <span
                     className={cn(
                       "rounded-full border px-2 py-0.5 text-2xs font-bold uppercase tracking-widest",
-                      status === "confirmado" && "border-emerald-500/40 bg-emerald-500/15 text-emerald-300",
-                      status === "rechazado" && "border-red-500/40 bg-red-500/15 text-red-300",
-                      status === "duda" && "border-amber-500/40 bg-amber-500/15 text-amber-300",
+                      status === "confirmado" && "border-ok/40 bg-ok/15 text-ok",
+                      status === "rechazado" && "border-danger/40 bg-danger/15 text-danger",
+                      status === "duda" && "border-warn/40 bg-warn/15 text-warn",
                       status === "convocado" && "border-border bg-muted text-muted-foreground",
                     )}
                   >
@@ -747,9 +747,9 @@ function PlayerResponseForm({
   return (
     <div className="mt-3 space-y-3">
       <div className="flex flex-wrap gap-2">
-        {btn("confirmado", t("callups.iAccept"), "border-emerald-500/40 bg-emerald-500/15 text-emerald-300")}
-        {btn("duda", t("callups.iDoubt"), "border-amber-500/40 bg-amber-500/15 text-amber-300")}
-        {btn("rechazado", t("callups.iReject"), "border-red-500/40 bg-red-500/15 text-red-300")}
+        {btn("confirmado", t("callups.iAccept"), "border-ok/40 bg-ok/15 text-ok")}
+        {btn("duda", t("callups.iDoubt"), "border-warn/40 bg-warn/15 text-warn")}
+        {btn("rechazado", t("callups.iReject"), "border-danger/40 bg-danger/15 text-danger")}
       </div>
       <div>
         <Label className="text-2xs uppercase tracking-widest text-muted-foreground">
@@ -1187,8 +1187,8 @@ function CourtBadge({ winner, teamSide }: { winner: 1 | 2 | null; teamSide: numb
       className={cn(
         "inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-2xs font-bold uppercase tracking-widest",
         won
-          ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-600"
-          : "border-red-500/40 bg-red-500/10 text-red-500",
+          ? "border-ok/40 bg-ok/10 text-ok"
+          : "border-danger/40 bg-danger/10 text-danger",
       )}
     >
       {won ? <Trophy className="size-3" /> : <XCircle className="size-3" />}
@@ -1216,10 +1216,10 @@ function OutcomeBadge({
   }
   const cls =
     outcome === "victoria"
-      ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-600"
+      ? "border-ok/40 bg-ok/10 text-ok"
       : outcome === "derrota"
-      ? "border-red-500/40 bg-red-500/10 text-red-500"
-      : "border-amber-500/40 bg-amber-500/10 text-amber-600";
+      ? "border-danger/40 bg-danger/10 text-danger"
+      : "border-warn/40 bg-warn/10 text-warn";
   return (
     <span
       className={cn(

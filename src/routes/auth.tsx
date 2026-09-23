@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { toast } from "sonner";
 import { hasSession, signInWithPassword, signUp } from "@/lib/auth";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { LangToggle } from "@/components/lang-toggle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -113,7 +114,10 @@ function AuthPage() {
             <h1 className="text-display text-2xl font-black tracking-tight sm:text-3xl">
               {mode === "signup" ? t("auth.signup") : t("auth.login")}
             </h1>
-            <LangToggle />
+            <div className="flex items-center gap-2">
+              <LangToggle />
+              <ThemeToggle />
+            </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">

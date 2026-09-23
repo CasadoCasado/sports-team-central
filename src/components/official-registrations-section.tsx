@@ -36,9 +36,9 @@ const STATUSES: RegistrationStatus[] = ["abierta", "activa", "cerrada", "rechaza
 export function statusBadgeClass(status: RegistrationStatus) {
   switch (status) {
     case "abierta":
-      return "border-emerald-500/40 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400";
+      return "border-ok/40 bg-ok/15 text-ok";
     case "activa":
-      return "border-sky-500/40 bg-sky-500/15 text-sky-600 dark:text-sky-400";
+      return "border-info/40 bg-info/15 text-info";
     case "rechazada":
       return "border-destructive/40 bg-destructive/10 text-destructive";
     default:

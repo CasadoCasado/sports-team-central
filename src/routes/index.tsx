@@ -2,6 +2,7 @@ import { LOGO_URL } from "@/lib/brand";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { hasSession } from "@/lib/auth";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { LangToggle } from "@/components/lang-toggle";
 
 export const Route = createFileRoute("/")({
@@ -42,6 +43,7 @@ function Landing() {
         </div>
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
           <LangToggle />
+            <ThemeToggle />
           <Link
             to="/auth"
             className="inline-flex min-h-10 items-center rounded-md border border-border px-2.5 text-2xs font-bold uppercase tracking-wider transition-colors hover:bg-card sm:px-3 sm:text-xs sm:tracking-widest"

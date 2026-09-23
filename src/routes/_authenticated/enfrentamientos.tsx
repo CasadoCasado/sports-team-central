@@ -198,7 +198,7 @@ function Matches() {
                     params={{ id: e.id }}
                     className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4"
                   >
-                    <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-red-400/10 text-red-300 ring-1 ring-red-400/30">
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-danger/10 text-danger ring-1 ring-danger/30">
                       <Swords className="size-5" />
                     </div>
                     <div className="min-w-0 flex-1">

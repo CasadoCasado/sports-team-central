@@ -63,11 +63,11 @@ function Resultados() {
               ? own! > opp! ? "W" : own === opp ? "D" : "L"
               : null;
             const outcomeClass = outcome === "W"
-              ? "bg-emerald-500/15 text-emerald-600 border border-emerald-500/40"
+              ? "bg-ok/15 text-ok border border-ok/40"
               : outcome === "D"
-              ? "bg-amber-400/20 text-amber-600 border border-amber-400/40"
+              ? "bg-warn/20 text-warn border border-warn/40"
               : outcome === "L"
-              ? "bg-red-500/15 text-red-500 border border-red-500/40"
+              ? "bg-danger/15 text-danger border border-danger/40"
               : "bg-muted text-muted-foreground border border-border";
             const comp = m.competition_nombre ? { nombre: m.competition_nombre } : null;
             return (

@@ -55,6 +55,16 @@
   --color-ink-muted: var(--ink-muted);
   --color-cream: var(--cream);
 
+  /* Estados: lo que va bien, lo que avisa, lo que falla y lo informativo.
+   * Un token por estado y no un color de la paleta de Tailwind a fuego,
+   * porque el mismo verde no vale en los dos temas: sobre blanco hace falta
+   * uno oscuro y sobre negro uno claro. Con el token, `text-ok` y `bg-ok/15`
+   * cambian solos al cambiar de tema. */
+  --color-ok: var(--ok);
+  --color-warn: var(--warn);
+  --color-danger: var(--danger);
+  --color-info: var(--info);
+
   /* Event colors */
   --color-evt-entreno: var(--evt-entreno);
   --color-evt-partido: var(--evt-partido);
@@ -65,8 +75,11 @@
   --font-display: "Outfit", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "Figtree", ui-sans-serif, system-ui, sans-serif;
 
-  --shadow-card: 0 1px 2px rgba(31, 41, 55, 0.05), 0 4px 12px rgba(31, 41, 55, 0.05);
-  --shadow-elev: 0 6px 24px -8px rgba(31, 41, 55, 0.16), 0 2px 6px rgba(31, 41, 55, 0.05);
+  /* Las sombras salen de los tokens de sombra, que cambian con el tema: un
+     gris al 5 % sobre negro no se ve, así que en oscuro son negras y más
+     marcadas. */
+  --shadow-card: var(--sombra-card);
+  --shadow-elev: var(--sombra-elev);
   --shadow-brand: 0 10px 30px -10px color-mix(in oklab, var(--primary) 45%, transparent);
 
   --gradient-brand: linear-gradient(120deg, var(--color-primary) 0%, var(--color-accent) 100%);
@@ -125,6 +138,81 @@
   --chart-3: var(--evt-torneo);
   --chart-4: var(--evt-social);
   --chart-5: var(--evt-reunion);
+
+  --sombra-card: 0 1px 2px rgba(31, 41, 55, 0.05), 0 4px 12px rgba(31, 41, 55, 0.05);
+  --sombra-elev: 0 6px 24px -8px rgba(31, 41, 55, 0.16), 0 2px 6px rgba(31, 41, 55, 0.05);
+
+  --ok: oklch(0.55 0.13 162);
+  --warn: oklch(0.57 0.14 66);
+  --danger: oklch(0.55 0.20 25);
+  --info: oklch(0.55 0.14 240);
+
+  /* Que los controles del sistema —barras de scroll, el calendario de un
+     `datetime-local`, el desplegable de un `select`— se pinten en claro. Sin
+     esto salen blancos sobre la app en oscuro. */
+  color-scheme: light;
+}
+
+/* ============================ MODO OSCURO ============================
+ *
+ * Mismos tokens, otros valores: ni un color suelto fuera de aquí. El corte lo
+ * decide la clase `.dark` en el <html>, que es lo que espera el
+ * `@custom-variant dark` de arriba y lo que pone el script del documento
+ * antes de pintar.
+ *
+ * La superficie «ink» —barra lateral, banda del equipo, marcador— es en claro
+ * más oscura que la página. En oscuro no puede seguir siéndolo, porque se
+ * confundiría con el fondo: pasa a ser **más clara** que la tarjeta, que es
+ * como se lee «esto está por encima» cuando el fondo ya es negro.
+ */
+.dark {
+  --background: oklch(0.176 0.021 262);
+  --foreground: oklch(0.955 0.006 247);
+
+  --card: oklch(0.223 0.022 262);
+  --card-foreground: oklch(0.955 0.006 247);
+  --popover: oklch(0.243 0.022 262);
+  --popover-foreground: oklch(0.955 0.006 247);
+
+  --primary: oklch(0.60 0.196 263);
+  --primary-foreground: oklch(0.99 0 0);
+
+  --secondary: oklch(0.30 0.025 260);
+  --secondary-foreground: oklch(0.96 0.005 247);
+
+  --muted: oklch(0.262 0.021 262);
+  --muted-foreground: oklch(0.725 0.022 258);
+
+  --accent: oklch(0.75 0.148 162);
+  --accent-foreground: oklch(0.16 0.02 260);
+
+  --destructive: oklch(0.63 0.19 25);
+  --destructive-foreground: oklch(0.99 0 0);
+
+  --border: oklch(0.315 0.02 260);
+  --input: oklch(0.34 0.02 260);
+  --ring: oklch(0.60 0.196 263);
+
+  --ink: oklch(0.272 0.028 262);
+  --ink-foreground: oklch(0.97 0.004 247);
+  --ink-muted: oklch(0.70 0.022 258);
+  --cream: oklch(0.176 0.021 262);
+
+  --evt-entreno: oklch(0.76 0.148 162);
+  --evt-partido: oklch(0.66 0.19 263);
+  --evt-torneo: oklch(0.80 0.15 70);
+  --evt-social: oklch(0.70 0.17 300);
+  --evt-reunion: oklch(0.70 0.11 220);
+
+  --sombra-card: 0 1px 2px rgba(0, 0, 0, 0.40), 0 4px 12px rgba(0, 0, 0, 0.32);
+  --sombra-elev: 0 8px 28px -8px rgba(0, 0, 0, 0.62), 0 2px 6px rgba(0, 0, 0, 0.42);
+
+  --ok: oklch(0.80 0.14 162);
+  --warn: oklch(0.83 0.14 76);
+  --danger: oklch(0.72 0.17 22);
+  --info: oklch(0.76 0.12 236);
+
+  color-scheme: dark;
 }
 
 @layer base {
@@ -207,6 +295,14 @@
     background-size: 22px 22px;
     opacity: 0.35;
     mix-blend-mode: multiply;
+  }
+
+  /* El grano es un punteado oscuro multiplicado sobre el papel. En oscuro,
+     multiplicar oscuro sobre oscuro no se ve: se invierte a `screen`, que es
+     aclarar, y se baja la intensidad para que no parezca ruido. */
+  .dark body::before {
+    mix-blend-mode: screen;
+    opacity: 0.16;
   }
   body > * {
     position: relative;

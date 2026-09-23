@@ -201,8 +201,8 @@ function CompCard({
               const status = getCompetitionStatus(c);
               if (!status) return null;
               const styles: Record<CompStatus, string> = {
-                proxima: "border-sky-500/40 bg-sky-500/15 text-sky-600 dark:text-sky-400",
-                enCurso: "border-emerald-500/40 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400",
+                proxima: "border-info/40 bg-info/15 text-info",
+                enCurso: "border-ok/40 bg-ok/15 text-ok",
                 finalizada: "border-muted-foreground/30 bg-muted text-muted-foreground",
               };
               return (

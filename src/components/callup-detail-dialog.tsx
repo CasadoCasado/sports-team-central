@@ -156,7 +156,7 @@ export function CallupDetailDialog({
           )}
           {alreadySignedUp && (
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-2xs font-bold uppercase tracking-widest text-emerald-400">
+              <span className="text-2xs font-bold uppercase tracking-widest text-ok">
                 {t("callups.signedUp")}
               </span>
               {onWithdraw && event && (!cierre || cierre > new Date()) && (

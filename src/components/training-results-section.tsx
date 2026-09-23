@@ -416,7 +416,7 @@ export function TrainingResultsSection({
                         className={cn(
                           "inline-flex min-h-8 shrink-0 items-center gap-1 rounded-md border px-2 text-2xs font-bold uppercase tracking-widest",
                           player.ganador
-                            ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-600"
+                            ? "border-ok/40 bg-ok/10 text-ok"
                             : "border-border text-muted-foreground",
                           canEdit ? "hover:bg-card" : "cursor-default",
                         )}

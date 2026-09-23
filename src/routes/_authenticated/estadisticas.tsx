@@ -140,8 +140,8 @@ function Estadisticas() {
 
         <div className="surface-card grid grid-cols-3 divide-x divide-border">
           <ResultCell label={t("stats.wins")} value={wins} color="text-primary" />
-          <ResultCell label={t("stats.draws")} value={draws} color="text-amber-300" />
-          <ResultCell label={t("stats.losses")} value={losses} color="text-red-400" />
+          <ResultCell label={t("stats.draws")} value={draws} color="text-warn" />
+          <ResultCell label={t("stats.losses")} value={losses} color="text-danger" />
         </div>
 
         {withResult.length > 0 && (
@@ -162,8 +162,8 @@ function Estadisticas() {
                     outcome === "W"
                       ? "bg-primary/15 border-primary/40 text-primary"
                       : outcome === "D"
-                      ? "bg-amber-400/10 border-amber-400/30 text-amber-300"
-                      : "bg-red-500/10 border-red-500/30 text-red-400";
+                      ? "bg-warn/10 border-warn/30 text-warn"
+                      : "bg-danger/10 border-danger/30 text-danger";
                   return (
                     <div
                       key={m.id}

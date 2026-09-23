@@ -31,6 +31,7 @@ import { signOut as clearSession } from "@/lib/auth";
 import { useProfile } from "@/hooks/use-profile";
 import { useSession } from "@/hooks/use-session";
 import { LangToggle } from "./lang-toggle";
+import { ThemeToggle } from "./theme-toggle";
 import { LOGO_URL } from "@/lib/brand";
 
 import { cn } from "@/lib/utils";
@@ -283,6 +284,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className="flex items-center gap-2">
             
             <LangToggle />
+            <ThemeToggle />
             <Link
               to="/ayuda"
               search={{ screen: helpSectionForPath(pathname) }}
