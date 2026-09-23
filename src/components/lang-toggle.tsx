@@ -10,7 +10,7 @@ export function LangToggle() {
   return (
     <button
       onClick={toggle}
-      className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-1 text-2xs font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:text-foreground"
+      className="inline-flex min-h-10 shrink-0 items-center gap-1 rounded-md border border-border bg-card px-2.5 text-2xs font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:text-foreground sm:min-h-9"
       aria-label="Toggle language"
       suppressHydrationWarning
     >

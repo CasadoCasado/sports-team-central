@@ -67,7 +67,7 @@ export function ReminderSettings() {
               type="button"
               onClick={() => toggle(o.hours)}
               className={cn(
-                "rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors",
+                "inline-flex min-h-10 items-center rounded-full border px-3.5 text-xs font-semibold transition-colors",
                 active
                   ? "border-primary bg-primary text-primary-foreground"
                   : "border-border bg-card text-foreground hover:bg-muted",
