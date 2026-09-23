@@ -205,7 +205,10 @@ function EventDetail() {
           </p>
 
           {esEnfrentamiento ? (
-            <div className="relative mt-3 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-start gap-2 sm:gap-4">
+            /* En el móvil el marcador arranca más abajo: la rueda está en la
+               esquina y el escudo del rival, centrado en su columna, le
+               llegaba a tocar. Desde `sm` sobra ancho y no hace falta. */
+            <div className="relative mt-6 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-start gap-2 sm:mt-3 sm:gap-4">
               <Lado nombre={event.team_nombre} nuestro>
                 {event.es_local != null && (
                   <span className="rounded-full bg-primary/25 px-2 py-0.5 text-3xs font-bold uppercase tracking-[0.14em] text-[color:#BFD3FD] ring-1 ring-primary/40">
@@ -260,7 +263,10 @@ function EventDetail() {
         {/* Cuándo, a qué hora y dónde en una sola fila. Antes eran cuatro
             bloques con su etiqueta en mayúsculas, y dos de ellos —inicio y
             fin— decían entre los dos una sola cosa. */}
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 text-sm sm:px-5">
+        {/* Repartidos a lo ancho en vez de amontonados a la izquierda, y con
+            `space-around` lo que no cabe en una línea baja centrado en vez de
+            quedarse solo en un extremo. */}
+        <div className="flex flex-wrap place-content-around items-center gap-x-4 gap-y-3 px-4 py-3.5 text-sm sm:px-5">
           {/* Con el día de la semana: en un equipo, «sábado» dice más que el
               número. Abreviado, que la fila va apretada. */}
           <Dato icon={<CalIcon className="size-4" />}>
