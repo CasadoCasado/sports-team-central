@@ -122,12 +122,12 @@ function RegistrationRow({
   });
 
   return (
-    <div className="flex items-center gap-3 rounded-md border border-border bg-card p-3">
+    <div className="grid grid-cols-[2.5rem_minmax(0,1fr)] items-center gap-x-3 gap-y-2 rounded-md border border-border bg-card p-3 sm:flex">
       <div className="flex size-10 shrink-0 items-center justify-center rounded bg-primary/10 text-primary">
         <Medal className="size-5" />
       </div>
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold">
+      <div className="min-w-0 sm:flex-1">
+        <p className="text-sm font-semibold break-words">
           {r.competition_nombre ?? "—"}
           {r.temporada ? ` · ${r.temporada}` : ""}
         </p>
@@ -144,10 +144,10 @@ function RegistrationRow({
         </div>
       </div>
       {canManage && (
-        <div className="flex gap-1">
+        <div className="col-span-2 flex shrink-0 justify-end gap-1 sm:col-auto">
           <button
             onClick={onEdit}
-            className="rounded-md border border-border p-2 hover:bg-muted"
+            className="inline-flex size-9 items-center justify-center rounded-md border border-border hover:bg-muted"
             aria-label={t("common.edit")}
           >
             <Pencil className="size-3.5" />
@@ -156,7 +156,7 @@ function RegistrationRow({
             onClick={() => {
               if (confirm(t("registrations.deleteConfirm"))) del.mutate();
             }}
-            className="rounded-md border border-border p-2 text-destructive hover:bg-muted"
+            className="inline-flex size-9 items-center justify-center rounded-md border border-border text-destructive hover:bg-muted"
             aria-label={t("common.delete")}
           >
             <Trash2 className="size-3.5" />

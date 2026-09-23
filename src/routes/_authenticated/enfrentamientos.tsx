@@ -159,7 +159,7 @@ function Matches() {
     <div className="mx-auto max-w-5xl space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-display text-3xl font-black tracking-tight">
+          <h1 className="text-display text-2xl font-black tracking-tight sm:text-3xl">
             {t("nav.enfrentamientos")}
           </h1>
           <div className="mt-1"><TeamPicker /></div>
@@ -190,41 +190,45 @@ function Matches() {
             const isOpen = expanded === e.id;
             return (
               <div key={e.id} className="p-4">
-                <div className="flex items-center gap-4">
+                {/* Los botones, bajo el enfrentamiento mientras no quepan al
+                    lado: en una sola fila el título se quedaba en un tercio. */}
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
                   <Link
                     to="/eventos/$id"
                     params={{ id: e.id }}
-                    className="flex flex-1 min-w-0 items-center gap-4"
+                    className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4"
                   >
-                    <div className="flex size-10 items-center justify-center rounded-md bg-red-400/10 text-red-300 ring-1 ring-red-400/30">
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-red-400/10 text-red-300 ring-1 ring-red-400/30">
                       <Swords className="size-5" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold">
+                      <p className="text-sm font-semibold break-words">
                         {e.titulo}
                         {e.rival && (
                           <span className="text-muted-foreground"> · vs {e.rival}</span>
                         )}
                       </p>
-                      <div className="mt-0.5 flex items-center gap-3 text-xxs text-muted-foreground">
+                      <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xxs text-muted-foreground">
                         <span>{format(new Date(e.fecha_inicio), "PPP HH:mm", { locale })}</span>
                         {e.ubicacion && (
-                          <span className="inline-flex items-center gap-1 truncate">
-                            <MapPin className="size-3" /> {e.ubicacion}
+                          <span className="inline-flex min-w-0 max-w-full items-center gap-1">
+                            <MapPin className="size-3 shrink-0" />{" "}
+                            <span className="truncate">{e.ubicacion}</span>
                           </span>
                         )}
-                        <span className="inline-flex items-center gap-1">
+                        <span className="inline-flex shrink-0 items-center gap-1">
                           <Users className="size-3" /> {count}
                         </span>
                       </div>
                     </div>
                   </Link>
+                  <div className="flex shrink-0 flex-wrap gap-2">
                   {myResp ? (
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={() => withdraw.mutate(myResp.id)}
-                      className="uppercase text-2xs font-bold tracking-widest"
+                      className="flex-1 uppercase text-2xs font-bold tracking-widest sm:flex-none"
                     >
                       <Check className="mr-1 size-3" /> {t("callups.withdraw")}
                     </Button>
@@ -232,7 +236,7 @@ function Matches() {
                     <Button
                       size="sm"
                       onClick={() => signUp.mutate(e.id)}
-                      className="bg-primary text-primary-foreground uppercase text-2xs font-bold tracking-widest hover:opacity-90"
+                      className="flex-1 bg-primary text-primary-foreground uppercase text-2xs font-bold tracking-widest hover:opacity-90 sm:flex-none"
                     >
                       {t("callups.signUp")}
                     </Button>
@@ -248,6 +252,7 @@ function Matches() {
                       <span className="ml-1">{t("callups.padelAssign")}</span>
                     </Button>
                   )}
+                  </div>
                 </div>
 
                 {isPadel && isManager && isOpen && (
@@ -278,11 +283,11 @@ function Matches() {
                 params={{ id: e.id }}
                 className="flex items-center gap-4 p-4 opacity-70 hover:bg-card hover:opacity-100"
               >
-                <div className="flex size-10 items-center justify-center rounded-md bg-card ring-1 ring-border">
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-card ring-1 ring-border">
                   <Swords className="size-5 text-muted-foreground" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm">
+                  <p className="text-sm break-words">
                     {e.titulo}
                     {e.rival && <span className="text-muted-foreground"> · vs {e.rival}</span>}
                   </p>

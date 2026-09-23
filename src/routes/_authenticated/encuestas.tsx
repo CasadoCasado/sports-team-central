@@ -112,13 +112,13 @@ function Encuestas() {
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-display text-3xl font-black tracking-tight">
+        <div className="min-w-0">
+          <h1 className="text-display text-2xl font-black tracking-tight sm:text-3xl">
             {t("polls.title")}
           </h1>
           <p className="text-sm text-muted-foreground">{t("polls.subtitle")}</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
           <TeamPicker />
           {isManager && teamId && <NewPollDialog teamId={teamId} />}
         </div>

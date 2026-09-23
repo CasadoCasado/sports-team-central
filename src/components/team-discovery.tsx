@@ -109,7 +109,7 @@ export function TeamDiscovery({
   }
 
   return (
-    <div className="surface-card p-6">
+    <div className="surface-card p-4 sm:p-6">
       <h3 className="text-display text-xl font-bold">
         {heading ?? (onlyOpen ? t("team.openTeamsTitle") : t("team.discoverTitle"))}
       </h3>
@@ -197,16 +197,21 @@ export function TeamDiscovery({
           return (
             <div
               key={tm.id}
-              className="flex flex-wrap items-center gap-3 rounded-md border border-border bg-card p-3"
+              /* En el móvil, el nombre del equipo y el botón no caben en la misma
+                 línea: con un `flex` los dos se encogen y el nombre acaba en
+                 «Club D…». La rejilla le da al nombre todo el ancho que queda
+                 tras el escudo y baja el botón a su propia línea; a partir de
+                 `sm` vuelve a ser una sola fila. */
+              className="grid grid-cols-[2.5rem_minmax(0,1fr)] items-center gap-3 rounded-md border border-border bg-card p-3 sm:flex sm:flex-wrap"
             >
               <Picture
                 url={tm.logo_url}
                 alt=""
-                className="size-10 rounded bg-primary/10 text-primary"
+                className="size-10 shrink-0 rounded bg-primary/10 text-primary"
                 fallback={<Shield className="size-5" />}
               />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold">{tm.nombre}</p>
+              <div className="min-w-0 sm:flex-1">
+                <p className="text-sm font-semibold break-words">{tm.nombre}</p>
                 <p className="text-xxs text-muted-foreground">
                   {sportLabel(tm.deporte, i18n.language)}
                   {tm.ciudad ? ` · ${tm.ciudad}` : ""}
@@ -232,7 +237,7 @@ export function TeamDiscovery({
                 size="sm"
                 disabled={alreadyRequested || closed}
                 onClick={() => requestJoin(tm.id)}
-                className="bg-primary text-primary-foreground uppercase text-2xs font-bold tracking-widest hover:opacity-90"
+                className="col-span-2 w-full bg-primary text-primary-foreground uppercase text-2xs font-bold tracking-widest hover:opacity-90 sm:col-auto sm:w-auto"
               >
                 {closed
                   ? t("team.closedToJoin")

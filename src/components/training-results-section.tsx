@@ -323,7 +323,7 @@ export function TrainingResultsSection({
         </p>
       )}
 
-      <div className="space-y-4 p-5">
+      <div className="space-y-4 p-4 sm:p-5">
         {canEdit && shown.length > 0 && (
           <p className="text-2xs text-muted-foreground">{t("training.reyesHint")}</p>
         )}
@@ -335,10 +335,10 @@ export function TrainingResultsSection({
         )}
 
         {shown.map((court, index) => (
-          <div key={`${court.pista}-${index}`} className="rounded-md border border-border p-4">
+          <div key={`${court.pista}-${index}`} className="rounded-md border border-border p-3 sm:p-4">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <span className="inline-flex size-7 items-center justify-center rounded-full bg-primary/15 text-2xs font-black text-primary">
+              <div className="flex min-w-0 flex-wrap items-center gap-2">
+                <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/15 text-2xs font-black text-primary">
                   {index + 1}
                 </span>
                 <span className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
@@ -355,7 +355,7 @@ export function TrainingResultsSection({
                     value={court.pista}
                     onChange={(e) => setPista(index, Number(e.target.value) || 1)}
                     aria-label={t("training.pista")}
-                    className="w-14 rounded-md border border-border bg-background px-2 py-1 text-center text-sm font-bold"
+                    className="w-14 min-h-9 shrink-0 rounded-md border border-border bg-background px-2 text-center text-sm font-bold"
                   />
                 ) : (
                   <span className="text-sm font-bold">{court.pista}</span>
@@ -368,7 +368,7 @@ export function TrainingResultsSection({
                     onClick={() => moveCourt(index, -1)}
                     disabled={index === 0}
                     aria-label={t("training.moveUp")}
-                    className="rounded-md border border-border p-1.5 hover:bg-card disabled:opacity-40"
+                    className="inline-flex size-9 items-center justify-center rounded-md border border-border hover:bg-card disabled:opacity-40"
                   >
                     <ChevronUp className="size-3.5" />
                   </button>
@@ -377,7 +377,7 @@ export function TrainingResultsSection({
                     onClick={() => moveCourt(index, 1)}
                     disabled={index === shown.length - 1}
                     aria-label={t("training.moveDown")}
-                    className="rounded-md border border-border p-1.5 hover:bg-card disabled:opacity-40"
+                    className="inline-flex size-9 items-center justify-center rounded-md border border-border hover:bg-card disabled:opacity-40"
                   >
                     <ChevronDown className="size-3.5" />
                   </button>
@@ -385,7 +385,7 @@ export function TrainingResultsSection({
                     type="button"
                     onClick={() => removeCourt(index)}
                     aria-label={t("training.removeCourt")}
-                    className="rounded-md border border-border p-1.5 text-destructive hover:bg-card"
+                    className="inline-flex size-9 items-center justify-center rounded-md border border-border text-destructive hover:bg-card"
                   >
                     <Trash2 className="size-3.5" />
                   </button>
@@ -404,7 +404,7 @@ export function TrainingResultsSection({
                       key={player.user_id}
                       className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border px-3 py-2"
                     >
-                      <span className="min-w-0 flex-1 truncate text-sm">
+                      <span className="min-w-[7rem] flex-1 text-sm break-words">
                         {nameById.get(player.user_id) ?? "—"}
                       </span>
                       <button
@@ -414,7 +414,7 @@ export function TrainingResultsSection({
                         aria-pressed={player.ganador}
                         aria-label={t("training.markWinner")}
                         className={cn(
-                          "inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-2xs font-bold uppercase tracking-widest",
+                          "inline-flex min-h-8 shrink-0 items-center gap-1 rounded-md border px-2 text-2xs font-bold uppercase tracking-widest",
                           player.ganador
                             ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-600"
                             : "border-border text-muted-foreground",
@@ -429,7 +429,7 @@ export function TrainingResultsSection({
                           type="button"
                           onClick={() => removePlayer(index, player.user_id)}
                           aria-label={t("training.removePlayer")}
-                          className="rounded-md border border-border p-1 text-muted-foreground hover:bg-card"
+                          className="inline-flex size-8 shrink-0 items-center justify-center rounded-md border border-border text-muted-foreground hover:bg-card"
                         >
                           <X className="size-3" />
                         </button>
@@ -446,7 +446,7 @@ export function TrainingResultsSection({
                   disabled={available.length === 0}
                   onValueChange={(v) => addPlayer(index, v)}
                 >
-                  <SelectTrigger className="h-9 text-xs">
+                  <SelectTrigger className="text-xs">
                     <SelectValue
                       placeholder={
                         available.length === 0 ? t("training.allAssigned") : t("training.addPlayer")

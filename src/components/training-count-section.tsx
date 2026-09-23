@@ -188,7 +188,7 @@ export function TrainingCountSection({
         </p>
       )}
 
-      <div className="space-y-3 p-5">
+      <div className="space-y-3 p-4 sm:p-5">
         {rows.length === 0 && (
           <p className="text-sm text-muted-foreground">
             {canEdit ? t("training.countEmptyManager") : t("training.countEmpty")}
@@ -196,7 +196,7 @@ export function TrainingCountSection({
         )}
 
         {rows.length > 0 && (
-          <div className="grid grid-cols-[1fr_5rem_5rem_2rem] items-center gap-2 text-2xs font-bold uppercase tracking-widest text-muted-foreground">
+          <div className="grid grid-cols-[minmax(0,1fr)_3.25rem_3.25rem_2rem] items-center gap-1.5 px-2 text-2xs font-bold uppercase tracking-widest text-muted-foreground sm:grid-cols-[minmax(0,1fr)_5rem_5rem_2rem] sm:gap-2 sm:px-3">
             <span />
             <span className="text-center">{etiquetaFavor}</span>
             <span className="text-center">{etiquetaContra}</span>
@@ -207,7 +207,7 @@ export function TrainingCountSection({
         {rows.map((row) => (
           <div
             key={row.user_id}
-            className="grid grid-cols-[1fr_5rem_5rem_2rem] items-center gap-2 rounded-md border border-border px-3 py-2"
+            className="grid grid-cols-[minmax(0,1fr)_3.25rem_3.25rem_2rem] items-center gap-1.5 rounded-md border border-border px-2 py-2 sm:grid-cols-[minmax(0,1fr)_5rem_5rem_2rem] sm:gap-2 sm:px-3"
           >
             <span className="min-w-0 truncate text-sm">{nameById.get(row.user_id) ?? "—"}</span>
             {(["favor", "contra"] as const).map((campo) => (
@@ -229,7 +229,7 @@ export function TrainingCountSection({
                 type="button"
                 onClick={() => removePlayer(row.user_id)}
                 aria-label={t("training.removePlayer")}
-                className="rounded-md border border-border p-1 text-muted-foreground hover:bg-card"
+                className="inline-flex size-8 items-center justify-center rounded-md border border-border text-muted-foreground hover:bg-card"
               >
                 <X className="size-3" />
               </button>

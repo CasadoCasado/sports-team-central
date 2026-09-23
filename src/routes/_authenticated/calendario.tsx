@@ -162,19 +162,19 @@ function Calendario() {
     <div className="mx-auto max-w-6xl space-y-6">
       {/* Page header */}
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
+        <div className="min-w-0">
           <div className="flex items-center gap-2 text-2xs font-bold uppercase tracking-widest text-muted-foreground">
             <CalendarDays className="size-3.5" />
             {t("nav.calendario")}
           </div>
-          <h1 className="text-display mt-1 text-3xl font-black tracking-tight md:text-4xl">
+          <h1 className="text-display mt-1 text-2xl font-black tracking-tight sm:text-3xl md:text-4xl">
             {headerLabel}
           </h1>
-          <div className="mt-2">
+          <div className="mt-2 flex">
             <TeamPicker />
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
           <ViewSwitcher view={view} setView={setView} t={t} />
           {isManager && (
             <Button
@@ -384,7 +384,7 @@ function MonthGrid({
                       to="/eventos/$id"
                       params={{ id: e.id }}
                       aria-label={`${e.titulo} — ${format(new Date(e.fecha_inicio), "d LLL HH:mm", { locale })}`}
-                      className="grid size-7 place-items-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      className="grid size-8 place-items-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       <span
                         className={cn("size-2.5 rounded-full", eventTypeStyles[e.tipo].dot)}
@@ -413,7 +413,10 @@ function MonthGrid({
                       to="/eventos/$id"
                       params={{ id: e.id }}
                       className={cn(
-                        "group flex min-w-0 items-center gap-1 rounded border px-1.5 py-0.5 text-2xs font-semibold transition-all hover:translate-x-0.5",
+                        // En una tableta estas pastillas son el objetivo táctil
+                        // —los puntos gordos son solo para el móvil—, así que se
+                        // les da altura de dedo hasta que hay ratón de por medio.
+                        "group flex min-h-7 min-w-0 items-center gap-1 rounded border px-1.5 py-0.5 text-2xs font-semibold transition-all hover:translate-x-0.5 lg:min-h-0",
                         style.badge,
                       )}
                     >
@@ -479,12 +482,12 @@ function WeekView({
           <div
             key={key}
             className={cn(
-              "surface-card flex flex-col p-3 hover-lift",
+              "surface-card flex min-w-0 flex-col p-3 hover-lift",
               today && "ring-2 ring-primary/50",
             )}
           >
-            <div className="mb-2 flex items-center justify-between">
-              <div>
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <div className="min-w-0">
                 <div className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
                   {format(d, "EEE", { locale })}
                 </div>
@@ -532,20 +535,20 @@ function WeekEventCard({ e }: { e: EventRow }) {
         style.band,
       )}
     >
-      <div className="flex items-center gap-1.5 text-2xs font-bold uppercase tracking-widest text-muted-foreground">
-        <Clock className="size-3" />
+      <div className="flex flex-wrap items-center gap-x-1.5 text-2xs font-bold uppercase tracking-widest text-muted-foreground">
+        <Clock className="size-3 shrink-0" />
         <span className="tabular-nums">{format(start, "HH:mm")}</span>
         {end && (
           <span className="tabular-nums opacity-70">— {format(end, "HH:mm")}</span>
         )}
       </div>
-      <div className="mt-0.5 flex items-center gap-1.5">
-        <span className={cn("size-1.5 rounded-full", style.dot)} />
-        <p className="truncate text-sm font-semibold">{e.titulo}</p>
+      <div className="mt-0.5 flex min-w-0 items-start gap-1.5">
+        <span className={cn("mt-1.5 size-1.5 shrink-0 rounded-full", style.dot)} />
+        <p className="min-w-0 text-sm font-semibold break-words">{e.titulo}</p>
       </div>
       {e.ubicacion && (
-        <div className="mt-1 flex items-center gap-1 truncate text-xxs text-muted-foreground">
-          <MapPin className="size-3" />
+        <div className="mt-1 flex min-w-0 items-center gap-1 text-xxs text-muted-foreground">
+          <MapPin className="size-3 shrink-0" />
           <span className="truncate">{e.ubicacion}</span>
         </div>
       )}

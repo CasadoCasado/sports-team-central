@@ -168,13 +168,13 @@ function Miembros() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <h1 className="text-display text-3xl font-black tracking-tight">{t("members.title")}</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-display text-2xl font-black tracking-tight sm:text-3xl">{t("members.title")}</h1>
         {myTeams.length > 1 && (
           <select
             value={selectedTeamId ?? ""}
             onChange={(e) => setSelectedTeamId(e.target.value)}
-            className="rounded-md border border-border bg-card px-3 py-2 text-sm"
+            className="min-h-10 min-w-0 max-w-full rounded-md border border-border bg-card px-3 py-2 text-sm"
           >
             {myTeams.map((mt) => (
               <option key={mt.team_id} value={mt.team_id}>
@@ -198,24 +198,30 @@ function Miembros() {
             const p = m.profile;
             if (!p) return null;
             return (
-              <div key={m.id} className="flex items-center gap-4 p-4">
-                <div className="flex size-10 items-center justify-center rounded-full bg-card text-xs font-bold ring-1 ring-border">
-                  {(p.nombre?.[0] ?? "") + (p.apellidos?.[0] ?? "")}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-bold">
-                    {p.nombre} {p.apellidos}
-                  </p>
-                  {/* Sin `min-w-0` arriba, un correo largo ensancha la fila y
-                      saca el botón de borrar fuera de la tarjeta. */}
-                  <EmailCell email={p.email} />
+              /* El nombre arriba y los controles debajo mientras no haya sitio.
+                 En una sola fila, el selector de rol y la papelera no se
+                 encogen: al jugador le quedaban sesenta píxeles y «Alejandro
+                 Rodríguez-Buján» salía partido en tres renglones. */
+              <div key={m.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:gap-4">
+                <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-card text-xs font-bold ring-1 ring-border">
+                    {(p.nombre?.[0] ?? "") + (p.apellidos?.[0] ?? "")}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-bold break-words">
+                      {p.nombre} {p.apellidos}
+                    </p>
+                    {/* Sin `min-w-0` arriba, un correo largo ensancha la fila y
+                        saca el botón de borrar fuera de la tarjeta. */}
+                    <EmailCell email={p.email} />
+                  </div>
                 </div>
                 {canManageRoles && p.id !== user?.id ? (
-                  <>
+                  <div className="flex shrink-0 items-center gap-2">
                     <select
                       value={m.role}
                       onChange={(e) => changeRole(m.id, e.target.value as "capitan" | "co_capitan" | "entrenador" | "delegado" | "jugador")}
-                      className="rounded-md border border-border bg-card px-2 py-1 text-2xs font-bold uppercase tracking-widest text-primary"
+                      className="min-h-9 flex-1 rounded-md border border-border bg-card px-2 py-1 text-2xs font-bold uppercase tracking-widest text-primary sm:flex-none"
                     >
                       <option value="jugador">{t("roles.jugador")}</option>
                       <option value="entrenador">{t("roles.entrenador")}</option>
@@ -225,14 +231,14 @@ function Miembros() {
                     </select>
                     <button
                       onClick={() => removeMember(m.id)}
-                      className="rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                      className="inline-flex size-9 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                       aria-label={t("members.remove")}
                     >
                       <Trash2 className="size-4" />
                     </button>
-                  </>
+                  </div>
                 ) : (
-                  <span className="rounded-md bg-primary/10 px-2 py-1 text-2xs font-bold uppercase tracking-widest text-primary">
+                  <span className="shrink-0 self-start rounded-md bg-primary/10 px-2 py-1 text-2xs font-bold uppercase tracking-widest text-primary sm:self-auto">
                     {t(`roles.${m.role}`)}
                   </span>
                 )}
@@ -259,35 +265,40 @@ function Miembros() {
             {joinRequests!.map((req) => {
               const p = req.invited_user_profile;
               return (
-                <div key={req.id} className="flex items-center gap-4 p-4">
-                  <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary ring-1 ring-border">
-                    {(p?.nombre?.[0] ?? "") + (p?.apellidos?.[0] ?? "")}
+                <div key={req.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:gap-4">
+                  <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary ring-1 ring-border">
+                      {(p?.nombre?.[0] ?? "") + (p?.apellidos?.[0] ?? "")}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-bold break-words">
+                        {p?.nombre} {p?.apellidos}
+                      </p>
+                      <EmailCell email={p?.email} />
+                      {req.mensaje && (
+                        <p className="mt-1 text-xs text-muted-foreground italic">"{req.mensaje}"</p>
+                      )}
+                    </div>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-bold">
-                      {p?.nombre} {p?.apellidos}
-                    </p>
-                    <EmailCell email={p?.email} />
-                    {req.mensaje && (
-                      <p className="mt-1 text-xs text-muted-foreground italic">"{req.mensaje}"</p>
-                    )}
+                  <div className="flex shrink-0 gap-2">
+                    <Button
+                      size="sm"
+                      onClick={() => respondRequest(req.id, true)}
+                      className="flex-1 bg-primary text-primary-foreground uppercase text-2xs font-bold tracking-widest hover:opacity-90 sm:flex-none"
+                    >
+                      <Check className="mr-1 size-3.5" />
+                      {t("notifications.approve")}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1 sm:flex-none"
+                      onClick={() => respondRequest(req.id, false)}
+                    >
+                      <X className="mr-1 size-3.5" />
+                      {t("notifications.reject")}
+                    </Button>
                   </div>
-                  <Button
-                    size="sm"
-                    onClick={() => respondRequest(req.id, true)}
-                    className="bg-primary text-primary-foreground uppercase text-2xs font-bold tracking-widest hover:opacity-90"
-                  >
-                    <Check className="mr-1 size-3.5" />
-                    {t("notifications.approve")}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => respondRequest(req.id, false)}
-                  >
-                    <X className="mr-1 size-3.5" />
-                    {t("notifications.reject")}
-                  </Button>
                 </div>
               );
             })}
@@ -299,13 +310,13 @@ function Miembros() {
 
       {/* Search — only managers can invite */}
       {isManagerOfSelected && (
-      <div className="surface-card p-6">
+      <div className="surface-card p-4 sm:p-6">
         <h2 className="text-display mb-4 text-xl font-bold">
           <UserPlus className="mr-2 inline size-5 text-primary" />
           {t("members.search")}
         </h2>
 
-        <div className="mb-3 flex flex-wrap items-center gap-4 text-sm">
+        <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-3 text-sm">
           <span className="text-muted-foreground">{t("members.searchBy")}:</span>
           <label className="flex cursor-pointer items-center gap-2">
             <input
@@ -325,12 +336,12 @@ function Miembros() {
             />
             {t("members.byEmail")}
           </label>
-          <div className="ml-auto flex items-center gap-2">
-            <span className="text-muted-foreground">{t("members.inviteAs")}:</span>
+          <div className="flex w-full min-w-0 items-center gap-2 sm:ml-auto sm:w-auto">
+            <span className="shrink-0 text-muted-foreground">{t("members.inviteAs")}:</span>
             <select
               value={inviteRole}
               onChange={(e) => setInviteRole(e.target.value as "jugador" | "co_capitan" | "entrenador" | "delegado")}
-              className="rounded-md border border-border bg-card px-2 py-1 text-xs"
+              className="min-h-9 min-w-0 flex-1 rounded-md border border-border bg-card px-2 py-1 text-xs sm:flex-none"
             >
               <option value="jugador">{t("roles.jugador")}</option>
               <option value="entrenador">{t("roles.entrenador")}</option>
@@ -365,14 +376,14 @@ function Miembros() {
             <div
               key={r.id}
               className={cn(
-                "flex items-center gap-3 rounded-md border border-border bg-background/50 p-3",
+                "grid grid-cols-[2.25rem_minmax(0,1fr)] items-center gap-3 rounded-md border border-border bg-background/50 p-3 sm:flex",
               )}
             >
-              <div className="flex size-9 items-center justify-center rounded-full bg-card text-xs font-bold ring-1 ring-border">
+              <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-card text-xs font-bold ring-1 ring-border">
                 {(r.nombre?.[0] ?? "") + (r.apellidos?.[0] ?? "")}
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="truncate text-sm font-medium">
+              <div className="min-w-0 sm:flex-1">
+                <p className="text-sm font-medium break-words">
                   {r.nombre} {r.apellidos}
                 </p>
                 <EmailCell email={r.email} />
@@ -380,7 +391,7 @@ function Miembros() {
               <Button
                 size="sm"
                 onClick={() => invite(r.id)}
-                className="bg-primary text-primary-foreground uppercase tracking-widest text-2xs font-bold hover:opacity-90"
+                className="col-span-2 w-full bg-primary text-primary-foreground uppercase tracking-widest text-2xs font-bold hover:opacity-90 sm:col-auto sm:w-auto"
               >
                 {t("members.sendInvite")}
               </Button>
@@ -414,7 +425,7 @@ function EmailCell({ email }: { email: string | null | undefined }) {
       title={email}
       onClick={() => setExpanded((open) => !open)}
       className={cn(
-        "block max-w-full text-left text-xs text-muted-foreground",
+        "block max-w-full py-1 text-left text-xs text-muted-foreground",
         expanded ? "break-all" : "truncate",
       )}
     >

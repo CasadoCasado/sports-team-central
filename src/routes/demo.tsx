@@ -91,19 +91,21 @@ function DemoPage() {
   return (
     <div className="min-h-dvh bg-background text-foreground">
       <header className="sticky top-0 z-20 border-b border-border bg-background/85 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-          <Link to="/" className="flex items-center gap-3">
-            <img src={LOGO_URL} alt="TeamUp" className="size-8 object-contain" width={32} height={32} />
-            <span className="text-display text-lg font-extrabold uppercase tracking-tight">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-2 px-4 sm:px-6">
+          <Link to="/" className="flex min-w-0 items-center gap-3">
+            <img src={LOGO_URL} alt="TeamUp" className="size-8 shrink-0 object-contain" width={32} height={32} />
+            {/* En un móvil, el nombre junto al selector de idioma y el botón de
+                registro no dejaba sitio a ninguno: debajo de `sm` basta el escudo. */}
+            <span className="text-display hidden truncate text-lg font-extrabold uppercase tracking-tight sm:inline">
               {t("app.name")}
             </span>
           </Link>
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
             <LangToggle />
             <Link
               to="/auth"
               search={{ mode: "signup" }}
-              className="btn-primary-brand rounded-md px-4 py-2 text-xs font-bold uppercase tracking-widest"
+              className="btn-primary-brand inline-flex min-h-10 items-center rounded-md px-3 text-2xs font-bold uppercase tracking-wider sm:px-4 sm:text-xs sm:tracking-widest"
             >
               {t("auth.signup")}
             </Link>
@@ -122,7 +124,7 @@ function DemoPage() {
           <Link
             to="/auth"
             search={{ mode: "signup" }}
-            className="text-xs font-bold uppercase tracking-widest text-primary underline-offset-4 hover:underline"
+            className="-ml-2 inline-flex min-h-11 items-center rounded-md px-2 text-xs font-bold uppercase tracking-widest text-primary underline-offset-4 hover:underline"
           >
             {t("demo.cta")}
           </Link>
@@ -338,8 +340,8 @@ function DemoLogros({ t }: { t: TFn }) {
               >
                 {b.unlocked ? <Flame className="size-5" /> : <Lock className="size-4" />}
               </div>
-              <div>
-                <p className="text-sm font-semibold">{b.title}</p>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold break-words">{b.title}</p>
                 <p className="mt-0.5 text-xs text-muted-foreground">{b.desc}</p>
               </div>
             </div>

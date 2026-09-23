@@ -98,7 +98,7 @@ function Trainings() {
     <div className="mx-auto max-w-5xl space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-display text-3xl font-black tracking-tight">
+          <h1 className="text-display text-2xl font-black tracking-tight sm:text-3xl">
             {t("nav.entrenamientos")}
           </h1>
           <div className="mt-1"><TeamPicker /></div>
@@ -126,25 +126,29 @@ function Trainings() {
             const myRespId = myRespByEvent.get(e.id);
             const count = countsByEvent.get(e.id) ?? 0;
             return (
-              <div key={e.id} className="flex items-center gap-4 p-4 hover:bg-card">
+              /* El botón de apuntarse, debajo del entrenamiento mientras no
+                 quepa al lado: compartiendo fila dejaba el título en «Entrena-
+                 miento de smash…», que es justo lo que hay que leer. */
+              <div key={e.id} className="flex flex-col gap-3 p-4 hover:bg-card sm:flex-row sm:items-center sm:gap-4">
                 <Link
                   to="/eventos/$id"
                   params={{ id: e.id }}
-                  className="flex flex-1 min-w-0 items-center gap-4"
+                  className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4"
                 >
-                  <div className="flex size-10 items-center justify-center rounded-md bg-sky-400/10 text-sky-300 ring-1 ring-sky-400/30">
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-sky-400/10 text-sky-300 ring-1 ring-sky-400/30">
                     <Dumbbell className="size-5" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold">{e.titulo}</p>
-                    <div className="mt-0.5 flex items-center gap-3 text-xxs text-muted-foreground">
+                    <p className="text-sm font-semibold break-words">{e.titulo}</p>
+                    <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xxs text-muted-foreground">
                       <span>{format(new Date(e.fecha_inicio), "PPP HH:mm", { locale })}</span>
                       {e.ubicacion && (
-                        <span className="inline-flex items-center gap-1 truncate">
-                          <MapPin className="size-3" /> {e.ubicacion}
+                        <span className="inline-flex min-w-0 max-w-full items-center gap-1">
+                          <MapPin className="size-3 shrink-0" />{" "}
+                          <span className="truncate">{e.ubicacion}</span>
                         </span>
                       )}
-                      <span className="inline-flex items-center gap-1">
+                      <span className="inline-flex shrink-0 items-center gap-1">
                         <Users className="size-3" /> {count}
                       </span>
                     </div>
@@ -155,7 +159,7 @@ function Trainings() {
                     size="sm"
                     variant="outline"
                     onClick={() => withdraw.mutate(myRespId)}
-                    className="uppercase text-2xs font-bold tracking-widest"
+                    className="w-full uppercase text-2xs font-bold tracking-widest sm:w-auto"
                   >
                     <Check className="mr-1 size-3" /> {t("callups.withdraw")}
                   </Button>
@@ -163,7 +167,7 @@ function Trainings() {
                   <Button
                     size="sm"
                     onClick={() => signUp.mutate(e.id)}
-                    className="bg-primary text-primary-foreground uppercase text-2xs font-bold tracking-widest hover:opacity-90"
+                    className="w-full bg-primary text-primary-foreground uppercase text-2xs font-bold tracking-widest hover:opacity-90 sm:w-auto"
                   >
                     {t("callups.signUp")}
                   </Button>
@@ -187,11 +191,11 @@ function Trainings() {
                 params={{ id: e.id }}
                 className="flex items-center gap-4 p-4 opacity-70 hover:bg-card hover:opacity-100"
               >
-                <div className="flex size-10 items-center justify-center rounded-md bg-card ring-1 ring-border">
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-card ring-1 ring-border">
                   <Dumbbell className="size-5 text-muted-foreground" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm">{e.titulo}</p>
+                  <p className="text-sm break-words">{e.titulo}</p>
                   <p className="text-xxs text-muted-foreground">
                     {format(new Date(e.fecha_inicio), "PPP", { locale })}
                   </p>

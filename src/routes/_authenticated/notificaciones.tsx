@@ -175,7 +175,7 @@ function Notificaciones() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <h1 className="text-display text-3xl font-black tracking-tight">{t("notifications.title")}</h1>
+      <h1 className="text-display text-2xl font-black tracking-tight sm:text-3xl">{t("notifications.title")}</h1>
 
       {(joinRequests?.length ?? 0) > 0 && (
         <div className="space-y-3">
@@ -186,12 +186,12 @@ function Notificaciones() {
             const team = req.team;
             const requester = req.invited_user_profile;
             return (
-              <div key={req.id} className="surface-card p-5">
-                <div className="flex items-start gap-4">
-                  <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <div key={req.id} className="surface-card p-4 sm:p-5">
+                <div className="flex items-start gap-3 sm:gap-4">
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
                     <Bell className="size-5" />
                   </div>
-                  <div className="flex-1">
+                  <div className="min-w-0 flex-1">
                     <p className="text-sm">
                       {t("notifications.joinRequestBody", {
                         user: `${requester?.nombre ?? ""} ${requester?.apellidos ?? ""}`.trim() || requester?.email || "?",
@@ -373,12 +373,25 @@ function Notificaciones() {
           ) : (
           <div className="surface-card divide-y divide-border">
             {visible.map((n) => (
+              /* La casilla y el icono a la izquierda, el aviso ocupando el
+                 resto y «marcar leída» debajo mientras no quepa al lado: en
+                 una sola fila el texto se quedaba en setenta y cinco píxeles.
+                 La casilla va dentro de un <label> para que se pueda marcar
+                 tocando un cuadrado de dedo y no los dieciséis píxeles del
+                 recuadro. */
               <div
                 key={n.id}
-                className={cn("flex items-start gap-4 p-4", !n.read && "bg-primary/5")}
+                className={cn(
+                  "grid grid-cols-[auto_auto_minmax(0,1fr)] items-start gap-x-3 gap-y-2 p-4 sm:flex sm:gap-4",
+                  !n.read && "bg-primary/5",
+                )}
               >
-                <div className="mt-1.5">
+                <label
+                  htmlFor={`notif-${n.id}`}
+                  className="flex size-8 shrink-0 cursor-pointer items-center justify-center"
+                >
                   <Checkbox
+                    id={`notif-${n.id}`}
                     checked={selected.includes(n.id)}
                     disabled={!n.read}
                     onCheckedChange={() => toggleSelect(n.id)}
@@ -388,19 +401,26 @@ function Notificaciones() {
                         : t("notifications.onlyReadDeletable")
                     }
                   />
-                </div>
-                <div className="mt-1 flex size-8 items-center justify-center rounded-full bg-card text-primary ring-1 ring-border">
+                </label>
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-card text-primary ring-1 ring-border">
                   <Bell className="size-4" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold">{n.titulo}</p>
-                  {n.cuerpo && <p className="mt-0.5 text-xs text-muted-foreground">{n.cuerpo}</p>}
+                <div className="min-w-0 sm:flex-1">
+                  <p className="text-sm font-bold break-words">{n.titulo}</p>
+                  {n.cuerpo && (
+                    <p className="mt-0.5 text-xs text-muted-foreground break-words">{n.cuerpo}</p>
+                  )}
                   <p className="mt-1 text-2xs uppercase tracking-widest text-muted-foreground">
                     {new Date(n.created_at).toLocaleString()}
                   </p>
                 </div>
                 {!n.read && (
-                  <Button size="sm" variant="ghost" onClick={() => markRead([n.id])}>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="col-span-3 justify-self-start sm:col-auto"
+                    onClick={() => markRead([n.id])}
+                  >
                     {t("notifications.markRead")}
                   </Button>
                 )}

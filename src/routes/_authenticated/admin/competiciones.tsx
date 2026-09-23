@@ -135,11 +135,11 @@ function AdminCompetitionsPage() {
                   </p>
                 )}
               </div>
-              <div className="flex gap-1">
+              <div className="flex shrink-0 gap-1">
                 <button
                   onClick={() => setEditing(c)}
                   aria-label={t("common.edit")}
-                  className="rounded-md border border-border p-2 hover:bg-muted"
+                  className="inline-flex size-9 shrink-0 items-center justify-center rounded-md border border-border hover:bg-muted"
                 >
                   <Pencil className="size-3.5" />
                 </button>
@@ -149,7 +149,7 @@ function AdminCompetitionsPage() {
 
             <button
               onClick={() => setSelected(selected === c.id ? null : c.id)}
-              className="mt-3 text-2xs font-bold uppercase tracking-widest text-primary"
+              className="-ml-2 mt-2 inline-flex min-h-11 items-center rounded-md px-2 text-2xs font-bold uppercase tracking-widest text-primary"
             >
               {selected === c.id ? t("adminComps.hideCatalog") : t("adminComps.showCatalog")}
             </button>
@@ -201,7 +201,7 @@ function DeleteButton({ table, id }: { table: CatalogKind | "official-competitio
         if (confirm(t("adminComps.deleteConfirm"))) del.mutate();
       }}
       aria-label={t("common.delete")}
-      className="rounded-md border border-border p-2 text-destructive hover:bg-muted"
+      className="inline-flex size-9 shrink-0 items-center justify-center rounded-md border border-border text-destructive hover:bg-muted"
     >
       <Trash2 className="size-3.5" />
     </button>
@@ -355,7 +355,7 @@ function CompetitionDialog({
           }}
         >
           <div className="grid gap-3 sm:grid-cols-3">
-            <div>
+            <div className="min-w-0">
               <Label>{t("adminComps.code")}</Label>
               <Input value={code} onChange={(e) => setCode(e.target.value)} maxLength={20} required />
             </div>

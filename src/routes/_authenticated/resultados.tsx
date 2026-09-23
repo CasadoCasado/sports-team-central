@@ -44,7 +44,7 @@ function Resultados() {
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-display text-3xl font-black tracking-tight">{t("nav.resultados")}</h1>
+        <h1 className="text-display text-2xl font-black tracking-tight sm:text-3xl">{t("nav.resultados")}</h1>
         <TeamPicker />
       </div>
 
@@ -75,21 +75,24 @@ function Resultados() {
                 key={m.id}
                 to="/eventos/$id"
                 params={{ id: m.id }}
-                className="surface-card flex items-center gap-4 p-5 transition-colors hover:border-primary/40"
+                className="surface-card flex min-w-0 items-center gap-3 p-4 transition-colors hover:border-primary/40 sm:gap-4 sm:p-5"
               >
-                <div className={`flex size-14 flex-col items-center justify-center gap-0.5 rounded-md text-xs font-bold ${outcomeClass}`}>
+                <div className={`flex min-h-14 w-14 shrink-0 flex-col items-center justify-center gap-0.5 rounded-md px-1 text-center text-xs font-bold leading-tight ${outcomeClass}`}>
                   {played ? (
                     <>
                       {outcome === "W" ? <Trophy className="size-4" /> : outcome === "L" ? <XCircle className="size-4" /> : null}
                       <span>{own}-{opp}</span>
                     </>
                   ) : (
-                    <span className="text-2xs uppercase tracking-widest">{t("results.notPlayed")}</span>
+                    <span className="text-3xs uppercase leading-tight break-words">{t("results.notPlayed")}</span>
                   )}
                 </div>
 
-                <div className="flex-1 min-w-0">
-                  <p className="text-display truncate text-lg font-bold">
+                <div className="min-w-0 flex-1">
+                  {/* Un «Pontevedra vs Compostela» cortado deja de decir quién
+                      jugó contra quién, así que aquí se parte en dos líneas en
+                      vez de acabar en puntos suspensivos. */}
+                  <p className="text-display text-base font-bold break-words sm:text-lg">
                     {m.es_local ? active.team.nombre : m.rival || "—"} <span className="text-muted-foreground">vs</span> {m.es_local ? m.rival || "—" : active.team.nombre}
                   </p>
                   <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">

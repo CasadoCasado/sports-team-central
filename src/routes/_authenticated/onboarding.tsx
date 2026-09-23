@@ -47,10 +47,10 @@ function Onboarding() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10 sm:py-12">
       <div className="w-full max-w-3xl">
-        <div className="mb-10 text-center">
-          <h1 className="text-display text-4xl font-black tracking-tight sm:text-5xl">
+        <div className="mb-8 text-center sm:mb-10">
+          <h1 className="text-display text-3xl font-black tracking-tight sm:text-5xl">
             {t("onboarding.title")}
           </h1>
           <p className="mt-3 text-muted-foreground">{t("onboarding.subtitle")}</p>
@@ -73,11 +73,11 @@ function Onboarding() {
           />
         </div>
 
-        <div className="mt-10 flex justify-center">
+        <div className="mt-8 flex justify-center sm:mt-10">
           <Button
             onClick={submit}
             disabled={!role || loading}
-            className="bg-primary px-8 py-6 text-primary-foreground uppercase tracking-widest font-bold hover:opacity-90"
+            className="h-auto w-full bg-primary px-8 py-4 text-primary-foreground uppercase tracking-widest font-bold hover:opacity-90 sm:w-auto sm:py-6"
           >
             {t("onboarding.continue")}
           </Button>

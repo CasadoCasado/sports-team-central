@@ -50,7 +50,7 @@ function Ayuda() {
           <div className="flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
             <LifeBuoy className="size-5" />
           </div>
-          <h1 className="text-display text-3xl font-black tracking-tight">{t("help.title")}</h1>
+          <h1 className="text-display text-2xl font-black tracking-tight sm:text-3xl">{t("help.title")}</h1>
         </div>
         <p className="max-w-2xl text-sm text-muted-foreground">{t("help.intro")}</p>
         <nav className="flex flex-wrap gap-2" aria-label={t("help.title")}>
@@ -60,7 +60,7 @@ function Ayuda() {
               to="/ayuda"
               search={{ screen: s.id }}
               className={cn(
-                "rounded-full border border-border px-3 py-1.5 text-2xs font-bold uppercase tracking-widest transition-colors",
+                "inline-flex min-h-10 items-center rounded-full border border-border px-3.5 text-2xs font-bold uppercase tracking-widest transition-colors",
                 screen === s.id
                   ? "bg-primary text-primary-foreground"
                   : "bg-card text-muted-foreground hover:text-foreground",

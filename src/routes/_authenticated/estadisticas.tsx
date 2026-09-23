@@ -106,7 +106,7 @@ function Estadisticas() {
     <div className="mx-auto max-w-7xl space-y-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-display text-3xl font-black tracking-tight">{t("stats.title")}</h1>
+          <h1 className="text-display text-2xl font-black tracking-tight sm:text-3xl">{t("stats.title")}</h1>
           <p className="text-sm text-muted-foreground">{t("stats.subtitle")}</p>
         </div>
         <TeamPicker />
@@ -117,12 +117,12 @@ function Estadisticas() {
         <h2 className="text-2xs font-bold uppercase tracking-widest text-primary">
           {t("stats.team")}
         </h2>
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-2">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4">
           <BigStat icon={<Trophy />} label={t("stats.matchesPlayed")} value={teamStats?.jugados ?? withResult.length} />
           <BigStat icon={<Percent />} label={t("stats.winRate")} value={`${teamStats?.win_pct ?? winPct}%`} accent />
         </div>
 
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
           <BigStat
             icon={<Flame />}
             label={teamStats?.racha_victorias ? t("stats.winStreak") : t("stats.lossStreak")}
@@ -185,13 +185,13 @@ function Estadisticas() {
         <h2 className="text-2xs font-bold uppercase tracking-widest text-primary">
           {t("stats.personal")}
         </h2>
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
           <BigStat icon={<Percent />} label={t("stats.attendanceRate")} value={`${attendancePct}%`} accent />
           <BigStat icon={<CheckCircle2 />} label={t("stats.confirmed")} value={myConfirmed} />
           <BigStat icon={<XCircle />} label={t("stats.rejected")} value={myRejected} />
           <BigStat icon={<HelpCircle />} label={t("stats.doubt")} value={myDoubt} />
         </div>
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
           <BigStat icon={<Trophy />} label={t("stats.matchesCalled")} value={
             (myResponses ?? []).filter((r) => r.event_tipo === "partido").length
           } />
@@ -204,13 +204,13 @@ function Estadisticas() {
         <h3 className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
           {t("stats.myMatches")}
         </h3>
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
           <BigStat icon={<Percent />} label={t("stats.winRate")} value={`${playerStats?.win_pct ?? 0}%`} accent />
           <BigStat icon={<Trophy />} label={t("stats.wins")} value={playerStats?.victorias ?? 0} />
           <BigStat icon={<XCircle />} label={t("stats.losses")} value={playerStats?.derrotas ?? 0} />
           <BigStat icon={<CheckCircle2 />} label={t("stats.played")} value={playerStats?.disputados ?? 0} />
         </div>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-3">
           <BigStat icon={<HelpCircle />} label={t("stats.calledUp")} value={playerStats?.convocado ?? 0} />
           <BigStat
             icon={<CalendarClock />}
@@ -247,11 +247,11 @@ function BigStat({
   accent?: boolean;
 }) {
   return (
-    <div className="surface-card p-5">
+    <div className="surface-card min-w-0 p-4 sm:p-5">
       <div className={`flex size-8 items-center justify-center rounded-md ${accent ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary"} [&>svg]:size-4`}>
         {icon}
       </div>
-      <p className="text-display mt-3 text-3xl font-black">{value}</p>
+      <p className="text-display mt-3 text-2xl font-black break-words sm:text-3xl">{value}</p>
       <p className="mt-1 text-2xs font-bold uppercase tracking-widest text-muted-foreground">
         {label}
       </p>
@@ -261,8 +261,8 @@ function BigStat({
 
 function ResultCell({ label, value, color }: { label: string; value: number; color: string }) {
   return (
-    <div className="flex flex-col items-center p-5">
-      <span className={`text-display text-4xl font-black ${color}`}>{value}</span>
+    <div className="flex min-w-0 flex-col items-center p-4 sm:p-5">
+      <span className={`text-display text-3xl font-black sm:text-4xl ${color}`}>{value}</span>
       <span className="mt-1 text-2xs font-bold uppercase tracking-widest text-muted-foreground">
         {label}
       </span>

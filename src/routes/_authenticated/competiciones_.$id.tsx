@@ -175,19 +175,19 @@ function CompetitionDetail() {
     <div className="mx-auto max-w-5xl space-y-6">
       <Link
         to="/competiciones"
-        className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground"
+        className="-ml-2 inline-flex min-h-11 items-center gap-2 rounded-md px-2 text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground"
       >
-        <ArrowLeft className="size-3.5" /> {t("standings.back")}
+        <ArrowLeft className="size-3.5 shrink-0" /> {t("standings.back")}
       </Link>
 
-      <div className="surface-card p-6">
+      <div className="surface-card p-4 sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex min-w-0 items-start gap-3">
             <div className="flex size-11 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
               <Trophy className="size-5" />
             </div>
             <div className="min-w-0">
-              <h1 className="text-display text-3xl font-black tracking-tight">
+              <h1 className="text-display text-2xl font-black tracking-tight sm:text-3xl">
                 {competition.nombre}
               </h1>
               <div className="mt-1 flex flex-wrap items-center gap-2 text-2xs font-bold uppercase tracking-widest">
@@ -276,19 +276,22 @@ function CompetitionDetail() {
           <p className="p-6 text-sm text-muted-foreground">{t("standings.empty")}</p>
         ) : (
           <>
+            {/* La clasificación se desplaza de lado en vez de estrujarse: con
+                `w-full` a secas, en un móvil las columnas de números quedaban
+                en dos caracteres y los encabezados partidos en tres líneas. */}
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full min-w-[34rem] text-sm">
                 <thead>
                   <tr className="border-b border-border text-2xs font-bold uppercase tracking-widest text-muted-foreground">
-                    <th className="px-3 py-2 text-left">{t("standings.puesto")}</th>
-                    <th className="px-3 py-2 text-left">{t("standings.jugador")}</th>
-                    <th className="px-3 py-2 text-right">{t("standings.entrenamientos")}</th>
+                    <th className="whitespace-nowrap px-3 py-2 text-left">{t("standings.puesto")}</th>
+                    <th className="whitespace-nowrap px-3 py-2 text-left">{t("standings.jugador")}</th>
+                    <th className="whitespace-nowrap px-3 py-2 text-right">{t("standings.entrenamientos")}</th>
                     {columnas.map((col) => (
-                      <th key={col.key} className="px-3 py-2 text-right">
+                      <th key={col.key} className="whitespace-nowrap px-3 py-2 text-right">
                         {col.label}
                       </th>
                     ))}
-                    <th className="px-3 py-2 text-right">{t("standings.nota")}</th>
+                    <th className="whitespace-nowrap px-3 py-2 text-right">{t("standings.nota")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -385,26 +388,26 @@ function Podium({ rows }: { rows: CompetitionStanding[] }) {
 
   return (
     <section className="surface-card overflow-hidden">
-      <div className="flex items-center gap-3 border-b border-border p-5">
-        <div className="flex size-10 items-center justify-center rounded-md bg-amber-400/10 text-amber-500">
+      <div className="flex items-center gap-3 border-b border-border p-4 sm:p-5">
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-amber-400/10 text-amber-500">
           <Medal className="size-5" />
         </div>
         <h2 className="text-display text-lg font-bold uppercase tracking-tight">
           {t("standings.podium")}
         </h2>
       </div>
-      <div className="grid grid-cols-3 gap-3 px-6 pb-6 pt-8">
+      <div className="grid grid-cols-3 gap-2 px-3 pb-5 pt-8 sm:gap-3 sm:px-6 sm:pb-6">
         {steps.map((step) => {
           const winners = rows.filter((r) => r.puesto === step.puesto);
           return (
-            <div key={step.puesto} className="flex h-44 flex-col items-center justify-end gap-2">
-              <div className="space-y-1 text-center">
+            <div key={step.puesto} className="flex h-44 min-w-0 flex-col items-center justify-end gap-2">
+              <div className="min-w-0 space-y-1 text-center">
                 {winners.length === 0 ? (
                   <span className="text-xxs text-muted-foreground">—</span>
                 ) : (
                   winners.map((row) => (
                     <div key={row.user_id}>
-                      <p className="text-sm font-bold leading-tight">{nameOf(row.profile)}</p>
+                      <p className="text-xs font-bold leading-tight break-words sm:text-sm">{nameOf(row.profile)}</p>
                       <p className="text-xxs text-muted-foreground">
                         {t("standings.nota")} {row.nota}
                       </p>

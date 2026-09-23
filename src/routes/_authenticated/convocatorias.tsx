@@ -105,7 +105,7 @@ function MyCallups() {
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       <div>
-        <h1 className="text-display text-3xl font-black tracking-tight">{t("nav.convocatorias")}</h1>
+        <h1 className="text-display text-2xl font-black tracking-tight sm:text-3xl">{t("nav.convocatorias")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">{t("callups.subtitle")}</p>
       </div>
 
@@ -124,7 +124,7 @@ function MyCallups() {
             return (
               <li
                 key={e.id}
-                className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 p-3 sm:gap-4 sm:p-4"
+                className="grid grid-cols-1 gap-3 p-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-4 sm:p-4"
               >
                 <Link
                   to="/eventos/$id"
@@ -140,7 +140,7 @@ function MyCallups() {
                     </div>
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold">{e.titulo}</p>
+                    <p className="text-sm font-semibold break-words">{e.titulo}</p>
                     <div className="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-0.5 text-xxs text-muted-foreground">
                       <span>{format(new Date(e.fecha_inicio), "HH:mm")}</span>
                       {e.ubicacion && (
@@ -149,7 +149,7 @@ function MyCallups() {
                           <span className="truncate">{e.ubicacion}</span>
                         </span>
                       )}
-                      {e.rival && <span className="truncate">vs {e.rival}</span>}
+                      {e.rival && <span className="min-w-0 truncate">vs {e.rival}</span>}
                     </div>
                   </div>
                 </Link>
@@ -160,7 +160,7 @@ function MyCallups() {
                     onClick={() => signUp.mutate(e.id)}
                     disabled={signUp.isPending}
                     aria-label={`${t("callups.signUp")}: ${e.titulo}`}
-                    className="btn-primary-brand min-h-11 shrink-0 px-4 text-2xs font-bold uppercase tracking-widest"
+                    className="btn-primary-brand min-h-11 w-full shrink-0 px-4 text-2xs font-bold uppercase tracking-widest sm:w-auto"
                   >
                     {t("callups.signUp")}
                   </Button>
@@ -185,7 +185,7 @@ const STATUS_STYLES: Record<ResponseStatus, string> = {
 function StatusPill({ status, convocado }: { status: ResponseStatus; convocado: boolean }) {
   const { t } = useTranslation();
   return (
-    <div className="flex flex-col items-end gap-1">
+    <div className="flex flex-row flex-wrap items-center gap-1 sm:flex-col sm:items-end">
       <span className={cn("rounded-full border px-2.5 py-1 text-2xs font-bold uppercase tracking-widest", STATUS_STYLES[status])}>
         {t(`callups.response_${status}`)}
       </span>
