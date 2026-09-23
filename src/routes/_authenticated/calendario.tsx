@@ -412,7 +412,7 @@ function MonthGrid({
                   aria-label={t("events.createOn", {
                     date: format(day, "PPPP", { locale }),
                   })}
-                  className="absolute inset-0 z-0 transition-colors hover:bg-[color-mix(in_oklab,var(--color-primary)_8%,transparent)] active:bg-[color-mix(in_oklab,var(--color-primary)_16%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+                  className="absolute inset-0 z-0 transition-colors hover:bg-primary/10 active:bg-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
                 />
               )}
               <div className="pointer-events-none relative z-10 mb-1 flex items-center justify-between">
@@ -556,7 +556,7 @@ function WeekView({
                 aria-label={t("events.createOn", {
                   date: format(d, "PPPP", { locale }),
                 })}
-                className="absolute inset-0 z-0 rounded-[inherit] transition-colors hover:bg-[color-mix(in_oklab,var(--color-primary)_8%,transparent)] active:bg-[color-mix(in_oklab,var(--color-primary)_16%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+                className="absolute inset-0 z-0 rounded-[inherit] transition-colors hover:bg-primary/10 active:bg-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
               />
             )}
             <div className="pointer-events-none relative z-10 mb-2 flex items-center justify-between gap-2">
