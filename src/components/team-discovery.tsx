@@ -2,7 +2,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Search, Shield } from "lucide-react";
+import { ChevronDown, Search, Shield } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
 import { Picture } from "@/components/picture";
 import type { Team, TeamInvitation } from "@/lib/types";
@@ -28,10 +29,21 @@ export function TeamDiscovery({
   onlyOpen = false,
   heading,
   subtitle,
+  collapsible,
 }: {
   onlyOpen?: boolean;
   heading?: string;
   subtitle?: string;
+  /**
+   * Plegar el panel, con el estado en quien lo usa.
+   *
+   * Va fuera porque quien lo pliega no es el único que lo abre: el menú de la
+   * cabecera de «Mi equipo» también tiene que poder abrirlo al pulsar «Buscar
+   * equipos». Sin esto, ese atajo llevaría a un panel cerrado.
+   *
+   * Sin la prop, el panel va abierto y entero, como estaba.
+   */
+  collapsible?: { open: boolean; onOpenChange: (open: boolean) => void };
 } = {}) {
   const { t, i18n } = useTranslation();
   const { user } = useSession();
@@ -41,19 +53,24 @@ export function TeamDiscovery({
   const [competitionId, setCompetitionId] = useState<string>("all");
   const [categoryId, setCategoryId] = useState<string>("all");
 
-  const { data: competitions } = useQuery(competitionsCatalogQuery);
-  const { data: allCategories } = useQuery(categoriesCatalogQuery);
+  // Plegado no se pide nada: este panel lista equipos, competiciones y
+  // categorías, y son cuatro consultas para algo que nadie está mirando.
+  const abierto = !collapsible || collapsible.open;
+
+  const { data: competitions } = useQuery({ ...competitionsCatalogQuery, enabled: abierto });
+  const { data: allCategories } = useQuery({ ...categoriesCatalogQuery, enabled: abierto });
   const categories = useMemo(
     () => (allCategories ?? []).filter((c) => c.competition_id === competitionId),
     [allCategories, competitionId],
   );
 
-  const { data: registrations } = useQuery(
-    openRegistrationsQuery({
+  const { data: registrations } = useQuery({
+    ...openRegistrationsQuery({
       competitionId: competitionId === "all" ? undefined : competitionId,
       categoryId: categoryId === "all" ? undefined : categoryId,
     }),
-  );
+    enabled: abierto,
+  });
 
   const regByTeam = useMemo(() => {
     const map = new Map<string, NonNullable<typeof registrations>[number]>();
@@ -63,6 +80,7 @@ export function TeamDiscovery({
 
   const { data: teams, isLoading } = useQuery({
     queryKey: ["team-discovery", sport, q, onlyOpen],
+    enabled: abierto,
     queryFn: () =>
       api.get<Team[]>("/teams/", {
         discover: onlyOpen ? 1 : undefined,
@@ -81,7 +99,7 @@ export function TeamDiscovery({
 
   const { data: pendingReqs } = useQuery({
     queryKey: ["my-join-requests", user?.id],
-    enabled: !!user,
+    enabled: !!user && abierto,
     queryFn: async () => {
       const rows = await api.get<TeamInvitation[]>("/team-invitations/", {
         mine: 1,
@@ -108,16 +126,13 @@ export function TeamDiscovery({
     }
   }
 
-  return (
-    <div className="surface-card p-4 sm:p-6">
-      <h3 className="text-display text-xl font-bold">
-        {heading ?? (onlyOpen ? t("team.openTeamsTitle") : t("team.discoverTitle"))}
-      </h3>
-      <p className="mt-1 text-sm text-muted-foreground">
-        {subtitle ?? (onlyOpen ? t("team.openTeamsSubtitle") : t("team.discoverSubtitle"))}
-      </p>
+  const titulo = heading ?? (onlyOpen ? t("team.openTeamsTitle") : t("team.discoverTitle"));
+  const descripcion =
+    subtitle ?? (onlyOpen ? t("team.openTeamsSubtitle") : t("team.discoverSubtitle"));
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_200px]">
+  const cuerpo = (
+    <>
+      <div className="grid gap-3 sm:grid-cols-[1fr_200px]">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -250,6 +265,46 @@ export function TeamDiscovery({
         })}
 
       </div>
+    </>
+  );
+
+  if (!collapsible) {
+    return (
+      <div className="surface-card p-4 sm:p-6">
+        <h3 className="text-display text-xl font-bold">{titulo}</h3>
+        <p className="mt-1 text-sm text-muted-foreground">{descripcion}</p>
+        <div className="mt-4">{cuerpo}</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="surface-card overflow-hidden">
+      <button
+        type="button"
+        aria-expanded={collapsible.open}
+        aria-controls="equipos-abiertos"
+        onClick={() => collapsible.onOpenChange(!collapsible.open)}
+        className="flex w-full items-center gap-4 p-4 text-left transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:p-6"
+      >
+        <div className="min-w-0 flex-1">
+          <h3 className="text-display text-lg font-bold sm:text-xl">{titulo}</h3>
+          <p className="mt-1 text-sm text-muted-foreground">{descripcion}</p>
+        </div>
+        <ChevronDown
+          aria-hidden="true"
+          className={cn(
+            "size-5 shrink-0 text-muted-foreground transition-transform duration-200",
+            collapsible.open && "rotate-180",
+          )}
+        />
+      </button>
+
+      {collapsible.open && (
+        <div id="equipos-abiertos" className="border-t border-border p-4 sm:p-6">
+          {cuerpo}
+        </div>
+      )}
     </div>
   );
 }
