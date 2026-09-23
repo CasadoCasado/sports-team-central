@@ -44,6 +44,11 @@ test.describe("Permisos por rol en rutas privadas", () => {
     await expect(page.getByRole("button", { name: /crear evento/i }).first()).toBeVisible({
       timeout: 20_000,
     });
+    // Cada día del mes es además un botón de crear, así que la casilla entera
+    // sirve para abrir el formulario con esa fecha.
+    await expect(
+      page.getByRole("button", { name: /^Crear evento el /i }).first(),
+    ).toBeVisible();
 
     await loginAs(page, player);
     await page.goto("/calendario");
@@ -51,6 +56,8 @@ test.describe("Permisos por rol en rutas privadas", () => {
       timeout: 20_000,
     });
     await expect(page.getByRole("button", { name: /crear evento/i })).toHaveCount(0);
+    // Ni el botón de la barra ni los días: al jugador el calendario solo se lee.
+    await expect(page.getByRole("button", { name: /^Crear evento el /i })).toHaveCount(0);
   });
 
   test("el jugador conserva acceso de lectura y participación", async ({ page, request }) => {

@@ -286,6 +286,7 @@
   "events": {
     "title": "Events",
     "create": "Create event",
+    "createOn": "Create an event on {{date}}",
     "edit": "Edit event",
     "delete": "Delete event",
     "deleteConfirm": "Delete this event?",

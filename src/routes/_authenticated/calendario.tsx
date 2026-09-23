@@ -34,7 +34,7 @@ import { useActiveTeam } from "@/hooks/use-active-team";
 import { TeamPicker } from "@/components/team-picker";
 import { EmptyTeamState } from "@/components/empty-team-state";
 import { EventFormDialog } from "@/components/event-form-dialog";
-import { eventTypeStyles, type EventType } from "@/lib/events";
+import { eventTypeStyles, toDateTimeLocal, type EventType } from "@/lib/events";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -68,6 +68,25 @@ type EventRow = {
 
 type View = "month" | "week" | "list";
 
+/** Lo que hay abierto en el diálogo de crear: nada, o un día ya elegido. */
+type Creating = { day?: Date } | null;
+
+/**
+ * El día que se ha tocado en el calendario, listo para el campo de fecha.
+ *
+ * La hora no la dice el calendario —una casilla es un día entero—, así que se
+ * pone la siguiente en punto del reloj: siempre es válida, nunca cae en otro
+ * día y se cambia de un toque. Lo de `Math.min` es para las once y pico de la
+ * noche: sumar una hora ahí daría las 24:00, que es el día siguiente, y el
+ * evento acabaría en una casilla distinta de la que se tocó.
+ */
+function horaSugerida(day: Date): string {
+  const ahora = new Date();
+  const d = new Date(day);
+  d.setHours(Math.min(ahora.getHours() + 1, 23), 0, 0, 0);
+  return toDateTimeLocal(d.toISOString());
+}
+
 /** Build a map of dayKey -> events, expanding multi-day events across every day they span. */
 function buildDayMap(events: EventRow[], gridStart: Date, gridEnd: Date) {
   const m = new Map<string, EventRow[]>();
@@ -94,7 +113,16 @@ function Calendario() {
   const { active, isManager } = useActiveTeam();
   const [cursor, setCursor] = useState(() => new Date());
   const [view, setView] = useState<View>("month");
-  const [creating, setCreating] = useState(false);
+  const [creating, setCreating] = useState<Creating>(null);
+
+  // Solo quien gestiona el equipo puede crear, así que solo a esa gente se le
+  // hacen clicables los días: al resto el calendario se queda como estaba.
+  const onCreateOn = isManager ? (day: Date) => setCreating({ day }) : undefined;
+
+  const initialEvent = useMemo(
+    () => (creating?.day ? { fecha_inicio: horaSugerida(creating.day) } : undefined),
+    [creating],
+  );
 
   const range = useMemo(() => {
     if (view === "week") {
@@ -178,7 +206,7 @@ function Calendario() {
           <ViewSwitcher view={view} setView={setView} t={t} />
           {isManager && (
             <Button
-              onClick={() => setCreating(true)}
+              onClick={() => setCreating({})}
               className="btn-primary-brand uppercase tracking-widest font-bold"
             >
               <Plus className="mr-1 size-4" />
@@ -224,18 +252,26 @@ function Calendario() {
           locale={locale}
           events={events ?? []}
           t={t}
+          onCreateOn={onCreateOn}
         />
       )}
       {view === "week" && (
-        <WeekView cursor={cursor} locale={locale} events={events ?? []} t={t} />
+        <WeekView
+          cursor={cursor}
+          locale={locale}
+          events={events ?? []}
+          t={t}
+          onCreateOn={onCreateOn}
+        />
       )}
       {view === "list" && <EventList teamId={active.team_id} />}
 
       {creating && (
         <EventFormDialog
-          open={creating}
-          onOpenChange={setCreating}
+          open
+          onOpenChange={(v) => !v && setCreating(null)}
           teamId={active.team_id}
+          initial={initialEvent}
         />
       )}
     </div>
@@ -308,11 +344,13 @@ function MonthGrid({
   locale,
   events,
   t,
+  onCreateOn,
 }: {
   cursor: Date;
   locale: typeof esLocale;
   events: EventRow[];
-  t: (k: string) => string;
+  t: (k: string, opts?: Record<string, unknown>) => string;
+  onCreateOn?: (day: Date) => void;
 }) {
   const monthStart = startOfMonth(cursor);
   const monthEnd = endOfMonth(cursor);
@@ -351,12 +389,33 @@ function MonthGrid({
             <div
               key={key}
               className={cn(
-                "min-h-16 border-b border-r border-border p-1 transition-colors sm:min-h-28 sm:p-1.5",
+                "relative min-h-16 border-b border-r border-border p-1 transition-colors sm:min-h-28 sm:p-1.5",
                 outside && "bg-card/40",
                 today && "bg-[color-mix(in_oklab,var(--color-primary)_5%,transparent)]",
               )}
             >
-              <div className="mb-1 flex items-center justify-between">
+              {/* Tocar el día abre el formulario con esa fecha puesta.
+
+                  Va debajo de todo y ocupa la casilla entera, en vez de
+                  envolverla: dentro hay enlaces a los eventos, y un <button>
+                  con <a> dentro no es HTML válido ni se recorre bien con el
+                  teclado. Así cada evento sigue siendo su propio destino y lo
+                  que queda libre de la casilla es el botón de crear.
+
+                  Por eso el contenido lleva `pointer-events-none` y solo los
+                  enlaces lo recuperan: sin eso, la capa de arriba se comería
+                  los clics de la mitad de la casilla. */}
+              {onCreateOn && (
+                <button
+                  type="button"
+                  onClick={() => onCreateOn(day)}
+                  aria-label={t("events.createOn", {
+                    date: format(day, "PPPP", { locale }),
+                  })}
+                  className="absolute inset-0 z-0 transition-colors hover:bg-[color-mix(in_oklab,var(--color-primary)_8%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+                />
+              )}
+              <div className="pointer-events-none relative z-10 mb-1 flex items-center justify-between">
                 <div
                   className={cn(
                     "flex size-6 items-center justify-center rounded-full text-xs font-bold",
@@ -377,14 +436,14 @@ function MonthGrid({
               </div>
 
               {/* Mobile: compact dots (larger tap area) */}
-              <ul className="flex list-none flex-wrap items-center sm:hidden">
+              <ul className="pointer-events-none relative z-10 flex list-none flex-wrap items-center sm:hidden">
                 {dayEvents.slice(0, 4).map((e) => (
                   <li key={e.id}>
                     <Link
                       to="/eventos/$id"
                       params={{ id: e.id }}
                       aria-label={`${e.titulo} — ${format(new Date(e.fecha_inicio), "d LLL HH:mm", { locale })}`}
-                      className="grid size-8 place-items-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      className="pointer-events-auto grid size-8 place-items-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       <span
                         className={cn("size-2.5 rounded-full", eventTypeStyles[e.tipo].dot)}
@@ -402,7 +461,7 @@ function MonthGrid({
 
 
               {/* Tablet & desktop: full chips */}
-              <div className="hidden space-y-1 sm:block">
+              <div className="pointer-events-none relative z-10 hidden space-y-1 sm:block">
                 {dayEvents.slice(0, 3).map((e) => {
                   const style = eventTypeStyles[e.tipo];
                   const isStart =
@@ -416,7 +475,7 @@ function MonthGrid({
                         // En una tableta estas pastillas son el objetivo táctil
                         // —los puntos gordos son solo para el móvil—, así que se
                         // les da altura de dedo hasta que hay ratón de por medio.
-                        "group flex min-h-7 min-w-0 items-center gap-1 rounded border px-1.5 py-0.5 text-2xs font-semibold transition-all hover:translate-x-0.5 lg:min-h-0",
+                        "pointer-events-auto group flex min-h-7 min-w-0 items-center gap-1 rounded border px-1.5 py-0.5 text-2xs font-semibold transition-all hover:translate-x-0.5 lg:min-h-0",
                         style.badge,
                       )}
                     >
@@ -457,11 +516,13 @@ function WeekView({
   locale,
   events,
   t,
+  onCreateOn,
 }: {
   cursor: Date;
   locale: typeof esLocale;
   events: EventRow[];
-  t: (k: string) => string;
+  t: (k: string, opts?: Record<string, unknown>) => string;
+  onCreateOn?: (day: Date) => void;
 }) {
   const start = startOfWeek(cursor, { weekStartsOn: 1 });
   const days = eachDayOfInterval({ start, end: addDays(start, 6) });
@@ -482,11 +543,23 @@ function WeekView({
           <div
             key={key}
             className={cn(
-              "surface-card flex min-w-0 flex-col p-3 hover-lift",
+              "surface-card relative flex min-w-0 flex-col p-3 hover-lift",
               today && "ring-2 ring-primary/50",
             )}
           >
-            <div className="mb-2 flex items-center justify-between gap-2">
+            {/* Igual que en la vista de mes: la tarjeta entera crea un evento
+                en ese día, y los eventos de dentro siguen llevando al suyo. */}
+            {onCreateOn && (
+              <button
+                type="button"
+                onClick={() => onCreateOn(d)}
+                aria-label={t("events.createOn", {
+                  date: format(d, "PPPP", { locale }),
+                })}
+                className="absolute inset-0 z-0 rounded-[inherit] transition-colors hover:bg-[color-mix(in_oklab,var(--color-primary)_8%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+              />
+            )}
+            <div className="pointer-events-none relative z-10 mb-2 flex items-center justify-between gap-2">
               <div className="min-w-0">
                 <div className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
                   {format(d, "EEE", { locale })}
@@ -506,7 +579,7 @@ function WeekView({
                 </span>
               )}
             </div>
-            <div className="space-y-2">
+            <div className="pointer-events-none relative z-10 space-y-2">
               {list.length === 0 ? (
                 <p className="text-xxs text-muted-foreground">
                   {t("events.noEventsDay")}
@@ -531,7 +604,7 @@ function WeekEventCard({ e }: { e: EventRow }) {
       to="/eventos/$id"
       params={{ id: e.id }}
       className={cn(
-        "block rounded-md border border-border bg-card p-2 pl-2.5 transition-all hover:shadow-md",
+        "pointer-events-auto block rounded-md border border-border bg-card p-2 pl-2.5 transition-all hover:shadow-md",
         style.band,
       )}
     >
@@ -544,7 +617,13 @@ function WeekEventCard({ e }: { e: EventRow }) {
       </div>
       <div className="mt-0.5 flex min-w-0 items-start gap-1.5">
         <span className={cn("mt-1.5 size-1.5 shrink-0 rounded-full", style.dot)} />
-        <p className="min-w-0 text-sm font-semibold break-words">{e.titulo}</p>
+        {/* Siete columnas en una semana dejan menos de noventa píxeles por
+            tarjeta, y ahí «Asociación» no entra entera ni a 14 px: se partía
+            en «Asociació / n». A 13 px cabe, y el título se corta a dos
+            líneas en vez de estirar la tarjeta. */}
+        <p className="line-clamp-2 min-w-0 text-xs font-semibold break-words xl:text-sm">
+          {e.titulo}
+        </p>
       </div>
       {e.ubicacion && (
         <div className="mt-1 flex min-w-0 items-center gap-1 text-xxs text-muted-foreground">
