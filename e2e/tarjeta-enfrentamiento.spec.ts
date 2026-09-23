@@ -104,6 +104,49 @@ test.describe("Cabecera de un enfrentamiento", () => {
     await expect(cabecera.getByText(/^vs$/i)).toHaveCount(0);
   });
 
+  test("un título largo no se mete debajo de la rueda en el móvil", async ({ page, request }) => {
+    const { session, team } = await seedCaptainWithTeam(request, "marc-largo");
+    const res = await request.post(`${API_URL}/events/`, {
+      headers: bearer(session),
+      data: {
+        team_id: team.id,
+        tipo: "entrenamiento",
+        titulo: "Entreno pinares - Rey de pista - Los niños",
+        fecha_inicio: manana(),
+      },
+    });
+    const event = (await res.json()) as { id: string };
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAs(page, session);
+    await page.goto(`/eventos/${event.id}`);
+
+    const titulo = page.getByRole("heading", { name: /Entreno pinares/ });
+    const rueda = page.getByRole("button", { name: /ajustes del evento/i });
+    await expect(titulo).toBeVisible({ timeout: 20_000 });
+    await expect(rueda).toBeVisible();
+
+    const r = (await rueda.boundingBox())!;
+    // Se mide el texto, línea a línea, y no la caja del título: esa ocupa
+    // todo el ancho y tocaría la rueda aunque las letras no lo hagan.
+    const lineas = await titulo.evaluate((h1) => {
+      const rango = document.createRange();
+      rango.selectNodeContents(h1);
+      return [...rango.getClientRects()].map(({ x, y, width, height }) => ({
+        x,
+        y,
+        width,
+        height,
+      }));
+    });
+    expect(lineas.length).toBeGreaterThan(0);
+    for (const t of lineas) {
+      const seCruzan =
+        t.x < r.x + r.width && t.x + t.width > r.x && t.y < r.y + r.height && t.y + t.height > r.y;
+      expect(seCruzan).toBe(false);
+    }
+  });
+
   test("editar y borrar viven en la rueda, y no para un jugador", async ({ page, request }) => {
     const { session, team } = await seedCaptainWithTeam(request, "marc-rueda");
     const res = await request.post(`${API_URL}/events/`, {

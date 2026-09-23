@@ -150,7 +150,7 @@ function EventDetail() {
       </Link>
 
       <article className="surface-raised min-w-0 overflow-hidden">
-        <div className="relative overflow-hidden bg-[color:var(--color-ink)] p-4 sm:p-5">
+        <div className="relative overflow-hidden bg-[color:var(--color-ink)] px-4 pb-6 pt-4 sm:p-5 sm:pb-6">
           <div
             aria-hidden="true"
             className="pointer-events-none absolute -top-24 left-1/2 size-56 -translate-x-1/2 rounded-full opacity-30 sm:-top-36 sm:size-80"
@@ -234,7 +234,10 @@ function EventDetail() {
               <Lado nombre={event.rival!} />
             </div>
           ) : (
-            <h1 className="text-display relative mt-2 text-center text-xl font-black tracking-tight text-white break-words sm:text-2xl">
+            /* Con el mismo hueco a los lados que el antetítulo: un título
+               largo llegaba hasta el borde y se metía debajo de la rueda. Si
+               no cabe, baja a otra línea y la cabecera crece. */
+            <h1 className="text-display relative mt-3 px-12 text-center text-xl font-black leading-tight tracking-tight text-white break-words sm:text-2xl">
               {event.titulo}
             </h1>
           )}
