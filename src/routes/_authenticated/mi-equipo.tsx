@@ -3,7 +3,15 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Search, Shield, Trash2, Upload, Users } from "lucide-react";
+import { Plus, Search, Settings, Shield, Trash2, Upload } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
 import { ImageUpload } from "@/components/image-upload";
 import { traducirErrorDeImagen } from "@/lib/images";
@@ -223,15 +231,37 @@ function MiEquipo() {
     <div className="mx-auto max-w-6xl space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-display text-2xl font-black tracking-tight sm:text-3xl">{t("nav.miEquipo")}</h1>
-        <Button
-          onClick={() => setCreating(true)}
-          className="bg-primary text-primary-foreground uppercase tracking-widest font-bold hover:opacity-90"
-        >
-          + {t("team.create")}
-        </Button>
+
+        {/* Lo que antes era un botón de «Crear equipo» a secas. Con el menú, la
+            cabecera deja sitio para las dos cosas que se pueden hacer aquí sin
+            tener un equipo delante: crear uno o buscar dónde meterse. */}
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            aria-label={t("team.actions")}
+            className="inline-flex size-11 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-foreground shadow-[var(--shadow-card)] transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:size-10"
+          >
+            <Settings className="size-[19px]" aria-hidden="true" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuItem className="min-h-11 gap-2.5" onClick={() => setCreating(true)}>
+              <Plus className="size-4 text-primary" aria-hidden="true" />
+              {t("team.create")}
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild className="min-h-11 gap-2.5">
+              <a href="#descubrir">
+                <Search className="size-4 text-muted-foreground" aria-hidden="true" />
+                {t("team.discoverTitle")}
+              </a>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      {/* Una sola columna a propósito. A dos, en un escritorio de 1280 cada
+          tarjeta se queda en ~476 px —ancho de móvil— y los datos ya no caben
+          en la banda, así que harían falta dos maquetaciones distintas para la
+          misma tarjeta. Lo normal además es tener un equipo. */}
+      <div className="grid gap-6">
         {memberships!.map((m) => {
           const team = m.team;
           if (!team) return null;
@@ -239,12 +269,28 @@ function MiEquipo() {
         })}
       </div>
 
-      <TeamDiscovery onlyOpen />
+      <div id="descubrir" className="scroll-mt-20">
+        <TeamDiscovery onlyOpen />
+      </div>
     </div>
   );
 }
 
 
+
+/**
+ * «Los Niños» → «LN». El hueco del escudo cuando no hay imagen.
+ *
+ * Con las imágenes cerradas, ahí iba un escudo genérico igual para todos los
+ * equipos, que no identifica nada. Las iniciales sí, y es lo que ya se hace
+ * con las personas en el resto de la web.
+ */
+function inicialesDe(nombre: string) {
+  const palabras = nombre.trim().split(/\s+/).filter(Boolean);
+  if (palabras.length === 0) return "";
+  if (palabras.length === 1) return palabras[0].slice(0, 2).toUpperCase();
+  return palabras.slice(0, 2).map((p) => p[0]).join("").toUpperCase();
+}
 
 function TeamCard({
   team,
@@ -318,107 +364,195 @@ function TeamCard({
     onError: (e: Error) => toast.error(traducirErrorDeImagen(e.message, t)),
   });
 
+  const iniciales = inicialesDe(team.nombre);
+
+  const datos = [
+    { label: t("team.members"), value: String(members ?? 0) },
+    { label: t("team.deporte"), value: sportLabel(team.deporte, i18n.language) },
+    { label: t("team.ciudad"), value: team.ciudad || "—" },
+  ];
+
+  const estado = inscripcionesAbiertas
+    ? t("team.inscripcionesAbiertas")
+    : t("team.inscripcionesCerradas");
+
   return (
-    <div className="surface-card min-w-0 overflow-hidden">
-      <div className="flex items-center gap-3 border-b border-border p-4 sm:gap-4 sm:p-6">
-        <ImageUpload
-          url={team.logo_url}
-          alt={team.nombre}
-          fallback={<Shield className="size-8" />}
-          canEdit={isManager}
-          busy={logo.isPending}
-          onPick={(file) => logo.mutate(file)}
-          onRemove={() => logo.mutate(null)}
+    <article className="surface-raised min-w-0 overflow-hidden">
+      {/* La banda del club.
+
+          Los tres datos viven aquí desde `sm` y en una franja blanca debajo en
+          el móvil. No es capricho: al lado del nombre solo caben con sitio de
+          sobra, y en 390 px no lo hay; abajo, en cambio, la banda se quedaría
+          medio vacía en una tableta. Es el mismo dato en el sitio que le toca
+          a cada ancho. */}
+      <div className="relative overflow-hidden bg-[color:var(--color-ink)] p-[18px] sm:p-6">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -right-12 -top-16 size-48 rounded-full opacity-30 sm:-right-16 sm:-top-28 sm:size-[300px]"
+          style={{
+            background:
+              "radial-gradient(circle, var(--color-primary) 0%, var(--color-accent) 60%, transparent 72%)",
+          }}
         />
-        <div className="min-w-0 flex-1">
-          {/* Sin `truncate`: el nombre de un club no se entiende cortado por la
-              mitad («Club Depor…»), y aquí es el título de la tarjeta. */}
-          <h3 className="text-display text-xl font-black break-words sm:text-2xl">{team.nombre}</h3>
-          <p className="mt-1 text-2xs font-bold uppercase tracking-widest text-primary">
-            {role}
-          </p>
-        </div>
+
         {isOwner && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={deleteTeam}
-            disabled={deleting}
-            className="shrink-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
-            aria-label={t("team.delete")}
-          >
-            <Trash2 className="size-4" />
-            <span className="ml-1 hidden sm:inline uppercase text-2xs font-bold tracking-widest">
-              {t("team.delete")}
-            </span>
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              aria-label={t("team.settings")}
+              className="absolute right-3 top-3 z-10 inline-flex size-11 items-center justify-center rounded-xl bg-white/10 text-[color:var(--color-ink-foreground)] ring-1 ring-white/20 transition-colors hover:bg-white/[0.16] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 sm:right-4 sm:top-4 sm:size-10"
+            >
+              <Settings className="size-[18px]" aria-hidden="true" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem
+                className="min-h-11 gap-2.5 text-destructive focus:text-destructive"
+                disabled={deleting}
+                onClick={deleteTeam}
+              >
+                <Trash2 className="size-4" aria-hidden="true" />
+                {t("team.delete")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
-      </div>
-      {team.descripcion && (
-        <p className="border-b border-border p-4 text-sm text-muted-foreground sm:p-6">
-          {team.descripcion}
-        </p>
-      )}
-      {isOwner && (
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4">
-          <div className="flex items-center gap-2">
-            <span
-              className={`inline-block size-2 rounded-full ${
-                inscripcionesAbiertas ? "bg-primary" : "bg-muted-foreground/50"
-              }`}
+
+        <div className="relative">
+          <div className="flex min-w-0 items-center gap-3.5 pr-14 sm:gap-[18px]">
+            <ImageUpload
+              url={team.logo_url}
+              alt={team.nombre}
+              className="size-[58px] rounded-2xl bg-white/10 text-white ring-white/20 sm:size-[72px]"
+              fallback={
+                iniciales ? (
+                  <span className="text-display text-xl font-extrabold sm:text-2xl">{iniciales}</span>
+                ) : (
+                  <Shield className="size-7 sm:size-8" />
+                )
+              }
+              canEdit={isManager}
+              busy={logo.isPending}
+              onPick={(file) => logo.mutate(file)}
+              onRemove={() => logo.mutate(null)}
             />
-            <span className="text-xxs font-bold uppercase tracking-widest">
-              {inscripcionesAbiertas
-                ? t("team.inscripcionesAbiertas")
-                : t("team.inscripcionesCerradas")}
-            </span>
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                {/* Sin `truncate`: el nombre de un club no se entiende cortado
+                    por la mitad («Club Depor…»), y aquí es el título. */}
+                <h3 className="text-display text-2xl font-black tracking-tight text-white break-words sm:text-3xl">
+                  {team.nombre}
+                </h3>
+                {/* Traducido, no el valor crudo: en crudo salía «CAPITAN» sin
+                    tilde, y en inglés seguiría en español. */}
+                <span className="pill bg-accent/20 text-[color:var(--color-accent)] ring-1 ring-accent/40">
+                  {t(`roles.${role}`)}
+                </span>
+              </div>
+            </div>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={togglingIns}
-            onClick={toggleInscripciones}
-            className="uppercase text-2xs font-bold tracking-widest"
-          >
-            {inscripcionesAbiertas
-              ? t("team.cerrarInscripciones")
-              : t("team.abrirInscripciones")}
-          </Button>
+
+          {team.descripcion && (
+            <p className="mt-3 max-w-[62ch] text-sm leading-relaxed text-[color:var(--color-ink-muted)]">
+              {team.descripcion}
+            </p>
+          )}
+
+          {/* A lo ancho y debajo, no al lado del nombre.
+
+              Al lado se veía muy bien con «Los Niños» y «Málaga», y se caía
+              con los datos de verdad: «Club Deportivo Compostela Pádel» más
+              «Santiago de Compostela» dejaban la descripción en una palabra
+              por línea, porque los datos no se encogen y el nombre sí. Aquí
+              cada columna tiene un tercio de la tarjeta pase lo que pase. */}
+          <div className="mt-5 hidden grid-cols-3 border-t border-white/10 pt-4 sm:grid">
+            {datos.map((d, i) => (
+              <div
+                key={d.label}
+                className={cn("min-w-0 px-4 text-center", i > 0 && "border-l border-white/10")}
+              >
+                <div className="text-display text-xl font-extrabold leading-tight text-white break-words lg:text-2xl">
+                  {d.value}
+                </div>
+                <div className="mt-1.5 text-3xs font-bold uppercase tracking-[0.16em] text-[color:var(--color-ink-muted)]">
+                  {d.label}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-      )}
-      {/* Tres columnas en un móvil dejan setenta píxeles por celda, y ahí
-          «Santiago de Compostela» se queda en «Santiago d…». En vertical cada
-          dato se lee entero; desde `sm` vuelven a ir en fila. */}
-      <div className="grid grid-cols-1 divide-y divide-border sm:grid-cols-3 sm:divide-x sm:divide-y-0">
-        <MetaCell label={t("team.members")} value={String(members ?? 0)} icon={<Users className="size-4" />} />
-        <MetaCell label={t("team.deporte")} value={sportLabel(team.deporte, i18n.language)} />
-        <MetaCell label={t("team.ciudad")} value={team.ciudad || "—"} />
       </div>
+
+      <div className="grid grid-cols-3 sm:hidden">
+        {datos.map((d, i) => (
+          <div
+            key={d.label}
+            className={cn("min-w-0 px-2.5 py-3.5 text-center", i > 0 && "border-l border-border")}
+          >
+            {/* 15 px y no 20: a 20, «Compostela» no entra en los ~99 px de
+                una columna y se parte en «Compostel / a». */}
+            <div className="text-display text-[15px] font-extrabold leading-tight break-words">
+              {d.value}
+            </div>
+            <div className="mt-1.5 text-3xs font-bold uppercase tracking-[0.16em] text-muted-foreground">
+              {d.label}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex items-center gap-2 border-t border-border p-3 sm:justify-between sm:px-5 sm:py-3.5">
+        {/* El estado escrito solo cabe de `sm` en adelante; en el móvil lo
+            lleva el punto del botón de la derecha. */}
+        <span className="hidden items-center gap-2.5 text-xxs font-bold uppercase tracking-[0.10em] sm:inline-flex">
+          <span
+            aria-hidden="true"
+            className={cn(
+              "size-2.5 shrink-0 rounded-full",
+              inscripcionesAbiertas ? "bg-accent" : "bg-muted-foreground/50",
+            )}
+          />
+          {estado}
+        </span>
+
+        <div className="flex flex-1 items-center gap-2 sm:flex-none">
+          <Link
+            to="/miembros"
+            className="btn-primary-brand inline-flex min-h-11 flex-1 items-center justify-center rounded-xl px-5 text-2xs font-bold uppercase tracking-[0.12em] sm:min-h-10 sm:flex-none"
+          >
+            {t("team.viewMembers")}
+          </Link>
+
+          {/* El botón dice «Inscripciones» y el punto dice cómo están; el
+              `aria-label` dice lo que hace, que es lo que necesita quien no ve
+              el punto. Solo para quien puede cambiarlo. */}
+          {isOwner && (
+            <button
+              type="button"
+              onClick={toggleInscripciones}
+              disabled={togglingIns}
+              aria-label={
+                inscripcionesAbiertas
+                  ? t("team.cerrarInscripciones")
+                  : t("team.abrirInscripciones")
+              }
+              className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-card px-5 text-2xs font-bold uppercase tracking-[0.12em] transition-colors hover:bg-muted disabled:opacity-60 sm:min-h-10 sm:flex-none"
+            >
+              <span
+                aria-hidden="true"
+                className={cn(
+                  "size-2 shrink-0 rounded-full",
+                  inscripcionesAbiertas ? "bg-accent" : "bg-muted-foreground/50",
+                )}
+              />
+              {t("team.inscripciones")}
+            </button>
+          )}
+        </div>
+      </div>
+
       {(isOwner || ["capitan", "co_capitan", "entrenador", "delegado"].includes(role)) && (
         <TeamJoinRequests teamId={team.id} compact />
       )}
-    </div>
+    </article>
   );
 }
 
-function MetaCell({
-  label,
-  value,
-  icon,
-}: {
-  label: string;
-  value: string;
-  icon?: React.ReactNode;
-}) {
-  return (
-    <div className="p-4">
-      <div className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
-        {label}
-      </div>
-      <div className="mt-1 flex min-w-0 items-center gap-2 text-sm font-medium">
-        {icon}
-        <span className="min-w-0 break-words">{value}</span>
-      </div>
-    </div>
-  );
-}
