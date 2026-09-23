@@ -347,7 +347,13 @@
     "competicionEntrenoHint": "Put it inside a competition and its result counts towards that competition standings.",
     "formatoEntreno": "Training format",
     "formatoEntrenoHint": "Only for a standalone training. Inside a competition its format wins.",
-    "formatoDeLaCompeticion": "Set by the competition: {{formato}}"
+    "formatoDeLaCompeticion": "Set by the competition: {{formato}}",
+    "settings": "Event settings",
+    "outcome": {
+      "ganado": "Won",
+      "perdido": "Lost",
+      "empate": "Draw"
+    }
   },
   "competitions": {
     "title": "Competitions",

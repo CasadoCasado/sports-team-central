@@ -347,7 +347,13 @@
     "competicionEntrenoHint": "Si lo metes en una competición, su resultado cuenta para la clasificación de esa competición.",
     "formatoEntreno": "Formato del entreno",
     "formatoEntrenoHint": "Solo si el entreno va suelto. Dentro de una competición manda el formato de ella.",
-    "formatoDeLaCompeticion": "Lo pone la competición: {{formato}}"
+    "formatoDeLaCompeticion": "Lo pone la competición: {{formato}}",
+    "settings": "Ajustes del evento",
+    "outcome": {
+      "ganado": "Ganado",
+      "perdido": "Perdido",
+      "empate": "Empate"
+    }
   },
   "competitions": {
     "title": "Competiciones",
