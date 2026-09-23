@@ -63,6 +63,11 @@ function MiEquipo() {
   const canCreateTeam = profile?.preferred_role === "capitan";
 
   const [creating, setCreating] = useState(false);
+
+  // Teniendo equipo, el panel de equipos abiertos empieza plegado: es un
+  // bloque grande para algo que ya no se necesita. Sin equipo va abierto, que
+  // ahí sí es lo que se viene a hacer.
+  const [descubriendo, setDescubriendo] = useState(false);
   const [nombre, setNombre] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [deporte, setDeporte] = useState("padel");
@@ -247,11 +252,21 @@ function MiEquipo() {
               <Plus className="size-4 text-primary" aria-hidden="true" />
               {t("team.create")}
             </DropdownMenuItem>
-            <DropdownMenuItem asChild className="min-h-11 gap-2.5">
-              <a href="#descubrir">
-                <Search className="size-4 text-muted-foreground" aria-hidden="true" />
-                {t("team.discoverTitle")}
-              </a>
+            {/* Abre el panel además de bajar hasta él: plegado, el atajo
+                llevaba a una cabecera cerrada y no se veía ni un equipo. */}
+            <DropdownMenuItem
+              className="min-h-11 gap-2.5"
+              onClick={() => {
+                setDescubriendo(true);
+                requestAnimationFrame(() =>
+                  document
+                    .getElementById("descubrir")
+                    ?.scrollIntoView({ behavior: "smooth", block: "start" }),
+                );
+              }}
+            >
+              <Search className="size-4 text-muted-foreground" aria-hidden="true" />
+              {t("team.discoverTitle")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -270,7 +285,10 @@ function MiEquipo() {
       </div>
 
       <div id="descubrir" className="scroll-mt-20">
-        <TeamDiscovery onlyOpen />
+        <TeamDiscovery
+          onlyOpen
+          collapsible={{ open: descubriendo, onOpenChange: setDescubriendo }}
+        />
       </div>
     </div>
   );
