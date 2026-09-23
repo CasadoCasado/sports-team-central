@@ -25,6 +25,7 @@ export function ImageUpload({
   alt,
   fallback,
   redonda,
+  className,
   canEdit,
   busy,
   onPick,
@@ -39,6 +40,8 @@ export function ImageUpload({
   busy?: boolean;
   onPick: (file: File) => void;
   onRemove: () => void;
+  /** Para colocar el hueco sobre un fondo que no es el de la tarjeta. */
+  className?: string;
 }) {
   const { t } = useTranslation();
   const input = useRef<HTMLInputElement>(null);
@@ -58,6 +61,7 @@ export function ImageUpload({
       className={cn(
         "size-14 shrink-0 bg-primary/10 text-primary ring-1 ring-border sm:size-16",
         redonda ? "rounded-full" : "rounded-lg",
+        className,
       )}
     />
   );
