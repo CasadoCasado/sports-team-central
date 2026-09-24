@@ -189,7 +189,8 @@
         "title": "{{name}} has no results yet",
         "body": "Its standings will show up here as soon as its first session's results are recorded. They're the same as in Competitions."
       }
-    }
+    },
+    "owner": "Owner"
   },
   "roles": {
     "capitan": "Captain",

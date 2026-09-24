@@ -189,7 +189,8 @@
         "title": "{{name}} aún no tiene resultados",
         "body": "Su clasificación aparecerá aquí en cuanto se apunten los resultados de su primer entreno. Es la misma que en Competiciones."
       }
-    }
+    },
+    "owner": "Dueño"
   },
   "roles": {
     "capitan": "Capitán",
