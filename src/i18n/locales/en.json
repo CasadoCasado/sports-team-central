@@ -190,7 +190,7 @@
   },
   "help": {
     "title": "Help",
-    "intro": "A quick guide to every TeamUp screen, with steps, real examples and shortcuts. Tap the help icon in the header to open the guide for the screen you're on.",
+    "intro": "A quick guide to every TeamUp screen, with steps, real examples and shortcuts. Tap your avatar in the top right and choose Help to open the guide for the screen you're on.",
     "steps": "How it works",
     "contextual": "Help for this screen"
   },
@@ -884,5 +884,10 @@
     "light": "Light",
     "dark": "Dark",
     "system": "System"
+  },
+  "account": {
+    "menu": "Your account",
+    "language": "Language",
+    "confirmLogout": "Are you sure you want to sign out?"
   }
 }
