@@ -1,6 +1,13 @@
 import { test, expect, type APIRequestContext, type Page } from "@playwright/test";
 
-import { loginAs, seedCaptainWithTeam, seedPlayerInTeam, type Session } from "./session";
+import {
+  API_URL,
+  bearer,
+  loginAs,
+  seedCaptainWithTeam,
+  seedPlayerInTeam,
+  type Session,
+} from "./session";
 
 /**
  * La pantalla de Miembros como una clasificación: podio y tabla.
@@ -16,6 +23,7 @@ import { loginAs, seedCaptainWithTeam, seedPlayerInTeam, type Session } from "./
  */
 
 type Plantilla = {
+  teamId: string;
   captain: Session;
   sara: Session;
   diego: Session;
@@ -37,7 +45,7 @@ async function montarEquipo(request: APIRequestContext): Promise<Plantilla> {
     apellidos: "Ferreiro",
     role: "entrenador",
   });
-  return { captain, sara, diego, lucia };
+  return { teamId: team.id, captain, sara, diego, lucia };
 }
 
 type Balance = { pj: number; v: number };
@@ -62,6 +70,60 @@ async function servirBalance(page: Page, filas: [Session, Balance][]) {
 
 const podio = (page: Page) => page.getByRole("region", { name: /quién más gana/i });
 const tabla = (page: Page) => page.getByRole("table");
+
+type Noche = { nota: number; entrenos: number; clasificado?: boolean };
+
+/**
+ * Una clasificación por notas, con la forma de la de una competición.
+ * El orden de `filas` es el puesto: como en el servidor, que es quien decide.
+ */
+function clasificacion(filas: [Session, Noche][], minimo = 1) {
+  return {
+    formato: null,
+    entrenamientos: 6,
+    media: 50,
+    minimo_podio: minimo,
+    margen: 5,
+    standings: filas.map(([s, n], i) => ({
+      user_id: s.userId,
+      profile: null,
+      puesto: i + 1,
+      entrenamientos: n.entrenos,
+      nota: n.nota,
+      clasificado: n.clasificado ?? n.entrenos >= minimo,
+    })),
+  };
+}
+
+async function servirJson(page: Page, url: RegExp, cuerpo: unknown) {
+  await page.route(url, (route) =>
+    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(cuerpo) }),
+  );
+}
+
+async function crearCompeticion(
+  request: APIRequestContext,
+  e: Plantilla,
+  nombre: string,
+  formato: string | null,
+) {
+  const res = await request.post(`${API_URL}/competitions/`, {
+    headers: bearer(e.captain),
+    data: { team_id: e.teamId, nombre, tipo: "liga", formato },
+  });
+  expect(res.ok(), await res.text()).toBe(true);
+  return (await res.json()) as { id: string };
+}
+
+async function ponerLado(request: APIRequestContext, s: Session, posicion: string) {
+  const res = await request.patch(`${API_URL}/profiles/me/`, {
+    headers: bearer(s),
+    data: { posicion },
+  });
+  expect(res.ok()).toBe(true);
+}
+
+const selector = (page: Page) => page.getByLabel(/^clasificación$/i);
 
 test.describe("Miembros: podio y clasificación", () => {
   test("sin partidos: ni podio ni tabla, la plantilla y qué va a salir aquí", async ({
@@ -220,6 +282,160 @@ test.describe("Miembros: podio y clasificación", () => {
     await page.getByRole("menuitem", { name: /quitar del equipo/i }).click();
     await expect(page.getByRole("alertdialog")).toBeVisible();
     await pegada();
+  });
+
+  test("el selector cambia a los entrenos, medidos por nota", async ({ page, request }) => {
+    const e = await montarEquipo(request);
+    await servirBalance(page, [[e.diego, { pj: 6, v: 5 }]]);
+    await servirJson(
+      page,
+      /\/api\/stats\/trainings\//,
+      clasificacion(
+        [
+          [e.sara, { nota: 71.4, entrenos: 4 }],
+          [e.captain, { nota: 58, entrenos: 5 }],
+          [e.diego, { nota: 40, entrenos: 1 }],
+        ],
+        2,
+      ),
+    );
+    await loginAs(page, e.captain);
+    await page.goto("/miembros");
+    await expect(podio(page)).toBeVisible();
+
+    await selector(page).selectOption({ label: "Entrenos" });
+
+    const p = page.getByRole("region", { name: /quién va mejor/i });
+    await expect(p).toBeVisible();
+    await expect(p.getByRole("listitem").nth(1)).toContainText("Sara");
+    await expect(p.getByRole("listitem").nth(1)).toContainText("71,4");
+    await expect(p.getByRole("listitem").nth(1)).toContainText("4 entrenos");
+    // Diego no llega al mínimo de 2 entrenos: fuera del podio.
+    await expect(p.getByRole("listitem").nth(2)).toContainText(/libre/i);
+    await expect(p).toContainText(/han ido a 2 entrenos o más/i);
+
+    // La tabla: sin victorias ni derrotas, con la nota, y en el orden del servidor.
+    await expect(tabla(page).getByRole("button", { name: /^nota$/i })).toBeVisible();
+    await expect(tabla(page).getByRole("button", { name: /^v$/i })).toHaveCount(0);
+    await expect(tabla(page).locator("tbody tr").nth(0)).toContainText("Sara Lago");
+  });
+
+  test("entrenos sin resultados: se dice qué va a salir", async ({ page, request }) => {
+    const e = await montarEquipo(request);
+    await servirBalance(page, [[e.diego, { pj: 6, v: 5 }]]);
+    await servirJson(page, /\/api\/stats\/trainings\//, clasificacion([]));
+    await loginAs(page, e.captain);
+    await page.goto("/miembros");
+    await expect(podio(page)).toBeVisible();
+
+    await selector(page).selectOption({ label: "Entrenos" });
+    await expect(
+      page.getByRole("heading", { name: /aún no hay entrenos con resultados/i }),
+    ).toBeVisible();
+    await expect(tabla(page)).toHaveCount(0);
+  });
+
+  test("una competición con formato enseña su clasificación", async ({ page, request }) => {
+    const e = await montarEquipo(request);
+    const liga = await crearCompeticion(request, e, "Liga de invierno", "partidos");
+    await servirBalance(page, []);
+    await servirJson(
+      page,
+      new RegExp(`/api/competitions/${liga.id}/standings/`),
+      clasificacion([
+        [e.diego, { nota: 64, entrenos: 3 }],
+        [e.sara, { nota: 52, entrenos: 3 }],
+      ]),
+    );
+    await loginAs(page, e.captain);
+    await page.goto("/miembros");
+
+    await selector(page).selectOption({ label: "Liga de invierno" });
+    const p = page.getByRole("region", { name: /quién va mejor/i });
+    await expect(p.getByRole("listitem").nth(1)).toContainText("Diego");
+    await expect(tabla(page).locator("tbody tr").nth(0)).toContainText("Diego Otero");
+  });
+
+  test("una competición sin formato enseña sus partidos", async ({ page, request }) => {
+    const e = await montarEquipo(request);
+    const copa = await crearCompeticion(request, e, "Copa", null);
+    // Los partidos de todo el equipo, y los de la copa aparte.
+    let pedidoDeLaCopa = false;
+    await page.route(/\/api\/stats\/players\//, (route) => {
+      const deLaCopa =
+        new URL(route.request().url()).searchParams.get("competition_id") === copa.id;
+      pedidoDeLaCopa ||= deLaCopa;
+      const filas = deLaCopa ? [{ s: e.sara, pj: 5, v: 4 }] : [{ s: e.diego, pj: 9, v: 2 }];
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(
+          filas.map(({ s, pj, v }) => ({
+            user_id: s.userId,
+            team_id: "",
+            convocado: pj,
+            disputados: pj,
+            victorias: v,
+            derrotas: pj - v,
+            win_pct: Math.round((100 * v) / pj),
+            ultima_convocatoria: null,
+            ultimo_partido: "2026-09-20",
+          })),
+        ),
+      });
+    });
+    await loginAs(page, e.captain);
+    await page.goto("/miembros");
+    await expect(tabla(page).locator("tbody tr").nth(0)).toContainText("Diego Otero");
+
+    await selector(page).selectOption({ label: "Copa" });
+    await expect(podio(page).getByRole("listitem").nth(1)).toContainText("Sara");
+    await expect(tabla(page).getByRole("button", { name: /^pj$/i })).toBeVisible();
+    expect(pedidoDeLaCopa).toBe(true);
+  });
+
+  test("se ve en qué lado juega cada uno, aunque lo escribiera a mano", async ({
+    page,
+    request,
+  }) => {
+    const e = await montarEquipo(request);
+    await ponerLado(request, e.sara, "reves");
+    // Un valor de cuando el campo era texto libre.
+    await ponerLado(request, e.diego, "Juego de drive");
+    await servirBalance(page, [[e.sara, { pj: 6, v: 5 }]]);
+    await loginAs(page, e.captain);
+    await page.goto("/miembros");
+
+    const filas = tabla(page).locator("tbody tr");
+    await expect(filas.filter({ hasText: "Sara Lago" })).toContainText("Revés");
+    await expect(filas.filter({ hasText: "Diego Otero" })).toContainText("Derecha");
+    await expect(podio(page).getByRole("listitem").nth(1)).toContainText("Revés");
+  });
+
+  test("en el perfil se elige revés, derecha o los dos", async ({ page, request }) => {
+    const e = await montarEquipo(request);
+    await loginAs(page, e.sara);
+    await page.goto("/perfil");
+
+    await expect(async () => {
+      await page.getByRole("combobox", { name: /posición/i }).click();
+      await expect(page.getByRole("option", { name: /^derecha$/i })).toBeVisible({
+        timeout: 1_500,
+      });
+    }).toPass({ timeout: 20_000 });
+    await page.getByRole("option", { name: /^derecha$/i }).click();
+    // Hay otro «Guardar» más abajo, el de los recordatorios: este es el primero.
+    await page
+      .getByRole("button", { name: /^guardar$/i })
+      .first()
+      .click();
+
+    await expect
+      .poll(async () => {
+        const res = await request.get(`${API_URL}/profiles/me/`, { headers: bearer(e.sara) });
+        return ((await res.json()) as { posicion: string | null }).posicion;
+      })
+      .toBe("derecha");
   });
 
   test("un jugador ve la clasificación pero no puede gestionar", async ({ page, request }) => {

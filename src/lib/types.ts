@@ -32,6 +32,8 @@ export type Profile = {
   nombre: string;
   apellidos: string;
   avatar_url: string | null;
+  /** Revés, derecha o los dos; ver `lib/lado.ts`. */
+  posicion?: string | null;
 };
 
 export type FullProfile = Profile & {

@@ -141,8 +141,6 @@
     "podiumRule": "Cuentan quienes llevan {{min}} partidos o más.",
     "podiumFree": "Libre",
     "podiumPending": "El podio se estrena cuando alguien llegue a {{min}} partidos. Ahora mismo quien más lleva es {{name}}, con {{count}}.",
-    "noMatchesTitle": "Aún no hay partidos",
-    "noMatchesBody": "La clasificación del equipo aparecerá aquí en cuanto registréis el primer resultado, y el podio cuando alguien llegue a {{min}} partidos.",
     "staff": "Cuerpo técnico",
     "squad": "Plantilla",
     "colPlayer": "Jugador",
@@ -160,7 +158,38 @@
     "roleOf": "Rol de {{name}}",
     "removeFrom": "Quitar del equipo",
     "removeTitle": "¿Quitar a {{name}} del equipo?",
-    "removeBody": "Dejará de ver el calendario, las convocatorias y el chat del equipo. Podrás volver a invitarle más adelante."
+    "removeBody": "Dejará de ver el calendario, las convocatorias y el chat del equipo. Podrás volver a invitarle más adelante.",
+    "ranking": "Clasificación",
+    "viewMatches": "Enfrentamientos",
+    "viewTrainings": "Entrenos",
+    "viewCompetitions": "Competiciones",
+    "finished": "finalizada",
+    "podiumTitleScore": "Quién va mejor",
+    "podiumPendingNights": "El podio se estrena cuando alguien llegue a {{min}} entrenos. Ahora mismo quien más lleva es {{name}}, con {{count}}.",
+    "podiumRuleNights_one": "Cuentan quienes han ido a {{count}} entreno o más.",
+    "podiumRuleNights_other": "Cuentan quienes han ido a {{count}} entrenos o más.",
+    "nightsCount_one": "{{count}} entreno",
+    "nightsCount_other": "{{count}} entrenos",
+    "colNights": "Entrenos",
+    "colScore": "Nota",
+    "emptyState": {
+      "partidos": {
+        "title": "Aún no hay partidos",
+        "body": "La clasificación del equipo aparecerá aquí en cuanto registréis el primer resultado, y el podio cuando alguien llegue a {{min}} partidos."
+      },
+      "partidosComp": {
+        "title": "{{name}} aún no tiene partidos jugados",
+        "body": "Cuando se juegue su primer partido, aquí saldrá quién gana más en ella, y el podio cuando alguien llegue a {{min}}."
+      },
+      "entrenos": {
+        "title": "Aún no hay entrenos con resultados",
+        "body": "En cuanto se apunten los resultados de un entreno, aquí saldrá la clasificación. Cuenta la nota de cada noche, sea rey de pista, por partidos o americano."
+      },
+      "competicion": {
+        "title": "{{name}} aún no tiene resultados",
+        "body": "Su clasificación aparecerá aquí en cuanto se apunten los resultados de su primer entreno. Es la misma que en Competiciones."
+      }
+    }
   },
   "roles": {
     "capitan": "Capitán",
@@ -279,7 +308,8 @@
     "deportePlaceholder": "Selecciona un deporte",
     "account": "Cuenta",
     "accessibility": "Accesibilidad",
-    "fontSizeHint": "Ajusta el tamaño del texto de toda la app."
+    "fontSizeHint": "Ajusta el tamaño del texto de toda la app.",
+    "posicionPlaceholder": "¿En qué lado juegas?"
   },
   "reminders": {
     "title": "Recordatorios de eventos",
@@ -916,5 +946,10 @@
     "menu": "Tu cuenta",
     "language": "Idioma",
     "confirmLogout": "¿Seguro que quieres cerrar sesión?"
+  },
+  "lado": {
+    "reves": "Revés",
+    "derecha": "Derecha",
+    "ambos": "Los dos"
   }
 }

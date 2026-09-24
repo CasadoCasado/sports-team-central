@@ -141,8 +141,6 @@
     "podiumRule": "Only players with {{min}} or more matches count.",
     "podiumFree": "Open",
     "podiumPending": "The podium opens once someone reaches {{min}} matches. Right now {{name}} has played the most, with {{count}}.",
-    "noMatchesTitle": "No matches yet",
-    "noMatchesBody": "The team table will show up here as soon as you record the first result, and the podium once someone reaches {{min}} matches.",
     "staff": "Staff",
     "squad": "Squad",
     "colPlayer": "Player",
@@ -160,7 +158,38 @@
     "roleOf": "{{name}}'s role",
     "removeFrom": "Remove from team",
     "removeTitle": "Remove {{name}} from the team?",
-    "removeBody": "They will lose access to the team's calendar, call-ups and chat. You can invite them again later."
+    "removeBody": "They will lose access to the team's calendar, call-ups and chat. You can invite them again later.",
+    "ranking": "Standings",
+    "viewMatches": "Matches",
+    "viewTrainings": "Training",
+    "viewCompetitions": "Competitions",
+    "finished": "finished",
+    "podiumTitleScore": "Top performers",
+    "podiumPendingNights": "The podium opens once someone reaches {{min}} sessions. Right now {{name}} has been to the most, with {{count}}.",
+    "podiumRuleNights_one": "Only players with {{count}} session or more count.",
+    "podiumRuleNights_other": "Only players with {{count}} sessions or more count.",
+    "nightsCount_one": "{{count}} session",
+    "nightsCount_other": "{{count}} sessions",
+    "colNights": "Sessions",
+    "colScore": "Score",
+    "emptyState": {
+      "partidos": {
+        "title": "No matches yet",
+        "body": "The team table will show up here as soon as you record the first result, and the podium once someone reaches {{min}} matches."
+      },
+      "partidosComp": {
+        "title": "{{name}} has no matches played yet",
+        "body": "Once its first match is played, you'll see here who wins the most in it, and the podium once someone reaches {{min}}."
+      },
+      "entrenos": {
+        "title": "No training results yet",
+        "body": "As soon as a session's results are recorded, the standings will show up here. Each session's score counts, whether it's king of the court, by matches or americano."
+      },
+      "competicion": {
+        "title": "{{name}} has no results yet",
+        "body": "Its standings will show up here as soon as its first session's results are recorded. They're the same as in Competitions."
+      }
+    }
   },
   "roles": {
     "capitan": "Captain",
@@ -279,7 +308,8 @@
     "deportePlaceholder": "Select a sport",
     "account": "Account",
     "accessibility": "Accessibility",
-    "fontSizeHint": "Adjust the text size across the whole app."
+    "fontSizeHint": "Adjust the text size across the whole app.",
+    "posicionPlaceholder": "Which side do you play?"
   },
   "reminders": {
     "title": "Event reminders",
@@ -916,5 +946,10 @@
     "menu": "Your account",
     "language": "Language",
     "confirmLogout": "Are you sure you want to sign out?"
+  },
+  "lado": {
+    "reves": "Backhand",
+    "derecha": "Forehand",
+    "ambos": "Both"
   }
 }

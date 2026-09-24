@@ -26,6 +26,7 @@ import { ReminderSettings } from "@/components/reminder-settings";
 import { FontSizeControl } from "@/components/font-size-control";
 import { restartGuidedTour } from "@/components/guided-tour";
 import { SPORTS, sportLabel } from "@/lib/sports";
+import { LADOS, ladoDe } from "@/lib/lado";
 
 export const Route = createFileRoute("/_authenticated/perfil")({
   head: () => ({
@@ -73,7 +74,7 @@ function Perfil() {
       setTelefono(profile.telefono ?? "");
       setCiudad(profile.ciudad ?? "");
       setDeporte(profile.deporte ?? "");
-      setPosicion(profile.posicion ?? "");
+      setPosicion(ladoDe(profile.posicion) ?? "");
       setMano(profile.mano_dominante ?? "");
       setNivel(profile.nivel ?? "");
       setDescripcion(profile.descripcion ?? "");
@@ -91,7 +92,7 @@ function Perfil() {
         telefono: telefono.trim() || null,
         ciudad: ciudad.trim() || null,
         deporte: deporte || null,
-        posicion: posicion.trim() || null,
+        posicion: posicion || null,
         mano_dominante: mano.trim() || null,
         nivel: nivel.trim() || null,
         descripcion: descripcion.trim() || null,
@@ -131,7 +132,9 @@ function Perfil() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <h1 className="text-display text-2xl font-black tracking-tight sm:text-3xl">{t("profile.myProfile")}</h1>
+      <h1 className="text-display text-2xl font-black tracking-tight sm:text-3xl">
+        {t("profile.myProfile")}
+      </h1>
 
       {/* Resumen de cuenta */}
       <section className="surface-card flex flex-col gap-4 p-6 sm:flex-row sm:items-center">
@@ -230,12 +233,20 @@ function Perfil() {
             </div>
             <div>
               <Label htmlFor="posicion">{t("profile.posicion")}</Label>
-              <Input
-                id="posicion"
-                value={posicion}
-                onChange={(e) => setPosicion(e.target.value)}
-                maxLength={50}
-              />
+              {/* Tres opciones y no texto libre: el equipo lo ve en Miembros y
+                  «revés», «Reves» y «drive» tienen que leerse igual. */}
+              <Select value={posicion} onValueChange={setPosicion}>
+                <SelectTrigger id="posicion" className="min-h-11">
+                  <SelectValue placeholder={t("profile.posicionPlaceholder")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {LADOS.map((l) => (
+                    <SelectItem key={l} value={l}>
+                      {t(`lado.${l}`)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <Label htmlFor="mano">{t("profile.manoDominante")}</Label>
