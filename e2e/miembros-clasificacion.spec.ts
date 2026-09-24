@@ -66,6 +66,24 @@ async function servirBalance(page: Page, filas: [Session, Balance][]) {
   await page.route(/\/api\/stats\/players\//, (route) =>
     route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(cuerpo) }),
   );
+  // Y, a juego, qué clasificaciones tienen algo: la de los partidos si hay.
+  await servirVistas(page, { partidos: filas.some(([, b]) => b.pj > 0) });
+}
+
+type Vistas = { partidos?: boolean; entrenos?: boolean; competiciones?: string[] };
+
+/**
+ * Qué clasificaciones tienen resultados, que es lo que ofrece el selector.
+ * Playwright mira antes las rutas registradas después, así que llamarla tras
+ * `servirBalance` sustituye lo que puso esa.
+ */
+async function servirVistas(page: Page, vistas: Vistas) {
+  await servirJson(page, /\/api\/stats\/rankings\//, {
+    partidos: false,
+    entrenos: false,
+    competiciones: [],
+    ...vistas,
+  });
 }
 
 const podio = (page: Page) => page.getByRole("region", { name: /quién más gana/i });
@@ -138,6 +156,8 @@ test.describe("Miembros: podio y clasificación", () => {
     await expect(page.getByRole("heading", { name: /aún no hay partidos/i })).toBeVisible();
     await expect(podio(page)).toHaveCount(0);
     await expect(tabla(page)).toHaveCount(0);
+    // Sin resultados de nada, no hay nada que elegir.
+    await expect(selector(page)).toHaveCount(0);
 
     const plantilla = page.getByRole("region", { name: /plantilla/i });
     await expect(plantilla.getByText("Sara Lago")).toBeVisible();
@@ -287,6 +307,7 @@ test.describe("Miembros: podio y clasificación", () => {
   test("el selector cambia a los entrenos, medidos por nota", async ({ page, request }) => {
     const e = await montarEquipo(request);
     await servirBalance(page, [[e.diego, { pj: 6, v: 5 }]]);
+    await servirVistas(page, { partidos: true, entrenos: true });
     await servirJson(
       page,
       /\/api\/stats\/trainings\//,
@@ -320,25 +341,44 @@ test.describe("Miembros: podio y clasificación", () => {
     await expect(tabla(page).locator("tbody tr").nth(0)).toContainText("Sara Lago");
   });
 
-  test("entrenos sin resultados: se dice qué va a salir", async ({ page, request }) => {
+  test("con resultados de un solo tipo, se ve ese y sin selector", async ({ page, request }) => {
     const e = await montarEquipo(request);
-    await servirBalance(page, [[e.diego, { pj: 6, v: 5 }]]);
-    await servirJson(page, /\/api\/stats\/trainings\//, clasificacion([]));
+    // Ningún partido, pero sí entrenos.
+    await servirBalance(page, []);
+    await servirVistas(page, { entrenos: true });
+    await servirJson(
+      page,
+      /\/api\/stats\/trainings\//,
+      clasificacion([[e.sara, { nota: 66, entrenos: 2 }]]),
+    );
     await loginAs(page, e.captain);
     await page.goto("/miembros");
-    await expect(podio(page)).toBeVisible();
 
-    await selector(page).selectOption({ label: "Entrenos" });
-    await expect(
-      page.getByRole("heading", { name: /aún no hay entrenos con resultados/i }),
-    ).toBeVisible();
-    await expect(tabla(page)).toHaveCount(0);
+    await expect(page.getByRole("region", { name: /quién va mejor/i })).toBeVisible();
+    await expect(tabla(page).getByRole("button", { name: /^nota$/i })).toBeVisible();
+    await expect(selector(page)).toHaveCount(0);
+  });
+
+  test("el selector solo ofrece lo que tiene resultados", async ({ page, request }) => {
+    const e = await montarEquipo(request);
+    const liga = await crearCompeticion(request, e, "Liga con algo", "partidos");
+    await crearCompeticion(request, e, "Liga vacía", "partidos");
+    await servirBalance(page, [[e.sara, { pj: 6, v: 5 }]]);
+    // Partidos y una liga; los entrenos, nada.
+    await servirVistas(page, { partidos: true, competiciones: [liga.id] });
+    await loginAs(page, e.captain);
+    await page.goto("/miembros");
+
+    await expect(selector(page)).toBeVisible();
+    const opciones = await selector(page).locator("option").allTextContents();
+    expect(opciones).toEqual(["Enfrentamientos", "Liga con algo"]);
   });
 
   test("una competición con formato enseña su clasificación", async ({ page, request }) => {
     const e = await montarEquipo(request);
     const liga = await crearCompeticion(request, e, "Liga de invierno", "partidos");
     await servirBalance(page, []);
+    await servirVistas(page, { partidos: true, competiciones: [liga.id] });
     await servirJson(
       page,
       new RegExp(`/api/competitions/${liga.id}/standings/`),
@@ -359,6 +399,7 @@ test.describe("Miembros: podio y clasificación", () => {
   test("una competición sin formato enseña sus partidos", async ({ page, request }) => {
     const e = await montarEquipo(request);
     const copa = await crearCompeticion(request, e, "Copa", null);
+    await servirVistas(page, { partidos: true, competiciones: [copa.id] });
     // Los partidos de todo el equipo, y los de la copa aparte.
     let pedidoDeLaCopa = false;
     await page.route(/\/api\/stats\/players\//, (route) => {
@@ -444,6 +485,7 @@ test.describe("Miembros: podio y clasificación", () => {
   }) => {
     const e = await montarEquipo(request);
     await servirBalance(page, []);
+    await servirVistas(page, { partidos: true, entrenos: true });
     await loginAs(page, e.captain);
     await page.goto("/miembros");
 
@@ -521,9 +563,18 @@ test.describe("Miembros: podio y clasificación", () => {
         [e.captain, { pj: 8, v: 5 }],
         [e.diego, { pj: 5, v: 1 }],
       ]);
+      await servirVistas(page, { partidos: true, entrenos: true });
       await loginAs(page, e.captain);
       await page.goto("/miembros");
       await expect(podio(page)).toBeVisible();
+
+      // «Invitar» y el selector, a la derecha también aquí.
+      const invitar = await page.getByRole("button", { name: /^invitar$/i }).boundingBox();
+      const clasif = await selector(page).boundingBox();
+      const derecha = (c: { x: number; width: number }) => c.x + c.width;
+      expect(Math.abs(derecha(clasif!) - derecha(invitar!))).toBeLessThan(2);
+      expect(derecha(invitar!)).toBeGreaterThan(375 - 24);
+      expect(clasif!.y).toBeGreaterThan(invitar!.y + invitar!.height - 1);
 
       const desborda = await page.evaluate(
         () => document.documentElement.scrollWidth > window.innerWidth,

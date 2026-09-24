@@ -5,6 +5,7 @@ import { ArrowDown, Crown, MoreHorizontal, Trash2, Trophy } from "lucide-react";
 
 import { api } from "@/lib/api";
 import { ladoDe, type Lado } from "@/lib/lado";
+import type { OpcionVista, Vista } from "@/hooks/use-vistas-clasificacion";
 import type {
   Competition,
   CompetitionStandings,
@@ -51,13 +52,6 @@ const COLOR_ROL: Record<TeamRole, string> = {
   delegado: "text-evt-reunion",
   jugador: "text-primary",
 };
-
-/**
- * Qué se está mirando: los enfrentamientos, los entrenos, o una competición
- * (`c:<id>`). Una competición con formato se ve con su propia clasificación;
- * una sin formato solo agrupa partidos, y se ve como enfrentamientos suyos.
- */
-export type Vista = "partidos" | "entrenos" | `c:${string}`;
 
 /**
  * Cómo se mide. En los partidos, el % de victorias. En los entrenos, la nota
@@ -223,21 +217,23 @@ function useCompeticiones(teamId: string) {
  * Qué clasificación se ve: enfrentamientos, entrenos o una competición.
  *
  * Va aparte de la tabla porque en la página se coloca en la cabecera, debajo
- * de «Invitar», y no encima del podio.
+ * de «Invitar», y no encima del podio. Las opciones llegan ya filtradas: solo
+ * las que tienen resultados (ver `useVistasClasificacion`).
  */
 export function VistaSelector({
-  teamId,
+  opciones,
   vista,
   onChange,
   className,
 }: {
-  teamId: string;
+  opciones: OpcionVista[];
   vista: Vista;
   onChange: (v: Vista) => void;
   className?: string;
 }) {
   const { t } = useTranslation();
-  const { data: competitions } = useCompeticiones(teamId);
+  const competiciones = opciones.filter((o) => o.competition);
+  const hay = (v: Vista) => opciones.some((o) => o.vista === v);
   return (
     <div className={cn("flex flex-wrap items-center gap-2", className)}>
       <label
@@ -252,13 +248,13 @@ export function VistaSelector({
         onChange={(e) => onChange(e.target.value as Vista)}
         className="min-h-10 min-w-0 max-w-full rounded-md border border-border bg-card px-3 py-2 text-sm font-semibold"
       >
-        <option value="partidos">{t("members.viewMatches")}</option>
-        <option value="entrenos">{t("members.viewTrainings")}</option>
-        {(competitions?.length ?? 0) > 0 && (
+        {hay("partidos") && <option value="partidos">{t("members.viewMatches")}</option>}
+        {hay("entrenos") && <option value="entrenos">{t("members.viewTrainings")}</option>}
+        {competiciones.length > 0 && (
           <optgroup label={t("members.viewCompetitions")}>
-            {competitions!.map((c) => (
-              <option key={c.id} value={`c:${c.id}`}>
-                {c.finalizada ? `${c.nombre} · ${t("members.finished")}` : c.nombre}
+            {competiciones.map(({ vista: v, competition: c }) => (
+              <option key={v} value={v}>
+                {c!.finalizada ? `${c!.nombre} · ${t("members.finished")}` : c!.nombre}
               </option>
             ))}
           </optgroup>
