@@ -55,7 +55,13 @@ test.describe("Las imágenes están cerradas", () => {
     await loginAs(page, session);
     for (const ruta of ["/mi-equipo", "/inicio", "/calendario"]) {
       await page.goto(ruta);
-      await expect(page.getByText(team.nombre).first()).toBeVisible({ timeout: 20_000 });
+      // En Calendario el equipo solo se nombra en el selector de equipo, y ese
+      // no sale con un equipo solo: ahí basta con que la pantalla haya cargado.
+      const cargada =
+        ruta === "/calendario"
+          ? page.locator("main h1").first()
+          : page.getByText(team.nombre).first();
+      await expect(cargada).toBeVisible({ timeout: 20_000 });
       // Ni la imagen ni, sobre todo, el icono de rota del navegador.
       await expect(page.locator('main img[src*="/media/"]')).toHaveCount(0);
     }
