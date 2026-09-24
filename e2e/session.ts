@@ -140,12 +140,17 @@ export async function seedPlayerInTeam(
   prefix: string,
   teamId: string,
   captain: Session,
+  {
+    nombre = "Iván",
+    apellidos = "Ruiz",
+    role = "jugador",
+  }: { nombre?: string; apellidos?: string; role?: string } = {},
 ) {
-  const session = await signUp(api, uniqueEmail(prefix), "Iván", "Ruiz");
+  const session = await signUp(api, uniqueEmail(prefix), nombre, apellidos);
   await completeOnboarding(api, session, "jugador");
   const invite = await api.post(`${API_URL}/team-invitations/`, {
     headers: bearer(captain),
-    data: { team_id: teamId, invited_user_id: session.userId, role: "jugador" },
+    data: { team_id: teamId, invited_user_id: session.userId, role },
   });
   const { id } = (await invite.json()) as { id: string };
   await api.post(`${API_URL}/team-invitations/${id}/accept/`, { headers: bearer(session) });
