@@ -52,6 +52,9 @@ import {
   type SetPair,
 } from "@/lib/padel-scoring";
 import { cn, inicialesDe } from "@/lib/utils";
+import { PadelCourtsBoard } from "@/components/padel-courts-board";
+import { QuimicaAviso, QuimicaBoton } from "@/components/quimica";
+import { useQuimicas } from "@/hooks/use-quimica";
 import type {
   EventResponse,
   MatchParticipation,
@@ -404,6 +407,7 @@ function CallupSection({
     team_id: string;
     tipo: string;
     padel_num_pistas: number | null;
+    convocatoria_confirmada: boolean;
   };
   isManager: boolean;
   userId: string | null;
@@ -418,7 +422,10 @@ function CallupSection({
     queryFn: () => api.get<Team>(`/teams/${teamId}/`),
   });
   const isPadel = team?.deporte === "padel";
-  const showPadelCourts = isPadel && event.tipo === "partido" && (event.padel_num_pistas ?? 0) > 0;
+  // La química y el reparto de parejas son de los partidos de pádel, que es
+  // donde se juega en parejas por pista.
+  const hayQuimica = isPadel && event.tipo === "partido";
+  const confirmada = event.convocatoria_confirmada;
 
   const { data: members } = useQuery({
     queryKey: ["team-members-full", teamId],
@@ -523,6 +530,16 @@ function CallupSection({
   const myResp = userId ? respByUser.get(userId) : undefined;
   const isMember = !!members?.some((m) => m.user_id === userId);
 
+  // Puedo dar química si estoy apuntado y no he dicho «No puedo». Para la
+  // gestión llega la de todos; aquí solo interesa la mía.
+  const puedoDarQuimica = hayQuimica && !!myResp && myResp.status !== "rechazado";
+  const { data: quimicas } = useQuimicas([eventId], hayQuimica);
+  const miQuimica = quimicas?.find((q) => q.user_id === userId)?.target_user_id ?? null;
+  const nombreDe = (uid: string) => {
+    const p = members?.find((m) => m.user_id === uid)?.profile;
+    return p ? `${p.nombre} ${p.apellidos}` : "";
+  };
+
   return (
     <div className="surface-card overflow-hidden">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-5">
@@ -557,11 +574,23 @@ function CallupSection({
           <div className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
             {t("callups.myStatus")}
           </div>
-          {myResp.es_convocado && (
-            <p className="mt-1 text-xxs font-bold uppercase tracking-widest text-primary">
-              ★ {t("callups.youAreCalled")}
-              {myResp.padel_pista ? ` · ${t("callups.pista")} ${myResp.padel_pista}` : ""}
+          {/* En pádel, la pista no se enseña hasta que se confirma la
+              convocatoria: mientras, las parejas aún pueden cambiar. */}
+          {hayQuimica && !confirmada ? (
+            <p className="mt-1 text-xxs font-bold uppercase tracking-widest text-warn">
+              {t("quimica.pendiente")}
             </p>
+          ) : hayQuimica && !myResp.es_convocado ? (
+            <p className="mt-1 text-xxs font-bold uppercase tracking-widest text-muted-foreground">
+              {t("quimica.noConvocado")}
+            </p>
+          ) : (
+            myResp.es_convocado && (
+              <p className="mt-1 text-xxs font-bold uppercase tracking-widest text-primary">
+                ★ {t("callups.youAreCalled")}
+                {myResp.padel_pista ? ` · ${t("callups.pista")} ${myResp.padel_pista}` : ""}
+              </p>
+            )
           )}
           <PlayerResponseForm response={myResp} eventId={eventId} userId={userId} />
         </div>
@@ -573,6 +602,13 @@ function CallupSection({
         </h3>
         {signedUp.length === 0 && (
           <p className="text-xs text-muted-foreground">{t("callups.noSignedUp")}</p>
+        )}
+        {puedoDarQuimica && signedUp.length > 1 && (
+          <QuimicaAviso
+            cerrada={confirmada}
+            mia={miQuimica ? nombreDe(miQuimica) : null}
+            className="mb-3 rounded-md border"
+          />
         )}
         {/* Nombre y estado no caben en la misma línea de un móvil: la etiqueta
             «Confirmado» mide sus buenos noventa píxeles y dejaba el nombre en
@@ -615,6 +651,18 @@ function CallupSection({
                   >
                     {t(`callups.response_${status}`)}
                   </span>
+                  {puedoDarQuimica && r.user_id !== userId && status !== "rechazado" && (
+                    <QuimicaBoton
+                      eventId={eventId}
+                      candidato={{
+                        user_id: r.user_id,
+                        nombre: nombreDe(r.user_id),
+                        rol: m?.role ? t(`roles.${m.role}`) : "",
+                      }}
+                      mia={miQuimica}
+                      cerrada={confirmada}
+                    />
+                  )}
                   {isManager && (
                     <label className="flex min-h-9 cursor-pointer items-center gap-1 text-2xs font-bold uppercase tracking-widest">
                       <input
@@ -634,72 +682,18 @@ function CallupSection({
           })}
         </div>
 
-        {showPadelCourts && isManager && convocados.length > 0 && (
-          <div className="mt-6">
-            <h3 className="mb-3 text-2xs font-bold uppercase tracking-widest text-primary">
-              {t("callups.padelAssign")} ({event.padel_num_pistas} {t("callups.pistas")})
-            </h3>
-            <div className="space-y-2">
-              {Array.from({ length: event.padel_num_pistas ?? 0 }).map((_, i) => {
-                const pistaNum = i + 1;
-                const assigned = convocados.filter((r) => r.padel_pista === pistaNum);
-                const isFull = assigned.length >= 2;
-                return (
-                  <div key={pistaNum} className="rounded-md border border-border p-3">
-                    <div className="mb-2 flex items-center justify-between text-2xs font-bold uppercase tracking-widest">
-                      <span>{t("callups.pista")} {pistaNum}</span>
-                      <span className={cn(isFull ? "text-primary" : "text-muted-foreground")}>
-                        {assigned.length}/2
-                      </span>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {assigned.map((r) => {
-                        const m = members?.find((x) => x.user_id === r.user_id);
-                        return (
-                          <div
-                            key={r.id}
-                            className="flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-2.5 py-1 text-xs"
-                          >
-                            <span>
-                              {m?.profile?.nombre} {m?.profile?.apellidos?.[0]}.
-                            </span>
-                            <button
-                              onClick={() => assignCourt.mutate({ id: r.id, pista: null })}
-                              className="text-muted-foreground hover:text-foreground"
-                              title={t("common.remove")}
-                            >
-                              ✕
-                            </button>
-                          </div>
-                        );
-                      })}
-                      {!isFull && (
-                        <select
-                          className="rounded-md border border-border bg-background px-2 py-1 text-xs"
-                          value=""
-                          onChange={(e) => {
-                            if (!e.target.value) return;
-                            assignCourt.mutate({ id: e.target.value, pista: pistaNum });
-                          }}
-                        >
-                          <option value="">+ {t("callups.addPlayer")}</option>
-                          {convocados
-                            .filter((r) => r.padel_pista == null)
-                            .map((r) => {
-                              const m = members?.find((x) => x.user_id === r.user_id);
-                              return (
-                                <option key={r.id} value={r.id}>
-                                  {m?.profile?.nombre} {m?.profile?.apellidos}
-                                </option>
-                              );
-                            })}
-                        </select>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+        {hayQuimica && isManager && (
+          <div className="mt-6 border-t border-border pt-5">
+            <PadelCourtsBoard
+              event={event}
+              responses={signedUp}
+              members={members ?? []}
+              onChanged={() => {
+                qc.invalidateQueries({ queryKey: ["event-responses", eventId] });
+                qc.invalidateQueries({ queryKey: ["event", eventId] });
+                qc.invalidateQueries({ queryKey: ["quimicas"] });
+              }}
+            />
           </div>
         )}
       </div>

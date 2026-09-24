@@ -110,6 +110,9 @@ export type TeamEvent = {
   fecha_fin: string | null;
   requiere_convocatoria: boolean;
   convocatoria_cierra_en: string | null;
+  /** La gestión dio la convocatoria por cerrada: la química ya no se toca. */
+  convocatoria_confirmada: boolean;
+  convocatoria_confirmada_en: string | null;
   rival: string | null;
   es_local: boolean | null;
   resultado_local: number | null;
@@ -136,6 +139,18 @@ export type EventResponse = {
   event_tipo: EventType;
   event_fecha_inicio: string;
   event_titulo: string;
+};
+
+/**
+ * Con quién le gusta jugar a alguien en una convocatoria. Un jugador solo
+ * recibe la suya; la gestión del equipo, la de todos. Ver `hooks/use-quimica`.
+ */
+export type Quimica = {
+  id: string;
+  event_id: string;
+  user_id: string;
+  target_user_id: string;
+  created_at: string;
 };
 
 export type MatchResult = {
