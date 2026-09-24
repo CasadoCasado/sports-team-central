@@ -12,6 +12,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { MembersRanking } from "@/components/members-ranking";
+import { TeamPicker } from "@/components/team-picker";
+import { useActiveTeam } from "@/hooks/use-active-team";
 
 export const Route = createFileRoute("/_authenticated/miembros")({
   head: () => ({
@@ -40,25 +42,10 @@ function Miembros() {
   const { user } = useSession();
   const qc = useQueryClient();
 
-  // Load ALL teams the user belongs to (any role). Manager-only UI is gated below.
-  const { data: myTeams } = useQuery({
-    queryKey: ["my-teams-any-role", user?.id],
-    enabled: !!user,
-    queryFn: async () => {
-      const rows = await api.get<TeamMember[]>("/team-members/", {
-        mine: 1,
-        status: "activo",
-      });
-      return rows.map((r) => ({ team_id: r.team_id, role: r.role, team: r.team }));
-    },
-  });
-
-  const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
-  useEffect(() => {
-    if (!selectedTeamId && myTeams && myTeams.length > 0) {
-      setSelectedTeamId(myTeams[0].team_id);
-    }
-  }, [myTeams, selectedTeamId]);
+  // El equipo es el activo de toda la app: el que se elija aquí es el mismo
+  // que luego sale en Calendario, Convocatorias y demás.
+  const { memberships, active, isLoading: loadingTeams } = useActiveTeam();
+  const selectedTeamId = active?.team_id ?? null;
 
   const { data: members } = useQuery({
     queryKey: ["team-members-list", selectedTeamId],
@@ -78,7 +65,7 @@ function Miembros() {
   >("jugador");
   const debounced = useDebounced(query, 300);
 
-  const currentUserRole = myTeams?.find((mt) => mt.team_id === selectedTeamId)?.role;
+  const currentUserRole = active?.role;
   const canManageRoles = currentUserRole === "capitan";
   const isManagerOfSelected =
     !!currentUserRole &&
@@ -166,7 +153,9 @@ function Miembros() {
     }
   }
 
-  if (!myTeams || myTeams.length === 0) {
+  if (loadingTeams) return null;
+
+  if (!active) {
     return (
       <div className="mx-auto max-w-xl">
         <div className="surface-card flex flex-col items-center gap-3 p-12 text-center">
@@ -178,7 +167,16 @@ function Miembros() {
     );
   }
 
-  const selectedTeam = myTeams.find((mt) => mt.team_id === selectedTeamId)?.team;
+  const selectedTeam = active.team;
+  const varios = memberships.length > 1;
+  // Con varios equipos el nombre ya va en el selector; con uno, en la línea.
+  const descripcion = [
+    varios ? null : selectedTeam?.nombre,
+    selectedTeam?.ciudad,
+    t("members.count", { count: members?.length ?? 0 }),
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
@@ -187,27 +185,13 @@ function Miembros() {
           <h1 className="text-display text-2xl font-black tracking-tight sm:text-3xl">
             {t("members.title")}
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {[selectedTeam?.nombre, t("members.count", { count: members?.length ?? 0 })]
-              .filter(Boolean)
-              .join(" · ")}
-          </p>
+          {/* Con varios equipos, el selector va siempre bajo el título. */}
+          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2">
+            {varios && <TeamPicker />}
+            <p className="text-sm text-muted-foreground">{descripcion}</p>
+          </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          {myTeams.length > 1 && (
-            <select
-              value={selectedTeamId ?? ""}
-              onChange={(e) => setSelectedTeamId(e.target.value)}
-              aria-label={t("team.switchTeam")}
-              className="min-h-10 min-w-0 max-w-full rounded-md border border-border bg-card px-3 py-2 text-sm"
-            >
-              {myTeams.map((mt) => (
-                <option key={mt.team_id} value={mt.team_id}>
-                  {mt.team?.nombre}
-                </option>
-              ))}
-            </select>
-          )}
           {isManagerOfSelected && (
             <Button
               onClick={() => setInviteOpen((v) => !v)}
