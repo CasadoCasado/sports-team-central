@@ -5,7 +5,17 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { es as esLocale, enUS } from "date-fns/locale";
-import { Check, Swords, MapPin, Plus, Users, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  Check,
+  Swords,
+  MapPin,
+  Plus,
+  Users,
+  ChevronDown,
+  ChevronUp,
+  Lock,
+  Sparkles,
+} from "lucide-react";
 import { api } from "@/lib/api";
 import type { EventResponse, Team, TeamMember } from "@/lib/types";
 import { useSession } from "@/hooks/use-session";
@@ -14,16 +24,24 @@ import { TeamPicker } from "@/components/team-picker";
 import { EmptyTeamState } from "@/components/empty-team-state";
 import { EventFormDialog } from "@/components/event-form-dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { PadelCourtsBoard } from "@/components/padel-courts-board";
+import { QuimicaPanel, type Candidato } from "@/components/quimica";
+import { useQuimicas } from "@/hooks/use-quimica";
 
 export const Route = createFileRoute("/_authenticated/enfrentamientos")({
   head: () => ({
     meta: [
       { title: "Enfrentamientos | TeamUp" },
-      { name: "description", content: "Organiza los enfrentamientos del equipo, pistas de pádel y jugadores convocados." },
+      {
+        name: "description",
+        content: "Organiza los enfrentamientos del equipo, pistas de pádel y jugadores convocados.",
+      },
       { property: "og:title", content: "Enfrentamientos | TeamUp" },
-      { property: "og:description", content: "Organiza los enfrentamientos del equipo, pistas de pádel y jugadores convocados." },
+      {
+        property: "og:description",
+        content: "Organiza los enfrentamientos del equipo, pistas de pádel y jugadores convocados.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -39,6 +57,7 @@ type MatchEvent = {
   rival: string | null;
   es_local: boolean | null;
   padel_num_pistas: number | null;
+  convocatoria_confirmada: boolean;
 };
 
 function Matches() {
@@ -49,6 +68,8 @@ function Matches() {
   const qc = useQueryClient();
   const [creating, setCreating] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
+  // El panel de química: se abre solo al apuntarse, y al tocar «Cambiar».
+  const [panel, setPanel] = useState<{ eventId: string; recien: boolean } | null>(null);
   const now = useMemo(() => new Date().toISOString(), []);
 
   const { data: team } = useQuery({
@@ -73,8 +94,7 @@ function Matches() {
   const { data: responses } = useQuery({
     queryKey: ["match-responses", active?.team_id, eventIds.join(",")],
     enabled: eventIds.length > 0,
-    queryFn: () =>
-      api.get<EventResponse[]>("/event-responses/", { event_id__in: eventIds }),
+    queryFn: () => api.get<EventResponse[]>("/event-responses/", { event_id__in: eventIds }),
   });
 
   const { data: members } = useQuery({
@@ -92,6 +112,9 @@ function Matches() {
       }));
     },
   });
+
+  const upcomingIds = (data ?? []).filter((e) => e.fecha_inicio >= now).map((e) => e.id);
+  const { data: quimicas } = useQuimicas(upcomingIds, isPadel);
 
   const respByEvent = useMemo(() => {
     const m = new Map<string, typeof responses>();
@@ -111,9 +134,12 @@ function Matches() {
         status: "confirmado",
       });
     },
-    onSuccess: () => {
-      toast.success(t("callups.signedUp"));
+    onSuccess: (_d, eventId) => {
       qc.invalidateQueries({ queryKey: ["match-responses"] });
+      // En pádel, al apuntarte se te pregunta con quién tienes química; el
+      // propio panel ya dice que te has apuntado.
+      if (isPadel) setPanel({ eventId, recien: true });
+      else toast.success(t("callups.signedUp"));
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -127,32 +153,25 @@ function Matches() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const updatePistas = useMutation({
-    mutationFn: ({ eventId, num }: { eventId: string; num: number | null }) =>
-      api.patch(`/events/${eventId}/`, { padel_num_pistas: num }),
-    onSuccess: () => {
-      toast.success(t("events.updated"));
-      qc.invalidateQueries({ queryKey: ["events"] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const assignCourt = useMutation({
-    mutationFn: async ({ id, pista }: { id: string; pista: number | null }) => {
-      const patch: { padel_pista: number | null; es_convocado?: boolean } = {
-        padel_pista: pista,
-      };
-      // Asignar pista implica convocar.
-      if (pista != null) patch.es_convocado = true;
-      await api.patch(`/event-responses/${id}/`, patch);
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["match-responses"] }),
-    onError: (e: Error) => toast.error(e.message),
-  });
-
   if (!active) return <EmptyTeamState />;
 
   const upcoming = (data ?? []).filter((e) => e.fecha_inicio >= now);
+  const miQuimicaEn = (eventId: string) =>
+    quimicas?.find((q) => q.event_id === eventId && q.user_id === user?.id)?.target_user_id ?? null;
+  const nombreDe = (uid: string) => {
+    const p = members?.find((m) => m.user_id === uid)?.profile;
+    return p ? `${p.nombre} ${p.apellidos}` : "";
+  };
+  const eventoDelPanel = panel ? (data ?? []).find((e) => e.id === panel.eventId) : undefined;
+  const candidatosDelPanel: Candidato[] = panel
+    ? (respByEvent.get(panel.eventId) ?? [])
+        .filter((r) => r.user_id !== user?.id && r.status !== "rechazado")
+        .map((r) => ({
+          user_id: r.user_id,
+          nombre: nombreDe(r.user_id),
+          rol: t(`roles.${members?.find((m) => m.user_id === r.user_id)?.role ?? "jugador"}`),
+        }))
+    : [];
   const past = (data ?? []).filter((e) => e.fecha_inicio < now).reverse();
 
   return (
@@ -162,7 +181,9 @@ function Matches() {
           <h1 className="text-display text-2xl font-black tracking-tight sm:text-3xl">
             {t("nav.enfrentamientos")}
           </h1>
-          <div className="mt-1"><TeamPicker /></div>
+          <div className="mt-1">
+            <TeamPicker />
+          </div>
         </div>
         {isManager && (
           <Button
@@ -204,9 +225,7 @@ function Matches() {
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-semibold break-words">
                         {e.titulo}
-                        {e.rival && (
-                          <span className="text-muted-foreground"> · vs {e.rival}</span>
-                        )}
+                        {e.rival && <span className="text-muted-foreground"> · vs {e.rival}</span>}
                       </p>
                       <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xxs text-muted-foreground">
                         <span>{format(new Date(e.fecha_inicio), "PPP HH:mm", { locale })}</span>
@@ -223,46 +242,63 @@ function Matches() {
                     </div>
                   </Link>
                   <div className="flex shrink-0 flex-wrap gap-2">
-                  {myResp ? (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => withdraw.mutate(myResp.id)}
-                      className="flex-1 uppercase text-2xs font-bold tracking-widest sm:flex-none"
-                    >
-                      <Check className="mr-1 size-3" /> {t("callups.withdraw")}
-                    </Button>
-                  ) : (
-                    <Button
-                      size="sm"
-                      onClick={() => signUp.mutate(e.id)}
-                      className="flex-1 bg-primary text-primary-foreground uppercase text-2xs font-bold tracking-widest hover:opacity-90 sm:flex-none"
-                    >
-                      {t("callups.signUp")}
-                    </Button>
-                  )}
-                  {isPadel && isManager && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => setExpanded(isOpen ? null : e.id)}
-                      className="uppercase text-2xs font-bold tracking-widest"
-                    >
-                      {isOpen ? <ChevronUp className="size-3" /> : <ChevronDown className="size-3" />}
-                      <span className="ml-1">{t("callups.padelAssign")}</span>
-                    </Button>
-                  )}
+                    {isPadel && myResp && myResp.status !== "rechazado" && (
+                      <LineaQuimica
+                        confirmada={e.convocatoria_confirmada}
+                        pista={myResp.es_convocado ? myResp.padel_pista : null}
+                        conQuien={miQuimicaEn(e.id) ? nombreDe(miQuimicaEn(e.id)!) : null}
+                        onAbrir={() => setPanel({ eventId: e.id, recien: false })}
+                      />
+                    )}
+                    {myResp ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => withdraw.mutate(myResp.id)}
+                        className="flex-1 uppercase text-2xs font-bold tracking-widest sm:flex-none"
+                      >
+                        <Check className="mr-1 size-3" /> {t("callups.withdraw")}
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        onClick={() => signUp.mutate(e.id)}
+                        className="flex-1 bg-primary text-primary-foreground uppercase text-2xs font-bold tracking-widest hover:opacity-90 sm:flex-none"
+                      >
+                        {t("callups.signUp")}
+                      </Button>
+                    )}
+                    {isPadel && isManager && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setExpanded(isOpen ? null : e.id)}
+                        className="uppercase text-2xs font-bold tracking-widest"
+                      >
+                        {isOpen ? (
+                          <ChevronUp className="size-3" />
+                        ) : (
+                          <ChevronDown className="size-3" />
+                        )}
+                        <span className="ml-1">{t("callups.padelAssign")}</span>
+                      </Button>
+                    )}
                   </div>
                 </div>
 
                 {isPadel && isManager && isOpen && (
-                  <PadelCourtsPanel
-                    event={e}
-                    responses={resps}
-                    members={members ?? []}
-                    onUpdatePistas={(num) => updatePistas.mutate({ eventId: e.id, num })}
-                    onAssign={(id, pista) => assignCourt.mutate({ id, pista })}
-                  />
+                  <div className="mt-4 rounded-md border border-border bg-card/40 p-4">
+                    <PadelCourtsBoard
+                      event={e}
+                      responses={resps}
+                      members={members ?? []}
+                      onChanged={() => {
+                        qc.invalidateQueries({ queryKey: ["match-responses"] });
+                        qc.invalidateQueries({ queryKey: ["events"] });
+                        qc.invalidateQueries({ queryKey: ["quimicas"] });
+                      }}
+                    />
+                  </div>
                 )}
               </div>
             );
@@ -301,6 +337,18 @@ function Matches() {
         </section>
       )}
 
+      {panel && eventoDelPanel && (
+        <QuimicaPanel
+          open
+          onOpenChange={(open) => !open && setPanel(null)}
+          eventId={panel.eventId}
+          eventTitle={eventoDelPanel.rival ? `vs ${eventoDelPanel.rival}` : eventoDelPanel.titulo}
+          candidatos={candidatosDelPanel}
+          mia={miQuimicaEn(panel.eventId)}
+          recienApuntado={panel.recien}
+        />
+      )}
+
       {creating && (
         <EventFormDialog
           open={creating}
@@ -313,127 +361,51 @@ function Matches() {
   );
 }
 
-function PadelCourtsPanel({
-  event,
-  responses,
-  members,
-  onUpdatePistas,
-  onAssign,
+/**
+ * Tu química en la tarjeta de un partido: con quién la diste (y «Cambiar»),
+ * la pregunta si aún no la has dado, o el candado cuando la convocatoria ya
+ * está confirmada, con tu pista.
+ */
+function LineaQuimica({
+  confirmada,
+  pista,
+  conQuien,
+  onAbrir,
 }: {
-  event: MatchEvent;
-  responses: Array<{
-    id: string;
-    user_id: string;
-    es_convocado: boolean | null;
-    padel_pista: number | null;
-  }>;
-  members: Array<{ user_id: string; profile: { nombre: string; apellidos: string } | null }>;
-  onUpdatePistas: (num: number | null) => void;
-  onAssign: (respId: string, pista: number | null) => void;
+  confirmada: boolean;
+  pista: number | null;
+  conQuien: string | null;
+  onAbrir: () => void;
 }) {
   const { t } = useTranslation();
-  const [pistasDraft, setPistasDraft] = useState<string>(
-    event.padel_num_pistas ? String(event.padel_num_pistas) : "",
-  );
-  const numPistas = event.padel_num_pistas ?? 0;
-
-  const nameFor = (uid: string) => {
-    const m = members.find((x) => x.user_id === uid);
-    return m?.profile ? `${m.profile.nombre} ${m.profile.apellidos}` : "?";
-  };
-
+  if (confirmada) {
+    return (
+      <span className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-border bg-muted px-3 text-xs font-semibold text-muted-foreground">
+        <Lock className="size-3.5" aria-hidden="true" />
+        {pista ? t("quimica.convocadoEnPista", { n: pista }) : t("quimica.noConvocado")}
+      </span>
+    );
+  }
   return (
-    <div className="mt-4 rounded-md border border-border bg-card/40 p-4">
-      <div className="mb-4 flex flex-wrap items-end gap-2">
-        <div>
-          <label className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
-            {t("events.padelPistas")}
-          </label>
-          <Input
-            type="number"
-            min={1}
-            max={20}
-            value={pistasDraft}
-            onChange={(ev) => setPistasDraft(ev.target.value)}
-            className="mt-1 w-32"
-          />
-        </div>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => onUpdatePistas(pistasDraft ? Number(pistasDraft) : null)}
-          className="uppercase text-2xs font-bold tracking-widest"
-        >
-          {t("common.save")}
-        </Button>
-        <p className="ml-auto text-xxs text-muted-foreground">
-          {responses.length} {t("callups.signedUpList").toLowerCase()}
-        </p>
-      </div>
-
-      {numPistas === 0 && (
-        <p className="text-xs text-muted-foreground">{t("events.padelPistasHint")}</p>
+    <button
+      type="button"
+      onClick={onAbrir}
+      className={cn(
+        "inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold text-evt-social transition-colors hover:bg-evt-social/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-evt-social",
+        conQuien
+          ? "border-evt-social/40 bg-evt-social/10"
+          : "border-dashed border-evt-social/40 bg-evt-social/5",
       )}
-
-      {numPistas > 0 && (
-        <div className="space-y-2">
-          {Array.from({ length: numPistas }).map((_, i) => {
-            const pistaNum = i + 1;
-            const assigned = responses.filter((r) => r.padel_pista === pistaNum);
-            const isFull = assigned.length >= 2;
-            const available = responses.filter((r) => r.padel_pista == null);
-            return (
-              <div key={pistaNum} className="rounded-md border border-border p-3">
-                <div className="mb-2 flex items-center justify-between text-2xs font-bold uppercase tracking-widest">
-                  <span>{t("callups.pista")} {pistaNum}</span>
-                  <span className={cn(isFull ? "text-primary" : "text-muted-foreground")}>
-                    {assigned.length}/2
-                  </span>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  {assigned.map((r) => (
-                    <div
-                      key={r.id}
-                      className="flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-2.5 py-1 text-xs"
-                    >
-                      <span>{nameFor(r.user_id)}</span>
-                      <button
-                        onClick={() => onAssign(r.id, null)}
-                        className="text-muted-foreground hover:text-foreground"
-                        aria-label={t("common.remove")}
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ))}
-                  {!isFull && available.length > 0 && (
-                    <select
-                      className="rounded-md border border-border bg-background px-2 py-1 text-xs"
-                      value=""
-                      onChange={(ev) => {
-                        if (!ev.target.value) return;
-                        onAssign(ev.target.value, pistaNum);
-                      }}
-                    >
-                      <option value="">+ {t("callups.addPlayer")}</option>
-                      {available.map((r) => (
-                        <option key={r.id} value={r.id}>
-                          {nameFor(r.user_id)}
-                        </option>
-                      ))}
-                    </select>
-                  )}
-                  {!isFull && available.length === 0 && (
-                    <span className="text-xxs text-muted-foreground">
-                      {t("callups.noSignedUp")}
-                    </span>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+    >
+      <Sparkles className="size-3.5" aria-hidden="true" />
+      {conQuien ? (
+        <>
+          {t("quimica.conNombre", { name: conQuien })} ·{" "}
+          <span className="underline underline-offset-2">{t("quimica.cambiar")}</span>
+        </>
+      ) : (
+        t("quimica.pregunta")
       )}
-    </div>
+    </button>
   );
 }
