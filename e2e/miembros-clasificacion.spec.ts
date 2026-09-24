@@ -438,6 +438,60 @@ test.describe("Miembros: podio y clasificación", () => {
       .toBe("derecha");
   });
 
+  test("con un equipo, la descripción lleva el nombre, la ciudad y cuántos son", async ({
+    page,
+    request,
+  }) => {
+    const e = await montarEquipo(request);
+    await servirBalance(page, []);
+    await loginAs(page, e.captain);
+    await page.goto("/miembros");
+
+    await expect(page.getByText("Equipo clasif · Vigo · 4 miembros")).toBeVisible();
+  });
+
+  test("con varios equipos, el selector va bajo el título y cambia los miembros", async ({
+    page,
+    request,
+  }) => {
+    const e = await montarEquipo(request);
+    const res = await request.post(`${API_URL}/teams/`, {
+      headers: bearer(e.captain),
+      data: { nombre: "Los Otros", deporte: "padel", ciudad: "Ourense" },
+    });
+    expect(res.ok(), await res.text()).toBe(true);
+    await servirBalance(page, []);
+    await loginAs(page, e.captain);
+    await page.goto("/miembros");
+
+    const titulo = page.getByRole("heading", { level: 1, name: /^miembros$/i });
+    const picker = page.getByRole("button", { name: /equipo clasif|los otros/i }).first();
+    await expect(picker).toBeVisible();
+    const cajaTitulo = await titulo.boundingBox();
+    const cajaPicker = await picker.boundingBox();
+    expect(cajaPicker!.y).toBeGreaterThan(cajaTitulo!.y + cajaTitulo!.height - 1);
+
+    // Cambiar al otro equipo cambia la ciudad y la plantilla.
+    const otro = (await picker.textContent())?.includes("Los Otros")
+      ? "Equipo clasif"
+      : "Los Otros";
+    await expect(async () => {
+      await picker.click();
+      await expect(page.getByRole("menuitem", { name: new RegExp(otro, "i") })).toBeVisible({
+        timeout: 1_500,
+      });
+    }).toPass({ timeout: 20_000 });
+    await page.getByRole("menuitem", { name: new RegExp(otro, "i") }).click();
+
+    if (otro === "Los Otros") {
+      await expect(page.getByText("Ourense · 1 miembro")).toBeVisible();
+      await expect(page.getByText("Sara Lago")).toHaveCount(0);
+    } else {
+      await expect(page.getByText("Vigo · 4 miembros")).toBeVisible();
+      await expect(page.getByText("Sara Lago")).toBeVisible();
+    }
+  });
+
   test("un jugador ve la clasificación pero no puede gestionar", async ({ page, request }) => {
     const e = await montarEquipo(request);
     await servirBalance(page, [[e.sara, { pj: 6, v: 5 }]]);
