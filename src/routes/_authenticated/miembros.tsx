@@ -3,22 +3,31 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Check, Search, Trash2, UserPlus, Users, X } from "lucide-react";
+import { Check, Search, UserPlus, Users, X } from "lucide-react";
 import { api } from "@/lib/api";
-import type { Profile, TeamInvitation, TeamMember } from "@/lib/types";
+import type { PlayerStats, Profile, TeamInvitation, TeamMember, TeamRole } from "@/lib/types";
 import { useSession } from "@/hooks/use-session";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { MembersRanking } from "@/components/members-ranking";
 
 export const Route = createFileRoute("/_authenticated/miembros")({
   head: () => ({
     meta: [
       { title: "Miembros | TeamUp" },
-      { name: "description", content: "Gestiona los jugadores del equipo, sus roles y las solicitudes de unión pendientes." },
+      {
+        name: "description",
+        content:
+          "Gestiona los jugadores del equipo, sus roles y las solicitudes de unión pendientes.",
+      },
       { property: "og:title", content: "Miembros | TeamUp" },
-      { property: "og:description", content: "Gestiona los jugadores del equipo, sus roles y las solicitudes de unión pendientes." },
+      {
+        property: "og:description",
+        content:
+          "Gestiona los jugadores del equipo, sus roles y las solicitudes de unión pendientes.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -61,17 +70,28 @@ function Miembros() {
       }),
   });
 
+  // El balance de cada jugador: con él se pintan el podio y la tabla.
+  const { data: stats } = useQuery({
+    queryKey: ["team-player-stats", selectedTeamId],
+    enabled: !!selectedTeamId,
+    queryFn: () => api.get<PlayerStats[]>("/stats/players/", { team_id: selectedTeamId! }),
+  });
+
+  const [inviteOpen, setInviteOpen] = useState(false);
   const [searchBy, setSearchBy] = useState<"nombre" | "email">("nombre");
   const [query, setQuery] = useState("");
-  const [inviteRole, setInviteRole] = useState<"jugador" | "co_capitan" | "entrenador" | "delegado">("jugador");
+  const [inviteRole, setInviteRole] = useState<
+    "jugador" | "co_capitan" | "entrenador" | "delegado"
+  >("jugador");
   const debounced = useDebounced(query, 300);
 
   const currentUserRole = myTeams?.find((mt) => mt.team_id === selectedTeamId)?.role;
   const canManageRoles = currentUserRole === "capitan";
   const isManagerOfSelected =
-    !!currentUserRole && ["capitan", "co_capitan", "entrenador", "delegado"].includes(currentUserRole);
+    !!currentUserRole &&
+    ["capitan", "co_capitan", "entrenador", "delegado"].includes(currentUserRole);
 
-  async function changeRole(memberId: string, newRole: "capitan" | "co_capitan" | "entrenador" | "delegado" | "jugador") {
+  async function changeRole(memberId: string, newRole: TeamRole) {
     try {
       await api.patch(`/team-members/${memberId}/`, { role: newRole });
     } catch (err) {
@@ -83,7 +103,6 @@ function Miembros() {
   }
 
   async function removeMember(memberId: string) {
-    if (!confirm(t("members.removeConfirm"))) return;
     try {
       await api.delete(`/team-members/${memberId}/`);
     } catch (err) {
@@ -166,108 +185,66 @@ function Miembros() {
     );
   }
 
+  const selectedTeam = myTeams.find((mt) => mt.team_id === selectedTeamId)?.team;
+
   return (
     <div className="mx-auto max-w-5xl space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-display text-2xl font-black tracking-tight sm:text-3xl">{t("members.title")}</h1>
-        {myTeams.length > 1 && (
-          <select
-            value={selectedTeamId ?? ""}
-            onChange={(e) => setSelectedTeamId(e.target.value)}
-            className="min-h-10 min-w-0 max-w-full rounded-md border border-border bg-card px-3 py-2 text-sm"
-          >
-            {myTeams.map((mt) => (
-              <option key={mt.team_id} value={mt.team_id}>
-                {mt.team?.nombre}
-              </option>
-            ))}
-          </select>
-        )}
-      </div>
-
-
-      {/* Current members */}
-      <div className="surface-card">
-        <div className="border-b border-border p-4">
-          <h2 className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
-            {t("members.title")} ({members?.length ?? 0})
-          </h2>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-display text-2xl font-black tracking-tight sm:text-3xl">
+            {t("members.title")}
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {[selectedTeam?.nombre, t("members.count", { count: members?.length ?? 0 })]
+              .filter(Boolean)
+              .join(" · ")}
+          </p>
         </div>
-        <div className="divide-y divide-border">
-          {(members ?? []).map((m) => {
-            const p = m.profile;
-            if (!p) return null;
-            return (
-              /* El nombre arriba y los controles debajo mientras no haya sitio.
-                 En una sola fila, el selector de rol y la papelera no se
-                 encogen: al jugador le quedaban sesenta píxeles y «Alejandro
-                 Rodríguez-Buján» salía partido en tres renglones. */
-              <div key={m.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:gap-4">
-                <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
-                  <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-card text-xs font-bold ring-1 ring-border">
-                    {(p.nombre?.[0] ?? "") + (p.apellidos?.[0] ?? "")}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-bold break-words">
-                      {p.nombre} {p.apellidos}
-                    </p>
-                    {/* Sin `min-w-0` arriba, un correo largo ensancha la fila y
-                        saca el botón de borrar fuera de la tarjeta. */}
-                    <EmailCell email={p.email} />
-                  </div>
-                </div>
-                {canManageRoles && p.id !== user?.id ? (
-                  <div className="flex shrink-0 items-center gap-2">
-                    <select
-                      value={m.role}
-                      onChange={(e) => changeRole(m.id, e.target.value as "capitan" | "co_capitan" | "entrenador" | "delegado" | "jugador")}
-                      className="min-h-9 flex-1 rounded-md border border-border bg-card px-2 py-1 text-2xs font-bold uppercase tracking-widest text-primary sm:flex-none"
-                    >
-                      <option value="jugador">{t("roles.jugador")}</option>
-                      <option value="entrenador">{t("roles.entrenador")}</option>
-                      <option value="delegado">{t("roles.delegado")}</option>
-                      <option value="co_capitan">{t("roles.co_capitan")}</option>
-                      <option value="capitan">{t("roles.capitan")}</option>
-                    </select>
-                    <button
-                      onClick={() => removeMember(m.id)}
-                      className="inline-flex size-9 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                      aria-label={t("members.remove")}
-                    >
-                      <Trash2 className="size-4" />
-                    </button>
-                  </div>
-                ) : (
-                  <span className="shrink-0 self-start rounded-md bg-primary/10 px-2 py-1 text-2xs font-bold uppercase tracking-widest text-primary sm:self-auto">
-                    {t(`roles.${m.role}`)}
-                  </span>
-                )}
-              </div>
-            );
-          })}
-          {(members?.length ?? 0) === 0 && (
-            <div className="p-6 text-center text-sm text-muted-foreground">
-              {t("members.empty")}
-            </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {myTeams.length > 1 && (
+            <select
+              value={selectedTeamId ?? ""}
+              onChange={(e) => setSelectedTeamId(e.target.value)}
+              aria-label={t("team.switchTeam")}
+              className="min-h-10 min-w-0 max-w-full rounded-md border border-border bg-card px-3 py-2 text-sm"
+            >
+              {myTeams.map((mt) => (
+                <option key={mt.team_id} value={mt.team_id}>
+                  {mt.team?.nombre}
+                </option>
+              ))}
+            </select>
+          )}
+          {isManagerOfSelected && (
+            <Button
+              onClick={() => setInviteOpen((v) => !v)}
+              aria-expanded={inviteOpen}
+              className="min-h-10 bg-primary text-2xs font-bold uppercase tracking-widest text-primary-foreground hover:opacity-90"
+            >
+              <UserPlus className="mr-1.5 size-4" aria-hidden="true" />
+              {t("members.invite")}
+            </Button>
           )}
         </div>
       </div>
 
-      {/* Join requests (managers only) */}
+      {/* Las solicitudes, arriba: al final de la página pasaban desapercibidas. */}
       {canManageRoles && (joinRequests?.length ?? 0) > 0 && (
-        <div className="surface-card">
-          <div className="border-b border-border p-4">
-            <h2 className="text-2xs font-bold uppercase tracking-widest text-primary">
-              {t("members.joinRequests", { defaultValue: "Solicitudes de unión" })} ({joinRequests!.length})
-            </h2>
-          </div>
-          <div className="divide-y divide-border">
+        <div className="rounded-xl border border-primary/25 bg-primary/[0.06]">
+          <h2 className="px-4 pb-1 pt-3 text-2xs font-bold uppercase tracking-widest text-primary">
+            {t("members.joinRequests", { defaultValue: "Solicitudes de unión" })} (
+            {joinRequests!.length})
+          </h2>
+          <div className="divide-y divide-primary/15">
             {joinRequests!.map((req) => {
               const p = req.invited_user_profile;
               return (
-                <div key={req.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:gap-4">
-                  <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
-                    <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary ring-1 ring-border">
+                <div
+                  key={req.id}
+                  className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:gap-4"
+                >
+                  <div className="flex min-w-0 flex-1 items-center gap-3">
+                    <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
                       {(p?.nombre?.[0] ?? "") + (p?.apellidos?.[0] ?? "")}
                     </div>
                     <div className="min-w-0 flex-1">
@@ -306,104 +283,131 @@ function Miembros() {
         </div>
       )}
 
-
-
       {/* Search — only managers can invite */}
-      {isManagerOfSelected && (
-      <div className="surface-card p-4 sm:p-6">
-        <h2 className="text-display mb-4 text-xl font-bold">
-          <UserPlus className="mr-2 inline size-5 text-primary" />
-          {t("members.search")}
-        </h2>
-
-        <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-3 text-sm">
-          <span className="text-muted-foreground">{t("members.searchBy")}:</span>
-          <label className="flex cursor-pointer items-center gap-2">
-            <input
-              type="radio"
-              checked={searchBy === "nombre"}
-              onChange={() => setSearchBy("nombre")}
-              className="accent-primary"
-            />
-            {t("members.byName")}
-          </label>
-          <label className="flex cursor-pointer items-center gap-2">
-            <input
-              type="radio"
-              checked={searchBy === "email"}
-              onChange={() => setSearchBy("email")}
-              className="accent-primary"
-            />
-            {t("members.byEmail")}
-          </label>
-          <div className="flex w-full min-w-0 items-center gap-2 sm:ml-auto sm:w-auto">
-            <span className="shrink-0 text-muted-foreground">{t("members.inviteAs")}:</span>
-            <select
-              value={inviteRole}
-              onChange={(e) => setInviteRole(e.target.value as "jugador" | "co_capitan" | "entrenador" | "delegado")}
-              className="min-h-9 min-w-0 flex-1 rounded-md border border-border bg-card px-2 py-1 text-xs sm:flex-none"
+      {isManagerOfSelected && inviteOpen && (
+        <div className="surface-card p-4 sm:p-6">
+          <div className="mb-4 flex items-start justify-between gap-3">
+            <h2 className="text-display text-xl font-bold">
+              <UserPlus className="mr-2 inline size-5 text-primary" />
+              {t("members.search")}
+            </h2>
+            <button
+              type="button"
+              onClick={() => setInviteOpen(false)}
+              className="inline-flex size-9 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+              aria-label={t("common.close")}
             >
-              <option value="jugador">{t("roles.jugador")}</option>
-              <option value="entrenador">{t("roles.entrenador")}</option>
-              <option value="delegado">{t("roles.delegado")}</option>
-              {canManageRoles && <option value="co_capitan">{t("roles.co_capitan")}</option>}
-            </select>
+              <X className="size-4" aria-hidden="true" />
+            </button>
+          </div>
+
+          <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-3 text-sm">
+            <span className="text-muted-foreground">{t("members.searchBy")}:</span>
+            <label className="flex cursor-pointer items-center gap-2">
+              <input
+                type="radio"
+                checked={searchBy === "nombre"}
+                onChange={() => setSearchBy("nombre")}
+                className="accent-primary"
+              />
+              {t("members.byName")}
+            </label>
+            <label className="flex cursor-pointer items-center gap-2">
+              <input
+                type="radio"
+                checked={searchBy === "email"}
+                onChange={() => setSearchBy("email")}
+                className="accent-primary"
+              />
+              {t("members.byEmail")}
+            </label>
+            <div className="flex w-full min-w-0 items-center gap-2 sm:ml-auto sm:w-auto">
+              <span className="shrink-0 text-muted-foreground">{t("members.inviteAs")}:</span>
+              <select
+                value={inviteRole}
+                onChange={(e) =>
+                  setInviteRole(
+                    e.target.value as "jugador" | "co_capitan" | "entrenador" | "delegado",
+                  )
+                }
+                className="min-h-9 min-w-0 flex-1 rounded-md border border-border bg-card px-2 py-1 text-xs sm:flex-none"
+              >
+                <option value="jugador">{t("roles.jugador")}</option>
+                <option value="entrenador">{t("roles.entrenador")}</option>
+                <option value="delegado">{t("roles.delegado")}</option>
+                {canManageRoles && <option value="co_capitan">{t("roles.co_capitan")}</option>}
+              </select>
+            </div>
+          </div>
+
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              autoFocus
+              className="pl-9"
+              placeholder={t("common.search")}
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              maxLength={80}
+            />
+          </div>
+
+          <div className="mt-4 space-y-2">
+            {debounced.length < 2 && (
+              <p className="text-xs text-muted-foreground">{t("members.typeToSearch")}</p>
+            )}
+            {isFetching && <p className="text-xs text-muted-foreground">{t("common.loading")}</p>}
+            {results?.length === 0 && debounced.length >= 2 && !isFetching && (
+              <p className="text-xs text-muted-foreground">{t("members.noResults")}</p>
+            )}
+            {(results ?? []).map((r) => (
+              <div
+                key={r.id}
+                className={cn(
+                  "grid grid-cols-[2.25rem_minmax(0,1fr)] items-center gap-3 rounded-md border border-border bg-background/50 p-3 sm:flex",
+                )}
+              >
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-card text-xs font-bold ring-1 ring-border">
+                  {(r.nombre?.[0] ?? "") + (r.apellidos?.[0] ?? "")}
+                </div>
+                <div className="min-w-0 sm:flex-1">
+                  <p className="text-sm font-medium break-words">
+                    {r.nombre} {r.apellidos}
+                  </p>
+                  <EmailCell email={r.email} />
+                </div>
+                <Button
+                  size="sm"
+                  onClick={() => invite(r.id)}
+                  className="col-span-2 w-full bg-primary text-primary-foreground uppercase tracking-widest text-2xs font-bold hover:opacity-90 sm:col-auto sm:w-auto"
+                >
+                  {t("members.sendInvite")}
+                </Button>
+              </div>
+            ))}
           </div>
         </div>
+      )}
 
-        <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            className="pl-9"
-            placeholder={t("common.search")}
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            maxLength={80}
-          />
+      {/* Hasta tener los dos, nada: con la plantilla sin el balance, asomaría un
+          instante el estado de «aún no hay partidos». */}
+      {!members || !stats ? null : members.length === 0 ? (
+        <div className="surface-card p-6 text-center text-sm text-muted-foreground">
+          {t("members.empty")}
         </div>
-
-        <div className="mt-4 space-y-2">
-          {debounced.length < 2 && (
-            <p className="text-xs text-muted-foreground">{t("members.typeToSearch")}</p>
-          )}
-          {isFetching && (
-            <p className="text-xs text-muted-foreground">{t("common.loading")}</p>
-          )}
-          {results?.length === 0 && debounced.length >= 2 && !isFetching && (
-            <p className="text-xs text-muted-foreground">{t("members.noResults")}</p>
-          )}
-          {(results ?? []).map((r) => (
-            <div
-              key={r.id}
-              className={cn(
-                "grid grid-cols-[2.25rem_minmax(0,1fr)] items-center gap-3 rounded-md border border-border bg-background/50 p-3 sm:flex",
-              )}
-            >
-              <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-card text-xs font-bold ring-1 ring-border">
-                {(r.nombre?.[0] ?? "") + (r.apellidos?.[0] ?? "")}
-              </div>
-              <div className="min-w-0 sm:flex-1">
-                <p className="text-sm font-medium break-words">
-                  {r.nombre} {r.apellidos}
-                </p>
-                <EmailCell email={r.email} />
-              </div>
-              <Button
-                size="sm"
-                onClick={() => invite(r.id)}
-                className="col-span-2 w-full bg-primary text-primary-foreground uppercase tracking-widest text-2xs font-bold hover:opacity-90 sm:col-auto sm:w-auto"
-              >
-                {t("members.sendInvite")}
-              </Button>
-            </div>
-          ))}
-        </div>
-      </div>
+      ) : (
+        <MembersRanking
+          members={members}
+          stats={stats}
+          currentUserId={user?.id}
+          canManage={canManageRoles}
+          onChangeRole={changeRole}
+          onRemove={removeMember}
+        />
       )}
     </div>
   );
 }
-
 
 /**
  * El correo de un usuario, cortado con «…» cuando no cabe en su columna.
