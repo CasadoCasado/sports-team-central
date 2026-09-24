@@ -11,7 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { MembersRanking, VistaSelector, type Vista } from "@/components/members-ranking";
+import { MembersRanking, VistaSelector } from "@/components/members-ranking";
+import { useVistasClasificacion, type Vista } from "@/hooks/use-vistas-clasificacion";
 import { TeamPicker } from "@/components/team-picker";
 import { useActiveTeam } from "@/hooks/use-active-team";
 
@@ -47,14 +48,20 @@ function Miembros() {
   const { memberships, active, isLoading: loadingTeams } = useActiveTeam();
   const selectedTeamId = active?.team_id ?? null;
 
-  // Qué clasificación se ve. Va con el equipo en el que se eligió: al cambiar
-  // de equipo se vuelve a los enfrentamientos, porque sus competiciones son
-  // otras.
-  const [vistaElegida, setVistaElegida] = useState<{ team: string | null; vista: Vista }>({
-    team: selectedTeamId,
-    vista: "partidos",
-  });
-  const vista: Vista = vistaElegida.team === selectedTeamId ? vistaElegida.vista : "partidos";
+  // Qué clasificación se ve. Solo se ofrecen las que tienen resultados: sin
+  // ninguna no hay selector y se ven los enfrentamientos (vacíos); con una, se
+  // ve esa sin selector; con varias, sale el selector.
+  //
+  // Lo elegido va con el equipo en el que se eligió: al cambiar de equipo se
+  // vuelve a la primera opción, porque sus competiciones son otras.
+  const { opciones: vistas, isLoading: loadingVistas } = useVistasClasificacion(selectedTeamId);
+  const [vistaElegida, setVistaElegida] = useState<{ team: string | null; vista: Vista } | null>(
+    null,
+  );
+  const elegida = vistaElegida?.team === selectedTeamId ? vistaElegida.vista : null;
+  const vista: Vista = vistas.some((o) => o.vista === elegida)
+    ? elegida!
+    : (vistas[0]?.vista ?? "partidos");
 
   const { data: members } = useQuery({
     queryKey: ["team-members-list", selectedTeamId],
@@ -200,8 +207,9 @@ function Miembros() {
             <p className="text-sm text-muted-foreground">{descripcion}</p>
           </div>
         </div>
-        {/* «Invitar» y, debajo, qué clasificación se ve. */}
-        <div className="flex flex-col items-start gap-3 sm:items-end">
+        {/* «Invitar» y, debajo, qué clasificación se ve: a la derecha también
+            en el móvil, donde bajan a su propia fila. */}
+        <div className="ml-auto flex flex-col items-end gap-3">
           {isManagerOfSelected && (
             <Button
               onClick={() => setInviteOpen((v) => !v)}
@@ -212,9 +220,9 @@ function Miembros() {
               {t("members.invite")}
             </Button>
           )}
-          {selectedTeamId && (members?.length ?? 0) > 0 && (
+          {(members?.length ?? 0) > 0 && vistas.length > 1 && (
             <VistaSelector
-              teamId={selectedTeamId}
+              opciones={vistas}
               vista={vista}
               onChange={(v) => setVistaElegida({ team: selectedTeamId, vista: v })}
             />
@@ -387,6 +395,10 @@ function Miembros() {
         <div className="surface-card p-6 text-center text-sm text-muted-foreground">
           {t("members.empty")}
         </div>
+      ) : loadingVistas ? (
+        // Hasta saber qué hay, nada: si no, se vería un momento la vista de
+        // los enfrentamientos antes de saltar a la que toca.
+        <div className="surface-card h-40 animate-pulse" aria-busy="true" />
       ) : (
         <MembersRanking
           key={selectedTeamId}
