@@ -1,4 +1,5 @@
 import { useCallback, useSyncExternalStore } from "react";
+import { flushSync } from "react-dom";
 
 /**
  * El tema: claro, oscuro, o el del sistema.
@@ -71,8 +72,34 @@ export function setTema(tema: Tema) {
   } catch {
     // Sin almacenamiento no se recuerda entre visitas, pero sí en esta.
   }
-  aplicar(tema);
-  oyentes.forEach((fn) => fn());
+
+  const cambiar = () => {
+    aplicar(tema);
+    // Dentro de `flushSync` para que los botones del tema ya estén pintados
+    // con el valor nuevo cuando el navegador saque la foto de después.
+    flushSync(() => oyentes.forEach((fn) => fn()));
+  };
+
+  // Un barrido de derecha a izquierda cuando de verdad cambia de claro a
+  // oscuro o al revés; los estilos están en `styles.css`. Sin la API de View
+  // Transitions (Firefox antiguo, Safari de antes de la 18) o con «reducir
+  // movimiento» activado, el cambio es seco, como siempre.
+  const html = typeof document === "undefined" ? null : document.documentElement;
+  const cambiaDeVerdad = !!html && html.classList.contains("dark") !== esOscuro(tema);
+  const sinMovimiento =
+    typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (!html || !cambiaDeVerdad || sinMovimiento || !("startViewTransition" in document)) {
+    cambiar();
+    return;
+  }
+
+  // La marca limita la animación a este cambio: cualquier otra transición de
+  // vistas que llegue a usar la app no heredaría el barrido.
+  html.dataset.transicion = "tema";
+  const transicion = document.startViewTransition(cambiar);
+  transicion.finished.finally(() => {
+    delete html.dataset.transicion;
+  });
 }
 
 export function useTheme() {

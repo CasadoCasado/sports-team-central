@@ -74,6 +74,39 @@ test.describe("Tema claro y oscuro", () => {
     await ctx.close();
   });
 
+  test("cambiar de tema barre la pantalla, salvo con «reducir movimiento»", async ({ browser }) => {
+    for (const [movimiento, barre] of [
+      ["no-preference", true],
+      ["reduce", false],
+    ] as const) {
+      const ctx = await browser.newContext({
+        colorScheme: "light",
+        reducedMotion: movimiento,
+        locale: "es-ES",
+      });
+      const page = await ctx.newPage();
+      await page.goto("/auth");
+
+      // La marca solo está puesta mientras dura el barrido: se apunta si
+      // llega a aparecer, para no depender de mirar justo a tiempo.
+      await page.evaluate(() => {
+        const w = window as unknown as { barrido: boolean };
+        w.barrido = false;
+        new MutationObserver(() => {
+          if (document.documentElement.dataset.transicion === "tema") w.barrido = true;
+        }).observe(document.documentElement, { attributes: true });
+      });
+
+      await elegirTema(page, /^oscuro$/i);
+      await expect(page.locator("html")).toHaveClass(HTML_OSCURO);
+      // Y al acabar la marca se quita, para que no se quede colgada.
+      await expect(page.locator("html")).not.toHaveAttribute("data-transicion");
+      const hubo = await page.evaluate(() => (window as unknown as { barrido: boolean }).barrido);
+      expect(hubo, `con reducedMotion=${movimiento}`).toBe(barre);
+      await ctx.close();
+    }
+  });
+
   test("el fondo y el texto cambian de verdad, no solo la clase", async ({ browser }) => {
     const medir = async (esquema: "light" | "dark") => {
       const ctx = await browser.newContext({ colorScheme: esquema, locale: "es-ES" });

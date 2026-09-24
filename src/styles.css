@@ -453,3 +453,40 @@
 @utility animate-fade-in-up {
   animation: fade-in-up 0.35s ease-out both;
 }
+
+/* El cambio de tema: el nuevo entra barriendo de derecha a izquierda.
+ *
+ * Lo arranca `setTema` (hooks/use-theme.ts) con la API de View Transitions:
+ * el navegador saca una foto de cómo estaba la pantalla y otra de cómo queda,
+ * y aquí se decide cómo pasar de una a otra. La foto nueva se destapa desde el
+ * borde derecho, con el borde un poco difuminado para que se lea como un
+ * barrido y no como una persiana.
+ *
+ * Todo va bajo `data-transicion="tema"`, la marca que pone `setTema` mientras
+ * dura, para que cualquier otra transición de vistas no herede el barrido. Con
+ * «reducir movimiento» no llega a haber transición: `setTema` ni la arranca. */
+:root[data-transicion="tema"]::view-transition-old(root),
+:root[data-transicion="tema"]::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+:root[data-transicion="tema"]::view-transition-new(root) {
+  /* La máscara mide dos pantallas y un borde: a la izquierda, una pantalla
+   * transparente (lo nuevo aún tapado); luego el borde difuminado; a la
+   * derecha, una pantalla opaca (lo nuevo ya a la vista). Al deslizarla hacia
+   * la izquierda, la parte opaca entra por la derecha y barre la pantalla. */
+  mask-image: linear-gradient(to right, transparent 100vw, #000 115vw);
+  mask-size: 215vw 100%;
+  mask-repeat: no-repeat;
+  animation: barrido-tema 0.5s cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+
+@keyframes barrido-tema {
+  from {
+    mask-position: 0 0;
+  }
+  to {
+    mask-position: -115vw 0;
+  }
+}
