@@ -285,25 +285,17 @@ function Pagos() {
                 ) : (
                   <div className="flex items-center justify-between gap-3 p-4">
                     <span className="text-sm text-muted-foreground">{t("fees.myStatus")}</span>
-                    <button
-                      onClick={() =>
-                        user &&
-                        togglePaid.mutate({
-                          feeId: fee.id,
-                          userId: user.id,
-                          paid: !myPaid,
-                        })
-                      }
+                    {/* Solo lectura: el pago lo marca la gestión, que es quien
+                        cobra. Antes cada uno podía marcarse como pagado. */}
+                    <span
                       className={cn(
-                        "flex min-h-10 shrink-0 items-center gap-1.5 rounded-md px-4 text-xs font-bold uppercase tracking-widest transition",
-                        myPaid
-                          ? "bg-primary/20 text-primary"
-                          : "bg-card text-muted-foreground hover:bg-muted",
+                        "flex min-h-10 shrink-0 items-center gap-1.5 rounded-md px-4 text-xs font-bold uppercase tracking-widest",
+                        myPaid ? "bg-primary/20 text-primary" : "bg-card text-muted-foreground",
                       )}
                     >
                       {myPaid ? <Check className="size-3" /> : <Clock className="size-3" />}
-                      {myPaid ? t("fees.markedPaid") : t("fees.markPaid")}
-                    </button>
+                      {myPaid ? t("fees.paid") : t("fees.pending")}
+                    </span>
                   </div>
                 )}
               </div>
