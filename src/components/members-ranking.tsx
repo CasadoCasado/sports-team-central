@@ -85,6 +85,8 @@ type Fila = Dato & {
   nombre: string;
   iniciales: string;
   lado: Lado | null;
+  /** Quien creó el equipo: va delante de todos, tenga el rol que tenga. */
+  dueno: boolean;
 };
 
 function balanceDePartidos(stats: PlayerStats[]): Balance {
@@ -148,10 +150,24 @@ function filasDelEquipo(members: TeamMember[], balance: Balance): Fila[] {
     nombre: [m.profile?.nombre, m.profile?.apellidos].filter(Boolean).join(" ") || "—",
     iniciales: ((m.profile?.nombre?.[0] ?? "") + (m.profile?.apellidos?.[0] ?? "")).toUpperCase(),
     lado: ladoDe(m.profile?.posicion),
+    dueno: !!m.team && m.team.owner_id === m.user_id,
   }));
 }
 
 const porNombre = (a: Fila, b: Fila) => a.nombre.localeCompare(b.nombre);
+
+/** El orden de un equipo, el mismo que da el servidor. */
+const ORDEN_ROLES: TeamRole[] = ["capitan", "co_capitan", "entrenador", "delegado", "jugador"];
+
+/**
+ * Dueño, capitán, co-capitán, entrenador, delegado y jugador; y dentro de
+ * cada rol, por nombre. Es el orden de la plantilla y el desempate de la
+ * tabla cuando dos van igual en la columna elegida.
+ */
+const porJerarquia = (a: Fila, b: Fila) =>
+  Number(b.dueno) - Number(a.dueno) ||
+  ORDEN_ROLES.indexOf(a.member.role) - ORDEN_ROLES.indexOf(b.member.role) ||
+  porNombre(a, b);
 
 /**
  * El orden por la medida. En los entrenos manda el puesto del servidor, que
@@ -161,22 +177,22 @@ const porNombre = (a: Fila, b: Fila) => a.nombre.localeCompare(b.nombre);
  */
 function porValor(medida: Medida) {
   return medida === "nota"
-    ? (a: Fila, b: Fila) => (a.puesto ?? Infinity) - (b.puesto ?? Infinity) || porNombre(a, b)
+    ? (a: Fila, b: Fila) => (a.puesto ?? Infinity) - (b.puesto ?? Infinity) || porJerarquia(a, b)
     : (a: Fila, b: Fila) =>
         Number(b.clasificado) - Number(a.clasificado) ||
         (b.valor ?? -1) - (a.valor ?? -1) ||
         b.jugados - a.jugados ||
-        porNombre(a, b);
+        porJerarquia(a, b);
 }
 
 function ordenar(filas: Fila[], orden: Orden, medida: Medida): Fila[] {
   const criterios: Record<Orden, (a: Fila, b: Fila) => number> = {
     nombre: porNombre,
-    jugados: (a, b) => b.jugados - a.jugados || porNombre(a, b),
-    v: (a, b) => b.v - a.v || porNombre(a, b),
-    d: (a, b) => b.d - a.d || porNombre(a, b),
+    jugados: (a, b) => b.jugados - a.jugados || porJerarquia(a, b),
+    v: (a, b) => b.v - a.v || porJerarquia(a, b),
+    d: (a, b) => b.d - a.d || porJerarquia(a, b),
     valor: porValor(medida),
-    ultimo: (a, b) => (b.ultimo ?? "").localeCompare(a.ultimo ?? "") || porNombre(a, b),
+    ultimo: (a, b) => (b.ultimo ?? "").localeCompare(a.ultimo ?? "") || porJerarquia(a, b),
   };
   return [...filas].sort(criterios[orden]);
 }
@@ -357,8 +373,9 @@ export function MembersRanking({
   }
 
   const filas = filasDelEquipo(members, balance);
-  const staff = filas.filter((f) => STAFF.includes(f.member.role) && f.jugados === 0);
-  const jugadores = filas.filter((f) => !staff.includes(f));
+  const enOrden = [...filas].sort(porJerarquia);
+  const staff = enOrden.filter((f) => STAFF.includes(f.member.role) && f.jugados === 0);
+  const jugadores = enOrden.filter((f) => !staff.includes(f));
   const sinResultados = jugadores.every((f) => f.jugados === 0);
   const top = podio(jugadores, balance.medida);
   const masJugados = [...jugadores].sort((a, b) => b.jugados - a.jugados)[0];
@@ -624,6 +641,7 @@ function Tabla({
             const enPodio = orden === "valor" && podio.includes(f);
             const esYo = f.member.user_id === currentUserId;
             const sub = [
+              f.dueno ? t("members.owner") : null,
               f.member.role !== "jugador" ? t(`roles.${f.member.role}`) : null,
               esYo ? t("members.you") : null,
             ].filter(Boolean);
@@ -729,6 +747,11 @@ function Plantilla({
             <div className="min-w-0 flex-1">
               <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-semibold break-words">
                 {f.nombre}
+                {f.dueno && (
+                  <span className="rounded-full border border-border bg-muted px-1.5 py-0.5 text-3xs font-bold uppercase tracking-widest text-muted-foreground">
+                    {t("members.owner")}
+                  </span>
+                )}
                 {f.member.user_id === currentUserId && (
                   <span className="rounded-full bg-foreground px-1.5 py-0.5 text-3xs font-bold uppercase tracking-widest text-background">
                     {t("members.you")}

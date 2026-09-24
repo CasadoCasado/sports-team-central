@@ -162,6 +162,13 @@ test.describe("Miembros: podio y clasificación", () => {
     const plantilla = page.getByRole("region", { name: /plantilla/i });
     await expect(plantilla.getByText("Sara Lago")).toBeVisible();
     await expect(plantilla.getByText("Diego Otero")).toBeVisible();
+    // Siempre en orden de equipo: la dueña (y capitana) delante, con su
+    // etiqueta; luego los jugadores, por nombre.
+    const filas = plantilla.getByRole("listitem");
+    await expect(filas.nth(0)).toContainText("Marta Casado");
+    await expect(filas.nth(0)).toContainText(/dueño/i);
+    await expect(filas.nth(1)).toContainText("Diego Otero");
+    await expect(filas.nth(2)).toContainText("Sara Lago");
     // Quien entrena y no juega va aparte, no en la plantilla.
     await expect(plantilla.getByText("Lucía Ferreiro")).toHaveCount(0);
     await expect(page.getByText("Lucía Ferreiro")).toBeVisible();
