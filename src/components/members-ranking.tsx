@@ -57,7 +57,7 @@ const COLOR_ROL: Record<TeamRole, string> = {
  * (`c:<id>`). Una competición con formato se ve con su propia clasificación;
  * una sin formato solo agrupa partidos, y se ve como enfrentamientos suyos.
  */
-type Vista = "partidos" | "entrenos" | `c:${string}`;
+export type Vista = "partidos" | "entrenos" | `c:${string}`;
 
 /**
  * Cómo se mide. En los partidos, el % de victorias. En los entrenos, la nota
@@ -211,8 +211,67 @@ function useValor() {
   return (medida: Medida, valor: number) => (medida === "pct" ? `${valor}%` : nota.format(valor));
 }
 
+function useCompeticiones(teamId: string) {
+  return useQuery({
+    queryKey: ["team-competitions", teamId],
+    queryFn: () =>
+      api.get<Competition[]>("/competitions/", { team_id: teamId, order: "-created_at" }),
+  });
+}
+
+/**
+ * Qué clasificación se ve: enfrentamientos, entrenos o una competición.
+ *
+ * Va aparte de la tabla porque en la página se coloca en la cabecera, debajo
+ * de «Invitar», y no encima del podio.
+ */
+export function VistaSelector({
+  teamId,
+  vista,
+  onChange,
+  className,
+}: {
+  teamId: string;
+  vista: Vista;
+  onChange: (v: Vista) => void;
+  className?: string;
+}) {
+  const { t } = useTranslation();
+  const { data: competitions } = useCompeticiones(teamId);
+  return (
+    <div className={cn("flex flex-wrap items-center gap-2", className)}>
+      <label
+        htmlFor="vista-clasificacion"
+        className="text-2xs font-bold uppercase tracking-widest text-muted-foreground"
+      >
+        {t("members.ranking")}
+      </label>
+      <select
+        id="vista-clasificacion"
+        value={vista}
+        onChange={(e) => onChange(e.target.value as Vista)}
+        className="min-h-10 min-w-0 max-w-full rounded-md border border-border bg-card px-3 py-2 text-sm font-semibold"
+      >
+        <option value="partidos">{t("members.viewMatches")}</option>
+        <option value="entrenos">{t("members.viewTrainings")}</option>
+        {(competitions?.length ?? 0) > 0 && (
+          <optgroup label={t("members.viewCompetitions")}>
+            {competitions!.map((c) => (
+              <option key={c.id} value={`c:${c.id}`}>
+                {c.finalizada ? `${c.nombre} · ${t("members.finished")}` : c.nombre}
+              </option>
+            ))}
+          </optgroup>
+        )}
+      </select>
+    </div>
+  );
+}
+
 type Props = {
   teamId: string;
+  /** Qué se mide; lo elige el `VistaSelector` de la página. */
+  vista: Vista;
   members: TeamMember[];
   currentUserId: string | undefined;
   canManage: boolean;
@@ -222,8 +281,8 @@ type Props = {
 
 /**
  * La plantilla como la clasificación de una liga: un podio con los que van
- * mejor y, debajo, la tabla del equipo ordenable por columnas. Un selector
- * cambia qué se mide: los enfrentamientos, los entrenos o una competición.
+ * mejor y, debajo, la tabla del equipo ordenable por columnas. Qué se mide
+ * —los enfrentamientos, los entrenos o una competición— llega en `vista`.
  *
  * Hay tres momentos en la vida de un equipo y los tres tienen que verse bien:
  * - Nadie ha jugado todavía: ni podio ni columnas de guiones, solo la
@@ -234,6 +293,7 @@ type Props = {
  */
 export function MembersRanking({
   teamId,
+  vista,
   members,
   currentUserId,
   canManage,
@@ -241,15 +301,18 @@ export function MembersRanking({
   onRemove,
 }: Props) {
   const { t } = useTranslation();
-  const [vista, setVista] = useState<Vista>("partidos");
-  const [orden, setOrden] = useState<Orden>("valor");
   const [quitando, setQuitando] = useState<Fila | null>(null);
-
-  const { data: competitions } = useQuery({
-    queryKey: ["team-competitions", teamId],
-    queryFn: () =>
-      api.get<Competition[]>("/competitions/", { team_id: teamId, order: "-created_at" }),
+  // El orden vale para la vista en la que se eligió. Al cambiar de vista se
+  // vuelve a la medida: las columnas de victorias, derrotas y último partido
+  // no están en los entrenos.
+  const [ordenElegido, setOrdenElegido] = useState<{ vista: Vista; orden: Orden }>({
+    vista,
+    orden: "valor",
   });
+  const orden = ordenElegido.vista === vista ? ordenElegido.orden : "valor";
+  const setOrden = (o: Orden) => setOrdenElegido({ vista, orden: o });
+
+  const { data: competitions } = useCompeticiones(teamId);
 
   const competition = vista.startsWith("c:")
     ? competitions?.find((c) => c.id === vista.slice(2))
@@ -288,54 +351,13 @@ export function MembersRanking({
           ? "competicion"
           : "partidosComp";
 
-  function cambiarVista(v: Vista) {
-    setVista(v);
-    // Las columnas de victorias, derrotas y último partido no están en los
-    // entrenos: si se ordenaba por una de ellas, se vuelve a la medida.
-    setOrden("valor");
-  }
-
   const menu = (f: Fila) =>
     canManage && f.member.user_id !== currentUserId ? (
       <MenuMiembro fila={f} onChangeRole={onChangeRole} onRemove={() => setQuitando(f)} />
     ) : null;
 
-  const selector = (
-    <div className="flex flex-wrap items-center gap-2 sm:justify-center">
-      <label
-        htmlFor="vista-clasificacion"
-        className="text-2xs font-bold uppercase tracking-widest text-muted-foreground"
-      >
-        {t("members.ranking")}
-      </label>
-      <select
-        id="vista-clasificacion"
-        value={vista}
-        onChange={(e) => cambiarVista(e.target.value as Vista)}
-        className="min-h-10 min-w-0 max-w-full rounded-md border border-border bg-card px-3 py-2 text-sm font-semibold"
-      >
-        <option value="partidos">{t("members.viewMatches")}</option>
-        <option value="entrenos">{t("members.viewTrainings")}</option>
-        {(competitions?.length ?? 0) > 0 && (
-          <optgroup label={t("members.viewCompetitions")}>
-            {competitions!.map((c) => (
-              <option key={c.id} value={`c:${c.id}`}>
-                {c.finalizada ? `${c.nombre} · ${t("members.finished")}` : c.nombre}
-              </option>
-            ))}
-          </optgroup>
-        )}
-      </select>
-    </div>
-  );
-
   if (!balance) {
-    return (
-      <div className="space-y-6">
-        {selector}
-        <div className="surface-card h-40 animate-pulse" aria-busy="true" />
-      </div>
-    );
+    return <div className="surface-card h-40 animate-pulse" aria-busy="true" />;
   }
 
   const filas = filasDelEquipo(members, balance);
@@ -348,8 +370,6 @@ export function MembersRanking({
 
   return (
     <div className="space-y-6">
-      {selector}
-
       {sinResultados ? (
         <div className="surface-card flex flex-col items-center gap-2 px-6 py-8 text-center">
           <div className="flex size-12 items-center justify-center rounded-full bg-evt-torneo/15 text-evt-torneo">

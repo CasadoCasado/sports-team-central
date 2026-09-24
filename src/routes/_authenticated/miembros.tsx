@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { MembersRanking } from "@/components/members-ranking";
+import { MembersRanking, VistaSelector, type Vista } from "@/components/members-ranking";
 import { TeamPicker } from "@/components/team-picker";
 import { useActiveTeam } from "@/hooks/use-active-team";
 
@@ -46,6 +46,15 @@ function Miembros() {
   // que luego sale en Calendario, Convocatorias y demás.
   const { memberships, active, isLoading: loadingTeams } = useActiveTeam();
   const selectedTeamId = active?.team_id ?? null;
+
+  // Qué clasificación se ve. Va con el equipo en el que se eligió: al cambiar
+  // de equipo se vuelve a los enfrentamientos, porque sus competiciones son
+  // otras.
+  const [vistaElegida, setVistaElegida] = useState<{ team: string | null; vista: Vista }>({
+    team: selectedTeamId,
+    vista: "partidos",
+  });
+  const vista: Vista = vistaElegida.team === selectedTeamId ? vistaElegida.vista : "partidos";
 
   const { data: members } = useQuery({
     queryKey: ["team-members-list", selectedTeamId],
@@ -180,7 +189,7 @@ function Miembros() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <h1 className="text-display text-2xl font-black tracking-tight sm:text-3xl">
             {t("members.title")}
@@ -191,7 +200,8 @@ function Miembros() {
             <p className="text-sm text-muted-foreground">{descripcion}</p>
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        {/* «Invitar» y, debajo, qué clasificación se ve. */}
+        <div className="flex flex-col items-start gap-3 sm:items-end">
           {isManagerOfSelected && (
             <Button
               onClick={() => setInviteOpen((v) => !v)}
@@ -201,6 +211,13 @@ function Miembros() {
               <UserPlus className="mr-1.5 size-4" aria-hidden="true" />
               {t("members.invite")}
             </Button>
+          )}
+          {selectedTeamId && (members?.length ?? 0) > 0 && (
+            <VistaSelector
+              teamId={selectedTeamId}
+              vista={vista}
+              onChange={(v) => setVistaElegida({ team: selectedTeamId, vista: v })}
+            />
           )}
         </div>
       </div>
@@ -372,9 +389,9 @@ function Miembros() {
         </div>
       ) : (
         <MembersRanking
-          // Al cambiar de equipo, el selector vuelve a los enfrentamientos.
           key={selectedTeamId}
           teamId={selectedTeamId}
+          vista={vista}
           members={members}
           currentUserId={user?.id}
           canManage={canManageRoles}

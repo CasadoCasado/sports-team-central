@@ -448,6 +448,14 @@ test.describe("Miembros: podio y clasificación", () => {
     await page.goto("/miembros");
 
     await expect(page.getByText("Equipo clasif · Vigo · 4 miembros")).toBeVisible();
+    // Con un solo equipo no hay selector de equipo: no hay entre qué elegir.
+    await expect(page.getByRole("button", { name: /equipo clasif/i })).toHaveCount(0);
+
+    // Y el de la clasificación va debajo de «Invitar», a su derecha.
+    const invitar = await page.getByRole("button", { name: /^invitar$/i }).boundingBox();
+    const clasif = await selector(page).boundingBox();
+    expect(clasif!.y).toBeGreaterThan(invitar!.y + invitar!.height - 1);
+    expect(Math.abs(clasif!.x + clasif!.width - (invitar!.x + invitar!.width))).toBeLessThan(2);
   });
 
   test("con varios equipos, el selector va bajo el título y cambia los miembros", async ({
