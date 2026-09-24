@@ -1,8 +1,17 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { ArrowDown, Crown, MoreHorizontal, Trash2, Trophy } from "lucide-react";
 
-import type { PlayerStats, TeamMember, TeamRole } from "@/lib/types";
+import { api } from "@/lib/api";
+import { ladoDe, type Lado } from "@/lib/lado";
+import type {
+  Competition,
+  CompetitionStandings,
+  PlayerStats,
+  TeamMember,
+  TeamRole,
+} from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Picture } from "@/components/picture";
 import {
@@ -26,10 +35,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-/** Partidos que hay que llevar para subir al podio. */
-const MIN_PODIO = 5;
+/** Partidos que hay que llevar para subir al podio de los enfrentamientos. */
+const MIN_PARTIDOS = 5;
 
-/** Los roles que no juegan: van aparte, salvo que hayan jugado algún partido. */
+/** Los roles que no juegan: van aparte, salvo que hayan jugado algo. */
 const STAFF: TeamRole[] = ["entrenador", "delegado"];
 
 const ROLES: TeamRole[] = ["jugador", "entrenador", "delegado", "co_capitan", "capitan"];
@@ -43,68 +52,147 @@ const COLOR_ROL: Record<TeamRole, string> = {
   jugador: "text-primary",
 };
 
-type Orden = "nombre" | "pj" | "v" | "d" | "pct" | "ultimo";
+/**
+ * Qué se está mirando: los enfrentamientos, los entrenos, o una competición
+ * (`c:<id>`). Una competición con formato se ve con su propia clasificación;
+ * una sin formato solo agrupa partidos, y se ve como enfrentamientos suyos.
+ */
+type Vista = "partidos" | "entrenos" | `c:${string}`;
 
-type Fila = {
-  member: TeamMember;
-  nombre: string;
-  iniciales: string;
-  pj: number;
+/**
+ * Cómo se mide. En los partidos, el % de victorias. En los entrenos, la nota
+ * de la noche (0 a 100) que usan las competiciones: cada formato de entreno
+ * mide una cosa distinta y la nota es lo único que tienen en común.
+ */
+type Medida = "pct" | "nota";
+
+/** Lo que cambia los textos: de qué se habla en cada vista. */
+type Modo = "partidos" | "partidosComp" | "entrenos" | "competicion";
+
+type Orden = "nombre" | "jugados" | "v" | "d" | "valor" | "ultimo";
+
+type Dato = {
+  jugados: number;
   v: number;
   d: number;
   /** `null` mientras no haya jugado: un 0 % diría que lo ha perdido todo. */
-  pct: number | null;
+  valor: number | null;
   ultimo: string | null;
+  /** Si llega al mínimo para subir al podio. */
+  clasificado: boolean;
+  /** El puesto que da el servidor, cuando lo da: manda en los entrenos. */
+  puesto: number | null;
 };
 
+type Balance = { medida: Medida; minimo: number; porUsuario: Map<string, Dato> };
+
+type Fila = Dato & {
+  member: TeamMember;
+  nombre: string;
+  iniciales: string;
+  lado: Lado | null;
+};
+
+function balanceDePartidos(stats: PlayerStats[]): Balance {
+  return {
+    medida: "pct",
+    minimo: MIN_PARTIDOS,
+    porUsuario: new Map(
+      stats.map((s) => [
+        s.user_id,
+        {
+          jugados: s.disputados,
+          v: s.victorias,
+          d: s.derrotas,
+          valor: s.disputados > 0 ? s.win_pct : null,
+          ultimo: s.ultimo_partido,
+          clasificado: s.disputados >= MIN_PARTIDOS,
+          puesto: null,
+        },
+      ]),
+    ),
+  };
+}
+
+type Clasificacion = Pick<CompetitionStandings, "minimo_podio" | "standings">;
+
+function balanceDeNotas(c: Clasificacion): Balance {
+  return {
+    medida: "nota",
+    minimo: c.minimo_podio,
+    porUsuario: new Map(
+      c.standings.map((s) => [
+        s.user_id,
+        {
+          jugados: s.entrenamientos,
+          v: 0,
+          d: 0,
+          valor: s.nota,
+          ultimo: null,
+          clasificado: s.clasificado,
+          puesto: s.puesto,
+        },
+      ]),
+    ),
+  };
+}
+
+const SIN_DATOS: Dato = {
+  jugados: 0,
+  v: 0,
+  d: 0,
+  valor: null,
+  ultimo: null,
+  clasificado: false,
+  puesto: null,
+};
+
+function filasDelEquipo(members: TeamMember[], balance: Balance): Fila[] {
+  return members.map((m) => ({
+    ...(balance.porUsuario.get(m.user_id) ?? SIN_DATOS),
+    member: m,
+    nombre: [m.profile?.nombre, m.profile?.apellidos].filter(Boolean).join(" ") || "—",
+    iniciales: ((m.profile?.nombre?.[0] ?? "") + (m.profile?.apellidos?.[0] ?? "")).toUpperCase(),
+    lado: ladoDe(m.profile?.posicion),
+  }));
+}
+
+const porNombre = (a: Fila, b: Fila) => a.nombre.localeCompare(b.nombre);
+
 /**
- * Cruza la plantilla con el balance de `/stats/players/`.
- *
- * El balance solo trae a quien tiene alguna participación, así que el resto
- * sale con ceros.
+ * El orden por la medida. En los entrenos manda el puesto del servidor, que
+ * es el mismo que enseña Competiciones: así las dos pantallas nunca dicen
+ * cosas distintas. En los partidos, quien llega al mínimo va delante: un
+ * 100 % con un partido no es un líder.
  */
-function filasDelEquipo(members: TeamMember[], stats: PlayerStats[]): Fila[] {
-  const porUsuario = new Map(stats.map((s) => [s.user_id, s]));
-  return members.map((m) => {
-    const s = porUsuario.get(m.user_id);
-    const pj = s?.disputados ?? 0;
-    return {
-      member: m,
-      nombre: [m.profile?.nombre, m.profile?.apellidos].filter(Boolean).join(" ") || "—",
-      iniciales: ((m.profile?.nombre?.[0] ?? "") + (m.profile?.apellidos?.[0] ?? "")).toUpperCase(),
-      pj,
-      v: s?.victorias ?? 0,
-      d: s?.derrotas ?? 0,
-      pct: pj > 0 ? (s?.win_pct ?? 0) : null,
-      ultimo: s?.ultimo_partido ?? null,
-    };
-  });
+function porValor(medida: Medida) {
+  return medida === "nota"
+    ? (a: Fila, b: Fila) => (a.puesto ?? Infinity) - (b.puesto ?? Infinity) || porNombre(a, b)
+    : (a: Fila, b: Fila) =>
+        Number(b.clasificado) - Number(a.clasificado) ||
+        (b.valor ?? -1) - (a.valor ?? -1) ||
+        b.jugados - a.jugados ||
+        porNombre(a, b);
 }
 
-/** Quién sube al podio: los que más ganan entre quienes llevan el mínimo. */
-function podio(filas: Fila[]): Fila[] {
-  return filas
-    .filter((f) => f.pj >= MIN_PODIO)
-    .sort((a, b) => b.pct! - a.pct! || b.pj - a.pj || a.nombre.localeCompare(b.nombre))
-    .slice(0, 3);
-}
-
-function ordenar(filas: Fila[], orden: Orden): Fila[] {
-  const porNombre = (a: Fila, b: Fila) => a.nombre.localeCompare(b.nombre);
+function ordenar(filas: Fila[], orden: Orden, medida: Medida): Fila[] {
   const criterios: Record<Orden, (a: Fila, b: Fila) => number> = {
     nombre: porNombre,
-    pj: (a, b) => b.pj - a.pj || porNombre(a, b),
+    jugados: (a, b) => b.jugados - a.jugados || porNombre(a, b),
     v: (a, b) => b.v - a.v || porNombre(a, b),
     d: (a, b) => b.d - a.d || porNombre(a, b),
-    // Quien llega al mínimo va delante: un 100 % con un partido no es un líder.
-    pct: (a, b) =>
-      Number(b.pj >= MIN_PODIO) - Number(a.pj >= MIN_PODIO) ||
-      (b.pct ?? -1) - (a.pct ?? -1) ||
-      b.pj - a.pj ||
-      porNombre(a, b),
+    valor: porValor(medida),
     ultimo: (a, b) => (b.ultimo ?? "").localeCompare(a.ultimo ?? "") || porNombre(a, b),
   };
   return [...filas].sort(criterios[orden]);
+}
+
+/** Quién sube al podio: los tres primeros entre quienes llegan al mínimo. */
+function podio(filas: Fila[], medida: Medida): Fila[] {
+  return filas
+    .filter((f) => f.clasificado)
+    .sort(porValor(medida))
+    .slice(0, 3);
 }
 
 /** «hace 3 días», «hace 2 semanas»… en el idioma de la app. */
@@ -117,9 +205,15 @@ function haceCuanto(fecha: string, lang: string): string {
   return rtf.format(-Math.round(dias / 30), "month");
 }
 
+function useValor() {
+  const { i18n } = useTranslation();
+  const nota = new Intl.NumberFormat(i18n.language, { maximumFractionDigits: 1 });
+  return (medida: Medida, valor: number) => (medida === "pct" ? `${valor}%` : nota.format(valor));
+}
+
 type Props = {
+  teamId: string;
   members: TeamMember[];
-  stats: PlayerStats[];
   currentUserId: string | undefined;
   canManage: boolean;
   onChangeRole: (memberId: string, role: TeamRole) => void;
@@ -127,62 +221,157 @@ type Props = {
 };
 
 /**
- * La plantilla como la clasificación de una liga: un podio con los que más
- * ganan y, debajo, la tabla del equipo ordenable por columnas.
+ * La plantilla como la clasificación de una liga: un podio con los que van
+ * mejor y, debajo, la tabla del equipo ordenable por columnas. Un selector
+ * cambia qué se mide: los enfrentamientos, los entrenos o una competición.
  *
  * Hay tres momentos en la vida de un equipo y los tres tienen que verse bien:
- * - Nadie ha jugado todavía: ni podio ni columnas de ceros, solo la plantilla
- *   y una línea que cuenta qué va a aparecer aquí.
- * - Hay partidos pero nadie llega al mínimo: la tabla sí, el podio espera, y
- *   se dice quién está más cerca.
+ * - Nadie ha jugado todavía: ni podio ni columnas de guiones, solo la
+ *   plantilla y una línea que cuenta qué va a aparecer aquí.
+ * - Hay resultados pero nadie llega al mínimo: la tabla sí, el podio espera,
+ *   y se dice quién está más cerca.
  * - Uno o dos llegan al mínimo: el podio sale con los huecos que falten.
  */
 export function MembersRanking({
+  teamId,
   members,
-  stats,
   currentUserId,
   canManage,
   onChangeRole,
   onRemove,
 }: Props) {
   const { t } = useTranslation();
-  const [orden, setOrden] = useState<Orden>("pct");
+  const [vista, setVista] = useState<Vista>("partidos");
+  const [orden, setOrden] = useState<Orden>("valor");
   const [quitando, setQuitando] = useState<Fila | null>(null);
 
-  const filas = filasDelEquipo(members, stats);
-  const staff = filas.filter((f) => STAFF.includes(f.member.role) && f.pj === 0);
-  const jugadores = filas.filter((f) => !staff.includes(f));
-  const nadieHaJugado = jugadores.every((f) => f.pj === 0);
-  const top = podio(jugadores);
-  const masPartidos = [...jugadores].sort((a, b) => b.pj - a.pj)[0];
+  const { data: competitions } = useQuery({
+    queryKey: ["team-competitions", teamId],
+    queryFn: () =>
+      api.get<Competition[]>("/competitions/", { team_id: teamId, order: "-created_at" }),
+  });
+
+  const competition = vista.startsWith("c:")
+    ? competitions?.find((c) => c.id === vista.slice(2))
+    : undefined;
+
+  const { data: balance } = useQuery({
+    queryKey: ["members-balance", teamId, vista, competition?.formato ?? null],
+    // Una competición hace falta tenerla para saber si tiene clasificación.
+    enabled: !vista.startsWith("c:") || !!competition,
+    queryFn: async (): Promise<Balance> => {
+      if (vista === "entrenos") {
+        return balanceDeNotas(
+          await api.get<Clasificacion>("/stats/trainings/", { team_id: teamId }),
+        );
+      }
+      if (competition?.formato) {
+        return balanceDeNotas(
+          await api.get<CompetitionStandings>(`/competitions/${competition.id}/standings/`),
+        );
+      }
+      return balanceDePartidos(
+        await api.get<PlayerStats[]>("/stats/players/", {
+          team_id: teamId,
+          ...(competition ? { competition_id: competition.id } : {}),
+        }),
+      );
+    },
+  });
+
+  const modo: Modo =
+    vista === "partidos"
+      ? "partidos"
+      : vista === "entrenos"
+        ? "entrenos"
+        : competition?.formato
+          ? "competicion"
+          : "partidosComp";
+
+  function cambiarVista(v: Vista) {
+    setVista(v);
+    // Las columnas de victorias, derrotas y último partido no están en los
+    // entrenos: si se ordenaba por una de ellas, se vuelve a la medida.
+    setOrden("valor");
+  }
 
   const menu = (f: Fila) =>
     canManage && f.member.user_id !== currentUserId ? (
       <MenuMiembro fila={f} onChangeRole={onChangeRole} onRemove={() => setQuitando(f)} />
     ) : null;
 
+  const selector = (
+    <div className="flex flex-wrap items-center gap-2 sm:justify-center">
+      <label
+        htmlFor="vista-clasificacion"
+        className="text-2xs font-bold uppercase tracking-widest text-muted-foreground"
+      >
+        {t("members.ranking")}
+      </label>
+      <select
+        id="vista-clasificacion"
+        value={vista}
+        onChange={(e) => cambiarVista(e.target.value as Vista)}
+        className="min-h-10 min-w-0 max-w-full rounded-md border border-border bg-card px-3 py-2 text-sm font-semibold"
+      >
+        <option value="partidos">{t("members.viewMatches")}</option>
+        <option value="entrenos">{t("members.viewTrainings")}</option>
+        {(competitions?.length ?? 0) > 0 && (
+          <optgroup label={t("members.viewCompetitions")}>
+            {competitions!.map((c) => (
+              <option key={c.id} value={`c:${c.id}`}>
+                {c.finalizada ? `${c.nombre} · ${t("members.finished")}` : c.nombre}
+              </option>
+            ))}
+          </optgroup>
+        )}
+      </select>
+    </div>
+  );
+
+  if (!balance) {
+    return (
+      <div className="space-y-6">
+        {selector}
+        <div className="surface-card h-40 animate-pulse" aria-busy="true" />
+      </div>
+    );
+  }
+
+  const filas = filasDelEquipo(members, balance);
+  const staff = filas.filter((f) => STAFF.includes(f.member.role) && f.jugados === 0);
+  const jugadores = filas.filter((f) => !staff.includes(f));
+  const sinResultados = jugadores.every((f) => f.jugados === 0);
+  const top = podio(jugadores, balance.medida);
+  const masJugados = [...jugadores].sort((a, b) => b.jugados - a.jugados)[0];
+  const nombreComp = competition?.nombre ?? "";
+
   return (
     <div className="space-y-6">
-      {nadieHaJugado ? (
+      {selector}
+
+      {sinResultados ? (
         <div className="surface-card flex flex-col items-center gap-2 px-6 py-8 text-center">
           <div className="flex size-12 items-center justify-center rounded-full bg-evt-torneo/15 text-evt-torneo">
             <Trophy className="size-6" aria-hidden="true" />
           </div>
-          <h2 className="text-display text-lg font-bold">{t("members.noMatchesTitle")}</h2>
+          <h2 className="text-display text-lg font-bold">
+            {t(`members.emptyState.${modo}.title`, { name: nombreComp })}
+          </h2>
           <p className="max-w-md text-sm text-muted-foreground">
-            {t("members.noMatchesBody", { min: MIN_PODIO })}
+            {t(`members.emptyState.${modo}.body`, { min: balance.minimo, name: nombreComp })}
           </p>
         </div>
       ) : top.length > 0 ? (
-        <Podio top={top} />
+        <Podio top={top} medida={balance.medida} minimo={balance.minimo} />
       ) : (
         <p className="surface-card flex items-center gap-3 p-4 text-sm text-muted-foreground">
           <Trophy className="size-5 shrink-0 text-evt-torneo" aria-hidden="true" />
           <span>
-            {t("members.podiumPending", {
-              min: MIN_PODIO,
-              name: masPartidos.member.profile?.nombre ?? masPartidos.nombre,
-              count: masPartidos.pj,
+            {t(balance.medida === "pct" ? "members.podiumPending" : "members.podiumPendingNights", {
+              min: balance.minimo,
+              name: masJugados.member.profile?.nombre ?? masJugados.nombre,
+              count: masJugados.jugados,
             })}
           </span>
         </p>
@@ -214,11 +403,12 @@ export function MembersRanking({
         </div>
       )}
 
-      {nadieHaJugado ? (
+      {sinResultados ? (
         <Plantilla filas={jugadores} currentUserId={currentUserId} menu={menu} />
       ) : (
         <Tabla
-          filas={ordenar(jugadores, orden)}
+          filas={ordenar(jugadores, orden, balance.medida)}
+          medida={balance.medida}
           orden={orden}
           setOrden={setOrden}
           currentUserId={currentUserId}
@@ -262,13 +452,30 @@ function Avatar({ fila, className }: { fila: Fila; className?: string }) {
   );
 }
 
+/** Revés, derecha o los dos, como una etiqueta pequeña. */
+function EtiquetaLado({ lado, className }: { lado: Lado | null; className?: string }) {
+  const { t } = useTranslation();
+  if (!lado) return null;
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center rounded-full border border-border bg-muted px-1.5 text-3xs font-bold uppercase tracking-widest text-muted-foreground",
+        className,
+      )}
+    >
+      {t(`lado.${lado}`)}
+    </span>
+  );
+}
+
 /**
  * El podio: segundo, primero y tercero, como en uno de verdad. En escritorio
  * va centrado; si solo uno o dos llegan al mínimo, los huecos se quedan a la
  * vista, vacíos, para que se entienda que hay sitio.
  */
-function Podio({ top }: { top: Fila[] }) {
+function Podio({ top, medida, minimo }: { top: Fila[]; medida: Medida; minimo: number }) {
   const { t } = useTranslation();
+  const valor = useValor();
   const puestos = [
     { fila: top[1], n: 2, alto: "h-16" },
     { fila: top[0], n: 1, alto: "h-24" },
@@ -280,7 +487,7 @@ function Podio({ top }: { top: Fila[] }) {
         id="podio-titulo"
         className="self-start text-2xs font-bold uppercase tracking-widest text-muted-foreground sm:self-center"
       >
-        {t("members.podiumTitle")}
+        {t(medida === "pct" ? "members.podiumTitle" : "members.podiumTitleScore")}
       </h2>
       <ol className="grid w-full max-w-md grid-cols-3 items-end gap-2 sm:gap-4">
         {puestos.map(({ fila, n, alto }) => (
@@ -298,12 +505,14 @@ function Podio({ top }: { top: Fila[] }) {
                 <span className="max-w-full truncate text-sm font-semibold">
                   {fila.member.profile?.nombre ?? fila.nombre}
                 </span>
+                <EtiquetaLado lado={fila.lado} />
                 <span className="text-display text-xl font-black leading-none tabular-nums">
-                  {fila.pct}
-                  <span className="text-xs text-muted-foreground">%</span>
+                  {valor(medida, fila.valor!)}
                 </span>
                 <span className="text-3xs text-muted-foreground">
-                  {t("members.playedCount", { count: fila.pj })}
+                  {t(medida === "pct" ? "members.playedCount" : "members.nightsCount", {
+                    count: fila.jugados,
+                  })}
                 </span>
               </>
             ) : (
@@ -326,13 +535,19 @@ function Podio({ top }: { top: Fila[] }) {
           </li>
         ))}
       </ol>
-      <p className="text-xs text-muted-foreground">{t("members.podiumRule", { min: MIN_PODIO })}</p>
+      <p className="text-xs text-muted-foreground">
+        {t(medida === "pct" ? "members.podiumRule" : "members.podiumRuleNights", {
+          min: minimo,
+          count: minimo,
+        })}
+      </p>
     </section>
   );
 }
 
 function Tabla({
   filas,
+  medida,
   orden,
   setOrden,
   currentUserId,
@@ -341,6 +556,7 @@ function Tabla({
   podio,
 }: {
   filas: Fila[];
+  medida: Medida;
   orden: Orden;
   setOrden: (o: Orden) => void;
   currentUserId: string | undefined;
@@ -349,6 +565,8 @@ function Tabla({
   podio: Fila[];
 }) {
   const { t, i18n } = useTranslation();
+  const valor = useValor();
+  const esPct = medida === "pct";
 
   const cabecera = (clave: Orden, texto: string, className?: string, alinear = "justify-end") => (
     <th
@@ -377,17 +595,17 @@ function Tabla({
           <tr>
             <th className="w-10 px-2 py-2.5 text-center font-bold">#</th>
             {cabecera("nombre", t("members.colPlayer"), "text-left", "justify-start")}
-            {cabecera("pj", t("members.colPlayed"))}
-            {cabecera("v", t("members.colWon"), "hidden sm:table-cell")}
-            {cabecera("d", t("members.colLost"), "hidden sm:table-cell")}
-            {cabecera("pct", t("members.colPct"))}
-            {cabecera("ultimo", t("members.colLast"), "hidden md:table-cell")}
+            {cabecera("jugados", t(esPct ? "members.colPlayed" : "members.colNights"))}
+            {esPct && cabecera("v", t("members.colWon"), "hidden sm:table-cell")}
+            {esPct && cabecera("d", t("members.colLost"), "hidden sm:table-cell")}
+            {cabecera("valor", t(esPct ? "members.colPct" : "members.colScore"))}
+            {esPct && cabecera("ultimo", t("members.colLast"), "hidden md:table-cell")}
             {canManage && <th className="w-10" aria-label={t("members.actions")} />}
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
           {filas.map((f, i) => {
-            const enPodio = orden === "pct" && podio.includes(f);
+            const enPodio = orden === "valor" && podio.includes(f);
             const esYo = f.member.user_id === currentUserId;
             const sub = [
               f.member.role !== "jugador" ? t(`roles.${f.member.role}`) : null,
@@ -416,33 +634,48 @@ function Tabla({
                         )}
                         {f.nombre}
                       </p>
-                      {sub.length > 0 && (
-                        <p className="text-xs text-muted-foreground">{sub.join(" · ")}</p>
+                      {(sub.length > 0 || f.lado) && (
+                        <p className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-muted-foreground">
+                          <EtiquetaLado lado={f.lado} />
+                          {sub.length > 0 && <span>{sub.join(" · ")}</span>}
+                        </p>
                       )}
                     </div>
                   </div>
                 </td>
-                <td className="px-2 py-2.5 text-right">{f.pj || "—"}</td>
-                <td className="hidden px-2 py-2.5 text-right sm:table-cell">{f.pj ? f.v : "—"}</td>
-                <td className="hidden px-2 py-2.5 text-right sm:table-cell">{f.pj ? f.d : "—"}</td>
+                <td className="px-2 py-2.5 text-right">{f.jugados || "—"}</td>
+                {esPct && (
+                  <td className="hidden px-2 py-2.5 text-right sm:table-cell">
+                    {f.jugados ? f.v : "—"}
+                  </td>
+                )}
+                {esPct && (
+                  <td className="hidden px-2 py-2.5 text-right sm:table-cell">
+                    {f.jugados ? f.d : "—"}
+                  </td>
+                )}
                 <td className="px-2 py-2.5 text-right">
-                  {f.pct === null ? (
+                  {f.valor === null ? (
                     <span className="text-muted-foreground">—</span>
                   ) : (
                     <span className="inline-flex items-center gap-2">
                       <span className="hidden h-1.5 w-14 overflow-hidden rounded-full bg-muted min-[400px]:block">
                         <span
                           className="block h-full rounded-full bg-ok"
-                          style={{ width: `${f.pct}%` }}
+                          style={{ width: `${f.valor}%` }}
                         />
                       </span>
-                      <span className="text-display w-10 font-extrabold">{f.pct}%</span>
+                      <span className="text-display w-10 font-extrabold">
+                        {valor(medida, f.valor)}
+                      </span>
                     </span>
                   )}
                 </td>
-                <td className="hidden whitespace-nowrap px-2 py-2.5 text-right text-muted-foreground md:table-cell">
-                  {f.ultimo ? haceCuanto(f.ultimo, i18n.language) : "—"}
-                </td>
+                {esPct && (
+                  <td className="hidden whitespace-nowrap px-2 py-2.5 text-right text-muted-foreground md:table-cell">
+                    {f.ultimo ? haceCuanto(f.ultimo, i18n.language) : "—"}
+                  </td>
+                )}
                 {canManage && <td className="px-1 py-2.5 text-right">{menu(f)}</td>}
               </tr>
             );
@@ -453,7 +686,7 @@ function Tabla({
   );
 }
 
-/** Sin partidos, la tabla serían columnas de guiones: mejor la plantilla a secas. */
+/** Sin resultados, la tabla serían columnas de guiones: mejor la plantilla a secas. */
 function Plantilla({
   filas,
   currentUserId,
@@ -478,13 +711,14 @@ function Plantilla({
           <li key={f.member.id} className="flex items-center gap-3 px-4 py-3">
             <Avatar fila={f} className="size-9 text-xs" />
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold break-words">
+              <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-semibold break-words">
                 {f.nombre}
                 {f.member.user_id === currentUserId && (
-                  <span className="ml-2 rounded-full bg-foreground px-1.5 py-0.5 text-3xs font-bold uppercase tracking-widest text-background">
+                  <span className="rounded-full bg-foreground px-1.5 py-0.5 text-3xs font-bold uppercase tracking-widest text-background">
                     {t("members.you")}
                   </span>
                 )}
+                <EtiquetaLado lado={f.lado} />
               </p>
               <p className="text-xs text-muted-foreground">
                 {f.member.role !== "jugador" && (

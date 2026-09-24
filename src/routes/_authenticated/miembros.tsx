@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Check, Search, UserPlus, Users, X } from "lucide-react";
 import { api } from "@/lib/api";
-import type { PlayerStats, Profile, TeamInvitation, TeamMember, TeamRole } from "@/lib/types";
+import type { Profile, TeamInvitation, TeamMember, TeamRole } from "@/lib/types";
 import { useSession } from "@/hooks/use-session";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -68,13 +68,6 @@ function Miembros() {
         team_id: selectedTeamId!,
         status: "activo",
       }),
-  });
-
-  // El balance de cada jugador: con él se pintan el podio y la tabla.
-  const { data: stats } = useQuery({
-    queryKey: ["team-player-stats", selectedTeamId],
-    enabled: !!selectedTeamId,
-    queryFn: () => api.get<PlayerStats[]>("/stats/players/", { team_id: selectedTeamId! }),
   });
 
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -389,16 +382,16 @@ function Miembros() {
         </div>
       )}
 
-      {/* Hasta tener los dos, nada: con la plantilla sin el balance, asomaría un
-          instante el estado de «aún no hay partidos». */}
-      {!members || !stats ? null : members.length === 0 ? (
+      {!members || !selectedTeamId ? null : members.length === 0 ? (
         <div className="surface-card p-6 text-center text-sm text-muted-foreground">
           {t("members.empty")}
         </div>
       ) : (
         <MembersRanking
+          // Al cambiar de equipo, el selector vuelve a los enfrentamientos.
+          key={selectedTeamId}
+          teamId={selectedTeamId}
           members={members}
-          stats={stats}
           currentUserId={user?.id}
           canManage={canManageRoles}
           onChangeRole={changeRole}
