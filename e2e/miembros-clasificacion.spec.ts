@@ -173,6 +173,55 @@ test.describe("Miembros: podio y clasificación", () => {
     await expect(page.getByRole("button", { name: /opciones de marta casado/i })).toHaveCount(0);
   });
 
+  test("abrir el menú de una fila no descoloca la barra lateral", async ({ page, request }) => {
+    // Con la página bajada, abrir un menú o un diálogo de Radix subía la barra
+    // lateral y la dejaba cortada: el bloqueo de scroll convertía el <body> en
+    // contenedor de desplazamiento y el `sticky` dejaba de pegarse a la ventana.
+    const e = await montarEquipo(request);
+    await servirBalance(page, [[e.sara, { pj: 6, v: 5 }]]);
+    await page.setViewportSize({ width: 1280, height: 520 });
+    await loginAs(page, e.captain);
+    await page.goto("/miembros");
+    await expect(tabla(page)).toBeVisible();
+
+    const barra = page.locator("#main-sidebar");
+    const pegada = async () => {
+      const caja = await barra.boundingBox();
+      expect(caja).not.toBeNull();
+      expect(Math.round(caja!.y)).toBe(0);
+      expect(Math.round(caja!.height)).toBe(520);
+    };
+
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(100);
+    const anchoAntes = await page
+      .locator("main")
+      .evaluate((el) => el.getBoundingClientRect().width);
+    await pegada();
+
+    await expect(async () => {
+      await page.getByRole("button", { name: /opciones de diego otero/i }).click();
+      await expect(page.getByRole("menu")).toBeVisible({ timeout: 1_500 });
+    }).toPass({ timeout: 20_000 });
+    await pegada();
+    // Y la página no salta a un lado para dejar el hueco de la barra de scroll.
+    expect(await page.locator("main").evaluate((el) => el.getBoundingClientRect().width)).toBe(
+      anchoAntes,
+    );
+
+    // Y el fondo sigue sin moverse con la rueda mientras el menú está abierto.
+    const y = await page.evaluate(() => window.scrollY);
+    await page.mouse.move(640, 200);
+    await page.mouse.wheel(0, -300);
+    await page.waitForTimeout(300);
+    expect(await page.evaluate(() => window.scrollY)).toBe(y);
+
+    // Lo mismo con el diálogo de confirmación, que bloquea el scroll igual.
+    await page.getByRole("menuitem", { name: /quitar del equipo/i }).click();
+    await expect(page.getByRole("alertdialog")).toBeVisible();
+    await pegada();
+  });
+
   test("un jugador ve la clasificación pero no puede gestionar", async ({ page, request }) => {
     const e = await montarEquipo(request);
     await servirBalance(page, [[e.sara, { pj: 6, v: 5 }]]);

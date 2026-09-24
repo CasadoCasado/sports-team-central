@@ -258,6 +258,24 @@
     overflow-x: clip;
   }
 
+  /* Lo mismo, cuando un menú o un diálogo de Radix bloquea el scroll.
+   *
+   * Para bloquearlo, Radix le pone `overflow: hidden` al <body>. Con el <html>
+   * en `visible` eso subiría al viewport y no pasaría nada, pero el <html> está
+   * en `clip` (arriba), así que el `hidden` se queda en el <body> y lo
+   * convierte en contenedor de desplazamiento: la barra lateral y la cabecera
+   * dejan de pegarse a la ventana y, con la página bajada, la barra lateral
+   * aparece subida y cortada mientras el menú está abierto.
+   *
+   * `clip` bloquea igual —el scroll lo frenan además los oyentes de rueda y
+   * táctiles de Radix— sin romper los pegajosos. Y como la barra de scroll de
+   * la ventana ya no desaparece, sobra el margen con el que Radix compensaba
+   * su hueco: con él, la página saltaba a la izquierda en Windows. */
+  html body[data-scroll-locked] {
+    overflow: clip !important;
+    margin-right: 0 !important;
+  }
+
   html,
   body {
     background-color: var(--color-background);
