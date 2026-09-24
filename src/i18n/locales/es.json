@@ -190,7 +190,7 @@
   },
   "help": {
     "title": "Ayuda",
-    "intro": "Guía rápida de cada pantalla de TeamUp, con pasos, ejemplos reales y accesos directos. Pulsa el icono de ayuda en la cabecera para abrir la sección de la pantalla en la que estés.",
+    "intro": "Guía rápida de cada pantalla de TeamUp, con pasos, ejemplos reales y accesos directos. Toca tu avatar, arriba a la derecha, y elige Ayuda para abrir la sección de la pantalla en la que estés.",
     "steps": "Cómo funciona",
     "contextual": "Ayuda de esta pantalla"
   },
@@ -884,5 +884,10 @@
     "light": "Claro",
     "dark": "Oscuro",
     "system": "El del sistema"
+  },
+  "account": {
+    "menu": "Tu cuenta",
+    "language": "Idioma",
+    "confirmLogout": "¿Seguro que quieres cerrar sesión?"
   }
 }

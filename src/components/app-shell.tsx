@@ -18,7 +18,6 @@ import {
   Wallet,
   MessagesSquare,
   Bell,
-  LogOut,
   Menu,
   X,
   Shield,
@@ -30,12 +29,10 @@ import { api } from "@/lib/api";
 import { signOut as clearSession } from "@/lib/auth";
 import { useProfile } from "@/hooks/use-profile";
 import { useSession } from "@/hooks/use-session";
-import { LangToggle } from "./lang-toggle";
-import { ThemeToggle } from "./theme-toggle";
+import { AccountMenu } from "./account-menu";
 import { LOGO_URL } from "@/lib/brand";
 
 import { cn } from "@/lib/utils";
-import { helpSectionForPath } from "@/lib/help-content";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
@@ -280,20 +277,22 @@ export function AppShell({ children }: { children: ReactNode }) {
             >
               {mobileOpen ? <X className="size-4" aria-hidden="true" /> : <Menu className="size-4" aria-hidden="true" />}
             </button>
+            {/* Con el cajón cerrado, el logo solo estaba dentro de él. */}
+            <Link to="/inicio" className="flex items-center gap-2 lg:hidden">
+              <img
+                src={LOGO_URL}
+                alt=""
+                className="size-7 object-contain"
+                width={28}
+                height={28}
+                decoding="async"
+              />
+              <span className="text-display text-sm font-bold uppercase tracking-[0.14em]">
+                {t("app.name")}
+              </span>
+            </Link>
           </div>
           <div className="flex items-center gap-2">
-            
-            <LangToggle />
-            <ThemeToggle />
-            <Link
-              to="/ayuda"
-              search={{ screen: helpSectionForPath(pathname) }}
-              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-border bg-card p-2 text-muted-foreground shadow-[var(--shadow-card)] transition-all hover:-translate-y-px hover:text-foreground"
-              aria-label={t("help.contextual")}
-              title={t("help.contextual")}
-            >
-              <LifeBuoy className="size-4" aria-hidden="true" />
-            </Link>
             <Link
               to="/notificaciones"
               className="relative inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-border bg-card p-2 text-muted-foreground shadow-[var(--shadow-card)] transition-all hover:-translate-y-px hover:text-foreground"
@@ -306,13 +305,13 @@ export function AppShell({ children }: { children: ReactNode }) {
                 </span>
               )}
             </Link>
-            <button
-              onClick={signOut}
-              className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground shadow-[var(--shadow-card)] transition-all hover:-translate-y-px hover:text-foreground"
-            >
-              <LogOut className="size-3.5" />
-              <span className="hidden sm:inline">{t("auth.logout")}</span>
-            </button>
+            <AccountMenu
+              initials={initials}
+              nombre={profile?.nombre}
+              apellidos={profile?.apellidos}
+              email={profile?.email}
+              onSignOut={signOut}
+            />
           </div>
         </header>
 
