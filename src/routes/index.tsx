@@ -15,6 +15,7 @@ import {
   Lock,
   Plus,
 } from "lucide-react";
+import { LOGO_URL } from "@/lib/brand";
 import { hasSession } from "@/lib/auth";
 
 export const Route = createFileRoute("/")({
@@ -57,6 +58,7 @@ const MODULOS = [
     t: "Química",
     d: "Cada jugador dice con quién le gusta jugar. El capitán lo tiene en cuenta al repartir las parejas.",
     tag: "Privado hasta cerrar",
+    q: true,
   },
   {
     icon: CalendarDays,
@@ -96,11 +98,38 @@ const MODULOS = [
   },
 ] as const;
 
-const APUNTADOS = [
-  { av: "MD", nm: "Miguel D.", sd: "Revés", delay: "0.2s" },
-  { av: "JR", nm: "Javi R.", sd: "Drive", delay: "0.55s" },
-  { av: "AP", nm: "Ana P.", sd: "Revés", delay: "0.9s" },
-  { av: "LC", nm: "Lucía C.", sd: "Drive", delay: "1.25s" },
+const SHOTS = [
+  {
+    src: "/landing/inicio.jpg",
+    cap: "Inicio",
+    alt: "Panel de inicio de TeamUp con el próximo partido, jugadores confirmados y balance de la temporada.",
+  },
+  {
+    src: "/landing/convocatorias.jpg",
+    cap: "Convocatorias",
+    alt: "Lista de convocatorias de TeamUp con el próximo partido del equipo.",
+  },
+  {
+    src: "/landing/quimica.jpg",
+    cap: "Química",
+    alt: "Detalle de un partido en TeamUp con la convocatoria, los apuntados y el selector de química.",
+    q: true,
+  },
+  {
+    src: "/landing/estadisticas.jpg",
+    cap: "Estadísticas",
+    alt: "Estadísticas de TeamUp: partidos jugados, porcentaje de victorias, racha y últimos resultados.",
+  },
+  {
+    src: "/landing/competiciones.jpg",
+    cap: "Competiciones",
+    alt: "Competiciones de TeamUp con la liga interna del equipo y su clasificación.",
+  },
+  {
+    src: "/landing/logros.jpg",
+    cap: "Logros",
+    alt: "Pantalla de logros de TeamUp con insignias y ranking del equipo.",
+  },
 ] as const;
 
 const BENEFICIOS = [
@@ -170,6 +199,8 @@ const FAQS = [
   },
 ] as const;
 
+const CHROME_DOTS = ["#ff5f57", "#febc2e", "#28c840"];
+
 /* ── Página ─────────────────────────────────────────────────────────── */
 
 function Landing() {
@@ -181,20 +212,24 @@ function Landing() {
       <header className="sticky top-0 z-40 border-b border-[var(--bd)] bg-[color-mix(in_oklab,var(--bg)_72%,transparent)] backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4 sm:px-6">
           <Link to="/" className="mr-auto flex items-center gap-2.5">
-            <span className="grad-bg grid size-9 place-items-center rounded-xl text-white shadow-[0_8px_24px_-8px_var(--v)]">
-              <Sparkles className="size-5" aria-hidden="true" />
-            </span>
+            <img
+              src={LOGO_URL}
+              alt="TeamUp"
+              width={36}
+              height={36}
+              className="size-9 shrink-0 rounded-xl object-contain"
+            />
             <span className="text-display text-xl font-extrabold tracking-tight">TeamUp</span>
           </Link>
           <nav className="hidden items-center gap-7 text-sm font-semibold text-[var(--mut)] md:flex">
             <a href="#modulos" className="transition-colors hover:text-[var(--tx)]">
               Módulos
             </a>
+            <a href="#pantallas" className="transition-colors hover:text-[var(--tx)]">
+              Pantallas
+            </a>
             <a href="#como" className="transition-colors hover:text-[var(--tx)]">
               Cómo funciona
-            </a>
-            <a href="#precio" className="transition-colors hover:text-[var(--tx)]">
-              Precio
             </a>
             <a href="#faq" className="transition-colors hover:text-[var(--tx)]">
               FAQ
@@ -221,7 +256,7 @@ function Landing() {
         <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 py-16 sm:px-6 sm:py-24 lg:grid-cols-[1.05fr_.95fr]">
           <div>
             <span className="inline-flex items-center gap-2 rounded-full border border-[var(--bd)] bg-[var(--surf)] px-3 py-1.5 text-2xs font-bold uppercase tracking-[0.18em] text-[var(--v-ink)]">
-              <Sparkles className="size-3.5" aria-hidden="true" /> Para equipos amateur de pádel
+              Para equipos amateur de pádel
             </span>
             <h1 className="text-display mt-5 text-4xl font-black leading-[1.02] tracking-tight sm:text-6xl">
               Tu equipo, <span className="grad-text">sin caos</span> de WhatsApp.
@@ -255,53 +290,21 @@ function Landing() {
             </div>
           </div>
 
-          {/* Teléfono con demo de convocatoria */}
+          {/* Teléfono con captura real de la app */}
           <div className="justify-self-center">
             <div
               className="relative aspect-[300/610] w-[min(300px,82vw)] rounded-[38px] p-3 shadow-[0_40px_90px_-40px_rgba(0,0,0,.7)] ring-2 ring-inset ring-[var(--bd)]"
               style={{ background: "rgba(255,255,255,.05)" }}
             >
-              <div
-                className="absolute inset-3 flex flex-col overflow-hidden rounded-[28px]"
-                style={{ background: "#0d0e1e" }}
-              >
-                <div className="grad-bg px-4 pb-3 pt-4 text-white">
-                  <div className="text-2xs font-bold tracking-wide opacity-90">
-                    CONVOCATORIA · SÁB 20:00
-                  </div>
-                  <div className="text-display mt-0.5 text-lg font-extrabold">Liga · Pista 3</div>
-                </div>
-                <div className="flex flex-1 flex-col gap-2 p-3.5">
-                  {APUNTADOS.map((p) => (
-                    <div
-                      key={p.av}
-                      className="slot flex items-center gap-2.5 rounded-xl px-2.5 py-2 ring-1 ring-inset ring-[var(--bd)]"
-                      style={{ background: "rgba(255,255,255,.05)", animationDelay: p.delay }}
-                    >
-                      <span className="grad-bg grid size-7 place-items-center rounded-full text-2xs font-extrabold text-white">
-                        {p.av}
-                      </span>
-                      <span className="text-xs font-bold text-[var(--tx)]">{p.nm}</span>
-                      <span className="ml-auto text-3xs font-extrabold uppercase tracking-wide text-[var(--v-ink)]">
-                        {p.sd}
-                      </span>
-                    </div>
-                  ))}
-                  <div className="flex items-center gap-2.5 rounded-xl px-2.5 py-2 opacity-60 ring-1 ring-inset ring-[var(--bd)]">
-                    <span className="grid size-7 place-items-center rounded-full bg-[var(--bd)] text-2xs font-extrabold text-[var(--mut)]">
-                      <Plus className="size-3.5" />
-                    </span>
-                    <span className="text-xs font-bold text-[var(--mut)]">Plaza libre</span>
-                  </div>
-                </div>
-                <div className="p-3.5">
-                  <div className="grad-bg w-full rounded-xl py-2.5 text-center text-xs font-bold text-white">
-                    Apuntarme · quedan 4 plazas
-                  </div>
-                </div>
+              <div className="absolute inset-3 overflow-hidden rounded-[28px] bg-white">
+                <img
+                  src="/landing/hero.jpg"
+                  alt="TeamUp en el móvil: inicio del equipo con próximos partidos y convocatorias"
+                  className="h-full w-full object-cover object-top"
+                />
               </div>
-              <span className="floaty absolute -right-2 -top-2 rounded-full px-3 py-1.5 text-2xs font-extrabold text-white shadow-lg grad-bg">
-                <Sparkles className="mr-1 inline size-3" /> Química ✓
+              <span className="floaty q-bg absolute -right-2 -top-2 rounded-full px-3 py-1.5 text-2xs font-extrabold text-white shadow-lg">
+                <Sparkles className="mr-1 inline size-3" aria-hidden="true" /> Química ✓
               </span>
               <span className="absolute -left-3 bottom-14 rounded-full bg-white px-3 py-1.5 text-2xs font-extrabold text-[#0a0a14] shadow-lg">
                 Push enviado
@@ -343,24 +346,76 @@ function Landing() {
           comunicación y la competición.
         </SecHead>
         <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {MODULOS.map(({ icon: Icon, t, d, tag }) => (
-            <div
-              key={t}
-              className="glass group rounded-[22px] p-6 transition-transform hover:-translate-y-1"
-            >
-              <span
-                className="mb-4 grid size-11 place-items-center rounded-xl text-[var(--v-ink)]"
-                style={{ background: "color-mix(in oklab, var(--v) 16%, transparent)" }}
+          {MODULOS.map(({ icon: Icon, t, d, tag, ...rest }) => {
+            const q = (rest as { q?: boolean }).q;
+            return (
+              <div
+                key={t}
+                className="glass group rounded-[22px] p-6 transition-transform hover:-translate-y-1"
               >
-                <Icon className="size-[22px]" aria-hidden="true" />
-              </span>
-              <h3 className="text-display text-lg font-extrabold tracking-tight">{t}</h3>
-              <p className="mt-1.5 text-sm leading-relaxed text-[var(--mut)]">{d}</p>
-              <div className="mt-3 text-2xs font-extrabold uppercase tracking-[0.08em] text-[var(--v-ink)]">
-                {tag}
+                <span
+                  className={
+                    "mb-4 grid size-11 place-items-center rounded-xl " +
+                    (q ? "text-[var(--q-ink)]" : "text-[var(--v-ink)]")
+                  }
+                  style={{
+                    background: q
+                      ? "color-mix(in oklab, var(--q) 18%, transparent)"
+                      : "color-mix(in oklab, var(--v) 16%, transparent)",
+                  }}
+                >
+                  <Icon className="size-[22px]" aria-hidden="true" />
+                </span>
+                <h3 className="text-display text-lg font-extrabold tracking-tight">{t}</h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-[var(--mut)]">{d}</p>
+                <div
+                  className={
+                    "mt-3 text-2xs font-extrabold uppercase tracking-[0.08em] " +
+                    (q ? "text-[var(--q-ink)]" : "text-[var(--v-ink)]")
+                  }
+                >
+                  {tag}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
+        </div>
+      </section>
+
+      {/* PANTALLAS REALES */}
+      <section id="pantallas" className="mx-auto max-w-6xl px-4 pb-20 sm:px-6 sm:pb-24">
+        <SecHead eyebrow="Capturas reales de la app" title="Así se ve por dentro">
+          Nada de maquetas: pantallas reales de TeamUp, tomadas de un equipo con sus partidos, su
+          química y su clasificación.
+        </SecHead>
+        <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {SHOTS.map((s) => {
+            const q = (s as { q?: boolean }).q;
+            return (
+              <figure key={s.src} className="glass overflow-hidden rounded-[18px]">
+                <div className="flex items-center gap-1.5 border-b border-[var(--bd)] px-3.5 py-2.5">
+                  {CHROME_DOTS.map((c) => (
+                    <span key={c} className="size-2.5 rounded-full" style={{ background: c }} />
+                  ))}
+                  <figcaption
+                    className={
+                      "ml-auto inline-flex items-center gap-1.5 text-3xs font-extrabold uppercase tracking-[0.1em] " +
+                      (q ? "text-[var(--q-ink)]" : "text-[var(--mut)]")
+                    }
+                  >
+                    {q && <Sparkles className="size-3" aria-hidden="true" />}
+                    {s.cap}
+                  </figcaption>
+                </div>
+                <img
+                  src={s.src}
+                  alt={s.alt}
+                  loading="lazy"
+                  className="block aspect-[16/11] w-full object-cover object-top"
+                />
+              </figure>
+            );
+          })}
         </div>
       </section>
 
@@ -405,7 +460,7 @@ function Landing() {
           <div className="order-2 flex flex-col gap-4 lg:order-1">
             <Mock
               title="¿Con quién tienes química?"
-              icon={<Sparkles className="size-4 text-[var(--v-ink)]" />}
+              icon={<Sparkles className="size-4 text-[var(--q-ink)]" />}
             >
               <div className="flex flex-wrap gap-2 p-1">
                 {[
@@ -419,7 +474,7 @@ function Landing() {
                     className={
                       "inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold ring-1 ring-inset " +
                       (on
-                        ? "grad-bg text-white ring-transparent"
+                        ? "q-bg text-white ring-transparent"
                         : "text-[var(--tx)] ring-[var(--bd)]")
                     }
                     style={on ? undefined : { background: "rgba(255,255,255,.05)" }}
@@ -427,12 +482,12 @@ function Landing() {
                     <span
                       className={
                         "grid size-5 place-items-center rounded-full text-3xs font-extrabold " +
-                        (on ? "bg-white/25 text-white" : "text-[var(--v-ink)]")
+                        (on ? "bg-white/25 text-white" : "text-[var(--q-ink)]")
                       }
                       style={
                         on
                           ? undefined
-                          : { background: "color-mix(in oklab, var(--v) 16%, transparent)" }
+                          : { background: "color-mix(in oklab, var(--q) 18%, transparent)" }
                       }
                     >
                       {av as string}
@@ -463,7 +518,7 @@ function Landing() {
             </Mock>
           </div>
           <div className="order-1 lg:order-2">
-            <Eyebrow>Química y competición</Eyebrow>
+            <Eyebrow q>Química y competición</Eyebrow>
             <h3 className="text-display mt-3 text-3xl font-black tracking-tight sm:text-4xl">
               Parejas que funcionan. Clasificación que se llena sola.
             </h3>
@@ -615,7 +670,7 @@ function Landing() {
         className="relative overflow-hidden border-t border-[var(--bd)]"
         style={{
           background:
-            "radial-gradient(90% 130% at 50% -10%, color-mix(in oklab, var(--v) 34%, transparent), transparent 55%), var(--bg)",
+            "radial-gradient(90% 130% at 50% -10%, color-mix(in oklab, var(--v) 30%, transparent), transparent 55%), radial-gradient(80% 90% at 90% 120%, color-mix(in oklab, var(--color-accent) 22%, transparent), transparent 55%), var(--bg)",
         }}
       >
         <div className="mx-auto max-w-6xl px-4 py-24 text-center sm:px-6 sm:py-28">
@@ -654,9 +709,13 @@ function Landing() {
         <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
           <div>
             <div className="mb-3 flex items-center gap-2.5">
-              <span className="grad-bg grid size-9 place-items-center rounded-xl text-white">
-                <Sparkles className="size-5" />
-              </span>
+              <img
+                src={LOGO_URL}
+                alt="TeamUp"
+                width={36}
+                height={36}
+                className="size-9 shrink-0 rounded-xl object-contain"
+              />
               <span className="text-display text-xl font-extrabold tracking-tight">TeamUp</span>
             </div>
             <p className="max-w-[30ch] text-sm leading-relaxed text-[var(--mut)]">
@@ -703,9 +762,9 @@ function SecHead({
     <div className="text-center">
       <span
         id={anchor}
-        className="inline-flex items-center justify-center gap-2 text-2xs font-extrabold uppercase tracking-[0.2em] text-[var(--v-ink)]"
+        className="text-2xs font-extrabold uppercase tracking-[0.2em] text-[var(--v-ink)]"
       >
-        <Sparkles className="size-3.5" aria-hidden="true" /> {eyebrow}
+        {eyebrow}
       </span>
       <h2 className="text-display mx-auto mt-3.5 max-w-[20ch] text-3xl font-black tracking-tight sm:text-5xl">
         {title}
@@ -719,10 +778,16 @@ function SecHead({
   );
 }
 
-function Eyebrow({ children }: { children: React.ReactNode }) {
+function Eyebrow({ children, q }: { children: React.ReactNode; q?: boolean }) {
   return (
-    <span className="inline-flex items-center gap-2 text-2xs font-extrabold uppercase tracking-[0.2em] text-[var(--v-ink)]">
-      <Sparkles className="size-3.5" aria-hidden="true" /> {children}
+    <span
+      className={
+        "inline-flex items-center gap-2 text-2xs font-extrabold uppercase tracking-[0.2em] " +
+        (q ? "text-[var(--q-ink)]" : "text-[var(--v-ink)]")
+      }
+    >
+      {q && <Sparkles className="size-3.5" aria-hidden="true" />}
+      {children}
     </span>
   );
 }
@@ -822,7 +887,13 @@ function FootCol({ title, items }: { title: string; items: string[] }) {
       <ul className="flex flex-col gap-2.5 text-sm text-[var(--mut)]">
         {items.map((it) => (
           <li key={it}>
-            <a href="#modulos" className="transition-colors hover:text-[var(--tx)]">
+            <a
+              href="#modulos"
+              className="inline-flex items-center gap-1.5 transition-colors hover:text-[var(--tx)]"
+            >
+              {it === "Química" && (
+                <Sparkles className="size-3 text-[var(--q-ink)]" aria-hidden="true" />
+              )}
               {it}
             </a>
           </li>
@@ -832,34 +903,35 @@ function FootCol({ title, items }: { title: string; items: string[] }) {
   );
 }
 
-/* ── Estilos de Aurora (violeta de la química) ──────────────────────── */
+/* ── Estilos de Aurora (marca azul→esmeralda; violeta solo para química) ── */
 
 const AURORA_CSS = `
 .aurora{
-  --v: var(--color-evt-social);
-  --v-ink: color-mix(in oklab, var(--color-evt-social) 78%, white);
-  --grad: linear-gradient(120deg, color-mix(in oklab, var(--v) 82%, #2e1065), var(--v) 50%, color-mix(in oklab, var(--v) 60%, #f5d0fe));
-  --bg:#0a0a14; --surf:rgba(255,255,255,.05); --bd:#26243f; --tx:#eef0fb; --mut:#9aa0c4;
+  --v: var(--color-primary);
+  --v-ink: color-mix(in oklab, var(--color-primary) 60%, white);
+  --grad: linear-gradient(120deg, var(--color-primary) 0%, var(--color-accent) 100%);
+  --q: var(--color-evt-social);
+  --q-ink: color-mix(in oklab, var(--color-evt-social) 74%, white);
+  --q-grad: linear-gradient(120deg, color-mix(in oklab, var(--q) 82%, #2e1065), var(--q) 55%, color-mix(in oklab, var(--q) 60%, #f5d0fe));
+  --bg:#0a0e17; --surf:rgba(255,255,255,.05); --bd:#1f2740; --tx:#eef2f8; --mut:#98a4bd;
   background:var(--bg); color:var(--tx); color-scheme:dark;
 }
 .aurora .grad-text{ background:var(--grad); -webkit-background-clip:text; background-clip:text; color:transparent; }
 .aurora .grad-bg{ background:var(--grad); }
+.aurora .q-bg{ background:var(--q-grad); }
 .aurora .glass{ background:var(--surf); border:1px solid var(--bd); backdrop-filter:blur(8px); }
 .aurora .hero-glow{
   background:
-    radial-gradient(85% 90% at 12% -5%, color-mix(in oklab, var(--v) 32%, transparent), transparent 55%),
-    radial-gradient(70% 80% at 100% 12%, color-mix(in oklab, var(--v) 18%, transparent), transparent 52%),
+    radial-gradient(85% 90% at 12% -5%, color-mix(in oklab, var(--color-primary) 30%, transparent), transparent 55%),
+    radial-gradient(70% 80% at 100% 12%, color-mix(in oklab, var(--color-accent) 20%, transparent), transparent 52%),
     var(--bg);
 }
-.aurora .slot{ opacity:0; transform:translateY(6px); animation:aurora-slot .5s ease forwards; }
-@keyframes aurora-slot{ to{ opacity:1; transform:none; } }
 .aurora .floaty{ animation:aurora-float 4s ease-in-out infinite; }
 @keyframes aurora-float{ 50%{ transform:translateY(-8px); } }
 .aurora .bar-i{ width:0; animation:aurora-grow 1.3s ease .2s forwards; }
 @keyframes aurora-grow{ to{ width:var(--w); } }
 @media (prefers-reduced-motion: reduce){
   .aurora *{ animation:none !important; }
-  .aurora .slot{ opacity:1; transform:none; }
   .aurora .bar-i{ width:var(--w); }
 }
 `;
