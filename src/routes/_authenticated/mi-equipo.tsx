@@ -34,6 +34,11 @@ import { TeamDiscovery } from "@/components/team-discovery";
 import { TeamJoinRequests } from "@/components/team-join-requests";
 
 export const Route = createFileRoute("/_authenticated/mi-equipo")({
+  // El onboarding manda aquí a quien elige «crear mi equipo» con `?crear=1`
+  // para abrir el formulario de una vez, sin un clic extra en la página.
+  validateSearch: (search: Record<string, unknown>): { crear?: boolean } => ({
+    crear: search.crear === true || search.crear === "1" || search.crear === "true",
+  }),
   head: () => ({
     meta: [
       { title: "Mi equipo | TeamUp" },
@@ -62,7 +67,9 @@ function MiEquipo() {
 
   const canCreateTeam = profile?.preferred_role === "capitan";
 
-  const [creating, setCreating] = useState(false);
+  // `?crear=1` (lo pone el onboarding) arranca con el formulario ya abierto.
+  const { crear } = Route.useSearch();
+  const [creating, setCreating] = useState(!!crear);
 
   // Teniendo equipo, el panel de equipos abiertos empieza plegado: es un
   // bloque grande para algo que ya no se necesita. Sin equipo va abierto, que

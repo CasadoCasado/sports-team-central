@@ -55,12 +55,12 @@
     "logoutSuccess": "Sesión cerrada"
   },
   "onboarding": {
-    "title": "¿Cómo quieres utilizar la aplicación?",
+    "title": "¿Cómo quieres empezar?",
     "subtitle": "Podrás cambiarlo más tarde desde tu perfil.",
-    "capitan": "Ser Capitán",
-    "capitanDesc": "Crea equipos, gestiona jugadores y organiza toda la actividad.",
-    "jugador": "Ser Jugador",
-    "jugadorDesc": "Únete a equipos, consulta convocatorias y comunícate con tus compañeros.",
+    "unirse": "Unirme a un equipo",
+    "unirseDesc": "Entra en un equipo que ya existe: busca en la lista y pide unirte.",
+    "crear": "Crear mi equipo",
+    "crearDesc": "Empieza tu propio equipo y organiza entrenamientos, partidos y convocatorias.",
     "continue": "Continuar"
   },
   "team": {

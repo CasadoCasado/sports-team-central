@@ -55,12 +55,12 @@
     "logoutSuccess": "Signed out"
   },
   "onboarding": {
-    "title": "How do you want to use the app?",
+    "title": "How do you want to start?",
     "subtitle": "You can change this later in your profile.",
-    "capitan": "I'm a Captain",
-    "capitanDesc": "Create teams, manage players and organize all activity.",
-    "jugador": "I'm a Player",
-    "jugadorDesc": "Join teams, check call-ups and talk to your teammates.",
+    "unirse": "Join a team",
+    "unirseDesc": "Join a team that already exists: browse the list and request to join.",
+    "crear": "Create my team",
+    "crearDesc": "Start your own team and organize training, matches and call-ups.",
     "continue": "Continue"
   },
   "team": {

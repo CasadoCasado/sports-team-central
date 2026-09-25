@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Shield, User as UserIcon } from "lucide-react";
+import { Search, Shield } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { invalidateUser } from "@/lib/auth";
@@ -25,21 +25,33 @@ export const Route = createFileRoute("/_authenticated/onboarding")({
 function Onboarding() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [role, setRole] = useState<"capitan" | "jugador" | null>(null);
+  // La primera pantalla ya no pregunta el rol en abstracto, sino qué se viene a
+  // hacer: unirse a un equipo que ya existe o crear el tuyo. Cada intención se
+  // guarda como `preferred_role` —«unirse» es jugador, «crear» es capitán— para
+  // no tocar el resto de la app, que sigue mirando ese campo (p. ej.
+  // `canCreateTeam` en «Mi equipo»).
+  const [intent, setIntent] = useState<"unirse" | "crear" | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function submit() {
-    if (!role) return;
+    if (!intent) return;
     setLoading(true);
     try {
       await api.patch("/profiles/me/", {
-        preferred_role: role,
+        preferred_role: intent === "crear" ? "capitan" : "jugador",
         onboarding_completed: true,
       });
       // El guardián de /_authenticated mira `onboarding_completed` del usuario
       // cacheado; sin refrescarlo, la navegación rebotaría aquí otra vez.
       invalidateUser();
-      navigate({ to: "/inicio", replace: true });
+      // Cada intención aterriza donde toca: quien crea, en el formulario de
+      // equipo abierto; quien se une, en «Mi equipo», que sin equipo enseña la
+      // lista de equipos abiertos para buscar dónde meterse.
+      if (intent === "crear") {
+        navigate({ to: "/mi-equipo", search: { crear: true }, replace: true });
+      } else {
+        navigate({ to: "/mi-equipo", replace: true });
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("common.error"));
       setLoading(false);
@@ -58,25 +70,25 @@ function Onboarding() {
 
         <div className="grid gap-4 sm:grid-cols-2">
           <RoleCard
-            selected={role === "capitan"}
-            onClick={() => setRole("capitan")}
-            icon={<Shield className="size-6" />}
-            title={t("onboarding.capitan")}
-            description={t("onboarding.capitanDesc")}
+            selected={intent === "unirse"}
+            onClick={() => setIntent("unirse")}
+            icon={<Search className="size-6" />}
+            title={t("onboarding.unirse")}
+            description={t("onboarding.unirseDesc")}
           />
           <RoleCard
-            selected={role === "jugador"}
-            onClick={() => setRole("jugador")}
-            icon={<UserIcon className="size-6" />}
-            title={t("onboarding.jugador")}
-            description={t("onboarding.jugadorDesc")}
+            selected={intent === "crear"}
+            onClick={() => setIntent("crear")}
+            icon={<Shield className="size-6" />}
+            title={t("onboarding.crear")}
+            description={t("onboarding.crearDesc")}
           />
         </div>
 
         <div className="mt-8 flex justify-center sm:mt-10">
           <Button
             onClick={submit}
-            disabled={!role || loading}
+            disabled={!intent || loading}
             className="h-auto w-full bg-primary px-8 py-4 text-primary-foreground uppercase tracking-widest font-bold hover:opacity-90 sm:w-auto sm:py-6"
           >
             {t("onboarding.continue")}
