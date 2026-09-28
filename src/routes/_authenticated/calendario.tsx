@@ -87,6 +87,17 @@ function horaSugerida(day: Date): string {
   return toDateTimeLocal(d.toISOString());
 }
 
+/**
+ * Un evento ya pasado se queda en el calendario, pero apagado: en gris y con
+ * transparencia, para que lo que queda por jugar destaque. Cuenta como pasado
+ * cuando ha terminado —un torneo de varios días sigue vivo hasta el último—.
+ */
+function isPast(e: EventRow): boolean {
+  return new Date(e.fecha_fin ?? e.fecha_inicio) < new Date();
+}
+
+const pastClass = "opacity-60 grayscale";
+
 /** Build a map of dayKey -> events, expanding multi-day events across every day they span. */
 function buildDayMap(events: EventRow[], gridStart: Date, gridEnd: Date) {
   const m = new Map<string, EventRow[]>();
@@ -443,7 +454,10 @@ function MonthGrid({
                       to="/eventos/$id"
                       params={{ id: e.id }}
                       aria-label={`${e.titulo} — ${format(new Date(e.fecha_inicio), "d LLL HH:mm", { locale })}`}
-                      className="pointer-events-auto grid size-8 place-items-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      className={cn(
+                        "pointer-events-auto grid size-8 place-items-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                        isPast(e) && pastClass,
+                      )}
                     >
                       <span
                         className={cn("size-2.5 rounded-full", eventTypeStyles[e.tipo].dot)}
@@ -477,6 +491,7 @@ function MonthGrid({
                         // les da altura de dedo hasta que hay ratón de por medio.
                         "pointer-events-auto group flex min-h-7 min-w-0 items-center gap-1 rounded border px-1.5 py-0.5 text-2xs font-semibold transition-all hover:translate-x-0.5 lg:min-h-0",
                         style.badge,
+                        isPast(e) && cn(pastClass, "hover:opacity-80"),
                       )}
                     >
                       <span
@@ -606,6 +621,7 @@ function WeekEventCard({ e }: { e: EventRow }) {
       className={cn(
         "pointer-events-auto block rounded-md border border-border bg-card p-2 pl-2.5 transition-all hover:shadow-md",
         style.band,
+        isPast(e) && cn(pastClass, "hover:opacity-80"),
       )}
     >
       <div className="flex flex-wrap items-center gap-x-1.5 text-2xs font-bold uppercase tracking-widest text-muted-foreground">
