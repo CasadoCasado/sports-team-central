@@ -222,6 +222,7 @@ const STATUS_STYLES: Record<ResponseStatus, string> = {
   confirmado: "bg-ok/15 text-ok border-ok/40",
   rechazado: "bg-danger/15 text-danger border-danger/40",
   duda: "bg-warn/15 text-warn border-warn/40",
+  reserva: "bg-info/15 text-info border-info/40",
   convocado: "bg-muted text-muted-foreground border-border",
 };
 
@@ -234,6 +235,7 @@ function StatusPill({ status, convocado }: { status: ResponseStatus; convocado: 
           "rounded-full border px-2.5 py-1 text-2xs font-bold uppercase tracking-widest",
           STATUS_STYLES[status],
         )}
+        title={t(`callups.statusHint_${status}`)}
       >
         {t(`callups.response_${status}`)}
       </span>

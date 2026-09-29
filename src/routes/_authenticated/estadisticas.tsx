@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { Trophy, Dumbbell, CheckCircle2, XCircle, HelpCircle, Percent, Flame, CalendarClock } from "lucide-react";
+import { Trophy, Dumbbell, CheckCircle2, XCircle, HelpCircle, LifeBuoy, Percent, Flame, CalendarClock } from "lucide-react";
 import { api } from "@/lib/api";
 import type { EventResponse, PlayerStats, TeamStats } from "@/lib/types";
 import { useSession } from "@/hooks/use-session";
@@ -98,6 +98,7 @@ function Estadisticas() {
   const myConfirmed = rc("confirmado");
   const myRejected = rc("rechazado");
   const myDoubt = rc("duda");
+  const myReserve = rc("reserva");
   const myPending = rc("convocado");
   const myTotal = (myResponses ?? []).length;
   const attendancePct = myTotal ? Math.round((myConfirmed / myTotal) * 100) : 0;
@@ -189,9 +190,9 @@ function Estadisticas() {
           <BigStat icon={<Percent />} label={t("stats.attendanceRate")} value={`${attendancePct}%`} accent />
           <BigStat icon={<CheckCircle2 />} label={t("stats.confirmed")} value={myConfirmed} />
           <BigStat icon={<XCircle />} label={t("stats.rejected")} value={myRejected} />
-          <BigStat icon={<HelpCircle />} label={t("stats.doubt")} value={myDoubt} />
+          <BigStat icon={<HelpCircle />} label={t("stats.doubt")} value={myDoubt} title={t("callups.statusHint_duda")} />
         </div>
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
           <BigStat icon={<Trophy />} label={t("stats.matchesCalled")} value={
             (myResponses ?? []).filter((r) => r.event_tipo === "partido").length
           } />
@@ -199,6 +200,7 @@ function Estadisticas() {
             (myResponses ?? []).filter((r) => r.event_tipo === "entrenamiento").length
           } />
           <BigStat icon={<HelpCircle />} label={t("stats.pending")} value={myPending} />
+          <BigStat icon={<LifeBuoy />} label={t("stats.reserve")} value={myReserve} title={t("callups.statusHint_reserva")} />
         </div>
 
         <h3 className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
@@ -240,14 +242,17 @@ function BigStat({
   label,
   value,
   accent,
+  title,
 }: {
   icon: React.ReactNode;
   label: string;
   value: number | string;
   accent?: boolean;
+  /** Lo que se lee al pasar por encima: para las que se confunden. */
+  title?: string;
 }) {
   return (
-    <div className="surface-card min-w-0 p-4 sm:p-5">
+    <div className="surface-card min-w-0 p-4 sm:p-5" title={title}>
       <div className={`flex size-8 items-center justify-center rounded-md ${accent ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary"} [&>svg]:size-4`}>
         {icon}
       </div>
