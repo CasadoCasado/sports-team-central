@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Plus, Search, Settings, Shield, Trash2, Upload } from "lucide-react";
+import { MapPin, Pencil, Plus, Search, Settings, Shield, Trash2, Upload } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import {
   DropdownMenu,
@@ -32,6 +32,7 @@ import {
 import { SPORTS, sportLabel } from "@/lib/sports";
 import { TeamDiscovery } from "@/components/team-discovery";
 import { TeamJoinRequests } from "@/components/team-join-requests";
+import { TeamEditDialog } from "@/components/team-edit-dialog";
 
 export const Route = createFileRoute("/_authenticated/mi-equipo")({
   // El onboarding manda aquí a quien elige «crear mi equipo» con `?crear=1`
@@ -317,6 +318,7 @@ function TeamCard({
   const isManager = MANAGER_ROLES.includes(role as TeamRole);
   const [deleting, setDeleting] = useState(false);
   const [togglingIns, setTogglingIns] = useState(false);
+  const [editing, setEditing] = useState(false);
   const isOwner = !!currentUserId && team.owner_id === currentUserId;
   const inscripcionesAbiertas = team.inscripciones_abiertas !== false;
 
@@ -406,7 +408,8 @@ function TeamCard({
           }}
         />
 
-        {isOwner && (
+        {/* Editar es de cualquier gestor; borrar, solo del dueño. */}
+        {(isOwner || isManager) && (
           <DropdownMenu>
             <DropdownMenuTrigger
               aria-label={t("team.settings")}
@@ -415,14 +418,20 @@ function TeamCard({
               <Settings className="size-[18px]" aria-hidden="true" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem
-                className="min-h-11 gap-2.5 text-destructive focus:text-destructive"
-                disabled={deleting}
-                onClick={deleteTeam}
-              >
-                <Trash2 className="size-4" aria-hidden="true" />
-                {t("team.delete")}
+              <DropdownMenuItem className="min-h-11 gap-2.5" onClick={() => setEditing(true)}>
+                <Pencil className="size-4" aria-hidden="true" />
+                {t("team.editTitle")}
               </DropdownMenuItem>
+              {isOwner && (
+                <DropdownMenuItem
+                  className="min-h-11 gap-2.5 text-destructive focus:text-destructive"
+                  disabled={deleting}
+                  onClick={deleteTeam}
+                >
+                  <Trash2 className="size-4" aria-hidden="true" />
+                  {t("team.delete")}
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         )}
@@ -464,6 +473,13 @@ function TeamCard({
           {team.descripcion && (
             <p className="mt-3 max-w-[62ch] text-sm leading-relaxed text-[color:var(--color-ink-muted)]">
               {team.descripcion}
+            </p>
+          )}
+          {team.instalacion && (
+            <p className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-[color:var(--color-ink-muted)]">
+              <MapPin className="size-3.5 shrink-0" aria-hidden="true" />
+              <span className="sr-only">{t("team.instalacion")}: </span>
+              {team.instalacion}
             </p>
           )}
 
@@ -562,6 +578,10 @@ function TeamCard({
 
       {(isOwner || ["capitan", "co_capitan", "entrenador", "delegado"].includes(role)) && (
         <TeamJoinRequests teamId={team.id} compact />
+      )}
+
+      {(isOwner || isManager) && (
+        <TeamEditDialog team={team} open={editing} onOpenChange={setEditing} />
       )}
     </article>
   );

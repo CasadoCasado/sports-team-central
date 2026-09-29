@@ -74,6 +74,8 @@
     "instalacion": "Home venue",
     "create": "Create team",
     "editTitle": "Edit team",
+    "editHint": "Fix the name or change the city or the club where you play. Tap the crest on the card to change it.",
+    "instalacionPlaceholder": "Club or courts where you play",
     "save": "Save changes",
     "noTeamYet": "You don't have any team yet",
     "noTeamCapitan": "Create your first team to start organizing trainings, matches and call-ups.",
