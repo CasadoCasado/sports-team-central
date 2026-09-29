@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { MapPin, Pencil, Plus, Search, Settings, Shield, Trash2, Upload } from "lucide-react";
+import { LogOut, MapPin, Pencil, Plus, Search, Settings, Shield, Trash2, Upload } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import {
   DropdownMenu,
@@ -287,7 +287,15 @@ function MiEquipo() {
         {memberships!.map((m) => {
           const team = m.team;
           if (!team) return null;
-          return <TeamCard key={m.id} team={team} role={m.role} currentUserId={user?.id ?? null} />;
+          return (
+            <TeamCard
+              key={m.id}
+              team={team}
+              membershipId={m.id}
+              role={m.role}
+              currentUserId={user?.id ?? null}
+            />
+          );
         })}
       </div>
 
@@ -305,10 +313,12 @@ function MiEquipo() {
 
 function TeamCard({
   team,
+  membershipId,
   role,
   currentUserId,
 }: {
   team: Team;
+  membershipId: string;
   role: string;
   currentUserId: string | null;
 }) {
@@ -316,6 +326,7 @@ function TeamCard({
   const qc = useQueryClient();
   const isManager = MANAGER_ROLES.includes(role as TeamRole);
   const [deleting, setDeleting] = useState(false);
+  const [leaving, setLeaving] = useState(false);
   const [togglingIns, setTogglingIns] = useState(false);
   const [editing, setEditing] = useState(false);
   const isOwner = !!currentUserId && team.owner_id === currentUserId;
@@ -356,6 +367,25 @@ function TeamCard({
       toast.error(err instanceof Error ? err.message : t("common.error"));
     } finally {
       setDeleting(false);
+    }
+  }
+
+  // Darse de baja uno mismo. El dueño no: el equipo se quedaría sin dueño, y
+  // lo suyo es borrarlo.
+  async function leaveTeam() {
+    if (!confirm(t("team.leaveConfirm", { name: team.nombre }))) return;
+    setLeaving(true);
+    try {
+      await api.delete(`/team-members/${membershipId}/`);
+      toast.success(t("team.left", { name: team.nombre }));
+      qc.invalidateQueries({ queryKey: ["my-teams-full"] });
+      qc.invalidateQueries({ queryKey: ["my-teams"] });
+      qc.invalidateQueries({ queryKey: ["active-team-memberships"] });
+      qc.invalidateQueries({ queryKey: ["team-discovery"] });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("common.error"));
+    } finally {
+      setLeaving(false);
     }
   }
 
@@ -407,33 +437,44 @@ function TeamCard({
           }}
         />
 
-        {/* Editar es de cualquier gestor; borrar, solo del dueño. */}
-        {(isOwner || isManager) && (
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              aria-label={t("team.settings")}
-              className="absolute right-3 top-3 z-10 inline-flex size-11 items-center justify-center rounded-xl bg-white/10 text-[color:var(--color-ink-foreground)] ring-1 ring-white/20 transition-colors hover:bg-white/[0.16] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 sm:right-4 sm:top-4 sm:size-10"
-            >
-              <Settings className="size-[18px]" aria-hidden="true" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
+        {/* Editar es de cualquier gestor; borrar, solo del dueño; salir, de
+            todos menos el dueño. Un jugador ve la rueda solo para salir. */}
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            aria-label={t("team.settings")}
+            className="absolute right-3 top-3 z-10 inline-flex size-11 items-center justify-center rounded-xl bg-white/10 text-[color:var(--color-ink-foreground)] ring-1 ring-white/20 transition-colors hover:bg-white/[0.16] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 sm:right-4 sm:top-4 sm:size-10"
+          >
+            <Settings className="size-[18px]" aria-hidden="true" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            {(isOwner || isManager) && (
               <DropdownMenuItem className="min-h-11 gap-2.5" onClick={() => setEditing(true)}>
                 <Pencil className="size-4" aria-hidden="true" />
                 {t("team.editTitle")}
               </DropdownMenuItem>
-              {isOwner && (
-                <DropdownMenuItem
-                  className="min-h-11 gap-2.5 text-destructive focus:text-destructive"
-                  disabled={deleting}
-                  onClick={deleteTeam}
-                >
-                  <Trash2 className="size-4" aria-hidden="true" />
-                  {t("team.delete")}
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
+            )}
+            {!isOwner && (
+              <DropdownMenuItem
+                className="min-h-11 gap-2.5 text-destructive focus:text-destructive"
+                disabled={leaving}
+                onClick={leaveTeam}
+              >
+                <LogOut className="size-4" aria-hidden="true" />
+                {t("team.leave")}
+              </DropdownMenuItem>
+            )}
+            {isOwner && (
+              <DropdownMenuItem
+                className="min-h-11 gap-2.5 text-destructive focus:text-destructive"
+                disabled={deleting}
+                onClick={deleteTeam}
+              >
+                <Trash2 className="size-4" aria-hidden="true" />
+                {t("team.delete")}
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         <div className="relative">
           <div className="flex min-w-0 items-center gap-3.5 pr-14 sm:gap-[18px]">
