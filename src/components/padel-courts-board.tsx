@@ -3,7 +3,9 @@ import { createPortal } from "react-dom";
 import { useMutation } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Check, GripVertical, Hand, Lock, Sparkles } from "lucide-react";
+import { format } from "date-fns";
+import { es as esLocale, enUS } from "date-fns/locale";
+import { Check, Copy, GripVertical, Hand, Lock, Sparkles } from "lucide-react";
 
 import { api } from "@/lib/api";
 import { useQuimicas } from "@/hooks/use-quimica";
@@ -24,7 +26,15 @@ type Miembro = {
 };
 
 type Props = {
-  event: { id: string; padel_num_pistas: number | null; convocatoria_confirmada: boolean };
+  event: {
+    id: string;
+    titulo: string;
+    rival?: string | null;
+    fecha_inicio: string;
+    ubicacion?: string | null;
+    padel_num_pistas: number | null;
+    convocatoria_confirmada: boolean;
+  };
   responses: Respuesta[];
   members: Miembro[];
   /** Tras cada cambio, para que la pantalla vuelva a pedir lo que pinta. */
@@ -40,7 +50,8 @@ type Props = {
  *   suya; arrastrarlo a «Sin pista» le quita la pista. Poner a alguien en una
  *   pista lo convoca.
  * - Al final, confirmar la convocatoria: cierra la química y cada uno ve su
- *   pista. Se puede reabrir.
+ *   pista. Se puede reabrir. Confirmada, las parejas se copian como texto
+ *   para pegarlas en el grupo del equipo.
  *
  * El arrastre va con eventos de puntero, no con el arrastrar y soltar del
  * navegador, que no funciona con el dedo. Tocar un jugador sin arrastrarlo, o
@@ -48,7 +59,7 @@ type Props = {
  * devuelve a «Sin pista» si ya tenía una).
  */
 export function PadelCourtsBoard({ event, responses, members, onChanged }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const cerrada = event.convocatoria_confirmada;
   const numPistas = event.padel_num_pistas ?? 0;
   const pistas = Array.from({ length: numPistas }, (_, i) => i + 1);
@@ -70,6 +81,11 @@ export function PadelCourtsBoard({ event, responses, members, onChanged }: Props
   const corto = (userId: string) => {
     const p = members.find((m) => m.user_id === userId)?.profile;
     return p ? `${p.nombre} ${p.apellidos?.[0] ?? ""}.` : "?";
+  };
+  // Nombre y primer apellido: basta para no confundir a dos del mismo nombre.
+  const paraCompartir = (userId: string) => {
+    const p = members.find((m) => m.user_id === userId)?.profile;
+    return p ? `${p.nombre} ${p.apellidos?.split(" ")[0] ?? ""}`.trim() : "?";
   };
   const pila = (userId: string) =>
     members.find((m) => m.user_id === userId)?.profile?.nombre ?? "?";
@@ -154,6 +170,36 @@ export function PadelCourtsBoard({ event, responses, members, onChanged }: Props
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  // Las parejas en texto para pegar en el chat del equipo; los asteriscos son
+  // negrita en WhatsApp y Telegram. Las pistas vacías no salen; a la que le
+  // falta uno se le dice.
+  function textoParaCompartir() {
+    const locale = i18n.language.startsWith("en") ? enUS : esLocale;
+    const inicio = new Date(event.fecha_inicio);
+    const titulo = event.rival ? `${event.titulo} vs ${event.rival}` : event.titulo;
+    const cuando = [format(inicio, "EEE d LLL · HH:mm", { locale }), event.ubicacion]
+      .filter(Boolean)
+      .join(" · ");
+    const lineas = pistas.flatMap((n) => {
+      const [a, b] = enPista(n).map((r) => paraCompartir(r.user_id));
+      if (!a) return [];
+      const quienes = b
+        ? t("quimica.compartirPareja", { a, b })
+        : t("quimica.compartirFaltaPareja", { a });
+      return [`*${t("callups.pista")} ${n}:* ${quienes}`];
+    });
+    return `🎾 *${titulo}*\n${cuando}\n\n${lineas.join("\n")}`;
+  }
+
+  async function copiar() {
+    try {
+      await navigator.clipboard.writeText(textoParaCompartir());
+      toast.success(t("quimica.copiadas"));
+    } catch {
+      toast.error(t("common.error"));
+    }
+  }
 
   const [pistasDraft, setPistasDraft] = useState(numPistas ? String(numPistas) : "");
   const guardarPistas = useMutation({
@@ -417,15 +463,25 @@ export function PadelCourtsBoard({ event, responses, members, onChanged }: Props
                 <strong>{t("quimica.confirmadaTitulo")}</strong> {t("quimica.confirmadaTexto")}
               </span>
             </span>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => confirmar.mutate(false)}
-              disabled={confirmar.isPending}
-              className="text-2xs font-bold uppercase tracking-widest"
-            >
-              {t("quimica.reabrir")}
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                size="sm"
+                onClick={copiar}
+                className="text-2xs font-bold uppercase tracking-widest"
+              >
+                <Copy className="mr-1.5 size-3.5" aria-hidden="true" />
+                {t("quimica.copiarTexto")}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => confirmar.mutate(false)}
+                disabled={confirmar.isPending}
+                className="text-2xs font-bold uppercase tracking-widest"
+              >
+                {t("quimica.reabrir")}
+              </Button>
+            </div>
           </div>
         ) : (
           numPistas > 0 && (

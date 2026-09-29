@@ -993,6 +993,10 @@
     "reabierta": "Convocatoria reabierta",
     "confirmadaTitulo": "Convocatoria confirmada.",
     "confirmadaTexto": "La química está cerrada y cada uno ya ve su pista.",
-    "reabrir": "Reabrir"
+    "reabrir": "Reabrir",
+    "copiarTexto": "Copiar texto",
+    "copiadas": "Pistas copiadas",
+    "compartirPareja": "{{a}} y {{b}}",
+    "compartirFaltaPareja": "{{a}} (falta pareja)"
   }
 }

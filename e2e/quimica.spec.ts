@@ -193,6 +193,49 @@ test.describe("Química en una convocatoria", () => {
     await expect(page.getByRole("button", { name: /arrástralo/i })).toHaveCount(0);
   });
 
+  test("confirmada, la capitana copia las parejas por pista", async ({
+    page,
+    context,
+    request,
+  }) => {
+    const e = await montar(request);
+    await apuntar(request, e.sara, e.eventId);
+    const resp = await request.get(`${API_URL}/event-responses/?event_id=${e.eventId}`, {
+      headers: bearer(e.capitana),
+    });
+    const respuestas = (await resp.json()) as { id: string; user_id: string }[];
+    const pistas: [Session, number][] = [
+      [e.sara, 1],
+      [e.diego, 1],
+      [e.noa, 2],
+    ];
+    for (const [s, pista] of pistas) {
+      const r = respuestas.find((x) => x.user_id === s.userId)!;
+      await request.patch(`${API_URL}/event-responses/${r.id}/`, {
+        headers: bearer(e.capitana),
+        data: { padel_pista: pista, es_convocado: true },
+      });
+    }
+    await request.post(`${API_URL}/events/${e.eventId}/confirmar/`, {
+      headers: bearer(e.capitana),
+      data: { confirmada: true },
+    });
+
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+    await loginAs(page, e.capitana);
+    await page.goto(`/eventos/${e.eventId}`);
+    await pulsar(
+      page,
+      page.getByRole("button", { name: /^copiar texto$/i }),
+      page.getByText(/pistas copiadas/i),
+    );
+
+    const texto = await page.evaluate(() => navigator.clipboard.readText());
+    expect(texto).toMatch(/^🎾 \*Jornada 5 vs Club Náutico\*\n/);
+    expect(texto).toMatch(/\*Pista 1:\* (Sara Lago y Diego Otero|Diego Otero y Sara Lago)/);
+    expect(texto).toContain("*Pista 2:* Noa Vilar (falta pareja)");
+  });
+
   test("confirmada, la química se cierra y el jugador ve su pista", async ({ page, request }) => {
     const e = await montar(request);
     await apuntar(request, e.sara, e.eventId);
