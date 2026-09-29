@@ -180,8 +180,17 @@ test.describe("Química en una convocatoria", () => {
     await page.mouse.move(pista2.x + pista2.width / 2, pista2.y + pista2.height / 2, {
       steps: 10,
     });
+    // El tablero la pinta en su pista al soltarla, antes de que responda el
+    // servidor: hay que esperar a que guarde, o la recarga corta la petición.
+    const guardado = page.waitForResponse(
+      (r) =>
+        r.request().method() === "PATCH" &&
+        r.url().includes("/event-responses/") &&
+        r.request().postDataJSON()?.padel_pista === 2,
+    );
     await page.mouse.up();
     await expect(page.locator('[data-drop="2"]')).toContainText("Noa V.");
+    expect((await guardado).ok()).toBe(true);
 
     // Y se guardó: al recargar sigue ahí.
     await page.reload();
