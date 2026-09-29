@@ -9,7 +9,13 @@
  * levantados.
  */
 
-import { expect, type APIRequestContext, type Locator, type Page } from "@playwright/test";
+import {
+  expect,
+  type APIRequestContext,
+  type APIResponse,
+  type Locator,
+  type Page,
+} from "@playwright/test";
 
 export const API_URL = process.env["E2E_API_URL"] ?? "http://localhost:8000/api";
 
@@ -57,8 +63,14 @@ export async function logIn(api: APIRequestContext, email: string): Promise<Sess
   const me = await api.get(`${API_URL}/auth/me/`, {
     headers: { Authorization: `Bearer ${access}` },
   });
+  await ok(me, `/auth/me/ de ${email}`);
   const { id } = (await me.json()) as { id: string };
   return { access, refresh, userId: id, email };
+}
+
+/** Cada paso de la preparación tiene que salir bien, o el test lo dice ahí. */
+async function ok(res: APIResponse, paso: string) {
+  if (!res.ok()) throw new Error(`${paso}: ${res.status()} ${await res.text()}`);
 }
 
 export function bearer(session: Session) {
@@ -71,10 +83,11 @@ export async function completeOnboarding(
   session: Session,
   role: "capitan" | "jugador" = "jugador",
 ) {
-  await api.patch(`${API_URL}/profiles/me/`, {
+  const res = await api.patch(`${API_URL}/profiles/me/`, {
     headers: bearer(session),
     data: { preferred_role: role, onboarding_completed: true },
   });
+  await ok(res, `onboarding de ${session.email}`);
 }
 
 /**
@@ -130,6 +143,7 @@ export async function seedCaptainWithTeam(api: APIRequestContext, prefix: string
     headers: bearer(session),
     data: { nombre: `Equipo ${prefix}`, deporte: "padel", ciudad: "Vigo" },
   });
+  await ok(res, `crear el equipo de ${session.email}`);
   const team = (await res.json()) as { id: string; nombre: string };
   return { session, team };
 }
@@ -152,8 +166,12 @@ export async function seedPlayerInTeam(
     headers: bearer(captain),
     data: { team_id: teamId, invited_user_id: session.userId, role },
   });
+  await ok(invite, `invitar a ${session.email}`);
   const { id } = (await invite.json()) as { id: string };
-  await api.post(`${API_URL}/team-invitations/${id}/accept/`, { headers: bearer(session) });
+  const accept = await api.post(`${API_URL}/team-invitations/${id}/accept/`, {
+    headers: bearer(session),
+  });
+  await ok(accept, `aceptar la invitación de ${session.email}`);
   return session;
 }
 

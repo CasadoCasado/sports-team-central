@@ -11,29 +11,30 @@ import {
 } from "./session";
 
 /**
- * Módulos que sólo deben ser visibles con sesión iniciada.
- * Coinciden con las etiquetas de navegación de la app (es-ES).
+ * Rutas de la app que sólo deben enlazarse con sesión iniciada. Se mira el
+ * destino y no el texto: la portada nombra los módulos («Convocatorias»,
+ * «Estadísticas»…) en anclas que bajan a su propia sección.
  */
-const MODULE_LABELS = [
-  "Mi Equipo",
-  "Miembros",
-  "Calendario",
-  "Convocatorias",
-  "Comunicaciones",
-  "Estadísticas",
+const MODULE_ROUTES = [
+  "/mi-equipo",
+  "/miembros",
+  "/calendario",
+  "/convocatorias",
+  "/comunicaciones",
+  "/estadisticas",
 ];
 
 test.describe("Homepage pública (sin sesión)", () => {
-  test("sólo muestra el hero con crear cuenta e iniciar sesión", async ({ page }) => {
+  test("sólo muestra el hero con crear equipo y entrar", async ({ page }) => {
     await page.goto("/");
 
-    await expect(page.getByRole("link", { name: /crear cuenta/i }).first()).toBeVisible();
-    await expect(page.getByRole("link", { name: /iniciar sesión/i }).first()).toBeVisible();
+    await expect(page.getByRole("link", { name: /crear mi equipo/i }).first()).toBeVisible();
+    await expect(page.getByRole("link", { name: /^entrar$/i }).first()).toBeVisible();
 
     // No hay barra lateral ni navegación de la app.
     await expect(page.locator("aside")).toHaveCount(0);
-    for (const label of MODULE_LABELS) {
-      await expect(page.getByRole("link", { name: label, exact: true })).toHaveCount(0);
+    for (const ruta of MODULE_ROUTES) {
+      await expect(page.locator(`a[href="${ruta}"]`)).toHaveCount(0);
     }
   });
 
