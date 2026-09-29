@@ -993,6 +993,10 @@
     "reabierta": "Call-up reopened",
     "confirmadaTitulo": "Call-up confirmed.",
     "confirmadaTexto": "Chemistry is closed and everyone can see their court.",
-    "reabrir": "Reopen"
+    "reabrir": "Reopen",
+    "copiarTexto": "Copy text",
+    "copiadas": "Courts copied",
+    "compartirPareja": "{{a}} and {{b}}",
+    "compartirFaltaPareja": "{{a}} (partner missing)"
   }
 }

@@ -406,6 +406,10 @@ function CallupSection({
     id: string;
     team_id: string;
     tipo: string;
+    titulo: string;
+    rival?: string | null;
+    fecha_inicio: string;
+    ubicacion?: string | null;
     padel_num_pistas: number | null;
     convocatoria_confirmada: boolean;
   };
