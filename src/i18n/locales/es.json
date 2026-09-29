@@ -74,6 +74,8 @@
     "instalacion": "Instalación habitual",
     "create": "Crear equipo",
     "editTitle": "Editar equipo",
+    "editHint": "Corrige el nombre o cambia la ciudad o el club donde jugáis. El escudo se cambia tocándolo en la tarjeta.",
+    "instalacionPlaceholder": "Club o pistas donde jugáis",
     "save": "Guardar cambios",
     "noTeamYet": "Aún no tienes ningún equipo",
     "noTeamCapitan": "Crea tu primer equipo para empezar a organizar entrenamientos, partidos y convocatorias.",
