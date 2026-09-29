@@ -63,6 +63,7 @@ import type {
   TeamEvent,
   TeamMember,
 } from "@/lib/types";
+import { confirmar } from "@/components/confirm-dialog";
 
 export const Route = createFileRoute("/_authenticated/eventos/$id")({
   head: () => ({
@@ -182,8 +183,8 @@ function EventDetail() {
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="min-h-11 gap-2.5 text-destructive focus:text-destructive"
-                  onClick={() => {
-                    if (confirm(t("events.deleteConfirm"))) del.mutate();
+                  onClick={async () => {
+                    if (await confirmar({ title: t("confirm.deleteEventTitle"), description: t("confirm.noUndo"), confirmLabel: t("confirm.delete"), tone: "danger" })) del.mutate();
                   }}
                 >
                   <Trash2 className="size-4" aria-hidden="true" />

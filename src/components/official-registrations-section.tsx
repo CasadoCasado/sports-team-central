@@ -30,6 +30,7 @@ import {
   type RegistrationStatus,
   type TeamRegistration,
 } from "@/lib/official-competitions";
+import { confirmar } from "@/components/confirm-dialog";
 
 const STATUSES: RegistrationStatus[] = ["abierta", "activa", "cerrada", "rechazada"];
 
@@ -153,8 +154,8 @@ function RegistrationRow({
             <Pencil className="size-3.5" />
           </button>
           <button
-            onClick={() => {
-              if (confirm(t("registrations.deleteConfirm"))) del.mutate();
+            onClick={async () => {
+              if (await confirmar({ title: t("confirm.deleteRegistrationTitle"), description: t("confirm.noUndo"), confirmLabel: t("confirm.delete"), tone: "danger" })) del.mutate();
             }}
             className="inline-flex size-9 items-center justify-center rounded-md border border-border text-destructive hover:bg-muted"
             aria-label={t("common.delete")}

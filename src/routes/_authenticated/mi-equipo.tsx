@@ -33,6 +33,7 @@ import { SPORTS, sportLabel } from "@/lib/sports";
 import { TeamDiscovery } from "@/components/team-discovery";
 import { TeamJoinRequests } from "@/components/team-join-requests";
 import { TeamEditDialog } from "@/components/team-edit-dialog";
+import { confirmar } from "@/components/confirm-dialog";
 
 export const Route = createFileRoute("/_authenticated/mi-equipo")({
   // El onboarding manda aquí a quien elige «crear mi equipo» con `?crear=1`
@@ -355,8 +356,13 @@ function TeamCard({
   }
 
   async function deleteTeam() {
-    const confirmMsg = t("team.deleteConfirm", { name: team.nombre });
-    if (!confirm(confirmMsg)) return;
+    const ok = await confirmar({
+      title: t("confirm.deleteTeamTitle", { name: team.nombre }),
+      description: t("confirm.deleteTeamBody"),
+      confirmLabel: t("confirm.deleteTeamAction"),
+      tone: "danger",
+    });
+    if (!ok) return;
     setDeleting(true);
     try {
       await api.delete(`/teams/${team.id}/`);
@@ -373,7 +379,14 @@ function TeamCard({
   // Darse de baja uno mismo. El dueño no: el equipo se quedaría sin dueño, y
   // lo suyo es borrarlo.
   async function leaveTeam() {
-    if (!confirm(t("team.leaveConfirm", { name: team.nombre }))) return;
+    const ok = await confirmar({
+      title: t("confirm.leaveTeamTitle", { name: team.nombre }),
+      description: t("confirm.leaveTeamBody"),
+      confirmLabel: t("confirm.leaveTeamAction"),
+      tone: "danger",
+      icon: LogOut,
+    });
+    if (!ok) return;
     setLeaving(true);
     try {
       await api.delete(`/team-members/${membershipId}/`);

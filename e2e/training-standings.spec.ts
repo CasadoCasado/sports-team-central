@@ -98,8 +98,10 @@ test.describe("Entrenamientos dentro de una competición", () => {
     await expect(page.getByRole("heading", { name: /^podio$/i })).toHaveCount(0);
 
     // Al finalizarla aparece el podio.
-    page.once("dialog", (d) => d.accept());
     await page.getByRole("button", { name: /finalizar competición/i }).click();
+    const aviso = page.getByRole("alertdialog");
+    await expect(aviso.getByText(/dar por terminada la competición/i)).toBeVisible();
+    await aviso.getByRole("button", { name: /^finalizar$/i }).click();
     await expect(page.getByRole("heading", { name: /^podio$/i })).toBeVisible();
     await expect(page.getByRole("button", { name: /reabrir competición/i })).toBeVisible();
   });

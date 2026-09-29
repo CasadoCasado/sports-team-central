@@ -34,6 +34,7 @@ import type {
   Profile,
   TeamEvent,
 } from "@/lib/types";
+import { confirmar } from "@/components/confirm-dialog";
 
 // El guion bajo de `competiciones_` deja esta pantalla fuera de la lista de
 // competiciones: es una página entera, no algo que se pinte dentro de ella.
@@ -227,9 +228,15 @@ function CompetitionDetail() {
             <Button
               variant={competition.finalizada ? "outline" : "default"}
               disabled={finish.isPending}
-              onClick={() => {
+              onClick={async () => {
                 if (competition.finalizada) return finish.mutate(false);
-                if (confirm(t("standings.finishConfirm"))) finish.mutate(true);
+                const ok = await confirmar({
+                  title: t("confirm.finishCompetitionTitle"),
+                  description: t("confirm.finishCompetitionBody"),
+                  confirmLabel: t("confirm.finishCompetitionAction"),
+                  icon: Trophy,
+                });
+                if (ok) finish.mutate(true);
               }}
               className={cn(
                 "uppercase tracking-widest font-bold",

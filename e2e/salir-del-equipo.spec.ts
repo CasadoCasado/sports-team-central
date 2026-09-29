@@ -25,8 +25,15 @@ test("un jugador sale de su único equipo y se queda sin equipo", async ({ page,
   await loginAs(page, jugador);
   await page.goto("/mi-equipo");
 
-  page.once("dialog", (d) => d.accept());
+  // Nada de diálogos del navegador: el aviso es el nuestro.
+  page.on("dialog", (d) => {
+    throw new Error(`Diálogo del navegador: ${d.message()}`);
+  });
   await (await abrirAjustes(page, /salir del equipo/i)).click();
+  const aviso = page.getByRole("alertdialog");
+  await expect(aviso.getByRole("heading", { name: /¿salir de «equipo salir»\?/i })).toBeVisible();
+  await aviso.getByRole("button", { name: /^salir del equipo$/i }).click();
+  await expect(aviso).toHaveCount(0);
 
   await expect(page.getByText(/has salido de equipo salir/i)).toBeVisible();
   await expect(page.getByRole("heading", { name: /aún no tienes ningún equipo/i })).toBeVisible();
@@ -44,8 +51,10 @@ test("cancelar el aviso no le saca del equipo", async ({ page, request }) => {
   await loginAs(page, jugador);
   await page.goto("/mi-equipo");
 
-  page.once("dialog", (d) => d.dismiss());
   await (await abrirAjustes(page, /salir del equipo/i)).click();
+  const aviso = page.getByRole("alertdialog");
+  await aviso.getByRole("button", { name: /^cancelar$/i }).click();
+  await expect(aviso).toHaveCount(0);
 
   await page.reload();
   await expect(page.getByRole("heading", { name: "Equipo salir-no" })).toBeVisible({

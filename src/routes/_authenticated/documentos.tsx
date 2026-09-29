@@ -11,6 +11,7 @@ import { useActiveTeam } from "@/hooks/use-active-team";
 import { Button } from "@/components/ui/button";
 import { MaintenanceNotice } from "@/components/maintenance-notice";
 import { FEATURES } from "@/lib/feature-flags";
+import { confirmar } from "@/components/confirm-dialog";
 
 export const Route = createFileRoute("/_authenticated/documentos")({
   head: () => ({
@@ -163,8 +164,8 @@ function Documentos() {
                 </button>
                 {(isManager || d.uploader_id === user?.id) && (
                   <button
-                    onClick={() => {
-                      if (confirm(t("documents.deleteConfirm"))) remove.mutate(d);
+                    onClick={async () => {
+                      if (await confirmar({ title: t("confirm.deleteDocumentTitle"), description: t("confirm.noUndo"), confirmLabel: t("confirm.delete"), tone: "danger" })) remove.mutate(d);
                     }}
                     className="inline-flex size-10 items-center justify-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive sm:size-9"
                     aria-label={t("common.delete")}
