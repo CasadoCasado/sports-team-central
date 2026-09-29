@@ -11,6 +11,7 @@ import { useActiveTeam } from "@/hooks/use-active-team";
 import { Button } from "@/components/ui/button";
 import { MaintenanceNotice } from "@/components/maintenance-notice";
 import { FEATURES } from "@/lib/feature-flags";
+import { confirmar } from "@/components/confirm-dialog";
 
 export const Route = createFileRoute("/_authenticated/galeria")({
   head: () => ({
@@ -141,8 +142,8 @@ function Galeria() {
               )}
               {(it.uploader_id === user?.id || isManager) && (
                 <button
-                  onClick={() => {
-                    if (confirm(t("gallery.deleteConfirm"))) remove.mutate(it);
+                  onClick={async () => {
+                    if (await confirmar({ title: t("confirm.deletePhotoTitle"), description: t("confirm.noUndo"), confirmLabel: t("confirm.delete"), tone: "danger" })) remove.mutate(it);
                   }}
                   className="absolute right-2 top-2 rounded-md bg-black/70 p-1.5 opacity-0 transition group-hover:opacity-100"
                   aria-label={t("common.delete")}

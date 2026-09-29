@@ -24,6 +24,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { confirmar } from "@/components/confirm-dialog";
 
 export const Route = createFileRoute("/_authenticated/encuestas")({
   head: () => ({
@@ -226,7 +227,14 @@ function PollCard({
   }
 
   async function cancel() {
-    if (!confirm(t("polls.cancelConfirm"))) return;
+    const ok = await confirmar({
+      title: t("confirm.cancelPollTitle"),
+      description: t("confirm.cancelPollBody"),
+      confirmLabel: t("confirm.cancelPollAction"),
+      cancelLabel: t("confirm.back"),
+      tone: "danger",
+    });
+    if (!ok) return;
     try {
       await api.delete(`/polls/${poll.id}/`);
     } catch (err) {

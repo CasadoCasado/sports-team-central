@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { ArrowDown, Crown, MoreHorizontal, Trash2, Trophy } from "lucide-react";
+import { ArrowDown, Crown, MoreHorizontal, Trash2, Trophy, UserMinus } from "lucide-react";
 
 import { api } from "@/lib/api";
 import { ladoDe, type Lado } from "@/lib/lado";
@@ -16,16 +16,6 @@ import type {
 import { cn } from "@/lib/utils";
 import { Picture } from "@/components/picture";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -35,6 +25,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { confirmar } from "@/components/confirm-dialog";
 
 /** Partidos que hay que llevar para subir al podio de los enfrentamientos. */
 const MIN_PARTIDOS = 5;
@@ -313,7 +304,16 @@ export function MembersRanking({
   onRemove,
 }: Props) {
   const { t } = useTranslation();
-  const [quitando, setQuitando] = useState<Fila | null>(null);
+  async function quitar(f: Fila) {
+    const ok = await confirmar({
+      title: t("members.removeTitle", { name: f.nombre }),
+      description: t("members.removeBody"),
+      confirmLabel: t("members.removeFrom"),
+      tone: "danger",
+      icon: UserMinus,
+    });
+    if (ok) onRemove(f.member.id);
+  }
   // El orden vale para la vista en la que se eligió. Al cambiar de vista se
   // vuelve a la medida: las columnas de victorias, derrotas y último partido
   // no están en los entrenos.
@@ -365,7 +365,7 @@ export function MembersRanking({
 
   const menu = (f: Fila) =>
     canManage && f.member.user_id !== currentUserId ? (
-      <MenuMiembro fila={f} onChangeRole={onChangeRole} onRemove={() => setQuitando(f)} />
+      <MenuMiembro fila={f} onChangeRole={onChangeRole} onRemove={() => void quitar(f)} />
     ) : null;
 
   if (!balance) {
@@ -450,26 +450,6 @@ export function MembersRanking({
           podio={top}
         />
       )}
-
-      <AlertDialog open={!!quitando} onOpenChange={(open) => !open && setQuitando(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {t("members.removeTitle", { name: quitando?.nombre })}
-            </AlertDialogTitle>
-            <AlertDialogDescription>{t("members.removeBody")}</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={() => quitando && onRemove(quitando.member.id)}
-            >
-              {t("members.removeFrom")}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

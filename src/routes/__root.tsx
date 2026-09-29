@@ -9,6 +9,7 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 import { Toaster } from "sonner";
+import { ConfirmHost } from "@/components/confirm-dialog";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -192,6 +193,9 @@ function RootComponent() {
       {/* Los avisos se pintan fuera del árbol de la app, así que no heredan
           los tokens: hay que decirles el tema a mano. */}
       <Toaster theme={oscuro ? "dark" : "light"} richColors position="top-right" />
+      {/* Las confirmaciones de toda la app (`confirmar()`), en vez del
+          `confirm()` del navegador. */}
+      <ConfirmHost />
     </QueryClientProvider>
   );
 }

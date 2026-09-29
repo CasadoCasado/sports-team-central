@@ -25,6 +25,7 @@ import {
   type CatalogItem,
   type OfficialCompetition,
 } from "@/lib/official-competitions";
+import { confirmar } from "@/components/confirm-dialog";
 
 export const Route = createFileRoute("/_authenticated/admin/competiciones")({
   component: AdminCompetitionsPage,
@@ -197,8 +198,8 @@ function DeleteButton({ table, id }: { table: CatalogKind | "official-competitio
   });
   return (
     <button
-      onClick={() => {
-        if (confirm(t("adminComps.deleteConfirm"))) del.mutate();
+      onClick={async () => {
+        if (await confirmar({ title: t("confirm.deleteItemTitle"), description: t("confirm.noUndo"), confirmLabel: t("confirm.delete"), tone: "danger" })) del.mutate();
       }}
       aria-label={t("common.delete")}
       className="inline-flex size-9 shrink-0 items-center justify-center rounded-md border border-border text-destructive hover:bg-muted"

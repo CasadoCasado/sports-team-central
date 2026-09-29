@@ -19,6 +19,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { confirmar } from "@/components/confirm-dialog";
 
 export const Route = createFileRoute("/_authenticated/pagos")({
   head: () => ({
@@ -239,8 +240,8 @@ function Pagos() {
                   </div>
                   {isManager && (
                     <button
-                      onClick={() => {
-                        if (confirm(t("fees.deleteConfirm"))) deleteFee.mutate(fee.id);
+                      onClick={async () => {
+                        if (await confirmar({ title: t("confirm.deleteFeeTitle"), description: t("confirm.noUndo"), confirmLabel: t("confirm.delete"), tone: "danger" })) deleteFee.mutate(fee.id);
                       }}
                       aria-label={t("common.delete")}
                       className="inline-flex size-10 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive sm:size-9"

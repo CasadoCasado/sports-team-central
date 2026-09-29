@@ -50,6 +50,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { confirmar } from "@/components/confirm-dialog";
 
 export const Route = createFileRoute("/_authenticated/comunicaciones")({
   head: () => ({
@@ -757,7 +758,7 @@ function ChannelView({ channel, isManager }: { channel: Channel; isManager: bool
   }
 
   async function remove(id: string) {
-    if (!confirm(t("chat.deleteConfirm"))) return;
+    if (!(await confirmar({ title: t("confirm.deleteMessageTitle"), description: t("confirm.noUndo"), confirmLabel: t("confirm.delete"), tone: "danger" }))) return;
     try {
       await api.delete(`/chat-messages/${id}/`);
     } catch (err) {
@@ -768,7 +769,13 @@ function ChannelView({ channel, isManager }: { channel: Channel; isManager: bool
   }
 
   async function removeChannel() {
-    if (!confirm(t("chat.deleteChannelConfirm"))) return;
+    const ok = await confirmar({
+      title: t("confirm.deleteChannelTitle"),
+      description: t("confirm.deleteChannelBody"),
+      confirmLabel: t("confirm.delete"),
+      tone: "danger",
+    });
+    if (!ok) return;
     try {
       await api.delete(`/chat-channels/${channel.id}/`);
     } catch (err) {

@@ -15,6 +15,7 @@ import { Picture } from "@/components/picture";
 import { Button } from "@/components/ui/button";
 import { FEATURES } from "@/lib/feature-flags";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 /** Lo que acepta el servidor; se repite aquí para avisar antes de subir. */
 const TIPOS = ["image/jpeg", "image/png", "image/webp", "image/gif"];
@@ -48,8 +49,8 @@ export function ImageUpload({
 
   function elegir(file: File | null | undefined) {
     if (!file) return;
-    if (!TIPOS.includes(file.type)) return alert(t("images.errType"));
-    if (file.size > MAXIMO) return alert(t("images.errSize"));
+    if (!TIPOS.includes(file.type)) return void toast.error(t("images.errType"));
+    if (file.size > MAXIMO) return void toast.error(t("images.errSize"));
     onPick(file);
   }
 

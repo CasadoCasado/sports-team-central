@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
 import { es as esLocale, enUS } from "date-fns/locale";
 import { Link } from "@tanstack/react-router";
-import { Calendar as CalIcon, Clock, MapPin, ClipboardList, Trophy, ExternalLink } from "lucide-react";
+import { Calendar as CalIcon, Clock, MapPin, ClipboardList, Trophy, ExternalLink, UserMinus } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -13,21 +13,11 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { api } from "@/lib/api";
 import type { TeamEvent } from "@/lib/types";
 import { eventTypeStyles, type EventType } from "@/lib/events";
 import { cn } from "@/lib/utils";
+import { confirmar } from "@/components/confirm-dialog";
 
 type Props = {
   eventId: string | null;
@@ -160,35 +150,25 @@ export function CallupDetailDialog({
                 {t("callups.signedUp")}
               </span>
               {onWithdraw && event && (!cierre || cierre > new Date()) && (
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      disabled={withdrawing}
-                      className="text-2xs font-bold uppercase tracking-widest"
-                    >
-                      {withdrawing ? t("callups.withdrawing") : t("callups.withdraw")}
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>{t("callups.withdrawConfirmTitle")}</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        {t("callups.withdrawConfirmBody")}
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>{t("callups.keepSignedUp")}</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() => onWithdraw(event.id)}
-                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                      >
-                        {t("callups.withdrawConfirmAction")}
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={withdrawing}
+                  onClick={async () => {
+                    const ok = await confirmar({
+                      title: t("callups.withdrawConfirmTitle"),
+                      description: t("callups.withdrawConfirmBody"),
+                      confirmLabel: t("callups.withdrawConfirmAction"),
+                      cancelLabel: t("callups.keepSignedUp"),
+                      tone: "danger",
+                      icon: UserMinus,
+                    });
+                    if (ok) onWithdraw(event.id);
+                  }}
+                  className="text-2xs font-bold uppercase tracking-widest"
+                >
+                  {withdrawing ? t("callups.withdrawing") : t("callups.withdraw")}
+                </Button>
               )}
             </div>
           )}

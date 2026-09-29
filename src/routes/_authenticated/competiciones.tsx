@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/select";
 import { OfficialRegistrationsSection } from "@/components/official-registrations-section";
 import type { CompetitionType, TrainingFormat } from "@/lib/types";
+import { confirmar } from "@/components/confirm-dialog";
 
 type CompType = CompetitionType;
 type Competition = {
@@ -229,8 +230,8 @@ function CompCard({
               <Pencil className="size-3.5" />
             </button>
             <button
-              onClick={() => {
-                if (confirm(t("competitions.delete") + "?")) del.mutate();
+              onClick={async () => {
+                if (await confirmar({ title: t("confirm.deleteCompetitionTitle"), description: t("confirm.noUndo"), confirmLabel: t("confirm.delete"), tone: "danger" })) del.mutate();
               }}
               className="inline-flex size-9 items-center justify-center rounded-md border border-border text-destructive hover:bg-card"
               aria-label={t("common.delete")}
