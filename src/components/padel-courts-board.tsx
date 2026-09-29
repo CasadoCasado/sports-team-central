@@ -291,6 +291,14 @@ export function PadelCourtsBoard({ event, responses, members, onChanged }: Props
       >
         {!cerrada && <GripVertical className="size-3 text-muted-foreground" aria-hidden="true" />}
         {corto(r.user_id)}
+        {r.status === "reserva" && (
+          <span
+            title={t("callups.statusHint_reserva")}
+            className="rounded-full bg-info/15 px-1.5 text-3xs font-extrabold uppercase tracking-widest text-info"
+          >
+            {t("callups.response_reserva")}
+          </span>
+        )}
         {!colocado && suya && (
           <span className="inline-flex items-center gap-0.5 font-bold text-evt-social">
             <Sparkles className="size-3" aria-hidden="true" />

@@ -479,6 +479,7 @@ function CallupSection({
   const confirmed = signedUp.filter((r) => r.status === "confirmado").length;
   const rejected = signedUp.filter((r) => r.status === "rechazado").length;
   const doubt = signedUp.filter((r) => r.status === "duda").length;
+  const reserve = signedUp.filter((r) => r.status === "reserva").length;
 
   const signUp = useMutation({
     mutationFn: async () => {
@@ -554,7 +555,12 @@ function CallupSection({
           <div>
             <h2 className="text-display text-lg font-bold uppercase tracking-tight">{t("callups.title")}</h2>
             <p className="text-xxs text-muted-foreground">
-              {signedUp.length} <Users className="inline size-3" /> · {confirmed} ✓ · {rejected} ✕ · {doubt} ? · {convocados.length} ★
+              {signedUp.length} <Users className="inline size-3" /> ·{" "}
+              <span title={t("callups.response_confirmado")}>{confirmed} ✓</span> ·{" "}
+              <span title={t("callups.response_reserva")}>{reserve} R</span> ·{" "}
+              <span title={t("callups.response_duda")}>{doubt} ?</span> ·{" "}
+              <span title={t("callups.response_rechazado")}>{rejected} ✕</span> ·{" "}
+              {convocados.length} ★
             </p>
           </div>
         </div>
@@ -650,8 +656,10 @@ function CallupSection({
                       status === "confirmado" && "border-ok/40 bg-ok/15 text-ok",
                       status === "rechazado" && "border-danger/40 bg-danger/15 text-danger",
                       status === "duda" && "border-warn/40 bg-warn/15 text-warn",
+                      status === "reserva" && "border-info/40 bg-info/15 text-info",
                       status === "convocado" && "border-border bg-muted text-muted-foreground",
                     )}
+                    title={t(`callups.statusHint_${status}`)}
                   >
                     {t(`callups.response_${status}`)}
                   </span>
@@ -736,6 +744,7 @@ function PlayerResponseForm({
   const btn = (status: ResponseStatus, label: string, cls: string) => (
     <button
       onClick={() => respond.mutate(status)}
+      title={t(`callups.hint_${status}`)}
       className={cn(
         "rounded-md border px-3 py-2 text-xs font-bold uppercase tracking-widest transition-colors",
         response.status === status ? cls : "border-border text-muted-foreground hover:bg-card",
@@ -749,6 +758,7 @@ function PlayerResponseForm({
     <div className="mt-3 space-y-3">
       <div className="flex flex-wrap gap-2">
         {btn("confirmado", t("callups.iAccept"), "border-ok/40 bg-ok/15 text-ok")}
+        {btn("reserva", t("callups.iReserve"), "border-info/40 bg-info/15 text-info")}
         {btn("duda", t("callups.iDoubt"), "border-warn/40 bg-warn/15 text-warn")}
         {btn("rechazado", t("callups.iReject"), "border-danger/40 bg-danger/15 text-danger")}
       </div>

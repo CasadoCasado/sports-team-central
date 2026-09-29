@@ -20,7 +20,7 @@ export type InvitationStatus = "pendiente" | "aceptada" | "rechazada";
 export type MemberStatus = "pendiente" | "activo" | "expulsado";
 export type PreferredRole = "capitan" | "jugador";
 export type RegistrationStatus = "abierta" | "activa" | "cerrada" | "rechazada";
-export type ResponseStatus = "convocado" | "confirmado" | "rechazado" | "duda";
+export type ResponseStatus = "convocado" | "confirmado" | "rechazado" | "duda" | "reserva";
 export type TeamRole = "capitan" | "entrenador" | "delegado" | "jugador" | "co_capitan";
 
 /** Los roles que dan permisos de gestión sobre un equipo. */
