@@ -109,6 +109,9 @@
     "openTeamsSubtitle": "Estos equipos aceptan nuevos jugadores actualmente.",
     "noOpenTeams": "No hay equipos con inscripciones abiertas ahora mismo.",
     "closedToJoin": "Inscripciones cerradas",
+    "leave": "Salir del equipo",
+    "leaveConfirm": "¿Seguro que quieres salir de \"{{name}}\"? Dejarás de ver su calendario, sus convocatorias y su chat. Para volver tendrán que invitarte o aceptar tu solicitud.",
+    "left": "Has salido de {{name}}",
     "settings": "Ajustes del equipo",
     "viewMembers": "Ver miembros",
     "inscripciones": "Inscripciones"

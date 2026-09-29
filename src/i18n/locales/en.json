@@ -109,6 +109,9 @@
     "openTeamsSubtitle": "These teams are currently accepting new players.",
     "noOpenTeams": "No teams with open registrations right now.",
     "closedToJoin": "Registrations closed",
+    "leave": "Leave team",
+    "leaveConfirm": "Leave \"{{name}}\"? You will no longer see its calendar, call-ups or chat. To come back you will need an invitation or an accepted request.",
+    "left": "You left {{name}}",
     "settings": "Team settings",
     "viewMembers": "View members",
     "inscripciones": "Registrations"

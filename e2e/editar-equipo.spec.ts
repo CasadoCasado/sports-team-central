@@ -68,7 +68,14 @@ test("un jugador no puede editar el equipo", async ({ page, request }) => {
   await expect(page.getByRole("heading", { name: "Equipo editar-jug" })).toBeVisible({
     timeout: 20_000,
   });
-  await expect(page.getByRole("button", { name: /ajustes del equipo/i })).toHaveCount(0);
+  // La rueda la ve, pero solo para salirse.
+  const rueda = page.getByRole("button", { name: /ajustes del equipo/i });
+  const salir = page.getByRole("menuitem", { name: /salir del equipo/i });
+  await expect(async () => {
+    await rueda.click();
+    await expect(salir).toBeVisible({ timeout: 1_500 });
+  }).toPass({ timeout: 20_000 });
+  await expect(page.getByRole("menuitem", { name: /editar equipo/i })).toHaveCount(0);
 });
 
 test("un co-capitán edita, pero borrar sigue siendo solo del dueño", async ({ page, request }) => {
