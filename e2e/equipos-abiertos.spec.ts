@@ -47,8 +47,7 @@ test.describe("Equipos con inscripciones abiertas", () => {
     const cabecera = page.getByRole("button", { name: /equipos con inscripciones abiertas/i });
     await expect(cabecera).toHaveAttribute("aria-expanded", "false", { timeout: 20_000 });
 
-    await page.getByRole("button", { name: /acciones de equipos/i }).click();
-    await page.getByRole("menuitem", { name: /buscar equipos/i }).click();
+    await page.getByRole("button", { name: /^buscar equipos$/i }).click();
 
     await expect(cabecera).toHaveAttribute("aria-expanded", "true");
     await expect(page.getByRole("button", { name: /solicitar unirse/i }).first()).toBeVisible();

@@ -30,23 +30,22 @@ test.describe("Tarjeta de equipo", () => {
     await expect(tarjeta.getByText("capitan", { exact: true })).toHaveCount(0);
   });
 
-  test("la rueda de la cabecera abre el menú y lleva a crear equipo", async ({ page, request }) => {
+  test("la cabecera lleva a crear equipo, sin rueda que confundir", async ({ page, request }) => {
     const { session } = await seedCaptainWithTeam(request, "tarj-menu");
     await loginAs(page, session);
     await page.goto("/mi-equipo");
 
-    const rueda = page.getByRole("button", { name: /acciones de equipos/i });
-    await expect(rueda).toBeVisible({ timeout: 20_000 });
+    const crear = page.getByRole("button", { name: /^crear equipo$/i });
+    await expect(crear).toBeVisible({ timeout: 20_000 });
+    // La única rueda de la pantalla es la de los ajustes del equipo.
+    await expect(page.getByRole("button", { name: /ajustes del equipo/i })).toHaveCount(1);
+    await expect(page.getByRole("button", { name: /acciones de equipos/i })).toHaveCount(0);
 
-    // Cerrado no hay menú: si el desplegable se quedara abierto siempre, el
-    // test pasaría igual sin que la rueda hiciera nada.
-    await expect(page.getByRole("menuitem", { name: /crear equipo/i })).toHaveCount(0);
-
-    await rueda.click();
-    const crear = page.getByRole("menuitem", { name: /crear equipo/i });
-    await expect(crear).toBeVisible();
-
-    await crear.click();
-    await expect(page.getByRole("heading", { name: /crear equipo/i })).toBeVisible();
+    await expect(async () => {
+      await crear.click();
+      await expect(page.getByRole("heading", { name: /crear equipo/i })).toBeVisible({
+        timeout: 1_500,
+      });
+    }).toPass({ timeout: 20_000 });
   });
 });
