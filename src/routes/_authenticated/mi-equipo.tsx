@@ -245,39 +245,38 @@ function MiEquipo() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-display text-2xl font-black tracking-tight sm:text-3xl">{t("nav.miEquipo")}</h1>
 
-        {/* Lo que antes era un botón de «Crear equipo» a secas. Con el menú, la
-            cabecera deja sitio para las dos cosas que se pueden hacer aquí sin
-            tener un equipo delante: crear uno o buscar dónde meterse. */}
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            aria-label={t("team.actions")}
-            className="inline-flex size-11 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-foreground shadow-[var(--shadow-card)] transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:size-10"
+        {/* Crear y buscar, a la vista y con su nombre. Estuvieron dentro de una
+            rueda, pero la tarjeta de cada equipo tiene la suya para sus
+            ajustes, y dos ruedas en la misma pantalla no dicen cuál es cuál.
+            Con dos acciones no hace falta menú. En el móvil bajan a su propia
+            línea si no caben junto al título. */}
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="outline"
+            onClick={() => {
+              // Abre el panel además de bajar hasta él: plegado, el atajo
+              // llevaba a una cabecera cerrada y no se veía ni un equipo.
+              setDescubriendo(true);
+              requestAnimationFrame(() =>
+                document
+                  .getElementById("descubrir")
+                  ?.scrollIntoView({ behavior: "smooth", block: "start" }),
+              );
+            }}
+            className="min-h-11 gap-2 text-2xs font-bold uppercase tracking-widest sm:min-h-10"
           >
-            <Settings className="size-[19px]" aria-hidden="true" />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuItem className="min-h-11 gap-2.5" onClick={() => setCreating(true)}>
-              <Plus className="size-4 text-primary" aria-hidden="true" />
-              {t("team.create")}
-            </DropdownMenuItem>
-            {/* Abre el panel además de bajar hasta él: plegado, el atajo
-                llevaba a una cabecera cerrada y no se veía ni un equipo. */}
-            <DropdownMenuItem
-              className="min-h-11 gap-2.5"
-              onClick={() => {
-                setDescubriendo(true);
-                requestAnimationFrame(() =>
-                  document
-                    .getElementById("descubrir")
-                    ?.scrollIntoView({ behavior: "smooth", block: "start" }),
-                );
-              }}
-            >
-              <Search className="size-4 text-muted-foreground" aria-hidden="true" />
-              {t("team.discoverTitle")}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            <Search className="size-4 text-muted-foreground" aria-hidden="true" />
+            {t("team.discoverTitle")}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => setCreating(true)}
+            className="min-h-11 gap-2 text-2xs font-bold uppercase tracking-widest sm:min-h-10"
+          >
+            <Plus className="size-4 text-primary" aria-hidden="true" />
+            {t("team.create")}
+          </Button>
+        </div>
       </div>
 
       {/* Una sola columna a propósito. A dos, en un escritorio de 1280 cada

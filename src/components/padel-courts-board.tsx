@@ -192,6 +192,9 @@ export function PadelCourtsBoard({ event, responses, members, onChanged }: Props
     return `🎾 *${titulo}*\n${cuando}\n\n${lineas.join("\n")}`;
   }
 
+  // Los nombres llegan en otra consulta: copiar antes daría «? y ?».
+  const nombresListos = apuntados.every((r) => members.some((m) => m.user_id === r.user_id));
+
   async function copiar() {
     try {
       await navigator.clipboard.writeText(textoParaCompartir());
@@ -475,6 +478,7 @@ export function PadelCourtsBoard({ event, responses, members, onChanged }: Props
               <Button
                 size="sm"
                 onClick={copiar}
+                disabled={!nombresListos}
                 className="text-2xs font-bold uppercase tracking-widest"
               >
                 <Copy className="mr-1.5 size-3.5" aria-hidden="true" />
