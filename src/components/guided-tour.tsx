@@ -88,11 +88,17 @@ export function GuidedTour({
 }) {
   const { t } = useTranslation();
   const { data: profile } = useProfile();
-  const { isManager } = useActiveTeam();
+  const { isManager, memberships } = useActiveTeam();
   const [index, setIndex] = useState(0);
 
   const manager = isManager || profile?.preferred_role === "capitan";
-  const steps = manager ? MANAGER_STEPS : PLAYER_STEPS;
+  // Quien ya está en un equipo —p. ej. porque entró con el enlace del
+  // capitán— no necesita que le digan que busque uno.
+  const steps = manager
+    ? MANAGER_STEPS
+    : memberships.length > 0
+      ? PLAYER_STEPS.filter((s) => s.key !== "find")
+      : PLAYER_STEPS;
   const role = manager ? "manager" : "player";
   const step = steps[Math.min(index, steps.length - 1)];
   const Icon = step.icon;

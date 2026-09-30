@@ -33,6 +33,7 @@ import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authentic
 import { Route as AuthenticatedPagosRouteImport } from './routes/_authenticated/pagos'
 import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
 import { Route as AuthenticatedResultadosRouteImport } from './routes/_authenticated/resultados'
+import { Route as UnirseCodigoRouteImport } from './routes/unirse.$codigo'
 import { Route as AuthenticatedAdminCompeticionesRouteImport } from './routes/_authenticated/admin/competiciones'
 import { Route as AuthenticatedCompeticionesIdRouteImport } from './routes/_authenticated/competiciones_.$id'
 import { Route as AuthenticatedEventosIdRouteImport } from './routes/_authenticated/eventos.$id'
@@ -164,6 +165,11 @@ const AuthenticatedResultadosRoute = AuthenticatedResultadosRouteImport.update({
   path: '/resultados',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const UnirseCodigoRoute = UnirseCodigoRouteImport.update({
+  id: '/unirse/$codigo',
+  path: '/unirse/$codigo',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAdminCompeticionesRoute =
   AuthenticatedAdminCompeticionesRouteImport.update({
     id: '/admin/competiciones',
@@ -212,6 +218,7 @@ export interface FileRoutesByFullPath {
   '/pagos': typeof AuthenticatedPagosRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/resultados': typeof AuthenticatedResultadosRoute
+  '/unirse/$codigo': typeof UnirseCodigoRoute
   '/admin/competiciones': typeof AuthenticatedAdminCompeticionesRoute
   '/competiciones/$id': typeof AuthenticatedCompeticionesIdRoute
   '/eventos/$id': typeof AuthenticatedEventosIdRoute
@@ -241,6 +248,7 @@ export interface FileRoutesByTo {
   '/pagos': typeof AuthenticatedPagosRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/resultados': typeof AuthenticatedResultadosRoute
+  '/unirse/$codigo': typeof UnirseCodigoRoute
   '/admin/competiciones': typeof AuthenticatedAdminCompeticionesRoute
   '/competiciones/$id': typeof AuthenticatedCompeticionesIdRoute
   '/eventos/$id': typeof AuthenticatedEventosIdRoute
@@ -272,6 +280,7 @@ export interface FileRoutesById {
   '/_authenticated/pagos': typeof AuthenticatedPagosRoute
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
   '/_authenticated/resultados': typeof AuthenticatedResultadosRoute
+  '/unirse/$codigo': typeof UnirseCodigoRoute
   '/_authenticated/admin/competiciones': typeof AuthenticatedAdminCompeticionesRoute
   '/_authenticated/competiciones_/$id': typeof AuthenticatedCompeticionesIdRoute
   '/_authenticated/eventos/$id': typeof AuthenticatedEventosIdRoute
@@ -303,6 +312,7 @@ export interface FileRouteTypes {
     | '/pagos'
     | '/perfil'
     | '/resultados'
+    | '/unirse/$codigo'
     | '/admin/competiciones'
     | '/competiciones/$id'
     | '/eventos/$id'
@@ -332,6 +342,7 @@ export interface FileRouteTypes {
     | '/pagos'
     | '/perfil'
     | '/resultados'
+    | '/unirse/$codigo'
     | '/admin/competiciones'
     | '/competiciones/$id'
     | '/eventos/$id'
@@ -362,6 +373,7 @@ export interface FileRouteTypes {
     | '/_authenticated/pagos'
     | '/_authenticated/perfil'
     | '/_authenticated/resultados'
+    | '/unirse/$codigo'
     | '/_authenticated/admin/competiciones'
     | '/_authenticated/competiciones_/$id'
     | '/_authenticated/eventos/$id'
@@ -373,6 +385,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   DemoRoute: typeof DemoRoute
+  UnirseCodigoRoute: typeof UnirseCodigoRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -545,6 +558,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedResultadosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/unirse/$codigo': {
+      id: '/unirse/$codigo'
+      path: '/unirse/$codigo'
+      fullPath: '/unirse/$codigo'
+      preLoaderRoute: typeof UnirseCodigoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/admin/competiciones': {
       id: '/_authenticated/admin/competiciones'
       path: '/admin/competiciones'
@@ -652,6 +672,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   DemoRoute: DemoRoute,
+  UnirseCodigoRoute: UnirseCodigoRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
