@@ -199,10 +199,9 @@ export type Competition = {
   finalizada_en: string | null;
   /** Dónde se juega; obligatoria en un torneo abierto. */
   sede: string | null;
-  /** Código INE del municipio de la sede; obligatoria en un torneo abierto. */
-  localidad: string | null;
-  /** «Nombre (Provincia)» de `localidad`. */
-  localidad_nombre: string | null;
+  /** Código INE de la provincia de la sede; obligatoria en un torneo abierto. */
+  provincia: string | null;
+  provincia_nombre: string | null;
   /** Un torneo abierto sale a los demás equipos, que pueden apuntarse. */
   abierto: boolean;
   /** Cuántos equipos de fuera caben; sin límite si es null. */
@@ -225,9 +224,9 @@ export type Torneo = {
   nombre: string;
   descripcion: string | null;
   sede: string | null;
-  /** Código INE del municipio; ver `components/ubicacion-picker`. */
-  localidad: string | null;
-  localidad_nombre: string | null;
+  /** Código INE de la provincia; ver `components/ubicacion-picker`. */
+  provincia: string | null;
+  provincia_nombre: string | null;
   fecha_inicio: string | null;
   fecha_fin: string | null;
   formato: TrainingFormat | null;
