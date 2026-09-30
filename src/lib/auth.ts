@@ -22,6 +22,8 @@ export type Profile = {
   telefono: string | null;
   fecha_nacimiento: string | null;
   ciudad: string | null;
+  /** Código INE de su provincia; ver `lib/localidades`. */
+  provincia: string | null;
   descripcion: string | null;
   deporte: string | null;
   posicion: string | null;

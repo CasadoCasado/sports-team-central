@@ -324,6 +324,7 @@
     "sports": "Datos deportivos",
     "telefono": "Teléfono",
     "ciudad": "Ciudad",
+    "provinciaHint": "Así te enseñamos primero los torneos que tienes cerca.",
     "posicion": "Posición",
     "manoDominante": "Mano dominante",
     "nivel": "Nivel",
@@ -484,6 +485,13 @@
       "americano": "Se apuntan los juegos a favor y en contra de cada jugador."
     }
   },
+  "ubicacion": {
+    "provincia": "Provincia",
+    "provinciaPlaceholder": "Elige la provincia",
+    "provinciaBuscar": "Busca una provincia…",
+    "provinciaNinguna": "Ninguna provincia se llama así.",
+    "provinciaTodas": "Todas las provincias"
+  },
   "torneos": {
     "title": "Torneos fuera de casa",
     "subtitle": "Torneos abiertos en otras sedes. Apúntate mientras queden plazas.",
@@ -498,7 +506,7 @@
     "localidadMas": "Sigue escribiendo para ver más.",
     "localidadTodas": "Todas las localidades",
     "localidadFalta": "Elige la localidad del torneo: es por lo que lo buscan los demás equipos.",
-    "emptyLocalidad": "No hay torneos abiertos en {{localidad}}.",
+    "emptyLugar": "No hay torneos abiertos en {{lugar}}.",
     "abrir": "Torneo abierto",
     "abrirHint": "Sale en «Torneos fuera de casa» y se puede apuntar quien quiera hasta que empiece.",
     "plazas": "Plazas para equipos",

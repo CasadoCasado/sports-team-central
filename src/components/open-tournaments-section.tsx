@@ -4,8 +4,9 @@
  * Un equipo abre su torneo desde su propia lista de competiciones (tipo
  * torneo, con sede y «torneo abierto») y aquí lo ven los demás. Se
  * entra directamente mientras queden plazas y no haya empezado; apuntar y dar
- * de baja al equipo es de sus gestores. Arriba se filtran por localidad, con
- * el mismo desplegable que se usa al crearlos. Ver `/api/torneos/`.
+ * de baja al equipo es de sus gestores. Arriba se filtran por provincia y,
+ * dentro de ella, por localidad; se empieza por la provincia del perfil de
+ * quien mira. Ver `/api/torneos/`.
  */
 
 import { useState } from "react";
@@ -31,8 +32,9 @@ import { invalidateCompetitionQueries } from "@/lib/query-keys";
 import type { Torneo } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { confirmar } from "@/components/confirm-dialog";
-import { LocalidadPicker } from "@/components/localidad-picker";
-import { useLocalidades } from "@/lib/localidades";
+import { LocalidadPicker, ProvinciaPicker } from "@/components/ubicacion-picker";
+import { provinciaDe, useLocalidades, useProvincias } from "@/lib/localidades";
+import { useSession } from "@/hooks/use-session";
 
 export function OpenTournamentsSection({
   teamId,
@@ -44,16 +46,33 @@ export function OpenTournamentsSection({
   canManage: boolean;
 }) {
   const { t } = useTranslation();
+  const { profile } = useSession();
+  const [provincia, setProvincia] = useState<string | null>(() => profile?.provincia ?? null);
   const [localidad, setLocalidad] = useState<string | null>(null);
+  const { data: provincias } = useProvincias();
   const { data: localidades } = useLocalidades();
-  const nombreLocalidad = localidades?.find((l) => l.codigo === localidad)?.nombre;
+  const lugar = localidad
+    ? localidades?.find((l) => l.codigo === localidad)?.nombre
+    : provincias?.find((p) => p.codigo === provincia)?.nombre;
+
+  function elegirProvincia(codigo: string | null) {
+    setProvincia(codigo);
+    // Un municipio de otra provincia ya no pinta nada en el filtro.
+    if (codigo !== provinciaDe(localidad)) setLocalidad(null);
+  }
+
+  function elegirLocalidad(codigo: string | null) {
+    setLocalidad(codigo);
+    // Buscar el municipio sin provincia también vale: se pone la suya.
+    if (codigo) setProvincia(provinciaDe(codigo));
+  }
 
   const { data: torneos } = useQuery({
-    queryKey: ["torneos", teamId, localidad],
+    queryKey: ["torneos", teamId, provincia, localidad],
     queryFn: () =>
       api.get<Torneo[]>("/torneos/", {
         team_id: teamId,
-        ...(localidad ? { localidad } : {}),
+        ...(localidad ? { localidad } : provincia ? { provincia } : {}),
       }),
   });
 
@@ -68,21 +87,26 @@ export function OpenTournamentsSection({
           {t("torneos.title")}
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">{t("torneos.subtitle")}</p>
-        <LocalidadPicker
-          label={t("torneos.localidad")}
-          value={localidad}
-          onChange={setLocalidad}
-          placeholder={t("torneos.localidadTodas")}
-          todas
-          className="mt-3 sm:max-w-xs"
-        />
+        <div className="mt-3 grid gap-2 sm:max-w-xl sm:grid-cols-2">
+          <ProvinciaPicker
+            label={t("ubicacion.provincia")}
+            value={provincia}
+            onChange={elegirProvincia}
+            todas={t("ubicacion.provinciaTodas")}
+          />
+          <LocalidadPicker
+            label={t("torneos.localidad")}
+            provincia={provincia}
+            value={localidad}
+            onChange={elegirLocalidad}
+            todas={t("torneos.localidadTodas")}
+          />
+        </div>
       </div>
 
       {torneos && lista.length === 0 ? (
         <div className="surface-card p-6 text-center text-sm text-muted-foreground">
-          {localidad
-            ? t("torneos.emptyLocalidad", { localidad: nombreLocalidad ?? "" })
-            : t("torneos.empty")}
+          {lugar ? t("torneos.emptyLugar", { lugar }) : t("torneos.empty")}
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">

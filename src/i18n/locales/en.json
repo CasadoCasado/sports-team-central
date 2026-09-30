@@ -324,6 +324,7 @@
     "sports": "Sports info",
     "telefono": "Phone",
     "ciudad": "City",
+    "provinciaHint": "So we show you the tournaments near you first.",
     "posicion": "Position",
     "manoDominante": "Dominant hand",
     "nivel": "Level",
@@ -484,6 +485,13 @@
       "americano": "You record the games each player won and lost."
     }
   },
+  "ubicacion": {
+    "provincia": "Province",
+    "provinciaPlaceholder": "Choose the province",
+    "provinciaBuscar": "Search a province…",
+    "provinciaNinguna": "No province by that name.",
+    "provinciaTodas": "All provinces"
+  },
   "torneos": {
     "title": "Away tournaments",
     "subtitle": "Open tournaments at other venues. Sign up while there are spots left.",
@@ -498,7 +506,7 @@
     "localidadMas": "Keep typing to see more.",
     "localidadTodas": "All towns",
     "localidadFalta": "Choose the tournament's town: that's how other teams find it.",
-    "emptyLocalidad": "No open tournaments in {{localidad}}.",
+    "emptyLugar": "No open tournaments in {{lugar}}.",
     "abrir": "Open tournament",
     "abrirHint": "It shows up in “Away tournaments” and anyone can sign up until it starts.",
     "plazas": "Spots for teams",

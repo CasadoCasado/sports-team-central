@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type APIRequestContext } from "@playwright/test";
 
 import { API_URL, bearer, loginAs, seedCaptainWithTeam } from "./session";
 
@@ -12,6 +12,8 @@ const unico = (nombre: string) => `${nombre} ${Math.random().toString(36).slice(
 
 const VIGO = "36057";
 const LUGO = "27028";
+const MALAGA = "29067";
+const MARBELLA = "29069";
 
 const enDias = (n: number) => new Date(Date.now() + n * 86_400_000).toISOString().slice(0, 10);
 
@@ -32,7 +34,9 @@ test("la capitana abre su torneo con sede y plazas", async ({ page, request }) =
   await dlg.locator("#comp-localidad").click();
   await page.getByPlaceholder("Busca un municipio…").fill("vigo");
   await page.getByRole("option", { name: /^Vigo\b/ }).click();
-  await expect(dlg.locator("#comp-localidad")).toContainText("Vigo (Pontevedra)");
+  // Elegir el municipio pone su provincia.
+  await expect(dlg.locator("#comp-provincia")).toContainText("Pontevedra");
+  await expect(dlg.locator("#comp-localidad")).toContainText("Vigo");
   await dlg.locator("#comp-plazas").fill("6");
   await dlg.getByRole("button", { name: "Crear", exact: true }).click();
 
@@ -85,15 +89,18 @@ test("otro equipo se apunta y el organizador lo ve y puede quitarlo", async ({ p
   await expect(inscritos).toContainText("Todavía no se ha apuntado ningún equipo.");
 });
 
-test("los torneos fuera de casa se buscan por localidad", async ({ page, request }) => {
+/** Tres torneos abiertos de un mismo organizador: Málaga, Marbella y Lugo. */
+async function tresTorneos(request: APIRequestContext) {
   const { session: org, team: organizador } = await seedCaptainWithTeam(request, "org-loc");
-  const { session: cap } = await seedCaptainWithTeam(request, "busca-loc");
-
-  const enVigo = unico("Open de Vigo");
-  const enLugo = unico("Open de Lugo");
+  const nombres = {
+    malaga: unico("Open de Málaga"),
+    marbella: unico("Open de Marbella"),
+    lugo: unico("Open de Lugo"),
+  };
   for (const [nombre, localidad] of [
-    [enVigo, VIGO],
-    [enLugo, LUGO],
+    [nombres.malaga, MALAGA],
+    [nombres.marbella, MARBELLA],
+    [nombres.lugo, LUGO],
   ]) {
     const res = await request.post(`${API_URL}/competitions/`, {
       headers: bearer(org),
@@ -109,21 +116,66 @@ test("los torneos fuera de casa se buscan por localidad", async ({ page, request
     });
     expect(res.ok(), await res.text()).toBe(true);
   }
+  return nombres;
+}
+
+test("se buscan por provincia y, dentro de ella, por localidad", async ({ page, request }) => {
+  const n = await tresTorneos(request);
+  const { session: cap } = await seedCaptainWithTeam(request, "busca-loc");
+  const torneo = (nombre: string) => page.locator("article", { hasText: nombre });
+  const provincia = page.getByRole("combobox", { name: "Provincia" });
+  const localidad = page.getByRole("combobox", { name: "Localidad" });
 
   await loginAs(page, cap);
   await page.goto("/competiciones");
-  await expect(page.locator("article", { hasText: enVigo })).toBeVisible({ timeout: 20_000 });
-  await expect(page.locator("article", { hasText: enLugo })).toBeVisible();
+  // Sin provincia en el perfil, se ven todos.
+  await expect(torneo(n.lugo)).toBeVisible({ timeout: 20_000 });
+  await expect(torneo(n.malaga)).toBeVisible();
 
-  await page.getByRole("combobox", { name: "Localidad" }).click();
+  // Málaga: todos los de la provincia.
+  await provincia.click();
+  await page.getByPlaceholder("Busca una provincia…").fill("malaga");
+  await page.getByRole("option", { name: "Málaga" }).click();
+  await expect(torneo(n.malaga)).toBeVisible();
+  await expect(torneo(n.marbella)).toBeVisible();
+  await expect(torneo(n.lugo)).toHaveCount(0);
+
+  // Málaga y Marbella: solo los de Marbella. El desplegable ya solo ofrece
+  // municipios de Málaga.
+  await localidad.click();
   await page.getByPlaceholder("Busca un municipio…").fill("lugo");
-  await page.getByRole("option", { name: /^Lugo\b/ }).click();
-  await expect(page.locator("article", { hasText: enLugo })).toBeVisible();
-  await expect(page.locator("article", { hasText: enVigo })).toHaveCount(0);
+  await expect(page.getByRole("option", { name: /^Lugo\b/ })).toHaveCount(0);
+  await page.getByPlaceholder("Busca un municipio…").fill("marbella");
+  await page.getByRole("option", { name: "Marbella" }).click();
+  await expect(torneo(n.marbella)).toBeVisible();
+  await expect(torneo(n.malaga)).toHaveCount(0);
 
-  // Y se quita el filtro desde el mismo desplegable.
-  await expect(page.getByRole("combobox", { name: "Localidad" })).toContainText("Lugo (Lugo)");
-  await page.getByRole("combobox", { name: "Localidad" }).click();
+  // Quitar la localidad vuelve a toda la provincia; quitar la provincia, a todo.
+  await localidad.click();
   await page.getByRole("option", { name: "Todas las localidades" }).click();
-  await expect(page.locator("article", { hasText: enVigo })).toBeVisible();
+  await expect(torneo(n.malaga)).toBeVisible();
+  await expect(torneo(n.lugo)).toHaveCount(0);
+  await provincia.click();
+  await page.getByRole("option", { name: "Todas las provincias" }).click();
+  await expect(torneo(n.lugo)).toBeVisible();
+});
+
+test("la provincia del perfil es la que se busca de primeras", async ({ page, request }) => {
+  const n = await tresTorneos(request);
+  const { session: cap } = await seedCaptainWithTeam(request, "perfil-loc");
+
+  await loginAs(page, cap);
+  await page.goto("/perfil");
+  // En el perfil ya no hay ciudad: solo la provincia, de la lista.
+  await expect(page.locator("#ciudad")).toHaveCount(0);
+  await page.locator("#provincia").click({ timeout: 20_000 });
+  await page.getByPlaceholder("Busca una provincia…").fill("lugo");
+  await page.getByRole("option", { name: "Lugo" }).click();
+  await page.locator("form").getByRole("button", { name: "Guardar", exact: true }).click();
+  await expect(page.getByText("Perfil actualizado")).toBeVisible();
+
+  await page.goto("/competiciones");
+  await expect(page.getByRole("combobox", { name: "Provincia" })).toContainText("Lugo");
+  await expect(page.locator("article", { hasText: n.lugo })).toBeVisible({ timeout: 20_000 });
+  await expect(page.locator("article", { hasText: n.malaga })).toHaveCount(0);
 });
