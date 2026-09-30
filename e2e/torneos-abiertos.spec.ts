@@ -4,7 +4,7 @@ import { API_URL, bearer, loginAs, seedCaptainWithTeam } from "./session";
 
 /**
  * Torneos abiertos: un equipo organiza con sede y los demás se apuntan desde
- * su lista de competiciones, en «Torneos de otros equipos».
+ * su lista de competiciones, en «Torneos fuera de casa».
  */
 
 /** Nombres únicos: la base de los e2e guarda los torneos de otras pasadas. */

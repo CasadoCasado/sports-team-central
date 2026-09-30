@@ -1,8 +1,8 @@
 /**
- * Los torneos que organizan otros equipos, para apuntarse.
+ * «Torneos fuera de casa»: los torneos abiertos que se juegan en otras sedes.
  *
  * Un equipo abre su torneo desde su propia lista de competiciones (tipo
- * torneo, con sede y «abierto a otros equipos») y aquí lo ven los demás. Se
+ * torneo, con sede y «torneo abierto») y aquí lo ven los demás. Se
  * entra directamente mientras queden plazas y no haya empezado; apuntar y dar
  * de baja al equipo es de sus gestores. Ver `/api/torneos/`.
  */
