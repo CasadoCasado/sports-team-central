@@ -459,7 +459,7 @@ function Podium({ rows }: { rows: CompetitionStanding[] }) {
 /**
  * Los equipos de fuera apuntados a un torneo abierto. El organizador puede
  * quitar a uno; ellos se apuntan y se dan de baja desde su lista de
- * competiciones, en «Torneos de otros equipos».
+ * competiciones, en «Torneos fuera de casa».
  */
 function TournamentEntries({
   competition,

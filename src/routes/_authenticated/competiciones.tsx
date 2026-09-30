@@ -158,7 +158,7 @@ function CompetitionsPage() {
         </div>
       )}
 
-      {/* Los torneos que organizan otros equipos, para apuntarse. */}
+      {/* Los torneos abiertos que se juegan en otras sedes, para apuntarse. */}
       <OpenTournamentsSection
         teamId={active.team_id}
         teamName={active.team.nombre}
@@ -340,7 +340,7 @@ function CompDialog({
         descripcion: descripcion.trim() || null,
         formato,
         sede: sede.trim() || null,
-        // Solo un torneo se abre a otros equipos; al cambiar de tipo se cierra.
+        // Solo un torneo puede ser abierto; al cambiar de tipo se cierra.
         abierto: isTorneo && abierto,
         plazas: isTorneo && abierto && plazas ? Number(plazas) : null,
       };
