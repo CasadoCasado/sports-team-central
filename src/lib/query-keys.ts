@@ -36,6 +36,8 @@ export const COMPETITION_QUERY_KEYS = [
   ["competitions"], // la lista del equipo
   ["competition"], // el detalle
   ["competition-standings"], // la clasificación, que depende del formato
+  ["torneos"], // los torneos abiertos de otros equipos
+  ["torneo"], // uno de ellos, con sus equipos
 ] as const;
 
 function invalidateAll(qc: QueryClient, keys: readonly (readonly string[])[]) {

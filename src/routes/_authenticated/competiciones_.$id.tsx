@@ -17,8 +17,11 @@ import {
   ListOrdered,
   Lock,
   LockOpen,
+  Globe,
+  MapPin,
   Medal,
   Trophy,
+  X,
 } from "lucide-react";
 
 import { api } from "@/lib/api";
@@ -33,6 +36,7 @@ import type {
   CompetitionStandings,
   Profile,
   TeamEvent,
+  Torneo,
 } from "@/lib/types";
 import { confirmar } from "@/components/confirm-dialog";
 
@@ -255,10 +259,20 @@ function CompetitionDetail() {
             </Button>
           )}
         </div>
+        {competition.sede && (
+          <p className="mt-4 flex items-start gap-2 text-sm">
+            <MapPin className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+            {competition.sede}
+          </p>
+        )}
         {competition.descripcion && (
           <p className="mt-4 text-sm text-muted-foreground">{competition.descripcion}</p>
         )}
       </div>
+
+      {(competition.abierto || competition.inscritos > 0) && (
+        <TournamentEntries competition={competition} canManage={isManager} />
+      )}
 
       {podium.length > 0 && <Podium rows={podium} />}
 
@@ -438,6 +452,94 @@ function Podium({ rows }: { rows: CompetitionStanding[] }) {
           );
         })}
       </div>
+    </section>
+  );
+}
+
+/**
+ * Los equipos de fuera apuntados a un torneo abierto. El organizador puede
+ * quitar a uno; ellos se apuntan y se dan de baja desde su lista de
+ * competiciones, en «Torneos de otros equipos».
+ */
+function TournamentEntries({
+  competition,
+  canManage,
+}: {
+  competition: Competition;
+  canManage: boolean;
+}) {
+  const { t } = useTranslation();
+  const qc = useQueryClient();
+
+  const { data: torneo } = useQuery({
+    queryKey: ["torneo", competition.id],
+    queryFn: () => api.get<Torneo>(`/torneos/${competition.id}/`),
+  });
+
+  const quitar = useMutation({
+    mutationFn: (teamId: string) =>
+      api.post(`/torneos/${competition.id}/baja/`, { team_id: teamId }),
+    onSuccess: async () => {
+      toast.success(t("torneos.quitado"));
+      await invalidateCompetitionQueries(qc);
+    },
+    onError: (e: Error) => toast.error(e.message || t("common.error")),
+  });
+
+  const equipos = torneo?.equipos ?? [];
+
+  return (
+    <section className="surface-card overflow-hidden">
+      <div className="flex items-center gap-3 border-b border-border p-4 sm:p-5">
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+          <Globe className="size-5" aria-hidden="true" />
+        </div>
+        <div className="min-w-0">
+          <h2 className="text-display text-lg font-bold uppercase tracking-tight">
+            {t("torneos.equiposInscritos")}
+          </h2>
+          <p className="text-xxs text-muted-foreground">
+            {competition.abierto
+              ? competition.plazas
+                ? t("torneos.inscritosDe", { count: equipos.length, plazas: competition.plazas })
+                : t("torneos.inscritos", { count: equipos.length })
+              : t("torneos.yaNoAbierto")}
+          </p>
+        </div>
+      </div>
+      {torneo && equipos.length === 0 ? (
+        <p className="p-5 text-sm text-muted-foreground">{t("torneos.nadieAun")}</p>
+      ) : (
+        <ul className="divide-y divide-border">
+          {equipos.map((e) => (
+            <li key={e.id} className="flex items-center gap-3 px-4 py-3 sm:px-5">
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold break-words">{e.nombre}</p>
+                {e.ciudad && <p className="text-xxs text-muted-foreground">{e.ciudad}</p>}
+              </div>
+              {canManage && (
+                <button
+                  type="button"
+                  aria-label={t("torneos.quitar", { team: e.nombre })}
+                  disabled={quitar.isPending}
+                  onClick={async () => {
+                    const ok = await confirmar({
+                      title: t("torneos.quitarTitle", { team: e.nombre }),
+                      description: t("torneos.quitarBody"),
+                      confirmLabel: t("torneos.quitarAction"),
+                      tone: "danger",
+                    });
+                    if (ok) quitar.mutate(e.id);
+                  }}
+                  className="inline-flex size-9 shrink-0 items-center justify-center rounded-md border border-border text-destructive hover:bg-card"
+                >
+                  <X className="size-4" aria-hidden="true" />
+                </button>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   );
 }
