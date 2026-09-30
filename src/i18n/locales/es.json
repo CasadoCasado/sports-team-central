@@ -679,7 +679,32 @@
     "played": "Disputados",
     "calledUp": "Convocatorias",
     "lastCallup": "Última convocatoria",
-    "lastMatch": "Último partido"
+    "lastMatch": "Último partido",
+    "pairs": {
+      "title": "Parejas del equipo",
+      "subtitle": "Quién juega con quién en los enfrentamientos y cómo le va en su pista.",
+      "mineTitle": "Mis parejas",
+      "mineSubtitle": "Con quién has jugado y cómo os ha ido juntos.",
+      "empty": "Aún no hay parejas. Salen solas en cuanto un enfrentamiento tenga la pista de cada jugador y su marcador.",
+      "matches_one": "{{count}} partido",
+      "matches_other": "{{count}} partidos",
+      "record": "{{won}} G · {{lost}} P",
+      "nights_one": "{{count}} noche de rey de pista",
+      "nights_other": "{{count}} noches de rey de pista",
+      "crowns_one": "{{count}} vez reyes",
+      "crowns_other": "{{count}} veces reyes",
+      "with": "Con {{name}}",
+      "showAll": "Ver todas ({{count}})",
+      "showLess": "Ver menos",
+      "history": "Historial",
+      "court": "Pista {{n}}",
+      "won": "Ganado",
+      "lost": "Perdido",
+      "kings": "Reyes",
+      "challengers": "Retadores",
+      "vs": "vs {{rival}}",
+      "reyNote": "De rey de pista solo se guarda cómo acabó cada noche, no cada ronda."
+    }
   },
   "results": {
     "confirmTitle": "Confirmar resultados",

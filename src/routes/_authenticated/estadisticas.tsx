@@ -8,6 +8,7 @@ import { useSession } from "@/hooks/use-session";
 import { useActiveTeam } from "@/hooks/use-active-team";
 import { TeamPicker } from "@/components/team-picker";
 import { EmptyTeamState } from "@/components/empty-team-state";
+import { PairsSection } from "@/components/pairs-section";
 
 export const Route = createFileRoute("/_authenticated/estadisticas")({
   head: () => ({
@@ -179,6 +180,8 @@ function Estadisticas() {
             </div>
           </div>
         )}
+
+        <PairsSection teamId={active.team.id} />
       </section>
 
       {/* Personal stats */}
@@ -225,6 +228,8 @@ function Estadisticas() {
             value={playerStats?.ultimo_partido ? new Date(playerStats.ultimo_partido).toLocaleDateString() : "—"}
           />
         </div>
+
+        <PairsSection teamId={active.team.id} mine currentUserId={user?.id} />
       </section>
 
 
