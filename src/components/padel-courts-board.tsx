@@ -34,6 +34,8 @@ type Props = {
     ubicacion?: string | null;
     padel_num_pistas: number | null;
     convocatoria_confirmada: boolean;
+    /** Ya jugado (resultado o fin pasado): la convocatoria no se reabre. */
+    finalizado?: boolean;
   };
   responses: Respuesta[];
   members: Miembro[];
@@ -50,7 +52,7 @@ type Props = {
  *   suya; arrastrarlo a «Sin pista» le quita la pista. Poner a alguien en una
  *   pista lo convoca.
  * - Al final, confirmar la convocatoria: cierra la química y cada uno ve su
- *   pista. Se puede reabrir. Confirmada, las parejas se copian como texto
+ *   pista. Se puede reabrir hasta que el partido finaliza. Confirmada, las parejas se copian como texto
  *   para pegarlas en el grupo del equipo.
  *
  * El arrastre va con eventos de puntero, no con el arrastrar y soltar del
@@ -484,16 +486,23 @@ export function PadelCourtsBoard({ event, responses, members, onChanged }: Props
                 <Copy className="mr-1.5 size-3.5" aria-hidden="true" />
                 {t("quimica.copiarTexto")}
               </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => confirmar.mutate(false)}
-                disabled={confirmar.isPending}
-                className="text-2xs font-bold uppercase tracking-widest"
-              >
-                {t("quimica.reabrir")}
-              </Button>
+              {!event.finalizado && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => confirmar.mutate(false)}
+                  disabled={confirmar.isPending}
+                  className="text-2xs font-bold uppercase tracking-widest"
+                >
+                  {t("quimica.reabrir")}
+                </Button>
+              )}
             </div>
+            {event.finalizado && (
+              <p className="w-full text-xs text-muted-foreground">
+                {t("quimica.finalizadoNoReabrir")}
+              </p>
+            )}
           </div>
         ) : (
           numPistas > 0 && (
