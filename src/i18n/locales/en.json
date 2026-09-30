@@ -679,7 +679,32 @@
     "played": "Played",
     "calledUp": "Call-ups",
     "lastCallup": "Last call-up",
-    "lastMatch": "Last match"
+    "lastMatch": "Last match",
+    "pairs": {
+      "title": "Team pairs",
+      "subtitle": "Who plays with whom in matches and how they do on their court.",
+      "mineTitle": "My pairs",
+      "mineSubtitle": "Who you've played with and how you've done together.",
+      "empty": "No pairs yet. They show up as soon as a match has each player's court and its score.",
+      "matches_one": "{{count}} match",
+      "matches_other": "{{count}} matches",
+      "record": "{{won}} W · {{lost}} L",
+      "nights_one": "{{count}} king of the court night",
+      "nights_other": "{{count}} king of the court nights",
+      "crowns_one": "kings {{count}} time",
+      "crowns_other": "kings {{count}} times",
+      "with": "With {{name}}",
+      "showAll": "See all ({{count}})",
+      "showLess": "See less",
+      "history": "History",
+      "court": "Court {{n}}",
+      "won": "Won",
+      "lost": "Lost",
+      "kings": "Kings",
+      "challengers": "Challengers",
+      "vs": "vs {{rival}}",
+      "reyNote": "For king of the court only the end of each night is saved, not every round."
+    }
   },
   "results": {
     "confirmTitle": "Confirm results",

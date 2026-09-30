@@ -452,3 +452,39 @@ export type PlayerStats = {
   ultima_convocatoria: string | null;
   ultimo_partido: string | null;
 };
+
+/** Una línea del historial de una pareja: un enfrentamiento o una noche de rey de pista. */
+export type PairHistoryItem =
+  | {
+      tipo: "partido";
+      event_id: string;
+      fecha: string;
+      titulo: string;
+      rival: string | null;
+      pista: number;
+      /** Con los juegos del equipo primero: «6-4 3-6 7-5». */
+      sets: string;
+      ganado: boolean;
+    }
+  | {
+      tipo: "rey_pista";
+      event_id: string;
+      fecha: string;
+      titulo: string;
+      pista: number;
+      posicion: number;
+      reyes: boolean;
+    };
+
+/** Una pareja del equipo y lo que ha jugado junta; ver `/api/stats/pairs/`. */
+export type PairStats = {
+  jugadores: [Profile, Profile];
+  partidos: number;
+  ganados: number;
+  perdidos: number;
+  win_pct: number | null;
+  noches_rey: number;
+  veces_reyes: number;
+  ultimo: string | null;
+  historial: PairHistoryItem[];
+};
