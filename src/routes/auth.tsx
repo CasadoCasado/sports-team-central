@@ -4,7 +4,10 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
+import { ApiError } from "@/lib/api";
 import { hasSession, signInWithPassword, signUp } from "@/lib/auth";
+import { getJoinPreview, joinTeamByCode } from "@/lib/join-team";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LangToggle } from "@/components/lang-toggle";
 import { Button } from "@/components/ui/button";
@@ -13,6 +16,8 @@ import { Label } from "@/components/ui/label";
 
 const authSearchSchema = z.object({
   mode: z.enum(["login", "signup"]).optional(),
+  /** El código de un enlace para unirse: al acabar se entra en ese equipo. */
+  unirse: z.string().optional(),
 });
 
 export const Route = createFileRoute("/auth")({
@@ -27,9 +32,15 @@ export const Route = createFileRoute("/auth")({
     ],
   }),
   validateSearch: authSearchSchema,
-  beforeLoad: () => {
+  beforeLoad: ({ search }) => {
     if (typeof window === "undefined") return;
-    if (hasSession()) throw redirect({ to: "/inicio" });
+    if (hasSession()) {
+      // Con sesión, el enlace se acepta desde su propia página.
+      if (search.unirse) {
+        throw redirect({ to: "/unirse/$codigo", params: { codigo: search.unirse } });
+      }
+      throw redirect({ to: "/inicio" });
+    }
   },
   component: AuthPage,
 });
@@ -39,6 +50,13 @@ function AuthPage() {
   const navigate = useNavigate();
   const search = Route.useSearch();
   const [mode, setMode] = useState<"login" | "signup">(search.mode ?? "login");
+  const unirse = search.unirse;
+  const { data: joinTeam } = useQuery({
+    queryKey: ["join-preview", unirse],
+    enabled: !!unirse,
+    queryFn: () => getJoinPreview(unirse!),
+    retry: false,
+  });
   const [loading, setLoading] = useState(false);
 
   const [nombre, setNombre] = useState("");
@@ -83,19 +101,35 @@ function AuthPage() {
     setLoading(true);
     try {
       if (mode === "signup") {
-        // El alta deja la sesión iniciada, así que se va derecho al onboarding.
         await signUp({ email, password, nombre, apellidos });
-        toast.success(t("auth.signupSuccess"));
-        navigate({ to: "/onboarding", replace: true });
       } else {
         await signInWithPassword(email, password);
-        toast.success(t("auth.loginSuccess"));
-        navigate({ to: "/inicio", replace: true });
       }
+      if (unirse && (await joinAfterAuth(unirse))) return;
+      toast.success(mode === "signup" ? t("auth.signupSuccess") : t("auth.loginSuccess"));
+      // El alta deja la sesión iniciada, así que se va derecho al onboarding.
+      navigate({ to: mode === "signup" ? "/onboarding" : "/inicio", replace: true });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("common.error"));
     } finally {
       setLoading(false);
+    }
+  }
+
+  /**
+   * Entra en el equipo del enlace nada más tener sesión. Si el enlace ya no
+   * vale, se avisa y se sigue como un alta normal: la cuenta ya está hecha.
+   */
+  async function joinAfterAuth(codigo: string) {
+    try {
+      const team = await joinTeamByCode(codigo);
+      toast.success(t("joinLink.joined", { team: team.nombre }));
+      navigate({ to: "/mi-equipo", replace: true });
+      return true;
+    } catch (err) {
+      const status = err instanceof ApiError ? err.status : 0;
+      toast.error(status === 403 ? t("joinLink.expelled") : t("joinLink.invalidBody"));
+      return false;
     }
   }
 
@@ -119,6 +153,14 @@ function AuthPage() {
               <ThemeToggle />
             </div>
           </div>
+
+          {joinTeam && (
+            <p className="mb-5 rounded-xl border border-primary/25 bg-primary/[0.06] px-4 py-3 text-sm">
+              {mode === "signup"
+                ? t("joinLink.banner", { team: joinTeam.nombre })
+                : t("joinLink.bannerLogin", { team: joinTeam.nombre })}
+            </p>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {mode === "signup" && (

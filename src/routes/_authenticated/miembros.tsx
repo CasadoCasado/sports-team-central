@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { MembersRanking, VistaSelector } from "@/components/members-ranking";
 import { useVistasClasificacion, type Vista } from "@/hooks/use-vistas-clasificacion";
 import { TeamPicker } from "@/components/team-picker";
+import { TeamInviteLink } from "@/components/team-invite-link";
 import { useActiveTeam } from "@/hooks/use-active-team";
 
 export const Route = createFileRoute("/_authenticated/miembros")({
@@ -302,6 +303,17 @@ function Miembros() {
               <X className="size-4" aria-hidden="true" />
             </button>
           </div>
+
+          {/* Lo más rápido para llenar un equipo: el enlace al grupo de
+              WhatsApp. Buscar a alguien ya registrado va debajo. */}
+          {active?.team && (
+            <TeamInviteLink
+              teamId={active.team.id}
+              teamName={active.team.nombre}
+              canRenew={canManageRoles}
+              className="mb-5 border-b border-border pb-5"
+            />
+          )}
 
           <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-3 text-sm">
             <span className="text-muted-foreground">{t("members.searchBy")}:</span>

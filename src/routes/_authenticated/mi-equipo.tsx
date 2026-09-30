@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/select";
 import { SPORTS, sportLabel } from "@/lib/sports";
 import { TeamDiscovery } from "@/components/team-discovery";
+import { TeamInviteLink } from "@/components/team-invite-link";
 import { TeamJoinRequests } from "@/components/team-join-requests";
 import { TeamEditDialog } from "@/components/team-edit-dialog";
 import { confirmar } from "@/components/confirm-dialog";
@@ -628,6 +629,15 @@ function TeamCard({
           )}
         </div>
       </div>
+
+      {/* Justo al crear el equipo es cuando más falta: está vacío. */}
+      {(isOwner || isManager) && (
+        <TeamInviteLink
+          teamId={team.id}
+          teamName={team.nombre}
+          className="border-t border-border p-4 sm:px-5"
+        />
+      )}
 
       {(isOwner || ["capitan", "co_capitan", "entrenador", "delegado"].includes(role)) && (
         <TeamJoinRequests teamId={team.id} compact />
