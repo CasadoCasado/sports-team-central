@@ -1,19 +1,17 @@
 /**
- * Desplegables con buscador de provincia y de municipio.
+ * Desplegable con buscador de provincia.
  *
- * Un torneo se sitúa en un municipio y se busca por provincia y, dentro de
- * ella, por municipio; un perfil solo dice su provincia. Las listas llegan
- * una vez (ver `lib/localidades`) y se buscan aquí, sin tildes ni mayúsculas.
- * De los municipios, unos ocho mil, solo se pintan las primeras coincidencias
- * para que el desplegable no se atasque. El valor es siempre el código INE,
- * que es lo que guarda el backend.
+ * Un torneo se sitúa en una provincia y se busca por ella; un perfil dice la
+ * suya. La lista llega una vez (ver `lib/localidades`) y se busca aquí, sin
+ * tildes ni mayúsculas. El valor es el código INE, que es lo que guarda el
+ * backend.
  */
 
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Check, ChevronsUpDown, Map as MapIcon, MapPin, type LucideIcon } from "lucide-react";
+import { Check, ChevronsUpDown, Map as MapIcon, type LucideIcon } from "lucide-react";
 
-import { normalizar, useLocalidades, useProvincias } from "@/lib/localidades";
+import { normalizar, useProvincias } from "@/lib/localidades";
 import { cn } from "@/lib/utils";
 import {
   Command,
@@ -25,21 +23,17 @@ import {
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
-const MAX_RESULTADOS = 60;
-
 type Opcion = {
   codigo: string;
   nombre: string;
   /** Sin tildes ni mayúsculas, para buscar. */
   clave: string;
-  /** Lo que se pinta a la derecha, en gris: la provincia de un municipio. */
-  detalle?: string;
 };
 
 /** Lo que empieza por lo escrito va antes que lo que solo lo contiene. */
 function buscar(opciones: Opcion[], texto: string): Opcion[] {
   const q = normalizar(texto);
-  if (!q) return opciones.slice(0, MAX_RESULTADOS);
+  if (!q) return opciones;
   const exactas: Opcion[] = [];
   const empiezan: Opcion[] = [];
   const palabra: Opcion[] = [];
@@ -52,7 +46,7 @@ function buscar(opciones: Opcion[], texto: string): Opcion[] {
     else if (/[\s/'-]/.test(o.clave[i - 1])) palabra.push(o);
     else contienen.push(o);
   }
-  return [...exactas, ...empiezan, ...palabra, ...contienen].slice(0, MAX_RESULTADOS);
+  return [...exactas, ...empiezan, ...palabra, ...contienen];
 }
 
 type ComunProps = {
@@ -90,7 +84,6 @@ function BuscadorDesplegable({
   sinResultados: string;
   icon: LucideIcon;
 }) {
-  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [texto, setTexto] = useState("");
 
@@ -99,7 +92,6 @@ function BuscadorDesplegable({
     [opciones, value],
   );
   const resultados = useMemo(() => buscar(opciones, texto), [opciones, texto]);
-  const hayMas = resultados.length === MAX_RESULTADOS;
 
   function elegir(codigo: string | null) {
     onChange(codigo);
@@ -145,17 +137,9 @@ function BuscadorDesplegable({
                 <CommandItem key={o.codigo} value={o.codigo} onSelect={() => elegir(o.codigo)}>
                   <Check className={cn(value === o.codigo ? "opacity-100" : "opacity-0")} />
                   <span className="min-w-0 flex-1 truncate">{o.nombre}</span>
-                  {o.detalle && (
-                    <span className="shrink-0 text-xxs text-muted-foreground">{o.detalle}</span>
-                  )}
                 </CommandItem>
               ))}
             </CommandGroup>
-            {hayMas && (
-              <p className="px-3 pb-2 text-xxs text-muted-foreground">
-                {t("torneos.localidadMas")}
-              </p>
-            )}
           </CommandList>
         </Command>
       </PopoverContent>
@@ -176,37 +160,6 @@ export function ProvinciaPicker(props: ComunProps) {
       buscarPlaceholder={t("ubicacion.provinciaBuscar")}
       sinResultados={t("ubicacion.provinciaNinguna")}
       icon={MapIcon}
-    />
-  );
-}
-
-/**
- * Con `provincia`, solo los municipios de esa provincia; sin ella, todos, con
- * la provincia al lado para distinguir los que se llaman igual.
- */
-export function LocalidadPicker({
-  provincia,
-  ...props
-}: ComunProps & { provincia?: string | null }) {
-  const { t } = useTranslation();
-  const { data = [], isLoading } = useLocalidades();
-  const opciones = useMemo(
-    () =>
-      data
-        .filter((l) => !provincia || l.codigo.startsWith(provincia))
-        .map((l) => ({ ...l, detalle: provincia ? undefined : l.provincia })),
-    [data, provincia],
-  );
-  return (
-    <BuscadorDesplegable
-      placeholder={props.todas ? undefined : t("torneos.localidadPlaceholder")}
-      {...props}
-      opciones={opciones}
-      cargando={isLoading}
-      elegidaTexto={(o) => (o.detalle ? `${o.nombre} (${o.detalle})` : o.nombre)}
-      buscarPlaceholder={t("torneos.localidadBuscar")}
-      sinResultados={t("torneos.localidadNinguna")}
-      icon={MapPin}
     />
   );
 }

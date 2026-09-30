@@ -4,9 +4,8 @@
  * Un equipo abre su torneo desde su propia lista de competiciones (tipo
  * torneo, con sede y «torneo abierto») y aquí lo ven los demás. Se
  * entra directamente mientras queden plazas y no haya empezado; apuntar y dar
- * de baja al equipo es de sus gestores. Arriba se filtran por provincia y,
- * dentro de ella, por localidad; se empieza por la provincia del perfil de
- * quien mira. Ver `/api/torneos/`.
+ * de baja al equipo es de sus gestores. Junto al título se filtran por
+ * provincia, empezando por la del perfil de quien mira. Ver `/api/torneos/`.
  */
 
 import { useState } from "react";
@@ -32,8 +31,8 @@ import { invalidateCompetitionQueries } from "@/lib/query-keys";
 import type { Torneo } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { confirmar } from "@/components/confirm-dialog";
-import { LocalidadPicker, ProvinciaPicker } from "@/components/ubicacion-picker";
-import { provinciaDe, useLocalidades, useProvincias } from "@/lib/localidades";
+import { ProvinciaPicker } from "@/components/ubicacion-picker";
+import { useProvincias } from "@/lib/localidades";
 import { useSession } from "@/hooks/use-session";
 
 export function OpenTournamentsSection({
@@ -48,32 +47,13 @@ export function OpenTournamentsSection({
   const { t } = useTranslation();
   const { profile } = useSession();
   const [provincia, setProvincia] = useState<string | null>(() => profile?.provincia ?? null);
-  const [localidad, setLocalidad] = useState<string | null>(null);
   const { data: provincias } = useProvincias();
-  const { data: localidades } = useLocalidades();
-  const lugar = localidad
-    ? localidades?.find((l) => l.codigo === localidad)?.nombre
-    : provincias?.find((p) => p.codigo === provincia)?.nombre;
-
-  function elegirProvincia(codigo: string | null) {
-    setProvincia(codigo);
-    // Un municipio de otra provincia ya no pinta nada en el filtro.
-    if (codigo !== provinciaDe(localidad)) setLocalidad(null);
-  }
-
-  function elegirLocalidad(codigo: string | null) {
-    setLocalidad(codigo);
-    // Buscar el municipio sin provincia también vale: se pone la suya.
-    if (codigo) setProvincia(provinciaDe(codigo));
-  }
+  const lugar = provincias?.find((p) => p.codigo === provincia)?.nombre;
 
   const { data: torneos } = useQuery({
-    queryKey: ["torneos", teamId, provincia, localidad],
+    queryKey: ["torneos", teamId, provincia],
     queryFn: () =>
-      api.get<Torneo[]>("/torneos/", {
-        team_id: teamId,
-        ...(localidad ? { localidad } : provincia ? { provincia } : {}),
-      }),
+      api.get<Torneo[]>("/torneos/", { team_id: teamId, ...(provincia ? { provincia } : {}) }),
   });
 
   // Primero donde ya vais; luego el resto, por fecha (así llegan).
@@ -81,27 +61,21 @@ export function OpenTournamentsSection({
 
   return (
     <section className="space-y-4">
-      <div>
-        <h2 className="text-display flex items-center gap-2 text-xl font-bold">
-          <Globe className="size-5 text-primary" aria-hidden="true" />
-          {t("torneos.title")}
-        </h2>
-        <p className="mt-1 text-sm text-muted-foreground">{t("torneos.subtitle")}</p>
-        <div className="mt-3 grid gap-2 sm:max-w-xl sm:grid-cols-2">
-          <ProvinciaPicker
-            label={t("ubicacion.provincia")}
-            value={provincia}
-            onChange={elegirProvincia}
-            todas={t("ubicacion.provinciaTodas")}
-          />
-          <LocalidadPicker
-            label={t("torneos.localidad")}
-            provincia={provincia}
-            value={localidad}
-            onChange={elegirLocalidad}
-            todas={t("torneos.localidadTodas")}
-          />
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="text-display flex items-center gap-2 text-xl font-bold">
+            <Globe className="size-5 text-primary" aria-hidden="true" />
+            {t("torneos.title")}
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">{t("torneos.subtitle")}</p>
         </div>
+        <ProvinciaPicker
+          label={t("ubicacion.provincia")}
+          value={provincia}
+          onChange={setProvincia}
+          todas={t("ubicacion.provinciaTodas")}
+          className="sm:w-64"
+        />
       </div>
 
       {torneos && lista.length === 0 ? (
@@ -222,14 +196,14 @@ function TorneoCard({
       </div>
 
       <ul className="mt-3 space-y-1.5 text-sm">
-        {(torneo.sede || torneo.localidad_nombre) && (
+        {(torneo.sede || torneo.provincia_nombre) && (
           <li className="flex items-start gap-2">
             <MapPin className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
             <span className="break-words">
               {torneo.sede}
-              {torneo.localidad_nombre && (
+              {torneo.provincia_nombre && (
                 <span className="block text-xs text-muted-foreground">
-                  {torneo.localidad_nombre}
+                  {torneo.provincia_nombre}
                 </span>
               )}
             </span>
