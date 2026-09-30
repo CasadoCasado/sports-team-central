@@ -58,6 +58,7 @@ type MatchEvent = {
   es_local: boolean | null;
   padel_num_pistas: number | null;
   convocatoria_confirmada: boolean;
+  finalizado: boolean;
 };
 
 function Matches() {

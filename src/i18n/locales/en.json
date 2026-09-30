@@ -1104,6 +1104,7 @@
     "confirmadaTitulo": "Call-up confirmed.",
     "confirmadaTexto": "Chemistry is closed and everyone can see their court.",
     "reabrir": "Reopen",
+    "finalizadoNoReabrir": "The match is over: the call-up can't be reopened.",
     "copiarTexto": "Copy text",
     "copiadas": "Courts copied",
     "compartirPareja": "{{a}} and {{b}}",

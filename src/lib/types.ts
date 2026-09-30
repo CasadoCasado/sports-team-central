@@ -115,6 +115,8 @@ export type TeamEvent = {
   /** La gestión dio la convocatoria por cerrada: la química ya no se toca. */
   convocatoria_confirmada: boolean;
   convocatoria_confirmada_en: string | null;
+  /** Ya jugado: tiene resultado o ya pasó su hora de fin. */
+  finalizado: boolean;
   rival: string | null;
   es_local: boolean | null;
   resultado_local: number | null;

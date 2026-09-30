@@ -413,6 +413,7 @@ function CallupSection({
     ubicacion?: string | null;
     padel_num_pistas: number | null;
     convocatoria_confirmada: boolean;
+    finalizado: boolean;
   };
   isManager: boolean;
   userId: string | null;

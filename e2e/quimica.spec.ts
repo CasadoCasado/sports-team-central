@@ -275,4 +275,30 @@ test.describe("Química en una convocatoria", () => {
       timeout: 20_000,
     });
   });
+
+  test("con el partido finalizado, la convocatoria ya no se reabre", async ({ page, request }) => {
+    const e = await montar(request);
+    let res = await request.post(`${API_URL}/events/${e.eventId}/confirmar/`, {
+      headers: bearer(e.capitana),
+      data: { confirmada: true },
+    });
+    expect(res.ok(), await res.text()).toBe(true);
+    // Con resultado, el partido ya se ha jugado.
+    res = await request.patch(`${API_URL}/events/${e.eventId}/`, {
+      headers: bearer(e.capitana),
+      data: { resultado_local: 2, resultado_visitante: 1 },
+    });
+    expect(res.ok(), await res.text()).toBe(true);
+
+    await loginAs(page, e.capitana);
+    await page.goto(`/eventos/${e.eventId}`);
+    await expect(page.getByText(/no se puede reabrir/i)).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByRole("button", { name: "Reabrir" })).toHaveCount(0);
+    // Y el servidor tampoco lo deja por su cuenta.
+    res = await request.post(`${API_URL}/events/${e.eventId}/confirmar/`, {
+      headers: bearer(e.capitana),
+      data: { confirmada: false },
+    });
+    expect(res.status()).toBe(400);
+  });
 });

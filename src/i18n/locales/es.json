@@ -1104,6 +1104,7 @@
     "confirmadaTitulo": "Convocatoria confirmada.",
     "confirmadaTexto": "La química está cerrada y cada uno ya ve su pista.",
     "reabrir": "Reabrir",
+    "finalizadoNoReabrir": "El partido ya ha finalizado: la convocatoria no se puede reabrir.",
     "copiarTexto": "Copiar texto",
     "copiadas": "Pistas copiadas",
     "compartirPareja": "{{a}} y {{b}}",
