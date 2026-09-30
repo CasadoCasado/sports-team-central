@@ -4,7 +4,8 @@
  * Un equipo abre su torneo desde su propia lista de competiciones (tipo
  * torneo, con sede y «torneo abierto») y aquí lo ven los demás. Se
  * entra directamente mientras queden plazas y no haya empezado; apuntar y dar
- * de baja al equipo es de sus gestores. Ver `/api/torneos/`.
+ * de baja al equipo es de sus gestores. Arriba se filtran por localidad, con
+ * el mismo desplegable que se usa al crearlos. Ver `/api/torneos/`.
  */
 
 import { useState } from "react";
@@ -30,6 +31,8 @@ import { invalidateCompetitionQueries } from "@/lib/query-keys";
 import type { Torneo } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { confirmar } from "@/components/confirm-dialog";
+import { LocalidadPicker } from "@/components/localidad-picker";
+import { useLocalidades } from "@/lib/localidades";
 
 export function OpenTournamentsSection({
   teamId,
@@ -41,10 +44,17 @@ export function OpenTournamentsSection({
   canManage: boolean;
 }) {
   const { t } = useTranslation();
+  const [localidad, setLocalidad] = useState<string | null>(null);
+  const { data: localidades } = useLocalidades();
+  const nombreLocalidad = localidades?.find((l) => l.codigo === localidad)?.nombre;
 
   const { data: torneos } = useQuery({
-    queryKey: ["torneos", teamId],
-    queryFn: () => api.get<Torneo[]>("/torneos/", { team_id: teamId }),
+    queryKey: ["torneos", teamId, localidad],
+    queryFn: () =>
+      api.get<Torneo[]>("/torneos/", {
+        team_id: teamId,
+        ...(localidad ? { localidad } : {}),
+      }),
   });
 
   // Primero donde ya vais; luego el resto, por fecha (así llegan).
@@ -58,11 +68,21 @@ export function OpenTournamentsSection({
           {t("torneos.title")}
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">{t("torneos.subtitle")}</p>
+        <LocalidadPicker
+          label={t("torneos.localidad")}
+          value={localidad}
+          onChange={setLocalidad}
+          placeholder={t("torneos.localidadTodas")}
+          todas
+          className="mt-3 sm:max-w-xs"
+        />
       </div>
 
       {torneos && lista.length === 0 ? (
         <div className="surface-card p-6 text-center text-sm text-muted-foreground">
-          {t("torneos.empty")}
+          {localidad
+            ? t("torneos.emptyLocalidad", { localidad: nombreLocalidad ?? "" })
+            : t("torneos.empty")}
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
@@ -178,10 +198,17 @@ function TorneoCard({
       </div>
 
       <ul className="mt-3 space-y-1.5 text-sm">
-        {torneo.sede && (
+        {(torneo.sede || torneo.localidad_nombre) && (
           <li className="flex items-start gap-2">
             <MapPin className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-            <span className="break-words">{torneo.sede}</span>
+            <span className="break-words">
+              {torneo.sede}
+              {torneo.localidad_nombre && (
+                <span className="block text-xs text-muted-foreground">
+                  {torneo.localidad_nombre}
+                </span>
+              )}
+            </span>
           </li>
         )}
         {fechas && (

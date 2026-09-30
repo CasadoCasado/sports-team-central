@@ -259,10 +259,10 @@ function CompetitionDetail() {
             </Button>
           )}
         </div>
-        {competition.sede && (
+        {(competition.sede || competition.localidad_nombre) && (
           <p className="mt-4 flex items-start gap-2 text-sm">
             <MapPin className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-            {competition.sede}
+            {[competition.sede, competition.localidad_nombre].filter(Boolean).join(" · ")}
           </p>
         )}
         {competition.descripcion && (

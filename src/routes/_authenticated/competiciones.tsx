@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/select";
 import { OfficialRegistrationsSection } from "@/components/official-registrations-section";
 import { OpenTournamentsSection } from "@/components/open-tournaments-section";
+import { LocalidadPicker } from "@/components/localidad-picker";
 import type { CompetitionType, TrainingFormat } from "@/lib/types";
 import { confirmar } from "@/components/confirm-dialog";
 
@@ -46,6 +47,8 @@ type Competition = {
   formato: TrainingFormat | null;
   finalizada: boolean;
   sede: string | null;
+  localidad: string | null;
+  localidad_nombre: string | null;
   abierto: boolean;
   plazas: number | null;
   inscritos: number;
@@ -254,12 +257,12 @@ function CompCard({
           </div>
         )}
       </div>
-      {(c.sede || c.abierto) && (
+      {(c.sede || c.localidad_nombre || c.abierto) && (
         <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-          {c.sede && (
+          {(c.sede || c.localidad_nombre) && (
             <span className="inline-flex items-center gap-1.5">
               <MapPin className="size-3.5 shrink-0" aria-hidden="true" />
-              {c.sede}
+              {[c.sede, c.localidad_nombre].filter(Boolean).join(" · ")}
             </span>
           )}
           {c.abierto && (
@@ -306,6 +309,7 @@ function CompDialog({
   const [descripcion, setDescripcion] = useState("");
   const [formato, setFormato] = useState<TrainingFormat | null>(null);
   const [sede, setSede] = useState("");
+  const [localidad, setLocalidad] = useState<string | null>(null);
   const [abierto, setAbierto] = useState(false);
   const [plazas, setPlazas] = useState("");
   const [saving, setSaving] = useState(false);
@@ -319,6 +323,7 @@ function CompDialog({
     setDescripcion(initial.descripcion ?? "");
     setFormato(initial.formato ?? null);
     setSede(initial.sede ?? "");
+    setLocalidad(initial.localidad ?? null);
     setAbierto(initial.abierto ?? false);
     setPlazas(initial.plazas ? String(initial.plazas) : "");
   }, [initial]);
@@ -330,6 +335,7 @@ function CompDialog({
   const save = useMutation({
     mutationFn: async () => {
       if (!user || !nombre.trim()) throw new Error(t("auth.required"));
+      if (isTorneo && abierto && !localidad) throw new Error(t("torneos.localidadFalta"));
       const payload = {
         team_id: teamId,
         nombre: nombre.trim(),
@@ -340,6 +346,7 @@ function CompDialog({
         descripcion: descripcion.trim() || null,
         formato,
         sede: sede.trim() || null,
+        localidad,
         // Solo un torneo puede ser abierto; al cambiar de tipo se cierra.
         abierto: isTorneo && abierto,
         plazas: isTorneo && abierto && plazas ? Number(plazas) : null,
@@ -416,6 +423,11 @@ function CompDialog({
               maxLength={120}
               required={isTorneo && abierto}
             />
+          </div>
+
+          <div>
+            <Label htmlFor="comp-localidad">{t("torneos.localidad")}</Label>
+            <LocalidadPicker id="comp-localidad" value={localidad} onChange={setLocalidad} />
           </div>
 
           {isTorneo && (
