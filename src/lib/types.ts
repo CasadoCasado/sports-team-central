@@ -40,6 +40,8 @@ export type FullProfile = Profile & {
   telefono: string | null;
   fecha_nacimiento: string | null;
   ciudad: string | null;
+  /** Código INE de su provincia; ver `lib/localidades`. */
+  provincia: string | null;
   descripcion: string | null;
   deporte: string | null;
   posicion: string | null;
@@ -221,7 +223,7 @@ export type Torneo = {
   nombre: string;
   descripcion: string | null;
   sede: string | null;
-  /** Código INE del municipio; ver `components/localidad-picker`. */
+  /** Código INE del municipio; ver `components/ubicacion-picker`. */
   localidad: string | null;
   localidad_nombre: string | null;
   fecha_inicio: string | null;

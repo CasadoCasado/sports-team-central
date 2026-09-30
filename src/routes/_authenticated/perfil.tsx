@@ -27,6 +27,7 @@ import { FontSizeControl } from "@/components/font-size-control";
 import { restartGuidedTour } from "@/components/guided-tour";
 import { SPORTS, sportLabel } from "@/lib/sports";
 import { LADOS, ladoDe } from "@/lib/lado";
+import { ProvinciaPicker } from "@/components/ubicacion-picker";
 
 export const Route = createFileRoute("/_authenticated/perfil")({
   head: () => ({
@@ -59,7 +60,7 @@ function Perfil() {
   const [nombre, setNombre] = useState("");
   const [apellidos, setApellidos] = useState("");
   const [telefono, setTelefono] = useState("");
-  const [ciudad, setCiudad] = useState("");
+  const [provincia, setProvincia] = useState<string | null>(null);
   const [deporte, setDeporte] = useState("");
   const [posicion, setPosicion] = useState("");
   const [mano, setMano] = useState("");
@@ -72,7 +73,7 @@ function Perfil() {
       setNombre(profile.nombre ?? "");
       setApellidos(profile.apellidos ?? "");
       setTelefono(profile.telefono ?? "");
-      setCiudad(profile.ciudad ?? "");
+      setProvincia(profile.provincia ?? null);
       setDeporte(profile.deporte ?? "");
       setPosicion(ladoDe(profile.posicion) ?? "");
       setMano(profile.mano_dominante ?? "");
@@ -90,7 +91,7 @@ function Perfil() {
         nombre: nombre.trim(),
         apellidos: apellidos.trim(),
         telefono: telefono.trim() || null,
-        ciudad: ciudad.trim() || null,
+        provincia,
         deporte: deporte || null,
         posicion: posicion || null,
         mano_dominante: mano.trim() || null,
@@ -200,13 +201,9 @@ function Perfil() {
               />
             </div>
             <div>
-              <Label htmlFor="ciudad">{t("profile.ciudad")}</Label>
-              <Input
-                id="ciudad"
-                value={ciudad}
-                onChange={(e) => setCiudad(e.target.value)}
-                maxLength={100}
-              />
+              <Label htmlFor="provincia">{t("ubicacion.provincia")}</Label>
+              <ProvinciaPicker id="provincia" value={provincia} onChange={setProvincia} />
+              <p className="mt-1 text-xxs text-muted-foreground">{t("profile.provinciaHint")}</p>
             </div>
           </div>
         </section>

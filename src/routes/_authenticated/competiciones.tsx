@@ -31,7 +31,8 @@ import {
 } from "@/components/ui/select";
 import { OfficialRegistrationsSection } from "@/components/official-registrations-section";
 import { OpenTournamentsSection } from "@/components/open-tournaments-section";
-import { LocalidadPicker } from "@/components/localidad-picker";
+import { LocalidadPicker, ProvinciaPicker } from "@/components/ubicacion-picker";
+import { provinciaDe } from "@/lib/localidades";
 import type { CompetitionType, TrainingFormat } from "@/lib/types";
 import { confirmar } from "@/components/confirm-dialog";
 
@@ -299,7 +300,7 @@ function CompDialog({
   onClose: () => void;
 }) {
   const { t } = useTranslation();
-  const { user } = useSession();
+  const { user, profile } = useSession();
   const qc = useQueryClient();
   const [nombre, setNombre] = useState("");
   const [tipo, setTipo] = useState<CompType>("liga");
@@ -309,6 +310,7 @@ function CompDialog({
   const [descripcion, setDescripcion] = useState("");
   const [formato, setFormato] = useState<TrainingFormat | null>(null);
   const [sede, setSede] = useState("");
+  const [provincia, setProvincia] = useState<string | null>(null);
   const [localidad, setLocalidad] = useState<string | null>(null);
   const [abierto, setAbierto] = useState(false);
   const [plazas, setPlazas] = useState("");
@@ -324,9 +326,13 @@ function CompDialog({
     setFormato(initial.formato ?? null);
     setSede(initial.sede ?? "");
     setLocalidad(initial.localidad ?? null);
+    // Uno nuevo empieza en la provincia de quien lo crea.
+    setProvincia(
+      provinciaDe(initial.localidad ?? null) ?? (initial.id ? null : (profile?.provincia ?? null)),
+    );
     setAbierto(initial.abierto ?? false);
     setPlazas(initial.plazas ? String(initial.plazas) : "");
-  }, [initial]);
+  }, [initial, profile?.provincia]);
 
   const isEdit = !!initial.id;
   const isLiga = tipo === "liga";
@@ -425,9 +431,30 @@ function CompDialog({
             />
           </div>
 
-          <div>
-            <Label htmlFor="comp-localidad">{t("torneos.localidad")}</Label>
-            <LocalidadPicker id="comp-localidad" value={localidad} onChange={setLocalidad} />
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <Label htmlFor="comp-provincia">{t("ubicacion.provincia")}</Label>
+              <ProvinciaPicker
+                id="comp-provincia"
+                value={provincia}
+                onChange={(codigo) => {
+                  setProvincia(codigo);
+                  if (codigo !== provinciaDe(localidad)) setLocalidad(null);
+                }}
+              />
+            </div>
+            <div>
+              <Label htmlFor="comp-localidad">{t("torneos.localidad")}</Label>
+              <LocalidadPicker
+                id="comp-localidad"
+                provincia={provincia}
+                value={localidad}
+                onChange={(codigo) => {
+                  setLocalidad(codigo);
+                  if (codigo) setProvincia(provinciaDe(codigo));
+                }}
+              />
+            </div>
           </div>
 
           {isTorneo && (

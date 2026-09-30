@@ -1,7 +1,7 @@
 /**
- * Los municipios de España (código INE, nombre y provincia), de
- * `/api/localidades/`. Llegan una vez por sesión y no caducan: el INE los
- * cambia una vez al año. Ver `components/localidad-picker`.
+ * Las provincias (`/api/provincias/`) y los municipios de España
+ * (`/api/localidades/`), por su código INE. Llegan una vez por sesión y no
+ * caducan: el INE los cambia una vez al año. Ver `components/ubicacion-picker`.
  */
 
 import { useQuery } from "@tanstack/react-query";
@@ -45,3 +45,26 @@ export function useLocalidades() {
     select: aLocalidades,
   });
 }
+
+export type Provincia = {
+  codigo: string;
+  nombre: string;
+  clave: string;
+};
+
+const aProvincias = (filas: [string, string][]): Provincia[] =>
+  filas.map(([codigo, nombre]) => ({ codigo, nombre, clave: normalizar(nombre) }));
+
+/** Las 52 provincias, por nombre (`/api/provincias/`). */
+export function useProvincias() {
+  return useQuery({
+    queryKey: ["provincias"],
+    queryFn: () => api.get<[string, string][]>("/provincias/"),
+    staleTime: Infinity,
+    gcTime: Infinity,
+    select: aProvincias,
+  });
+}
+
+/** Los dos primeros dígitos del código de un municipio son su provincia. */
+export const provinciaDe = (localidad: string | null) => (localidad ? localidad.slice(0, 2) : null);
