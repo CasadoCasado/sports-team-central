@@ -355,6 +355,42 @@
   }
 }
 
+@utility scrollbar-fino {
+  /* La barra de scroll de lo que flota —modales, desplegables, menús—. La
+     del sistema, gris y con flechas, desentonaba sobre todo en oscuro y
+     chocaba con las esquinas redondeadas: esta es fina, del color del texto
+     apagado del tema y se separa de arriba y abajo. */
+  &::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+    margin-block: 10px;
+  }
+  &::-webkit-scrollbar-thumb {
+    /* El borde transparente con `padding-box` la deja en 4 px, despegada. */
+    border: 3px solid transparent;
+    border-radius: 9999px;
+    background-clip: padding-box;
+    background-color: color-mix(in oklab, var(--muted-foreground) 40%, transparent);
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background-color: color-mix(in oklab, var(--muted-foreground) 65%, transparent);
+  }
+  &::-webkit-scrollbar-button,
+  &::-webkit-scrollbar-corner {
+    display: none;
+    background: transparent;
+  }
+  /* Firefox no tiene los pseudoelementos: las propiedades estándar. Solo ahí,
+     porque en Chrome anularían todo lo de arriba. */
+  @supports not selector(::-webkit-scrollbar) {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklab, var(--muted-foreground) 40%, transparent) transparent;
+  }
+}
+
 @utility text-display {
   font-family: var(--font-display);
   letter-spacing: -0.03em;
