@@ -193,6 +193,44 @@ export type Competition = {
   /** Una competición finalizada ya no admite resultados y enseña su podio. */
   finalizada: boolean;
   finalizada_en: string | null;
+  /** Dónde se juega; obligatoria en un torneo abierto. */
+  sede: string | null;
+  /** Un torneo abierto sale a los demás equipos, que pueden apuntarse. */
+  abierto: boolean;
+  /** Cuántos equipos de fuera caben; sin límite si es null. */
+  plazas: number | null;
+  /** Equipos de fuera ya apuntados. */
+  inscritos: number;
+};
+
+/** Lo público de un equipo que se enseña a los de fuera. */
+export type EquipoPublico = {
+  id: string;
+  nombre: string;
+  ciudad: string | null;
+  logo_url: string | null;
+};
+
+/** Un torneo abierto tal y como lo ven los demás equipos (`/api/torneos/`). */
+export type Torneo = {
+  id: string;
+  nombre: string;
+  descripcion: string | null;
+  sede: string | null;
+  fecha_inicio: string | null;
+  fecha_fin: string | null;
+  formato: TrainingFormat | null;
+  abierto: boolean;
+  plazas: number | null;
+  inscritos: number;
+  completo: boolean;
+  /** Empezado ya no admite inscripciones. */
+  empezado: boolean;
+  /** Si el equipo desde el que se mira ya está dentro. */
+  inscrito: boolean;
+  organizador: EquipoPublico;
+  /** Solo en el detalle. */
+  equipos?: EquipoPublico[];
 };
 
 /** Un jugador dentro de una pista de entrenamiento, y si ganó ahí. */

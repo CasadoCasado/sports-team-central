@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Trophy, Plus, Pencil, Trash2, ListOrdered } from "lucide-react";
+import { Trophy, Plus, Pencil, Trash2, ListOrdered, MapPin, Globe } from "lucide-react";
 import { api } from "@/lib/api";
 import { invalidateCompetitionQueries } from "@/lib/query-keys";
 import { useSession } from "@/hooks/use-session";
@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
@@ -29,6 +30,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { OfficialRegistrationsSection } from "@/components/official-registrations-section";
+import { OpenTournamentsSection } from "@/components/open-tournaments-section";
 import type { CompetitionType, TrainingFormat } from "@/lib/types";
 import { confirmar } from "@/components/confirm-dialog";
 
@@ -43,6 +45,10 @@ type Competition = {
   fecha_fin: string | null;
   formato: TrainingFormat | null;
   finalizada: boolean;
+  sede: string | null;
+  abierto: boolean;
+  plazas: number | null;
+  inscritos: number;
 };
 
 const FORMATOS: TrainingFormat[] = ["rey_pista", "partidos", "americano"];
@@ -152,6 +158,13 @@ function CompetitionsPage() {
         </div>
       )}
 
+      {/* Los torneos que organizan otros equipos, para apuntarse. */}
+      <OpenTournamentsSection
+        teamId={active.team_id}
+        teamName={active.team.nombre}
+        canManage={isManager}
+      />
+
       <OfficialRegistrationsSection teamId={active.team_id} canManage={isManager} />
 
 
@@ -241,6 +254,24 @@ function CompCard({
           </div>
         )}
       </div>
+      {(c.sede || c.abierto) && (
+        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+          {c.sede && (
+            <span className="inline-flex items-center gap-1.5">
+              <MapPin className="size-3.5 shrink-0" aria-hidden="true" />
+              {c.sede}
+            </span>
+          )}
+          {c.abierto && (
+            <span className="inline-flex items-center gap-1.5 font-semibold text-primary">
+              <Globe className="size-3.5 shrink-0" aria-hidden="true" />
+              {c.plazas
+                ? t("torneos.inscritosDe", { count: c.inscritos, plazas: c.plazas })
+                : t("torneos.inscritos", { count: c.inscritos })}
+            </span>
+          )}
+        </div>
+      )}
       {c.descripcion && (
         <p className="mt-3 text-sm text-muted-foreground">{c.descripcion}</p>
       )}
@@ -274,6 +305,9 @@ function CompDialog({
   const [fechaFin, setFechaFin] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [formato, setFormato] = useState<TrainingFormat | null>(null);
+  const [sede, setSede] = useState("");
+  const [abierto, setAbierto] = useState(false);
+  const [plazas, setPlazas] = useState("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -284,10 +318,14 @@ function CompDialog({
     setFechaFin(initial.fecha_fin ?? "");
     setDescripcion(initial.descripcion ?? "");
     setFormato(initial.formato ?? null);
+    setSede(initial.sede ?? "");
+    setAbierto(initial.abierto ?? false);
+    setPlazas(initial.plazas ? String(initial.plazas) : "");
   }, [initial]);
 
   const isEdit = !!initial.id;
   const isLiga = tipo === "liga";
+  const isTorneo = tipo === "torneo";
 
   const save = useMutation({
     mutationFn: async () => {
@@ -301,6 +339,10 @@ function CompDialog({
         fecha_fin: !isLiga && fechaFin ? fechaFin : null,
         descripcion: descripcion.trim() || null,
         formato,
+        sede: sede.trim() || null,
+        // Solo un torneo se abre a otros equipos; al cambiar de tipo se cierra.
+        abierto: isTorneo && abierto,
+        plazas: isTorneo && abierto && plazas ? Number(plazas) : null,
       };
       if (isEdit) {
         await api.patch(`/competitions/${initial.id!}/`, payload);
@@ -361,6 +403,47 @@ function CompDialog({
                 <Label>{t("competitions.fechaFin")}</Label>
                 <Input type="date" value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} min={fechaInicio || undefined} />
               </div>
+            </div>
+          )}
+
+          <div>
+            <Label htmlFor="comp-sede">{t("torneos.sede")}</Label>
+            <Input
+              id="comp-sede"
+              value={sede}
+              onChange={(e) => setSede(e.target.value)}
+              placeholder={t("torneos.sedePlaceholder")}
+              maxLength={120}
+              required={isTorneo && abierto}
+            />
+          </div>
+
+          {isTorneo && (
+            <div className="space-y-3 rounded-md border border-border p-3">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <Label htmlFor="comp-abierto" className="cursor-pointer">
+                    {t("torneos.abrir")}
+                  </Label>
+                  <p className="mt-0.5 text-xxs text-muted-foreground">{t("torneos.abrirHint")}</p>
+                </div>
+                <Switch id="comp-abierto" checked={abierto} onCheckedChange={setAbierto} />
+              </div>
+              {abierto && (
+                <div>
+                  <Label htmlFor="comp-plazas">{t("torneos.plazas")}</Label>
+                  <Input
+                    id="comp-plazas"
+                    type="number"
+                    inputMode="numeric"
+                    min={Math.max(1, initial.inscritos ?? 0)}
+                    max={256}
+                    value={plazas}
+                    onChange={(e) => setPlazas(e.target.value)}
+                    placeholder={t("torneos.plazasPlaceholder")}
+                  />
+                </div>
+              )}
             </div>
           )}
 
