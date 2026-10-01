@@ -176,7 +176,7 @@
     "podiumTitle": "Top winners",
     "podiumRule": "Only players with {{min}} or more matches count.",
     "podiumFree": "Open",
-    "podiumPending": "The podium opens once someone reaches {{min}} matches. Right now {{name}} has played the most, with {{count}}.",
+    "podiumPending": "Provisional until someone reaches {{min}} matches. Right now {{name}} has played the most, with {{count}}.",
     "staff": "Staff",
     "squad": "Squad",
     "colPlayer": "Player",
@@ -201,7 +201,7 @@
     "viewCompetitions": "Competitions",
     "finished": "finished",
     "podiumTitleScore": "Top performers",
-    "podiumPendingNights": "The podium opens once someone reaches {{min}} sessions. Right now {{name}} has been to the most, with {{count}}.",
+    "podiumPendingNights": "Provisional until someone reaches {{min}} sessions. Right now {{name}} has played the most, with {{count}}.",
     "podiumRuleNights_one": "Only players with {{count}} session or more count.",
     "podiumRuleNights_other": "Only players with {{count}} sessions or more count.",
     "nightsCount_one": "{{count}} session",
@@ -226,7 +226,8 @@
         "body": "Its standings will show up here as soon as its first session's results are recorded. They're the same as in Competitions."
       }
     },
-    "owner": "Owner"
+    "owner": "Owner",
+    "podiumProvisional": "Provisional"
   },
   "roles": {
     "capitan": "Captain",

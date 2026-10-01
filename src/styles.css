@@ -694,3 +694,69 @@
     animation: none;
   }
 }
+
+/* ============================ PODIO DE MIEMBROS ===========================
+ * Al entrar en Miembros el podio se levanta: suben los cajones (3.º, 2.º y
+ * 1.º), asoma cada jugador, su número cuenta hasta el valor y, con el primero
+ * arriba, salta el confeti. Los retrasos los pone cada elemento en línea.
+ * Plata y bronce acompañan al ámbar del primero. */
+.podio-oro {
+  background: linear-gradient(180deg, var(--evt-torneo), color-mix(in oklab, var(--evt-torneo) 72%, black));
+}
+.podio-plata {
+  background: linear-gradient(180deg, oklch(0.72 0.02 255), oklch(0.58 0.02 255));
+}
+.podio-bronce {
+  background: linear-gradient(180deg, oklch(0.66 0.11 55), oklch(0.53 0.1 50));
+}
+@keyframes podio-subir {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+@keyframes podio-asomar {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes podio-chispa {
+  /* Invisible mientras espera su turno: con «both» se ve el primer paso. */
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) rotate(0);
+  }
+  4% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--dx), var(--dy)) rotate(var(--rot));
+  }
+}
+.podio-subir {
+  animation: podio-subir 0.65s cubic-bezier(0.2, 0.9, 0.2, 1.15) both;
+}
+.podio-asomar {
+  animation: podio-asomar 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.podio-chispa {
+  opacity: 0;
+  animation: podio-chispa 1.3s cubic-bezier(0.15, 0.7, 0.4, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .podio-subir,
+  .podio-asomar {
+    animation: none;
+  }
+  .podio-chispa {
+    display: none;
+  }
+}

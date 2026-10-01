@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { ArrowDown, Crown, MoreHorizontal, Trash2, Trophy, UserMinus } from "lucide-react";
@@ -188,12 +188,17 @@ function ordenar(filas: Fila[], orden: Orden, medida: Medida): Fila[] {
   return [...filas].sort(criterios[orden]);
 }
 
-/** Quién sube al podio: los tres primeros entre quienes llegan al mínimo. */
-function podio(filas: Fila[], medida: Medida): Fila[] {
-  return filas
-    .filter((f) => f.clasificado)
-    .sort(porValor(medida))
-    .slice(0, 3);
+/**
+ * Quién sube al podio: los tres primeros entre quienes llegan al mínimo. Si
+ * nadie llega todavía, los tres primeros de quienes han jugado algo, y el
+ * podio sale como provisional: es mejor verlo con lo que hay que esperar
+ * semanas a que alguien sume los partidos.
+ */
+function podio(filas: Fila[], medida: Medida): { top: Fila[]; provisional: boolean } {
+  const clasificados = filas.filter((f) => f.clasificado).sort(porValor(medida));
+  if (clasificados.length > 0) return { top: clasificados.slice(0, 3), provisional: false };
+  const conDatos = filas.filter((f) => f.jugados > 0 && f.valor != null).sort(porValor(medida));
+  return { top: conDatos.slice(0, 3), provisional: true };
 }
 
 /** «hace 3 días», «hace 2 semanas»… en el idioma de la app. */
@@ -377,7 +382,7 @@ export function MembersRanking({
   const staff = enOrden.filter((f) => STAFF.includes(f.member.role) && f.jugados === 0);
   const jugadores = enOrden.filter((f) => !staff.includes(f));
   const sinResultados = jugadores.every((f) => f.jugados === 0);
-  const top = podio(jugadores, balance.medida);
+  const { top, provisional } = podio(jugadores, balance.medida);
   const masJugados = [...jugadores].sort((a, b) => b.jugados - a.jugados)[0];
   const nombreComp = competition?.nombre ?? "";
 
@@ -396,19 +401,24 @@ export function MembersRanking({
           </p>
         </div>
       ) : top.length > 0 ? (
-        <Podio top={top} medida={balance.medida} minimo={balance.minimo} />
-      ) : (
-        <p className="surface-card flex items-center gap-3 p-4 text-sm text-muted-foreground">
-          <Trophy className="size-5 shrink-0 text-evt-torneo" aria-hidden="true" />
-          <span>
-            {t(balance.medida === "pct" ? "members.podiumPending" : "members.podiumPendingNights", {
-              min: balance.minimo,
-              name: masJugados.member.profile?.nombre ?? masJugados.nombre,
-              count: masJugados.jugados,
-            })}
-          </span>
-        </p>
-      )}
+        // La clave hace que la animación se repita al cambiar de clasificación.
+        <Podio
+          key={`${modo}-${competition?.id ?? ""}`}
+          top={top}
+          medida={balance.medida}
+          minimo={balance.minimo}
+          provisional={provisional}
+          pendiente={
+            provisional
+              ? t(balance.medida === "pct" ? "members.podiumPending" : "members.podiumPendingNights", {
+                  min: balance.minimo,
+                  name: masJugados.member.profile?.nombre ?? masJugados.nombre,
+                  count: masJugados.jugados,
+                })
+              : null
+          }
+        />
+      ) : null}
 
       {staff.length > 0 && (
         <div className="flex flex-wrap items-center gap-2">
@@ -485,28 +495,52 @@ function EtiquetaLado({ lado, className }: { lado: Lado | null; className?: stri
  * El podio: segundo, primero y tercero, como en uno de verdad. En escritorio
  * va centrado; si solo uno o dos llegan al mínimo, los huecos se quedan a la
  * vista, vacíos, para que se entienda que hay sitio.
+ *
+ * Al entrar se levanta: suben los cajones del 3.º, el 2.º y el 1.º, cada uno
+ * con su jugador encima y su número contando hasta el valor, y cuando sube el
+ * primero salta el confeti. Con movimiento reducido sale ya montado.
  */
-function Podio({ top, medida, minimo }: { top: Fila[]; medida: Medida; minimo: number }) {
+function Podio({
+  top,
+  medida,
+  minimo,
+  provisional,
+  pendiente,
+}: {
+  top: Fila[];
+  medida: Medida;
+  minimo: number;
+  provisional: boolean;
+  pendiente: string | null;
+}) {
   const { t } = useTranslation();
-  const valor = useValor();
+  // Cuándo empieza cada puesto (s): el 3.º, luego el 2.º y, con un respiro, el 1.º.
   const puestos = [
-    { fila: top[1], n: 2, alto: "h-16" },
-    { fila: top[0], n: 1, alto: "h-24" },
-    { fila: top[2], n: 3, alto: "h-12" },
+    { fila: top[1], n: 2, alto: "h-16", empieza: 0.55, color: "podio-plata" },
+    { fila: top[0], n: 1, alto: "h-24", empieza: 1.15, color: "podio-oro" },
+    { fila: top[2], n: 3, alto: "h-12", empieza: 0, color: "podio-bronce" },
   ];
   return (
-    <section aria-labelledby="podio-titulo" className="flex flex-col items-center gap-3">
+    <section aria-labelledby="podio-titulo" className="relative flex flex-col items-center gap-3">
       <h2
         id="podio-titulo"
-        className="self-start text-2xs font-bold uppercase tracking-widest text-muted-foreground sm:self-center"
+        className="flex items-center gap-2 self-start text-2xs font-bold uppercase tracking-widest text-muted-foreground sm:self-center"
       >
         {t(medida === "pct" ? "members.podiumTitle" : "members.podiumTitleScore")}
+        {provisional && (
+          <span className="rounded-full border border-border px-2 py-0.5 text-3xs normal-case tracking-normal">
+            {t("members.podiumProvisional")}
+          </span>
+        )}
       </h2>
-      <ol className="grid w-full max-w-md grid-cols-3 items-end gap-2 sm:gap-4">
-        {puestos.map(({ fila, n, alto }) => (
+      <ol className="relative grid w-full max-w-md grid-cols-3 items-end gap-2 sm:gap-4">
+        {puestos.map(({ fila, n, alto, empieza, color }) => (
           <li key={n} className="flex min-w-0 flex-col items-center gap-1.5 text-center">
             {fila ? (
-              <>
+              <div
+                className="podio-asomar flex min-w-0 max-w-full flex-col items-center gap-1.5"
+                style={{ animationDelay: `${empieza + 0.35}s` }}
+              >
                 <Avatar
                   fila={fila}
                   className={cn(
@@ -520,41 +554,107 @@ function Podio({ top, medida, minimo }: { top: Fila[]; medida: Medida; minimo: n
                 </span>
                 <EtiquetaLado lado={fila.lado} />
                 <span className="text-display text-xl font-black leading-none tabular-nums">
-                  {valor(medida, fila.valor!)}
+                  <Contador medida={medida} valor={fila.valor!} empieza={empieza + 0.35} />
                 </span>
                 <span className="text-3xs text-muted-foreground">
                   {t(medida === "pct" ? "members.playedCount" : "members.nightsCount", {
                     count: fila.jugados,
                   })}
                 </span>
-              </>
+              </div>
             ) : (
               <span className="text-xs text-muted-foreground">{t("members.podiumFree")}</span>
             )}
             <div
               className={cn(
-                "text-display mt-1 flex w-full justify-center rounded-t-xl rounded-b-sm pt-1.5 text-2xl font-black",
+                "podio-subir text-display mt-1 flex w-full origin-bottom justify-center rounded-t-xl rounded-b-sm pt-1.5 text-2xl font-black",
                 alto,
                 !fila
                   ? "border-2 border-dashed border-border text-muted-foreground/60"
-                  : n === 1
-                    ? "bg-gradient-to-b from-evt-torneo to-evt-torneo/70 text-white"
-                    : "bg-gradient-to-b from-primary to-primary/70 text-primary-foreground",
+                  : `${color} text-white`,
               )}
+              style={{ animationDelay: `${empieza}s` }}
               aria-label={t("members.position", { n })}
             >
               {n}
             </div>
           </li>
         ))}
+        {top[0] && <Confeti empieza={1.15 + 0.35 + 0.9} />}
       </ol>
-      <p className="text-xs text-muted-foreground">
-        {t(medida === "pct" ? "members.podiumRule" : "members.podiumRuleNights", {
-          min: minimo,
-          count: minimo,
-        })}
+      <p className="text-center text-xs text-muted-foreground">
+        {pendiente ??
+          t(medida === "pct" ? "members.podiumRule" : "members.podiumRuleNights", {
+            min: minimo,
+            count: minimo,
+          })}
       </p>
     </section>
+  );
+}
+
+/** El número del podio, contando desde 0 hasta su valor. */
+function Contador({ medida, valor, empieza }: { medida: Medida; valor: number; empieza: number }) {
+  const formato = useValor();
+  const [actual, setActual] = useState(() =>
+    typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+      ? valor
+      : 0,
+  );
+  useEffect(() => {
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+      setActual(valor);
+      return;
+    }
+    let frame = 0;
+    const inicio = performance.now() + empieza * 1000;
+    const dura = 900;
+    const paso = (ahora: number) => {
+      const k = Math.min(1, Math.max(0, (ahora - inicio) / dura));
+      const suave = 1 - Math.pow(1 - k, 3);
+      // En % va de entero en entero; la nota de los entrenos, con su decimal.
+      setActual(medida === "pct" ? Math.round(suave * valor) : Math.round(suave * valor * 10) / 10);
+      if (k < 1) frame = requestAnimationFrame(paso);
+    };
+    frame = requestAnimationFrame(paso);
+    return () => cancelAnimationFrame(frame);
+  }, [valor, medida, empieza]);
+  return <>{formato(medida, actual)}</>;
+}
+
+/** El confeti cuando el primero ya está arriba. Solo adorno. */
+function Confeti({ empieza }: { empieza: number }) {
+  const [trozos] = useState(() =>
+    Array.from({ length: 36 }, (_, i) => {
+      const ang = -Math.PI * (0.08 + 0.84 * Math.random());
+      const r = 80 + Math.random() * 120;
+      return {
+        i,
+        dx: `${Math.cos(ang) * r}px`,
+        dy: `${Math.sin(ang) * r + 70}px`,
+        rot: `${Math.random() * 720 - 360}deg`,
+        retraso: `${empieza + Math.random() * 0.15}s`,
+        color: ["podio-oro", "bg-primary", "bg-[#d7f24b]", "podio-bronce", "podio-plata"][i % 5],
+      };
+    }),
+  );
+  return (
+    <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-visible">
+      {trozos.map((c) => (
+        <span
+          key={c.i}
+          className={cn("podio-chispa absolute left-1/2 top-[30%] h-3 w-2 rounded-[2px]", c.color)}
+          style={
+            {
+              "--dx": c.dx,
+              "--dy": c.dy,
+              "--rot": c.rot,
+              animationDelay: c.retraso,
+            } as React.CSSProperties
+          }
+        />
+      ))}
+    </div>
   );
 }
 

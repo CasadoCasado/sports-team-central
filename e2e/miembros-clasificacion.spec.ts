@@ -174,7 +174,7 @@ test.describe("Miembros: podio y clasificación", () => {
     await expect(page.getByText("Lucía Ferreiro")).toBeVisible();
   });
 
-  test("con partidos pero nadie en el mínimo: tabla sí, el podio espera", async ({
+  test("con partidos pero nadie en el mínimo: podio provisional y la tabla", async ({
     page,
     request,
   }) => {
@@ -186,8 +186,17 @@ test.describe("Miembros: podio y clasificación", () => {
     await loginAs(page, e.captain);
     await page.goto("/miembros");
 
-    await expect(page.getByText(/el podio se estrena.*sara, con 3/i)).toBeVisible();
-    await expect(podio(page)).toHaveCount(0);
+    // El podio sale igual, marcado como provisional, con quien ha jugado.
+    await expect(podio(page)).toBeVisible();
+    await expect(podio(page).getByText(/^provisional$/i)).toBeVisible();
+    await expect(
+      page.getByText(/provisional hasta que alguien llegue.*sara, con 3/i),
+    ).toBeVisible();
+    // Diego, con 2 de 2, va primero; Sara, con 2 de 3, segunda.
+    await expect(podio(page).getByRole("listitem").nth(1)).toContainText("Diego");
+    await expect(podio(page).getByRole("listitem").nth(0)).toContainText("Sara");
+    // Y el número llega a su valor tras la animación.
+    await expect(podio(page).getByText("100%")).toBeVisible({ timeout: 5_000 });
     await expect(tabla(page)).toBeVisible();
     await expect(tabla(page).getByText("Sara Lago")).toBeVisible();
   });
