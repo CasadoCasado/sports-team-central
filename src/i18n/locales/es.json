@@ -1183,7 +1183,7 @@
     "quitarTexto": "La gestión del equipo vuelve al tablero normal. Las parejas y la convocatoria no cambian.",
     "tabTablero": "Tablero",
     "tabMatriz": "Matriz de parejas",
-    "comoColocar": "Toca un jugador y luego el hueco de una pista para colocarlo.",
+    "comoColocar": "Arrastra a cada jugador a su pista; de vuelta a «Sin pista» para quitársela. También vale tocarlo y luego tocar el hueco.",
     "van": "Van",
     "enDuda": "En duda",
     "reserva": "Reserva",
@@ -1237,6 +1237,8 @@
     "pocosDatos": "Aún hay pocos partidos: se rellena según se juegan.",
     "lasQueNoArrancan": "Las que no arrancan",
     "porProbar": "Por probar",
-    "porProbarTexto": "{{parejas}} nunca han jugado juntos. Un amistoso es buen momento."
+    "porProbarTexto": "{{parejas}} nunca han jugado juntos. Un amistoso es buen momento.",
+    "quitarDeLaPista": "Quitar a {{name}} de la pista",
+    "arrastrar": "{{name}}. Arrástralo a una pista"
   }
 }

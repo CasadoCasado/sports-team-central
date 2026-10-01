@@ -1183,7 +1183,7 @@
     "quitarTexto": "The team's management goes back to the normal board. Pairs and the call-up stay as they are.",
     "tabTablero": "Board",
     "tabMatriz": "Pair matrix",
-    "comoColocar": "Tap a player, then an empty spot on a court to place them.",
+    "comoColocar": "Drag each player to their court, and back to «No court» to remove them. Or tap the player, then the empty spot.",
     "van": "Playing",
     "enDuda": "Unsure",
     "reserva": "Reserve",
@@ -1237,6 +1237,8 @@
     "pocosDatos": "Few matches so far: it fills in as you play.",
     "lasQueNoArrancan": "Pairs that don't click",
     "porProbar": "Worth a try",
-    "porProbarTexto": "{{parejas}} have never played together. A friendly is a good time."
+    "porProbarTexto": "{{parejas}} have never played together. A friendly is a good time.",
+    "quitarDeLaPista": "Remove {{name}} from the court",
+    "arrastrar": "{{name}}. Drag to a court"
   }
 }

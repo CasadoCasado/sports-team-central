@@ -4,8 +4,10 @@
  *
  * - **Tablero.** A la izquierda los apuntados con su porcentaje y su forma; en
  *   el centro las pistas dibujadas, con la pareja, lo que ganan juntos y por
- *   qué; a la derecha la ficha del jugador elegido. Para colocar a alguien se
- *   le toca y luego se toca el hueco de la pista.
+ *   qué; a la derecha la ficha del jugador elegido. A cada jugador se le
+ *   arrastra a su pista (o a un hueco redondo), y de vuelta a «Sin pista» o a
+ *   la lista para quitársela; la «×» que sale sobre el que ya está en pista
+ *   hace lo mismo. Sin arrastrar: tocar al jugador y luego el hueco.
  * - **Matriz.** Quién gana con quién: cada casilla es una pareja. Tocarla los
  *   pone juntos en una pista libre.
  *
@@ -14,11 +16,12 @@
  * la convocatoria confirmada) las aplica el backend para los dos.
  */
 
-import { useState } from "react";
+import { useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { createPortal } from "react-dom";
 import { useMutation } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Check, Clock, Plus, X } from "lucide-react";
+import { Check, Clock, GripVertical, Plus, X } from "lucide-react";
 
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -111,14 +114,81 @@ export function VistaPro({
     }
   }
 
-  function colocar(pista: number) {
-    if (!elegido || cerrada) return;
-    if (enPista(pista).filter((r) => r.user_id !== elegido).length >= 2) {
+  function colocar(u: string | null, pista: number | null) {
+    if (!u || cerrada) return;
+    if (pista != null && enPista(pista).filter((r) => r.user_id !== u).length >= 2) {
       toast.error(t("quimica.pistaLlena", { n: pista }));
       return;
     }
-    void poner([[elegido, pista]]);
+    void poner([[u, pista]]);
   }
+
+  // --- arrastrar ------------------------------------------------------------
+  // Con eventos de puntero, como el tablero normal: el arrastrar y soltar del
+  // navegador no funciona con el dedo. Los destinos llevan `data-drop-pro`: el
+  // número de la pista, o «pool» para quitarle la pista.
+  const raiz = useRef<HTMLDivElement>(null);
+  const arrastre = useRef<{ u: string; x0: number; y0: number; movido: boolean } | null>(null);
+  const destino = useRef<string | null>(null);
+  const acabaDeArrastrar = useRef(false);
+  const [fantasma, setFantasma] = useState<{ u: string; x: number; y: number } | null>(null);
+  const [sobre, setSobre] = useState<string | null>(null);
+
+  /**
+   * Lo que hace arrastrable a un jugador. `tactil` es para las fichas
+   * pequeñas; en las filas de la lista el dedo tiene que poder hacer scroll,
+   * así que ahí solo se arrastra con ratón o lápiz.
+   */
+  function arrastrable(u: string, tactil: boolean) {
+    if (cerrada) return {};
+    return {
+      onPointerDown: (e: ReactPointerEvent<HTMLElement>) => {
+        if (e.button > 0 || (!tactil && e.pointerType === "touch")) return;
+        arrastre.current = { u, x0: e.clientX, y0: e.clientY, movido: false };
+        e.currentTarget.setPointerCapture(e.pointerId);
+      },
+      onPointerMove: (e: ReactPointerEvent<HTMLElement>) => {
+        const a = arrastre.current;
+        if (!a) return;
+        if (!a.movido) {
+          if (Math.hypot(e.clientX - a.x0, e.clientY - a.y0) < 6) return;
+          a.movido = true;
+        }
+        setFantasma({ u: a.u, x: e.clientX, y: e.clientY });
+        const el = document
+          .elementFromPoint(e.clientX, e.clientY)
+          ?.closest<HTMLElement>("[data-drop-pro]");
+        const nuevo = el && raiz.current?.contains(el) ? (el.dataset.dropPro ?? null) : null;
+        destino.current = nuevo;
+        setSobre(nuevo);
+      },
+      onPointerUp: () => {
+        const a = arrastre.current;
+        arrastre.current = null;
+        setFantasma(null);
+        setSobre(null);
+        if (!a?.movido) return;
+        // El navegador lanza un clic al soltar: que no cuente como un toque.
+        acabaDeArrastrar.current = true;
+        setTimeout(() => (acabaDeArrastrar.current = false), 0);
+        const d = destino.current;
+        destino.current = null;
+        if (d === "pool") colocar(a.u, null);
+        else if (d) colocar(a.u, Number(d));
+      },
+      onPointerCancel: () => {
+        arrastre.current = null;
+        destino.current = null;
+        setFantasma(null);
+        setSobre(null);
+      },
+    };
+  }
+
+  /** Un clic que no sea el final de un arrastre. */
+  const tocar = (fn: () => void) => () => {
+    if (!acabaDeArrastrar.current) fn();
+  };
 
   /** Junta a dos: en la pista de uno si cabe el otro, si no en una libre. */
   function juntar(a: string, b: string) {
@@ -156,10 +226,15 @@ export function VistaPro({
     setSel,
     cerrada,
     moviendo,
+    arrastrable,
+    tocar,
+    quitar: (u: string) => colocar(u, null),
+    sobre,
+    arrastrando: fantasma?.u ?? null,
   };
 
   return (
-    <div className="pro-ui overflow-hidden rounded-2xl border border-[var(--pro-line)]">
+    <div ref={raiz} className="pro-ui overflow-hidden rounded-2xl border border-[var(--pro-line)]">
       <Tabs defaultValue="tablero">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--pro-line)] px-3 py-2 sm:px-4">
           <TabsList className="bg-[var(--pro-surface-2)]">
@@ -211,7 +286,7 @@ export function VistaPro({
                   num={n}
                   dentro={enPista(n).map((r) => r.user_id)}
                   rival={event.rival ?? null}
-                  onColocar={() => colocar(n)}
+                  onColocar={() => colocar(elegido, n)}
                 />
               ))}
               <SinPista
@@ -242,6 +317,23 @@ export function VistaPro({
           <Matriz ctx={ctx} jugadores={apuntados.map((r) => r.user_id)} onJuntar={juntar} />
         </TabsContent>
       </Tabs>
+
+      {fantasma &&
+        createPortal(
+          <div
+            aria-hidden="true"
+            className="pro-ui pointer-events-none fixed z-[60] inline-flex items-center gap-2 rounded-full border border-[var(--pro-acc)] py-1 pl-1 pr-3 text-sm font-semibold shadow-xl"
+            style={{
+              left: fantasma.x,
+              top: fantasma.y,
+              transform: "translate(-50%, -60%) rotate(-3deg) scale(1.06)",
+            }}
+          >
+            <Avatar texto={iniciales(fantasma.u)} />
+            {pila(fantasma.u)}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }
@@ -257,6 +349,20 @@ type Ctx = {
   setSel: (u: string) => void;
   cerrada: boolean;
   moviendo: boolean;
+  arrastrable: (
+    u: string,
+    tactil: boolean,
+  ) => Partial<{
+    onPointerDown: (e: ReactPointerEvent<HTMLElement>) => void;
+    onPointerMove: (e: ReactPointerEvent<HTMLElement>) => void;
+    onPointerUp: () => void;
+    onPointerCancel: () => void;
+  }>;
+  tocar: (fn: () => void) => () => void;
+  quitar: (u: string) => void;
+  /** El destino bajo el puntero mientras se arrastra: «pool» o la pista. */
+  sobre: string | null;
+  arrastrando: string | null;
 };
 
 const etiqueta = "text-2xs font-extrabold uppercase tracking-widest text-[var(--pro-muted)]";
@@ -335,7 +441,14 @@ function ListaApuntados({ ctx, apuntados }: { ctx: Ctx; apuntados: Respuesta[] }
     [t("pro.reserva"), apuntados.filter((r) => r.status === "reserva")],
   ];
   return (
-    <aside aria-label={t("pro.apuntados")} className="space-y-3">
+    <aside
+      aria-label={t("pro.apuntados")}
+      data-drop-pro="pool"
+      className={cn(
+        "space-y-3 rounded-2xl transition-colors",
+        ctx.sobre === "pool" && "bg-[var(--pro-surface-2)] ring-2 ring-[var(--pro-acc)]",
+      )}
+    >
       {grupos
         .filter(([, rs]) => rs.length > 0)
         .map(([titulo, rs]) => (
@@ -348,10 +461,13 @@ function ListaApuntados({ ctx, apuntados }: { ctx: Ctx; apuntados: Respuesta[] }
                 <button
                   key={r.id}
                   type="button"
-                  onClick={() => ctx.setSel(r.user_id)}
+                  onClick={ctx.tocar(() => ctx.setSel(r.user_id))}
+                  {...ctx.arrastrable(r.user_id, false)}
                   aria-pressed={activo}
                   className={cn(
-                    "flex min-h-12 w-full items-center gap-2.5 rounded-xl border px-2 py-1.5 text-left",
+                    "flex min-h-12 w-full select-none items-center gap-2.5 rounded-xl border px-2 py-1.5 text-left",
+                    !ctx.cerrada && "md:cursor-grab md:active:cursor-grabbing",
+                    ctx.arrastrando === r.user_id && "opacity-40",
                     activo
                       ? "border-[var(--pro-acc)] bg-[var(--pro-sel)]"
                       : "border-transparent hover:bg-[var(--pro-surface-2)]",
@@ -440,23 +556,50 @@ function TarjetaPista({
 
   const hueco = (u: string | undefined, arriba: boolean) =>
     u ? (
-      <button
-        type="button"
-        onClick={() => ctx.setSel(u)}
-        aria-label={ctx.nombre(u)}
+      <div
         className={cn(
-          "absolute left-[18%] flex size-10 -translate-x-1/2 items-center justify-center rounded-full border-[3px] text-xs font-extrabold text-[#0b1222] sm:size-11",
+          "group absolute left-[18%] -translate-x-1/2",
           arriba ? "top-[14%]" : "bottom-[14%]",
-          ctx.elegido === u ? "border-white bg-[#d7f24b]" : "border-[#0b1222]/25 bg-[#eef2fa]",
+          ctx.arrastrando === u && "opacity-40",
         )}
       >
-        {ctx.iniciales(u)}
-      </button>
+        <button
+          type="button"
+          onClick={ctx.tocar(() => ctx.setSel(u))}
+          {...ctx.arrastrable(u, true)}
+          aria-label={ctx.nombre(u)}
+          className={cn(
+            "flex size-10 touch-none select-none items-center justify-center rounded-full border-[3px] text-xs font-extrabold text-[#0b1222] sm:size-11",
+            !ctx.cerrada && "cursor-grab active:cursor-grabbing",
+            ctx.elegido === u ? "border-white bg-[#d7f24b]" : "border-[#0b1222]/25 bg-[#eef2fa]",
+          )}
+        >
+          {ctx.iniciales(u)}
+        </button>
+        {/* Quitarle la pista: sale al pasar el ratón, y siempre en el que
+            está elegido, que es como se ve en una pantalla táctil. */}
+        {!ctx.cerrada && (
+          <button
+            type="button"
+            onClick={() => ctx.quitar(u)}
+            disabled={ctx.moviendo}
+            aria-label={t("pro.quitarDeLaPista", { name: ctx.nombre(u) })}
+            title={t("pro.quitarDeLaPista", { name: ctx.nombre(u) })}
+            className={cn(
+              "absolute -right-2 -top-2 flex size-6 items-center justify-center rounded-full border-2 border-white bg-[#e5484d] text-white shadow transition-opacity focus-visible:opacity-100 group-hover:opacity-100",
+              ctx.elegido === u ? "opacity-100" : "opacity-0",
+            )}
+          >
+            <X className="size-3.5" aria-hidden="true" />
+          </button>
+        )}
+      </div>
     ) : (
       <button
         type="button"
         onClick={onColocar}
         disabled={!puedeColocar || ctx.moviendo}
+        data-drop-pro={num}
         aria-label={
           ctx.elegido
             ? t("pro.colocarEn", { name: ctx.nombre(ctx.elegido), n: num })
@@ -465,7 +608,9 @@ function TarjetaPista({
         className={cn(
           "absolute left-[18%] flex size-10 -translate-x-1/2 items-center justify-center rounded-full border-2 border-dashed text-white sm:size-11",
           arriba ? "top-[14%]" : "bottom-[14%]",
-          puedeColocar ? "border-[#d7f24b] bg-white/10" : "border-white/45 text-white/60",
+          puedeColocar || ctx.sobre === String(num)
+            ? "border-[#d7f24b] bg-white/10"
+            : "border-white/45 text-white/60",
         )}
       >
         <Plus className="size-4" aria-hidden="true" />
@@ -476,11 +621,16 @@ function TarjetaPista({
     <section
       aria-label={`${t("callups.pista")} ${num}`}
       data-pista-pro={num}
+      data-drop-pro={num}
       className={cn(
-        "@container rounded-2xl border p-3",
-        elegidoAqui
-          ? "border-[var(--pro-line-2)] bg-[var(--pro-sel)]"
-          : "border-[var(--pro-line)] bg-[var(--pro-surface)]",
+        "@container rounded-2xl border p-3 transition-colors",
+        ctx.sobre === String(num)
+          ? dentro.filter((x) => x !== ctx.arrastrando).length >= 2
+            ? "border-dashed border-[var(--pro-warn)] bg-[var(--pro-warn-bg)]"
+            : "border-dashed border-[var(--pro-acc)] bg-[var(--pro-sel)]"
+          : elegidoAqui
+            ? "border-[var(--pro-line-2)] bg-[var(--pro-sel)]"
+            : "border-[var(--pro-line)] bg-[var(--pro-surface)]",
       )}
     >
       <div className="flex flex-col gap-3 @xl:flex-row @xl:items-center">
@@ -595,7 +745,15 @@ function Tag({ tono, children }: { tono?: "ok" | "acc" | "aviso"; children: Reac
 function SinPista({ ctx, libres }: { ctx: Ctx; libres: string[] }) {
   const { t } = useTranslation();
   return (
-    <div className="flex flex-wrap items-center gap-2 rounded-2xl border-2 border-dashed border-[var(--pro-line-2)] p-3">
+    <div
+      data-drop-pro="pool"
+      className={cn(
+        "flex flex-wrap items-center gap-2 rounded-2xl border-2 border-dashed p-3 transition-colors",
+        ctx.sobre === "pool"
+          ? "border-[var(--pro-acc)] bg-[var(--pro-sel)]"
+          : "border-[var(--pro-line-2)]",
+      )}
+    >
       <span className={etiqueta}>{t("quimica.sinPista")}</span>
       {libres.length === 0 && (
         <span className="text-xs text-[var(--pro-muted)]">{t("quimica.todosConPista")}</span>
@@ -606,15 +764,22 @@ function SinPista({ ctx, libres }: { ctx: Ctx; libres: string[] }) {
           <button
             key={u}
             type="button"
-            onClick={() => ctx.setSel(u)}
+            onClick={ctx.tocar(() => ctx.setSel(u))}
+            {...ctx.arrastrable(u, true)}
             aria-pressed={ctx.elegido === u}
+            aria-label={t("pro.arrastrar", { name: ctx.nombre(u) })}
             className={cn(
-              "inline-flex min-h-10 items-center gap-2 rounded-full border py-1 pl-1 pr-3 text-sm font-semibold",
+              "inline-flex min-h-10 touch-none select-none items-center gap-2 rounded-full border py-1 pl-1 pr-3 text-sm font-semibold",
+              !ctx.cerrada && "cursor-grab active:cursor-grabbing",
+              ctx.arrastrando === u && "opacity-40",
               ctx.elegido === u
                 ? "border-[var(--pro-acc)] bg-[var(--pro-sel)]"
                 : "border-[var(--pro-line)] bg-[var(--pro-surface-2)]",
             )}
           >
+            {!ctx.cerrada && (
+              <GripVertical className="size-3.5 text-[var(--pro-muted)]" aria-hidden="true" />
+            )}
             <Avatar texto={ctx.iniciales(u)} />
             {ctx.pila(u)}
             {sj >= 2 && (

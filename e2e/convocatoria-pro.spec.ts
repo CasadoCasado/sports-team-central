@@ -177,6 +177,25 @@ test.describe("Convocatoria PRO", () => {
     const pistaPro2 = page.locator('[data-pista-pro="2"]');
     await expect(pistaPro2).toContainText(/iván · falta pareja/i);
 
+    // Y arrastrando: Diego, desde «Sin pista» al hueco que queda en la pista 2.
+    const diego = page.getByRole("button", { name: /^diego otero\. arrástralo/i });
+    const origen = (await diego.boundingBox())!;
+    const hueco = (await pistaPro2
+      .getByRole("button", { name: /hueco libre|poner a/i })
+      .boundingBox())!;
+    await page.mouse.move(origen.x + origen.width / 2, origen.y + origen.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(origen.x + 30, origen.y + 20, { steps: 4 });
+    await page.mouse.move(hueco.x + hueco.width / 2, hueco.y + hueco.height / 2, { steps: 10 });
+    await page.mouse.up();
+    await expect(pistaPro2).toContainText(/(iván y diego|diego e iván|diego y iván)/i);
+
+    // La «×» sobre la ficha de la pista la devuelve a «Sin pista».
+    await pistaPro2.getByRole("button", { name: /^diego otero$/i }).hover();
+    await pistaPro2.getByRole("button", { name: /quitar a diego otero de la pista/i }).click();
+    await expect(pistaPro2).toContainText(/iván · falta pareja/i);
+    await expect(page.getByRole("button", { name: /^diego otero\. arrástralo/i })).toBeVisible();
+
     // Propuestas: la de la victoria junta a Sara y Noa en la pista 1. Como ya
     // hay alguien colocado, pregunta antes de cambiar el reparto.
     const dialogo = page.getByRole("dialog");
