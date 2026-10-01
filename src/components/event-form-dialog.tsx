@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
+import { leerPuntosPista } from "@/lib/puntos-pista";
 import { invalidateEventQueries } from "@/lib/query-keys";
 import { useSession } from "@/hooks/use-session";
 import { Button } from "@/components/ui/button";
@@ -51,14 +52,6 @@ export type EventFormValues = {
   puntos_pista: string;
   formato_entreno: TrainingFormat | null;
 };
-
-/** «3, 3, 2 2 2» → [3, 3, 2, 2, 2]; vacío → null; algo que no cuadra → undefined. */
-export function leerPuntosPista(texto: string): number[] | null | undefined {
-  const trozos = texto.split(/[\s,;]+/).filter(Boolean);
-  if (trozos.length === 0) return null;
-  const valores = trozos.map(Number);
-  return valores.every((v) => Number.isInteger(v) && v >= 1 && v <= 10) ? valores : undefined;
-}
 
 const emptyValues = (): EventFormValues => ({
   tipo: "entrenamiento",
@@ -485,7 +478,9 @@ export function EventFormDialog({
                     onChange={(e) => setValues((s) => ({ ...s, puntos_pista: e.target.value }))}
                     placeholder="3, 3, 2, 2, 2"
                   />
-                  <p className="mt-1 text-xs text-muted-foreground">{t("events.puntosPistaHint")}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {t(values.competition_id ? "events.puntosPistaHintComp" : "events.puntosPistaHint")}
+                  </p>
                 </div>
               )}
             </>

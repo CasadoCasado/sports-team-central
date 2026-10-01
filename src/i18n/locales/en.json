@@ -447,7 +447,8 @@
     },
     "puntosPista": "Points per court",
     "puntosPistaHint": "What each court is worth in the score, in order. For example «3, 3, 2, 2, 2». Empty: 1 point per court.",
-    "puntosPistaError": "Points per court must be numbers from 1 to 10, separated by commas."
+    "puntosPistaError": "Points per court must be numbers from 1 to 10, separated by commas.",
+    "puntosPistaHintComp": "Empty: whatever its competition says. Fill it only if this match is worth something different."
   },
   "competitions": {
     "title": "Competitions",
@@ -490,7 +491,8 @@
       "rey_pista": "Courts end in an order and where you finish each night is what counts.",
       "partidos": "You record the matches each player won and lost.",
       "americano": "You record the games each player won and lost."
-    }
+    },
+    "puntosPistaHint": "What each court is worth in every match of the competition, in order. For example «3, 3, 2, 2, 2». Empty: 1 point per court."
   },
   "ubicacion": {
     "provincia": "Province",
@@ -593,7 +595,12 @@
     "padelAssign": "Court assignments",
     "pista": "Court",
     "pistas": "courts",
-    "addPlayer": "Add player"
+    "addPlayer": "Add player",
+    "convocadosHint": "★ called up: those who play the match, not just signed up",
+    "convocarHint": "Call up {{name}}: plays the match, not just signed up",
+    "desconvocarHint": "{{name}} is called up. Untick to drop them from the match (and their court)",
+    "convocarA": "Call up {{name}}",
+    "convocadoHint": "Called up: played this match"
   },
   "common": {
     "loading": "Loading...",

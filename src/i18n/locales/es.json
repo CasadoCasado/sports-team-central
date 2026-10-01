@@ -447,7 +447,8 @@
     },
     "puntosPista": "Puntos por pista",
     "puntosPistaHint": "Lo que vale cada pista en el marcador, en orden. Por ejemplo «3, 3, 2, 2, 2». Vacío: 1 punto cada pista.",
-    "puntosPistaError": "Los puntos por pista tienen que ser números del 1 al 10, separados por comas."
+    "puntosPistaError": "Los puntos por pista tienen que ser números del 1 al 10, separados por comas.",
+    "puntosPistaHintComp": "Vacío: lo que diga su competición. Pon algo solo si este partido vale distinto."
   },
   "competitions": {
     "title": "Competiciones",
@@ -490,7 +491,8 @@
       "rey_pista": "Las pistas acaban en un orden y cuenta dónde terminas cada noche.",
       "partidos": "Se apuntan los partidos que gana y pierde cada jugador.",
       "americano": "Se apuntan los juegos a favor y en contra de cada jugador."
-    }
+    },
+    "puntosPistaHint": "Lo que vale cada pista en todos los partidos de la competición, en orden. Por ejemplo «3, 3, 2, 2, 2». Vacío: 1 punto cada pista."
   },
   "ubicacion": {
     "provincia": "Provincia",
@@ -593,7 +595,12 @@
     "padelAssign": "Asignación de pistas",
     "pista": "Pista",
     "pistas": "pistas",
-    "addPlayer": "Añadir jugador"
+    "addPlayer": "Añadir jugador",
+    "convocadosHint": "★ convocados: los que entran en el partido, no solo apuntados",
+    "convocarHint": "Convocar a {{name}}: entra en el partido, no solo apuntado",
+    "desconvocarHint": "{{name}} está convocado. Desmárcalo para quitarle del partido (y de su pista)",
+    "convocarA": "Convocar a {{name}}",
+    "convocadoHint": "Convocado: jugó este partido"
   },
   "common": {
     "loading": "Cargando...",

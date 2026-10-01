@@ -292,7 +292,11 @@ test.describe("Química en una convocatoria", () => {
 
     await loginAs(page, e.capitana);
     await page.goto(`/eventos/${e.eventId}`);
-    await expect(page.getByText(/no se puede reabrir/i)).toBeVisible({ timeout: 20_000 });
+    // Jugado, la zona del reparto ni aparece: ni pistas, ni reabrir.
+    await expect(page.getByRole("heading", { name: /^convocatorias$/i })).toBeVisible({
+      timeout: 20_000,
+    });
+    await expect(page.locator('[data-drop="1"]')).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Reabrir" })).toHaveCount(0);
     // Y el servidor tampoco lo deja por su cuenta.
     res = await request.post(`${API_URL}/events/${e.eventId}/confirmar/`, {

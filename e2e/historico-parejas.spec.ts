@@ -1,6 +1,13 @@
 import { test, expect } from "@playwright/test";
 
-import { API_URL, bearer, loginAs, seedCaptainWithTeam, seedPlayerInTeam } from "./session";
+import {
+  API_URL,
+  bearer,
+  loginAs,
+  pasarAlPasado,
+  seedCaptainWithTeam,
+  seedPlayerInTeam,
+} from "./session";
 
 /**
  * El histórico de parejas de Estadísticas: sale de la pista de cada uno en la
@@ -19,7 +26,7 @@ test("el jugador ve con quién ha jugado y el marcador de su pista", async ({ pa
       titulo: "Jornada 1",
       rival: "Club Náutico",
       es_local: true,
-      fecha_inicio: new Date(Date.now() - 3 * 86_400_000).toISOString(),
+      fecha_inicio: new Date(Date.now() + 86_400_000).toISOString(),
     },
   });
   expect(ev.ok(), await ev.text()).toBe(true);
@@ -44,6 +51,7 @@ test("el jugador ve con quién ha jugado y el marcador de su pista", async ({ pa
       data: { padel_pista: 1, es_convocado: true },
     });
   }
+  await pasarAlPasado(request, capitana, eventId);
   const res = await request.post(`${API_URL}/match-results/bulk/`, {
     headers: bearer(capitana),
     data: {
