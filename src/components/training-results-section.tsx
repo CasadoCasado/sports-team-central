@@ -7,34 +7,23 @@
  * igual que los resultados de un partido van a `/match-results/bulk/`.
  */
 
-import { invitadosApuntados } from "@/lib/invitados";
+import { invitadosApuntados, nombreVisible } from "@/lib/invitados";
+import {
+  ReyPistaTablero,
+  pistasPara,
+  type DraftCourt,
+  type Jugador,
+} from "@/components/rey-pista-tablero";
+import { confirmar } from "@/components/confirm-dialog";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
-import {
-  ChevronDown,
-  ChevronUp,
-  Crown,
-  ListOrdered,
-  Lock,
-  Plus,
-  Trash2,
-  Trophy,
-  X,
-} from "lucide-react";
+import { ListOrdered, Lock, Plus, Trophy, Shuffle } from "lucide-react";
 
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { cn } from "@/lib/utils";
 import { TrainingCountSection, TrainingHeader } from "@/components/training-count-section";
 import type {
   Competition,
@@ -44,12 +33,6 @@ import type {
   TrainingCourt,
   TrainingFormat,
 } from "@/lib/types";
-
-/** Una pista mientras se edita: la posición final es su sitio en la lista. */
-type DraftCourt = {
-  pista: number;
-  players: { user_id: string; ganador: boolean }[];
-};
 
 const nameOf = (profile: Profile | null | undefined) =>
   profile ? `${profile.nombre} ${profile.apellidos}`.trim() : "—";
@@ -117,15 +100,17 @@ export function TrainingResultsSection({
   /** Quien se apuntó sale primero en el desplegable: es el caso normal. */
   const pool = useMemo(() => {
     const signedUp = new Set((responses ?? []).map((r) => r.user_id));
-    return (members ?? [])
-      .map((m) => ({
-        user_id: m.user_id,
-        nombre: nameOf(m.profile),
-        signedUp: signedUp.has(m.user_id),
-      }))
-      // Los invitados apuntados al entreno también juegan, aunque no sean del equipo.
-      .concat(invitadosApuntados(responses))
-      .sort((a, b) => Number(b.signedUp) - Number(a.signedUp) || a.nombre.localeCompare(b.nombre));
+    return (
+      (members ?? [])
+        .map((m) => ({
+          user_id: m.user_id,
+          nombre: nameOf(m.profile),
+          signedUp: signedUp.has(m.user_id),
+        }))
+        // Los invitados apuntados al entreno también juegan, aunque no sean del equipo.
+        .concat(invitadosApuntados(responses))
+        .sort((a, b) => Number(b.signedUp) - Number(a.signedUp) || a.nombre.localeCompare(b.nombre))
+    );
   }, [members, responses]);
 
   const nameById = useMemo(() => {
@@ -159,10 +144,10 @@ export function TrainingResultsSection({
   const available = pool.filter((p) => !assigned.has(p.user_id));
 
   const save = useMutation({
-    mutationFn: () =>
+    mutationFn: (pistas: DraftCourt[]) =>
       api.post("/training-courts/bulk/", {
         event_id: eventId,
-        courts: draft.map((court, index) => ({
+        courts: pistas.map((court, index) => ({
           pista: court.pista,
           posicion: index + 1,
           players: court.players,
@@ -181,7 +166,57 @@ export function TrainingResultsSection({
     },
   });
 
-  // --- edición del borrador ---------------------------------------------
+  // --- asistentes ---------------------------------------------------------
+
+  // En un entreno, la casilla «Asistió» es `es_convocado`. Si nadie la ha
+  // marcado aún, se cuenta a los apuntados que dijeron que iban.
+  const asistieron = (responses ?? []).filter((r) => r.es_convocado && r.status !== "rechazado");
+  const sinMarcar = asistieron.length === 0;
+  const jugadores: Jugador[] = (
+    sinMarcar ? (responses ?? []).filter((r) => r.status === "confirmado") : asistieron
+  ).map((r) => ({ user_id: r.user_id, nombre: nombreVisible(r.profile) }));
+  const nombre = (u: string) =>
+    nameById.get(u) ?? jugadores.find((j) => j.user_id === u)?.nombre ?? "—";
+
+  /** Crea «Invitado N» hasta completar `cuantos`, y devuelve sus ids. */
+  async function crearInvitados(cuantos: number): Promise<string[]> {
+    const usados = new Set(
+      (responses ?? []).filter((r) => r.profile?.es_invitado).map((r) => r.profile!.nombre),
+    );
+    const ids: string[] = [];
+    for (let n = 1; ids.length < cuantos; n++) {
+      const nombreInvitado = t("training.invitadoN", { n });
+      if (usados.has(nombreInvitado)) continue;
+      const r = await api.post<{ user_id: string }>(`/events/${eventId}/invitados/`, {
+        nombre: nombreInvitado,
+      });
+      ids.push(r.user_id);
+    }
+    await qc.invalidateQueries({ queryKey: ["event-responses", eventId] });
+    return ids;
+  }
+
+  /** «Repartir pistas»: tantas pistas de cuatro como hagan falta, vacías. */
+  async function repartir() {
+    const n = jugadores.length;
+    if (n === 0) return toast.error(t("training.nadieAsistio"));
+    const { pistas, faltan } = pistasPara(n);
+    if (faltan > 0) {
+      const ok = await confirmar({
+        title: t("training.faltanTitulo", { count: faltan }),
+        description: t("training.faltanTexto", { n, pistas, count: faltan }),
+        confirmLabel: t("training.crearInvitados", { count: faltan }),
+      });
+      if (ok) {
+        try {
+          await crearInvitados(faltan);
+        } catch (e) {
+          return toast.error(e instanceof Error ? e.message : t("common.error"));
+        }
+      }
+    }
+    setDraft(() => Array.from({ length: pistas }, (_, i) => ({ pista: i + 1, players: [] })));
+  }
 
   const addCourt = () =>
     setDraft((prev) => {
@@ -191,58 +226,43 @@ export function TrainingResultsSection({
       return [...prev, { pista, players: [] }];
     });
 
-  const removeCourt = (index: number) => setDraft((prev) => prev.filter((_, i) => i !== index));
-
-  const moveCourt = (index: number, delta: number) =>
-    setDraft((prev) => {
-      const target = index + delta;
-      if (target < 0 || target >= prev.length) return prev;
-      const next = [...prev];
-      [next[index], next[target]] = [next[target], next[index]];
-      return next;
-    });
-
-  const setPista = (index: number, pista: number) =>
-    setDraft((prev) => prev.map((c, i) => (i === index ? { ...c, pista } : c)));
-
-  const addPlayer = (index: number, userId: string) =>
-    setDraft((prev) =>
-      prev.map((c, i) =>
-        i === index ? { ...c, players: [...c.players, { user_id: userId, ganador: false }] } : c,
-      ),
-    );
-
-  const removePlayer = (index: number, userId: string) =>
-    setDraft((prev) =>
-      prev.map((c, i) =>
-        i === index ? { ...c, players: c.players.filter((p) => p.user_id !== userId) } : c,
-      ),
-    );
-
-  const toggleWinner = (index: number, userId: string) =>
-    setDraft((prev) =>
-      prev.map((c, i) =>
-        i === index
-          ? {
-              ...c,
-              players: c.players.map((p) =>
-                p.user_id === userId ? { ...p, ganador: !p.ganador } : p,
-              ),
-            }
-          : c,
-      ),
-    );
-
-  const handleSave = () => {
+  /** Antes de guardar: una pista con menos de cuatro pide invitados. */
+  const handleSave = async () => {
     if (draft.length === 0) return toast.error(t("training.errNoCourts"));
     if (draft.some((c) => c.players.length === 0)) {
       return toast.error(t("training.errEmptyCourt"));
     }
-    const pistas = draft.map((c) => c.pista);
-    if (new Set(pistas).size !== pistas.length) {
-      return toast.error(t("training.errDuplicateCourt"));
+    const cortas = draft.filter((c) => c.players.length < 4);
+    if (cortas.length > 0) {
+      const faltan = cortas.reduce((s, c) => s + 4 - c.players.length, 0);
+      const ok = await confirmar({
+        title: t("training.pistaCortaTitulo", { count: faltan }),
+        description: t("training.pistaCortaTexto", {
+          pistas: cortas.map((c) => c.pista).join(", "),
+          count: faltan,
+        }),
+        confirmLabel: t("training.crearInvitados", { count: faltan }),
+      });
+      if (!ok) return;
+      let ids: string[];
+      try {
+        ids = await crearInvitados(faltan);
+      } catch (e) {
+        return toast.error(e instanceof Error ? e.message : t("common.error"));
+      }
+      // Cada invitado, al hueco libre de su pista: primero el lado que falte.
+      const completo = draft.map((c) => {
+        const players = [...c.players];
+        while (players.length < 4 && ids.length > 0) {
+          const ganadores = players.filter((p) => p.ganador).length;
+          players.push({ user_id: ids.shift()!, ganador: ganadores < 2 });
+        }
+        return { ...c, players };
+      });
+      setDraft(() => completo);
+      return save.mutate(completo);
     }
-    save.mutate();
+    save.mutate(draft);
   };
 
   // --- pantalla ----------------------------------------------------------
@@ -327,8 +347,12 @@ export function TrainingResultsSection({
       )}
 
       <div className="space-y-4 p-4 sm:p-5">
-        {canEdit && shown.length > 0 && (
-          <p className="text-2xs text-muted-foreground">{t("training.reyesHint")}</p>
+        {canEdit && (
+          <p className="text-2xs text-muted-foreground">
+            {sinMarcar
+              ? t("training.cuentaApuntados", { count: jugadores.length })
+              : t("training.cuentaAsistentes", { count: jugadores.length })}
+          </p>
         )}
 
         {shown.length === 0 && (
@@ -337,147 +361,30 @@ export function TrainingResultsSection({
           </p>
         )}
 
-        {shown.map((court, index) => (
-          <div key={`${court.pista}-${index}`} className="rounded-md border border-border p-3 sm:p-4">
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-              <div className="flex min-w-0 flex-wrap items-center gap-2">
-                <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/15 text-2xs font-black text-primary">
-                  {index + 1}
-                </span>
-                <span className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
-                  {t("training.posicion")}
-                </span>
-                <span className="ml-2 text-2xs font-bold uppercase tracking-widest text-primary">
-                  {t("training.pista")}
-                </span>
-                {canEdit ? (
-                  <input
-                    type="number"
-                    min={1}
-                    max={99}
-                    value={court.pista}
-                    onChange={(e) => setPista(index, Number(e.target.value) || 1)}
-                    aria-label={t("training.pista")}
-                    className="w-14 min-h-9 shrink-0 rounded-md border border-border bg-background px-2 text-center text-sm font-bold"
-                  />
-                ) : (
-                  <span className="text-sm font-bold">{court.pista}</span>
-                )}
-              </div>
-              {canEdit && (
-                <div className="flex gap-1">
-                  <button
-                    type="button"
-                    onClick={() => moveCourt(index, -1)}
-                    disabled={index === 0}
-                    aria-label={t("training.moveUp")}
-                    className="inline-flex size-9 items-center justify-center rounded-md border border-border hover:bg-card disabled:opacity-40"
-                  >
-                    <ChevronUp className="size-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => moveCourt(index, 1)}
-                    disabled={index === shown.length - 1}
-                    aria-label={t("training.moveDown")}
-                    className="inline-flex size-9 items-center justify-center rounded-md border border-border hover:bg-card disabled:opacity-40"
-                  >
-                    <ChevronDown className="size-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => removeCourt(index)}
-                    aria-label={t("training.removeCourt")}
-                    className="inline-flex size-9 items-center justify-center rounded-md border border-border text-destructive hover:bg-card"
-                  >
-                    <Trash2 className="size-3.5" />
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {court.players.length === 0 ? (
-              <p className="text-xxs text-muted-foreground">{t("training.noPlayers")}</p>
-            ) : (
-              <ul className="space-y-1.5">
-                {[...court.players]
-                  .sort((a, b) => Number(b.ganador) - Number(a.ganador))
-                  .map((player) => (
-                    <li
-                      key={player.user_id}
-                      className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border px-3 py-2"
-                    >
-                      <span className="min-w-[7rem] flex-1 text-sm break-words">
-                        {nameById.get(player.user_id) ?? "—"}
-                      </span>
-                      <button
-                        type="button"
-                        disabled={!canEdit}
-                        onClick={() => toggleWinner(index, player.user_id)}
-                        aria-pressed={player.ganador}
-                        aria-label={t("training.markWinner")}
-                        className={cn(
-                          "inline-flex min-h-8 shrink-0 items-center gap-1 rounded-md border px-2 text-2xs font-bold uppercase tracking-widest",
-                          player.ganador
-                            ? "border-ok/40 bg-ok/10 text-ok"
-                            : "border-border text-muted-foreground",
-                          canEdit ? "hover:bg-card" : "cursor-default",
-                        )}
-                      >
-                        <Crown className="size-3" />
-                        {player.ganador ? t("training.winner") : t("training.loser")}
-                      </button>
-                      {canEdit && (
-                        <button
-                          type="button"
-                          onClick={() => removePlayer(index, player.user_id)}
-                          aria-label={t("training.removePlayer")}
-                          className="inline-flex size-8 shrink-0 items-center justify-center rounded-md border border-border text-muted-foreground hover:bg-card"
-                        >
-                          <X className="size-3" />
-                        </button>
-                      )}
-                    </li>
-                  ))}
-              </ul>
-            )}
-
-            {canEdit && (
-              <div className="mt-3">
-                <Select
-                  value=""
-                  disabled={available.length === 0}
-                  onValueChange={(v) => addPlayer(index, v)}
-                >
-                  <SelectTrigger className="text-xs">
-                    <SelectValue
-                      placeholder={
-                        available.length === 0 ? t("training.allAssigned") : t("training.addPlayer")
-                      }
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {available.map((p) => (
-                      <SelectItem key={p.user_id} value={p.user_id}>
-                        {p.nombre}
-                        {p.signedUp ? " ★" : ""}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-          </div>
-        ))}
+        <ReyPistaTablero
+          draft={shown}
+          setDraft={(f) => setDraft((prev) => f(prev))}
+          canEdit={canEdit}
+          jugadores={jugadores}
+          nombre={nombre}
+        />
 
         {canEdit && (
           <div className="flex flex-wrap justify-between gap-2">
-            <Button type="button" variant="outline" onClick={addCourt}>
-              <Plus className="mr-1 size-4" /> {t("training.addCourt")}
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              {draft.length === 0 && (
+                <Button type="button" onClick={() => void repartir()}>
+                  <Shuffle className="mr-1.5 size-4" />
+                  {t("training.repartir", { count: pistasPara(jugadores.length).pistas })}
+                </Button>
+              )}
+              <Button type="button" variant="outline" onClick={addCourt}>
+                <Plus className="mr-1 size-4" /> {t("training.addCourt")}
+              </Button>
+            </div>
             <Button
               type="button"
-              onClick={handleSave}
+              onClick={() => void handleSave()}
               disabled={save.isPending}
               className="bg-primary text-primary-foreground uppercase tracking-widest font-bold hover:opacity-90"
             >

@@ -462,6 +462,10 @@ function CallupSection({
   // Un partido ya jugado no cambia su convocatoria ni sus parejas: se ve,
   // pero nada se toca (el backend tampoco lo deja).
   const jugado = event.tipo === "partido" && event.finalizado;
+  // En un entreno no se convoca: se apunta quién vino. Es el mismo campo
+  // (`es_convocado`), pero la casilla dice «Asistió».
+  const esEntreno = event.tipo === "entrenamiento";
+  const k = (clave: string) => (esEntreno ? `callups.entreno.${clave}` : `callups.${clave}`);
 
   const { data: members } = useQuery({
     queryKey: ["team-members-full", teamId],
@@ -609,7 +613,7 @@ function CallupSection({
               <span title={t("callups.response_reserva")}>{reserve} R</span> ·{" "}
               <span title={t("callups.response_duda")}>{doubt} ?</span> ·{" "}
               <span title={t("callups.response_rechazado")}>{rejected} ✕</span> ·{" "}
-              <span title={t("callups.convocadosHint")}>{convocados.length} ★</span>
+              <span title={t(k("convocadosHint"))}>{convocados.length} ★</span>
             </p>
           </div>
         </div>
@@ -646,7 +650,7 @@ function CallupSection({
           ) : (
             myResp.es_convocado && (
               <p className="mt-1 text-xxs font-bold uppercase tracking-widest text-primary">
-                ★ {t("callups.youAreCalled")}
+                ★ {t(k("youAreCalled"))}
                 {myResp.padel_pista ? ` · ${t("callups.pista")} ${myResp.padel_pista}` : ""}
               </p>
             )
@@ -757,8 +761,8 @@ function CallupSection({
                         <label
                           title={
                             r.es_convocado
-                              ? t("callups.desconvocarHint", { name: nombreDe(r.user_id) })
-                              : t("callups.convocarHint", { name: nombreDe(r.user_id) })
+                              ? t(k("desconvocarHint"), { name: nombreVisible(perfil) })
+                              : t(k("convocarHint"), { name: nombreVisible(perfil) })
                           }
                           className={cn(
                             "flex min-h-9 cursor-pointer items-center gap-1.5 rounded-md border px-2 text-2xs font-bold uppercase tracking-widest",
@@ -771,21 +775,21 @@ function CallupSection({
                             type="checkbox"
                             className="size-4"
                             checked={r.es_convocado}
-                            aria-label={t("callups.convocarA", { name: nombreDe(r.user_id) })}
+                            aria-label={t(k("convocarA"), { name: nombreVisible(perfil) })}
                             onChange={(e) =>
                               toggleConvocado.mutate({ id: r.id, value: e.target.checked })
                             }
                           />
                           <span aria-hidden="true">★</span>
                           <span className="hidden sm:inline" aria-hidden="true">
-                            {r.es_convocado ? t("callups.convocadoCorto") : t("callups.convocarCorto")}
+                            {r.es_convocado ? t(k("convocadoCorto")) : t(k("convocarCorto"))}
                           </span>
                         </label>
                       </TooltipTrigger>
                       <TooltipContent className="max-w-64 text-xs">
                         {r.es_convocado
-                          ? t("callups.desconvocarHint", { name: nombreDe(r.user_id) })
-                          : t("callups.convocarHint", { name: nombreDe(r.user_id) })}
+                          ? t(k("desconvocarHint"), { name: nombreVisible(perfil) })
+                          : t(k("convocarHint"), { name: nombreVisible(perfil) })}
                       </TooltipContent>
                     </Tooltip>
                     </TooltipProvider>
