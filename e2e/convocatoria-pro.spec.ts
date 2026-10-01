@@ -160,13 +160,25 @@ test.describe("Convocatoria PRO", () => {
     await page.reload();
     const modo = page.getByRole("group", { name: /modo del tablero/i });
     await expect(modo).toBeVisible({ timeout: 20_000 });
-    await expect(page.getByText(/contra club náutico/i)).toBeVisible();
+    await expect(page.getByText(/contra club náutico/i).first()).toBeVisible();
     await expect(page.getByText(/0 ganados · 1 empatados · 0 perdidos/i)).toBeVisible();
-    await expect(
-      page.getByText(/(sara l\. y noa v\.|noa v\. y sara l\.): 1-0 contra ellos/i),
-    ).toBeVisible();
+    await expect(page.getByText(/(sara y noa|noa y sara): 1-0 contra ellos/i)).toBeVisible();
 
-    // Propuestas: la de la victoria junta a Sara y Noa en la pista 1.
+    // En el tablero PRO se coloca tocando: Iván, y luego un hueco de la pista 2.
+    const tablero = page.getByRole("tabpanel");
+    await tablero
+      .getByRole("button", { name: /iván ruiz/i })
+      .first()
+      .click();
+    await tablero
+      .getByRole("button", { name: /poner a iván ruiz en la pista 2/i })
+      .first()
+      .click();
+    const pistaPro2 = page.locator('[data-pista-pro="2"]');
+    await expect(pistaPro2).toContainText(/iván · falta pareja/i);
+
+    // Propuestas: la de la victoria junta a Sara y Noa en la pista 1. Como ya
+    // hay alguien colocado, pregunta antes de cambiar el reparto.
     const dialogo = page.getByRole("dialog");
     await pulsar(page.getByRole("button", { name: /sugerir parejas/i }), dialogo);
     const victoria = dialogo.getByRole("article", { name: /a por la victoria/i });
@@ -174,17 +186,27 @@ test.describe("Convocatoria PRO", () => {
       /sara l\. · noa v\.|noa v\. · sara l\./i,
     );
     await victoria.getByRole("button", { name: /usar esta/i }).click();
+    await page
+      .getByRole("alertdialog")
+      .getByRole("button", { name: /usar esta/i })
+      .click();
     await expect(dialogo).toHaveCount(0);
 
-    const pista1 = page.locator('[data-drop="1"]');
-    await expect(pista1).toContainText("Sara L.");
-    await expect(pista1).toContainText("Noa V.");
-    await expect(pista1).toContainText(/juntos 1-0/i);
+    const pistaPro1 = page.locator('[data-pista-pro="1"]');
+    await expect(pistaPro1).toContainText(/(sara y noa|noa y sara)/i);
+    await expect(pistaPro1).toContainText(/juntos 1-0/i);
+
+    // La matriz, en su pestaña: la casilla de Sara y Noa.
+    await page.getByRole("tab", { name: /matriz de parejas/i }).click();
+    await expect(
+      page.getByRole("button", { name: /sara y noa: 1 ganadas, 0 perdidas/i }),
+    ).toBeVisible();
 
     // En Normal se ve el mismo reparto, sin los datos.
     await modo.getByRole("button", { name: /^normal$/i }).click();
+    const pista1 = page.locator('[data-drop="1"]');
     await expect(pista1).toContainText("Sara L.");
-    await expect(pista1).not.toContainText(/juntos/i);
+    await expect(pista1).toContainText("Noa V.");
     await expect(page.getByText(/contra club náutico/i)).toHaveCount(0);
 
     // Y desde Normal se confirma como siempre; en PRO ya no se sugiere.
@@ -192,8 +214,9 @@ test.describe("Convocatoria PRO", () => {
     await expect(page.getByText(/convocatoria confirmada\./i)).toBeVisible();
     await modo.getByRole("button", { name: /^pro$/i }).click();
     await expect(page.getByRole("button", { name: /sugerir parejas/i })).toBeDisabled();
+    await expect(page.getByRole("button", { name: /reabrir/i })).toBeVisible();
 
-    // En Enfrentamientos, el mismo conmutador sobre el mismo reparto.
+    // En Enfrentamientos, el mismo conmutador y la misma vista.
     await page.goto("/enfrentamientos");
     await pulsar(
       page.getByRole("button", { name: /asignación de pistas/i }).first(),
@@ -204,7 +227,8 @@ test.describe("Convocatoria PRO", () => {
         .getByRole("group", { name: /modo del tablero/i })
         .getByRole("button", { name: /^pro$/i }),
     ).toHaveAttribute("aria-pressed", "true");
-    await expect(page.locator('[data-drop="1"]')).toContainText(/juntos 1-0/i);
+    await expect(page.locator('[data-pista-pro="1"]')).toContainText(/juntos 1-0/i);
+    await expect(page.getByRole("tab", { name: /matriz de parejas/i })).toBeVisible();
   });
 
   test("los jugadores no ven PRO aunque el equipo lo tenga", async ({ page, request }) => {
