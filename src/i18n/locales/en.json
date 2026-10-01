@@ -1139,7 +1139,7 @@
     "activado": "PRO turned on for {{team}}",
     "quitado": "PRO turned off for {{team}}",
     "activo": "PRO on",
-    "soloCapitan": "The team captain turns it on.",
+    "soloCapitan": "Lo activa el capitán del equipo.",
     "modo": "Board mode",
     "normal": "Normal",
     "pro": "PRO",
@@ -1177,6 +1177,9 @@
     "cambiarTitulo": "Replace the line-up?",
     "cambiarTexto": "The current court assignment is replaced by this suggestion. You can tweak it afterwards.",
     "aplicada": "Pairs set. Tweak them if needed and confirm the call-up.",
-    "comoSeCalcula": "Each percentage is the pair's average, pulled towards each player's own when they have rarely played together. It's a guide: you make the final call."
+    "comoSeCalcula": "Each percentage is the pair's average, pulled towards each player's own when they have rarely played together. It's a guide: you make the final call.",
+    "activarTitulo": "Turn on PRO for {{team}}?",
+    "quitarTitulo": "Turn off PRO for {{team}}?",
+    "quitarTexto": "The team's management goes back to the normal board. Pairs and the call-up stay as they are."
   }
 }

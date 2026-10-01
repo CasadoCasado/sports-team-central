@@ -34,7 +34,6 @@ import { TeamDiscovery } from "@/components/team-discovery";
 import { TeamInviteLink } from "@/components/team-invite-link";
 import { TeamJoinRequests } from "@/components/team-join-requests";
 import { TeamEditDialog } from "@/components/team-edit-dialog";
-import { TeamProToggle } from "@/components/team-pro-toggle";
 import { confirmar } from "@/components/confirm-dialog";
 
 export const Route = createFileRoute("/_authenticated/mi-equipo")({
@@ -642,17 +641,6 @@ function TeamCard({
 
       {(isOwner || ["capitan", "co_capitan", "entrenador", "delegado"].includes(role)) && (
         <TeamJoinRequests teamId={team.id} compact />
-      )}
-
-      {/* PRO es del reparto de pistas, así que solo en pádel. */}
-      {(isOwner || isManager) && team.deporte === "padel" && (
-        <TeamProToggle
-          teamId={team.id}
-          teamName={team.nombre}
-          esPro={!!team.es_pro}
-          puedeCambiar={isOwner || role === "capitan"}
-          className="border-t border-border p-4 sm:px-5"
-        />
       )}
 
       {(isOwner || isManager) && (

@@ -1177,6 +1177,9 @@
     "cambiarTitulo": "¿Cambiar el reparto?",
     "cambiarTexto": "Se sustituye el reparto de pistas actual por esta propuesta. Puedes retocarlo después.",
     "aplicada": "Parejas puestas. Retócalas si hace falta y confirma la convocatoria.",
-    "comoSeCalcula": "Cada porcentaje es la media de la pareja tirando hacia lo que gana cada uno cuando han jugado poco juntos. Es una ayuda: el reparto lo cierras tú."
+    "comoSeCalcula": "Cada porcentaje es la media de la pareja tirando hacia lo que gana cada uno cuando han jugado poco juntos. Es una ayuda: el reparto lo cierras tú.",
+    "activarTitulo": "¿Activar PRO para {{team}}?",
+    "quitarTitulo": "¿Quitar PRO a {{team}}?",
+    "quitarTexto": "La gestión del equipo vuelve al tablero normal. Las parejas y la convocatoria no cambian."
   }
 }
