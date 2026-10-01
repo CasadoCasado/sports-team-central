@@ -563,3 +563,76 @@
     mask-position: -115vw 0;
   }
 }
+
+/* ============================ CONVOCATORIA PRO ============================
+ *
+ * La vista PRO del reparto de pistas tiene su propia paleta, la del diseño
+ * (lienzo «Convocatoria PRO»): azul noche y amarillo pelota en oscuro, y en
+ * claro el mismo esquema sobre blanco. En claro el texto de acento va en
+ * verde oliva, porque el amarillo pelota no se lee sobre blanco. La pista
+ * azul no cambia de tema. Solo vive dentro de `.pro-ui`.
+ */
+.pro-ui {
+  --pro-bg: #f5f7fb;
+  --pro-surface: #ffffff;
+  --pro-surface-2: #eef2f8;
+  --pro-sel: #e6ecf7;
+  --pro-line: #e2e7ef;
+  --pro-line-2: #c2ccdc;
+  --pro-fg: #0f172a;
+  --pro-muted: #55617a;
+  --pro-acc: #c2e03a;
+  --pro-acc-txt: #4f6b00;
+  --pro-ink: #0b1222;
+  --pro-court: #1d4fa3;
+  --pro-track: #e2e7ef;
+  --pro-blue: #2f5bea;
+  --pro-ok: #0f7a50;
+  --pro-ok-bg: rgb(15 122 80 / 0.1);
+  --pro-warn: #9a5800;
+  --pro-warn-bg: rgb(245 165 36 / 0.14);
+  /* Matriz: de peor a mejor, con su texto. */
+  --pro-m1: #c2620e;
+  --pro-m1-txt: #ffffff;
+  --pro-m2: #f3dcb6;
+  --pro-m2-txt: #5c3a07;
+  --pro-m3: #e2e7ef;
+  --pro-m3-txt: #0f172a;
+  --pro-m4: #c9de86;
+  --pro-m4-txt: #283600;
+  --pro-m5: #a8c81f;
+  --pro-m5-txt: #0b1222;
+  background: var(--pro-bg);
+  color: var(--pro-fg);
+}
+
+.dark .pro-ui {
+  --pro-bg: #0b1222;
+  --pro-surface: #111a30;
+  --pro-surface-2: #16213d;
+  --pro-sel: #1b2748;
+  --pro-line: #26355c;
+  --pro-line-2: #3a4e82;
+  --pro-fg: #eef2fa;
+  --pro-muted: #a3b0cc;
+  --pro-acc: #d7f24b;
+  --pro-acc-txt: #d7f24b;
+  --pro-ink: #0b1222;
+  --pro-court: #1d4fa3;
+  --pro-track: #22305a;
+  --pro-blue: #5b8cff;
+  --pro-ok: #7be3b8;
+  --pro-ok-bg: rgb(52 211 153 / 0.12);
+  --pro-warn: #f5b94a;
+  --pro-warn-bg: rgb(245 165 36 / 0.12);
+  --pro-m1: #b8620e;
+  --pro-m1-txt: #ffffff;
+  --pro-m2: #6b4a1e;
+  --pro-m2-txt: #fbe7c6;
+  --pro-m3: #2a3656;
+  --pro-m3-txt: #eef2fa;
+  --pro-m4: #6e8a2a;
+  --pro-m4-txt: #f3f8dc;
+  --pro-m5: #d7f24b;
+  --pro-m5-txt: #0b1222;
+}

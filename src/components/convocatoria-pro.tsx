@@ -15,7 +15,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Sparkles, Star, Swords } from "lucide-react";
+import { Sparkles, Star } from "lucide-react";
 
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -29,47 +29,8 @@ import {
 } from "@/components/ui/dialog";
 import { confirmar } from "@/components/confirm-dialog";
 import { PadelCourtsBoard } from "@/components/padel-courts-board";
-
-export type ParejaPro = {
-  a: string;
-  b: string;
-  ganados: number;
-  perdidos: number;
-  prob: number;
-};
-
-export type JugadorPro = {
-  partidos: number;
-  ganados: number;
-  /** De la más antigua a la más reciente; `true` es pista ganada. */
-  forma: boolean[];
-  /** Jornadas del equipo desde la última que jugó; null si nunca. */
-  sin_jugar: number | null;
-  nivel: string | null;
-};
-
-export type PropuestaPro = {
-  id: "victoria" | "equilibrada" | "rotacion";
-  pistas: string[][];
-  esperadas: number;
-  descansan: string[];
-};
-
-export type TableroPro = {
-  media: number;
-  jugadores: Record<string, JugadorPro>;
-  parejas: ParejaPro[];
-  rival: {
-    nombre: string;
-    ganados: number;
-    empatados: number;
-    perdidos: number;
-    ultimo: { fecha: string; nuestro: number | null; suyo: number | null } | null;
-    parejas: { a: string; b: string; ganados: number; perdidos: number }[];
-  } | null;
-  quimica_mutua: [string, string][];
-  propuestas: PropuestaPro[];
-};
+import { VistaPro } from "@/components/vista-pro";
+import { parejaPro, type PropuestaPro, type TableroPro } from "@/lib/pro";
 
 const CLAVE_MODO = "teamup:convocatoria-pro";
 
@@ -103,66 +64,7 @@ export function useTableroPro(eventId: string, enabled: boolean) {
   });
 }
 
-export function parejaPro(pro: TableroPro, a: string, b: string) {
-  return pro.parejas.find((p) => (p.a === a && p.b === b) || (p.a === b && p.b === a));
-}
-
 const pct = (p: number) => Math.round(100 * p);
-
-/** Los últimos partidos de un jugador, en puntos: lleno es pista ganada. */
-export function FormaPuntos({ forma }: { forma: boolean[] }) {
-  const { t } = useTranslation();
-  if (forma.length === 0) return null;
-  const lista = forma.map((g) => t(g ? "pro.ganado" : "pro.perdido")).join(", ");
-  return (
-    <span
-      role="img"
-      aria-label={t("pro.forma", { lista })}
-      title={t("pro.forma", { lista })}
-      className="inline-flex gap-0.5"
-    >
-      {forma.map((g, i) => (
-        <span
-          key={i}
-          className={cn(
-            "size-1.5 rounded-full",
-            g ? "bg-ok" : "border border-muted-foreground/60 bg-transparent",
-          )}
-        />
-      ))}
-    </span>
-  );
-}
-
-/** Debajo de una pista con pareja: su récord juntos y lo que se espera. */
-export function PistaPro({ pro, a, b }: { pro: TableroPro; a: string; b: string }) {
-  const { t } = useTranslation();
-  const p = parejaPro(pro, a, b);
-  if (!p) return null;
-  const n = p.ganados + p.perdidos;
-  const valor = pct(p.prob);
-  return (
-    <div className="mt-2 space-y-1">
-      <div className="flex items-baseline justify-between gap-2 text-2xs">
-        <span className="text-muted-foreground">
-          {n ? t("pro.juntos", { g: p.ganados, p: p.perdidos }) : t("pro.nuncaJuntos")}
-        </span>
-        <span className={cn("font-extrabold", valor >= 60 ? "text-ok" : "text-foreground")}>
-          {n ? `${valor} %` : t("pro.estimado", { pct: valor })}
-        </span>
-      </div>
-      <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-        <div
-          className={cn(
-            "h-full rounded-full",
-            n ? (valor >= 60 ? "bg-ok" : "bg-primary") : "bg-warn/70",
-          )}
-          style={{ width: `${valor}%` }}
-        />
-      </div>
-    </div>
-  );
-}
 
 type Evento = {
   id: string;
@@ -333,45 +235,6 @@ function BarraPro({
         )}
       </div>
 
-      {activo && rival && (
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-muted/40 px-3 py-2 text-xs">
-          <span className="inline-flex items-center gap-1.5 font-extrabold uppercase tracking-widest text-2xs">
-            <Swords className="size-3.5" aria-hidden="true" />
-            {t("pro.contraRival", { rival: rival.nombre })}
-          </span>
-          {rival.ultimo ? (
-            <>
-              <span>
-                {rival.empatados
-                  ? t("pro.rivalBalanceEmpates", {
-                      g: rival.ganados,
-                      e: rival.empatados,
-                      p: rival.perdidos,
-                    })
-                  : t("pro.rivalBalance", { g: rival.ganados, p: rival.perdidos })}
-              </span>
-              {rival.ultimo.nuestro != null && rival.ultimo.suyo != null && (
-                <span>
-                  {t("pro.rivalUltimo", { a: rival.ultimo.nuestro, b: rival.ultimo.suyo })}
-                </span>
-              )}
-              {rival.parejas.slice(0, 2).map((p) => (
-                <span key={p.a + p.b} className="text-muted-foreground">
-                  {t("pro.rivalPareja", {
-                    a: nombre(p.a),
-                    b: nombre(p.b),
-                    g: p.ganados,
-                    p: p.perdidos,
-                  })}
-                </span>
-              ))}
-            </>
-          ) : (
-            <span className="text-muted-foreground">{t("pro.rivalSinPartidos")}</span>
-          )}
-        </div>
-      )}
-
       <Dialog open={abierto} onOpenChange={setAbierto}>
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
           <DialogHeader>
@@ -521,13 +384,26 @@ export function RepartoPadel({
         hayReparto={responses.some((r) => r.padel_pista != null)}
         onChanged={alCambiar}
       />
-      <PadelCourtsBoard
-        event={event}
-        responses={responses}
-        members={members}
-        onChanged={alCambiar}
-        pro={activo ? pro : null}
-      />
+      {activo ? (
+        pro ? (
+          <VistaPro
+            event={event}
+            responses={responses}
+            members={members}
+            pro={pro}
+            onChanged={alCambiar}
+          />
+        ) : (
+          <div className="pro-ui h-64 animate-pulse rounded-2xl" aria-busy="true" />
+        )
+      ) : (
+        <PadelCourtsBoard
+          event={event}
+          responses={responses}
+          members={members}
+          onChanged={alCambiar}
+        />
+      )}
     </>
   );
 }
