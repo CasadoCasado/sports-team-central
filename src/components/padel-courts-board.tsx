@@ -12,6 +12,7 @@ import { useQuimicas } from "@/hooks/use-quimica";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { FormaPuntos, PistaPro, type TableroPro } from "@/components/convocatoria-pro";
 
 type Respuesta = {
   id: string;
@@ -41,6 +42,11 @@ type Props = {
   members: Miembro[];
   /** Tras cada cambio, para que la pantalla vuelva a pedir lo que pinta. */
   onChanged: () => void;
+  /**
+   * Con PRO, los datos que se pintan encima: la forma de cada jugador y el
+   * récord de cada pareja. No cambia nada de cómo se reparte.
+   */
+  pro?: TableroPro | null;
 };
 
 /**
@@ -60,7 +66,7 @@ type Props = {
  * pulsar Intro sobre él, lo lleva a la siguiente pista con hueco (o lo
  * devuelve a «Sin pista» si ya tenía una).
  */
-export function PadelCourtsBoard({ event, responses, members, onChanged }: Props) {
+export function PadelCourtsBoard({ event, responses, members, onChanged, pro }: Props) {
   const { t, i18n } = useTranslation();
   const cerrada = event.convocatoria_confirmada;
   const numPistas = event.padel_num_pistas ?? 0;
@@ -296,6 +302,13 @@ export function PadelCourtsBoard({ event, responses, members, onChanged }: Props
       >
         {!cerrada && <GripVertical className="size-3 text-muted-foreground" aria-hidden="true" />}
         {corto(r.user_id)}
+        {pro?.jugadores[r.user_id] && <FormaPuntos forma={pro.jugadores[r.user_id].forma} />}
+        {/* Sin pista y con tiempo sin jugar: que se vea antes de dejarle fuera. */}
+        {!colocado && (pro?.jugadores[r.user_id]?.sin_jugar ?? 0) >= 2 && (
+          <span className="font-bold text-warn">
+            {t("pro.sinJugar", { count: pro!.jugadores[r.user_id].sin_jugar! })}
+          </span>
+        )}
         {r.status === "reserva" && (
           <span
             title={t("callups.statusHint_reserva")}
@@ -463,6 +476,9 @@ export function PadelCourtsBoard({ event, responses, members, onChanged }: Props
                     </span>
                   )}
                 </div>
+                {pro && dentro.length === 2 && (
+                  <PistaPro pro={pro} a={dentro[0].user_id} b={dentro[1].user_id} />
+                )}
               </div>
             );
           })}
