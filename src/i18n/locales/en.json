@@ -793,7 +793,8 @@
     "derrota": "Loss",
     "empate": "Draw",
     "pendingCourt": "Unresolved",
-    "pendingResult": "Pending"
+    "pendingResult": "Pending",
+    "backToResults": "Back to results"
   },
   "a11y": {
     "fontSize": "Text size",

@@ -793,7 +793,8 @@
     "derrota": "Derrota",
     "empate": "Empate",
     "pendingCourt": "Sin resolver",
-    "pendingResult": "Pendiente"
+    "pendingResult": "Pendiente",
+    "backToResults": "Volver a resultados"
   },
   "a11y": {
     "fontSize": "Tamaño de texto",

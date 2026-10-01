@@ -76,6 +76,12 @@ export const Route = createFileRoute("/_authenticated/eventos/$id")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
+  // `?vista=resultado` es como se llega desde Resultados: solo el partido y su
+  // marcador, sin convocatoria, química ni reparto de pistas, que son de
+  // antes del partido y tienen su sitio en Convocatorias y Enfrentamientos.
+  validateSearch: (search: Record<string, unknown>): { vista?: "resultado" } => ({
+    vista: search.vista === "resultado" ? "resultado" : undefined,
+  }),
   component: EventDetail,
 });
 
@@ -83,6 +89,7 @@ function EventDetail() {
   const { t, i18n } = useTranslation();
   const locale = i18n.language.startsWith("en") ? enUS : esLocale;
   const { id } = Route.useParams();
+  const soloResultado = Route.useSearch().vista === "resultado";
   const { user } = useSession();
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -155,12 +162,15 @@ function EventDetail() {
           : "empate";
 
   return (
-    <div className={cn("mx-auto space-y-6", anchoPro ? "max-w-7xl" : "max-w-5xl")}>
+    <div
+      className={cn("mx-auto space-y-6", anchoPro && !soloResultado ? "max-w-7xl" : "max-w-5xl")}
+    >
       <Link
-        to="/calendario"
+        to={soloResultado ? "/resultados" : "/calendario"}
         className="-ml-2 inline-flex min-h-11 items-center gap-2 rounded-md px-2 text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground"
       >
-        <ArrowLeft className="size-3.5" /> {t("events.backToCalendar")}
+        <ArrowLeft className="size-3.5" />{" "}
+        {soloResultado ? t("results.backToResults") : t("events.backToCalendar")}
       </Link>
 
       <article className="surface-raised min-w-0 overflow-hidden">
@@ -178,7 +188,7 @@ function EventDetail() {
           {/* Editar y borrar vivían como dos botones debajo del título, justo
               donde ahora va el marcador. Recogidos aquí, y solo para quien
               gestiona, que es quien los tenía. */}
-          {isManager && (
+          {isManager && !soloResultado && (
             <DropdownMenu>
               <DropdownMenuTrigger
                 aria-label={t("events.settings")}
@@ -306,7 +316,7 @@ function EventDetail() {
         )}
       </article>
 
-      {(event.requiere_convocatoria || event.tipo === "entrenamiento") && (
+      {!soloResultado && (event.requiere_convocatoria || event.tipo === "entrenamiento") && (
         <CallupSection event={event} isManager={!!isManager} userId={user?.id ?? null} />
       )}
 
