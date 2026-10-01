@@ -132,7 +132,7 @@ test.describe("Entrenamientos dentro de una competición", () => {
     await expect(page.getByRole("button", { name: /arrástralo/i })).toHaveCount(0);
     await expect(pista).toContainText("Marta Casado");
     // «Reabrir» lo vuelve editable.
-    await fijo.getByRole("button", { name: /^reabrir$/i }).click();
+    await fijo.getByRole("button", { name: /^modificar$/i }).click();
     await expect(page.getByRole("button", { name: /guardar resultados/i })).toBeVisible();
     await expect(page.getByRole("button", { name: /^marta casado\. arrástralo/i })).toBeVisible();
 
@@ -243,7 +243,7 @@ test.describe("Otros formatos de entrenamiento", () => {
     await expect(page.getByRole("spinbutton", { name: /juegos a favor/i })).toHaveCount(0);
     await page
       .locator("[data-entreno-guardado]")
-      .getByRole("button", { name: /^reabrir$/i })
+      .getByRole("button", { name: /^modificar$/i })
       .click();
     await expect(page.getByRole("spinbutton", { name: /juegos a favor/i })).toBeVisible();
 

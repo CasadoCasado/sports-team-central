@@ -821,7 +821,9 @@
     "backToResults": "Back to results",
     "valePuntos_one": "worth {{count}} point",
     "valePuntos_other": "worth {{count}} points",
-    "rival": "Opponent"
+    "rival": "Opponent",
+    "guardados": "Results saved",
+    "modificar": "Edit"
   },
   "a11y": {
     "fontSize": "Text size",
@@ -1050,8 +1052,8 @@
     "cuentaAsistentes_other": "{{count}} attended. Drag each one to their court and side: winners and losers.",
     "repartir_one": "Set up 1 court",
     "repartir_other": "Set up {{count}} courts",
-    "guardadoFijo": "Result saved. Reopen it if something needs changing.",
-    "reabrir": "Reopen"
+    "guardadoFijo": "Results saved",
+    "reabrir": "Edit"
   },
   "standings": {
     "title": "Standings",
