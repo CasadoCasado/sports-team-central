@@ -1054,7 +1054,9 @@
     "cuentaAsistentes_one": "1 attended. Drag each one to their court and side: winners and losers.",
     "cuentaAsistentes_other": "{{count}} attended. Drag each one to their court and side: winners and losers.",
     "repartir_one": "Set up 1 court",
-    "repartir_other": "Set up {{count}} courts"
+    "repartir_other": "Set up {{count}} courts",
+    "guardadoFijo": "Result saved. Reopen it if something needs changing.",
+    "reabrir": "Reopen"
   },
   "standings": {
     "title": "Standings",

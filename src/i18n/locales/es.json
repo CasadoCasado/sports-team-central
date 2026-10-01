@@ -1054,7 +1054,9 @@
     "cuentaAsistentes_one": "Asistió 1. Arrastra a cada uno a su pista y a su lado: ganadores y perdedores.",
     "cuentaAsistentes_other": "Asistieron {{count}}. Arrastra a cada uno a su pista y a su lado: ganadores y perdedores.",
     "repartir_one": "Repartir 1 pista",
-    "repartir_other": "Repartir {{count}} pistas"
+    "repartir_other": "Repartir {{count}} pistas",
+    "guardadoFijo": "Resultado guardado. Reábrelo si hay que cambiar algo.",
+    "reabrir": "Reabrir"
   },
   "standings": {
     "title": "Clasificación",
