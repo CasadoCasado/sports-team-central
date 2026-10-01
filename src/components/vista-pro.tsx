@@ -234,7 +234,10 @@ export function VistaPro({
   };
 
   return (
-    <div ref={raiz} className="pro-ui overflow-hidden rounded-2xl border border-[var(--pro-line)]">
+    <div
+      ref={raiz}
+      className="pro-ui @container overflow-hidden rounded-2xl border border-[var(--pro-line)]"
+    >
       <Tabs defaultValue="tablero">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--pro-line)] px-3 py-2 sm:px-4">
           <TabsList className="bg-[var(--pro-surface-2)]">
@@ -272,7 +275,7 @@ export function VistaPro({
         {pro.rival && <FranjaRival pro={pro} pila={pila} />}
 
         <TabsContent value="tablero" className="mt-0">
-          <div className="grid gap-4 p-3 sm:p-4 lg:grid-cols-[240px_minmax(0,1fr)] 2xl:grid-cols-[240px_minmax(0,1fr)_300px]">
+          <div className="grid gap-4 p-3 sm:p-4 @3xl:grid-cols-[240px_minmax(0,1fr)] @6xl:grid-cols-[240px_minmax(0,1fr)_300px]">
             <ListaApuntados ctx={ctx} apuntados={apuntados} />
 
             <div className="min-w-0 space-y-3">
@@ -1024,7 +1027,7 @@ function Matriz({
     );
 
   return (
-    <div className="grid gap-5 p-3 sm:p-4 2xl:grid-cols-[minmax(0,1fr)_300px]">
+    <div className="grid gap-5 p-3 sm:p-4 @6xl:grid-cols-[minmax(0,1fr)_300px]">
       <div className="min-w-0 space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="text-sm text-[var(--pro-muted)]">{t("pro.matrizExplica")}</p>
@@ -1151,7 +1154,7 @@ function Matriz({
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 2xl:grid-cols-1 2xl:content-start">
+      <div className="grid gap-3 @2xl:grid-cols-2 @6xl:grid-cols-1 @6xl:content-start">
         <section className="space-y-2 rounded-2xl border border-[var(--pro-line)] bg-[var(--pro-surface)] p-4">
           <h3 className="font-bold">{t("pro.lasQueFuncionan")}</h3>
           {top.length === 0 && (

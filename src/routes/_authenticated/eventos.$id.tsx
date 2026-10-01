@@ -107,6 +107,16 @@ function EventDetail() {
 
   const isManager = membership && ["capitan", "co_capitan", "entrenador", "delegado"].includes(membership.role);
 
+  // Con PRO, el reparto de pistas necesita más ancho que el resto de la
+  // ficha: la página se abre de 1024 a 1280. Misma clave que en Convocatorias,
+  // así que no hace otra petición.
+  const { data: equipo } = useQuery({
+    queryKey: ["team-sport", event?.team_id],
+    enabled: !!event,
+    queryFn: () => api.get<Team>(`/teams/${event!.team_id}/`),
+  });
+  const anchoPro = !!isManager && !!equipo?.es_pro && equipo.deporte === "padel";
+
   const del = useMutation({
     mutationFn: () => api.delete(`/events/${id}/`),
     onSuccess: async () => {
@@ -145,7 +155,7 @@ function EventDetail() {
           : "empate";
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
+    <div className={cn("mx-auto space-y-6", anchoPro ? "max-w-7xl" : "max-w-5xl")}>
       <Link
         to="/calendario"
         className="-ml-2 inline-flex min-h-11 items-center gap-2 rounded-md px-2 text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground"

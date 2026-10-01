@@ -176,7 +176,13 @@ function Matches() {
   const past = (data ?? []).filter((e) => e.fecha_inicio < now).reverse();
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
+    // Con PRO, el reparto de pistas necesita más ancho: de 1024 a 1280.
+    <div
+      className={cn(
+        "mx-auto space-y-6",
+        isPadel && isManager && team?.es_pro ? "max-w-7xl" : "max-w-5xl",
+      )}
+    >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-display text-2xl font-black tracking-tight sm:text-3xl">

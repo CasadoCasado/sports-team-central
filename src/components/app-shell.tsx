@@ -24,6 +24,10 @@ import {
   Swords,
   Medal,
   LifeBuoy,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Pin,
+  PinOff,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { signOut as clearSession } from "@/lib/auth";
@@ -36,6 +40,8 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
+
+const CLAVE_FIJADA = "teamup:barra-fijada";
 
 type NavItem = {
   to: string;
@@ -51,6 +57,29 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { user } = useSession();
   const qc = useQueryClient();
   const [mobileOpen, setMobileOpen] = useState(false);
+  // En escritorio la barra va plegada en una franja de iconos. Se abre por
+  // encima del contenido sin moverlo (`abierta`), o se fija abierta como
+  // columna (`fijada`, recordado en este navegador).
+  const [abierta, setAbierta] = useState(false);
+  const [fijada, setFijada] = useState(false);
+  useEffect(() => {
+    try {
+      setFijada(window.localStorage.getItem(CLAVE_FIJADA) === "1");
+    } catch {
+      // Ventana privada: plegada, que es lo de por defecto.
+    }
+  }, []);
+  function fijar(v: boolean) {
+    setFijada(v);
+    setAbierta(false);
+    try {
+      window.localStorage.setItem(CLAVE_FIJADA, v ? "1" : "0");
+    } catch {
+      // Ventana privada: vale para esta visita.
+    }
+  }
+  /** Solo cuenta desde `lg`: en móvil la barra es el cajón de siempre. */
+  const plegada = !fijada && !abierta;
 
   const { data: unreadCount } = useQuery({
     queryKey: ["shell-unread", user?.id],
@@ -66,10 +95,19 @@ export function AppShell({ children }: { children: ReactNode }) {
     },
   });
 
-  // Cierra el menú móvil al navegar y bloquea el scroll de fondo mientras está abierto.
+  // Cierra el menú móvil (y la barra abierta encima) al navegar, y bloquea el
+  // scroll de fondo mientras el cajón está abierto.
   useEffect(() => {
     setMobileOpen(false);
+    setAbierta(false);
   }, [pathname]);
+
+  useEffect(() => {
+    if (!abierta) return;
+    const alPulsar = (e: KeyboardEvent) => e.key === "Escape" && setAbierta(false);
+    window.addEventListener("keydown", alPulsar);
+    return () => window.removeEventListener("keydown", alPulsar);
+  }, [abierta]);
 
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -156,17 +194,25 @@ export function AppShell({ children }: { children: ReactNode }) {
 
           El ancho del cajón se limita a 85vw para que en un móvil estrecho
           siempre asome un trozo del fondo: es lo que dice «esto se cierra
-          tocando fuera». Fija ya no hace falta y vuelve a los 256. */}
+          tocando fuera».
+
+          Desde `lg` va plegada en una franja de iconos de 72 px: la barra
+          entera se comía 256 px de contenido, y en pantallas como el tablero
+          PRO se notaba. Se abre por encima, sin mover la página, y se puede
+          fijar abierta. Es `fixed` también en escritorio; el hueco que ocupa
+          en la fila lo guarda el separador de debajo. */}
       <aside
         id="main-sidebar"
         className={cn(
-          "fixed inset-y-0 left-0 z-40 flex w-[17rem] max-w-[85vw] shrink-0 flex-col overscroll-contain bg-[color:var(--color-ink)] pb-[env(safe-area-inset-bottom)] text-[color:var(--color-ink-foreground)] transition-transform duration-200 will-change-transform lg:sticky lg:top-0 lg:h-dvh lg:w-64 lg:max-w-none lg:translate-x-0 lg:pb-0",
+          "fixed inset-y-0 left-0 z-40 flex w-[17rem] max-w-[85vw] shrink-0 flex-col overscroll-contain bg-[color:var(--color-ink)] pb-[env(safe-area-inset-bottom)] text-[color:var(--color-ink-foreground)] transition-[transform,width] duration-200 will-change-transform lg:max-w-none lg:translate-x-0 lg:pb-0",
           mobileOpen ? "translate-x-0" : "-translate-x-full",
+          plegada ? "lg:w-[4.5rem]" : "lg:w-64",
+          abierta && !fijada && "lg:shadow-2xl",
         )}
         aria-label="Navegación principal"
         aria-hidden={undefined}
       >
-        <div className="flex h-16 items-center gap-3 px-6">
+        <div className={cn("flex h-16 items-center gap-3 px-6", plegada && "lg:justify-center lg:px-0")}>
           <img
             src={LOGO_URL}
             alt="TeamUp"
@@ -176,7 +222,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             height={36}
           />
 
-          <div className="flex flex-col leading-none">
+          <div className={cn("flex flex-col leading-none", plegada && "lg:hidden")}>
             <span className="text-display text-base font-bold uppercase tracking-[0.14em]">
               {t("app.name")}
             </span>
@@ -186,12 +232,70 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </div>
 
-        <nav className="scrollbar-none flex-1 space-y-5 overflow-y-auto overscroll-contain px-3 py-3">
-          {groups.map((group) => (
+        {/* Abrir, fijar o plegar: solo en escritorio. */}
+        <div className={cn("hidden px-3 lg:flex", plegada ? "justify-center" : "justify-end gap-1")}>
+          {plegada ? (
+            <button
+              type="button"
+              onClick={() => setAbierta(true)}
+              aria-label={t("nav.abrirBarra")}
+              title={t("nav.abrirBarra")}
+              aria-expanded={false}
+              aria-controls="main-sidebar"
+              className="inline-flex size-10 items-center justify-center rounded-lg text-[color:var(--color-ink-muted)] hover:bg-white/[0.06] hover:text-white"
+            >
+              <PanelLeftOpen className="size-4" aria-hidden="true" />
+            </button>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={() => fijar(!fijada)}
+                aria-pressed={fijada}
+                title={fijada ? t("nav.soltarBarra") : t("nav.fijarBarra")}
+                className="inline-flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-2xs font-bold uppercase tracking-widest text-[color:var(--color-ink-muted)] hover:bg-white/[0.06] hover:text-white"
+              >
+                {fijada ? (
+                  <PinOff className="size-3.5" aria-hidden="true" />
+                ) : (
+                  <Pin className="size-3.5" aria-hidden="true" />
+                )}
+                {fijada ? t("nav.soltarBarra") : t("nav.fijarBarra")}
+              </button>
+              {!fijada && (
+                <button
+                  type="button"
+                  onClick={() => setAbierta(false)}
+                  aria-label={t("nav.cerrarBarra")}
+                  title={t("nav.cerrarBarra")}
+                  className="inline-flex size-9 items-center justify-center rounded-lg text-[color:var(--color-ink-muted)] hover:bg-white/[0.06] hover:text-white"
+                >
+                  <PanelLeftClose className="size-4" aria-hidden="true" />
+                </button>
+              )}
+            </>
+          )}
+        </div>
+
+        <nav
+          className={cn(
+            "scrollbar-none flex-1 space-y-5 overflow-y-auto overscroll-contain px-3 py-3",
+            plegada && "lg:space-y-2 lg:overflow-x-visible lg:px-2",
+          )}
+        >
+          {groups.map((group, gi) => (
             <div key={group.label}>
-              <div className="px-3 pb-1.5 text-2xs font-bold uppercase tracking-[0.22em] text-[color:var(--color-ink-muted)]">
+              <div
+                className={cn(
+                  "px-3 pb-1.5 text-2xs font-bold uppercase tracking-[0.22em] text-[color:var(--color-ink-muted)]",
+                  plegada && "lg:sr-only",
+                )}
+              >
                 {group.label}
               </div>
+              {plegada && gi > 0 && (
+                <div aria-hidden="true" className="mx-3 mb-2 hidden h-px bg-white/10 lg:block" />
+              )}
               <div className="space-y-0.5">
                 {groups.length > 0 && group.items.map((item) => {
                   const active = pathname === item.to || pathname.startsWith(item.to + "/");
@@ -201,8 +305,10 @@ export function AppShell({ children }: { children: ReactNode }) {
                       key={item.to}
                       to={item.to}
                       onClick={() => setMobileOpen(false)}
+                      title={plegada ? item.label : undefined}
                       className={cn(
                         "group relative flex min-h-11 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all",
+                        plegada && "lg:justify-center lg:px-0",
 
                         active
                           ? "bg-white/[0.06] text-white"
@@ -213,10 +319,15 @@ export function AppShell({ children }: { children: ReactNode }) {
                         <span className="absolute inset-y-1.5 left-0 w-0.5 rounded-r-full bg-primary" aria-hidden="true" />
                       )}
                       <Icon className={cn("size-4 shrink-0 transition-colors", active ? "text-primary" : "text-[color:var(--color-ink-muted)] group-hover:text-white")} />
-                      <span className="truncate">{item.label}</span>
+                      {/* Plegada, el nombre sigue ahí para los lectores de
+                          pantalla; a la vista lo da el `title`. */}
+                      <span className={cn("truncate", plegada && "lg:sr-only")}>{item.label}</span>
                       {UNDER_MAINTENANCE[item.to] && (
                         <span
-                          className="ml-auto flex shrink-0 items-center"
+                          className={cn(
+                            "ml-auto flex shrink-0 items-center",
+                            plegada && "lg:absolute lg:right-2 lg:top-2",
+                          )}
                           title={t("maintenance.badge")}
                         >
                           <span
@@ -238,13 +349,17 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="border-t border-white/5 p-3">
           <Link
             to="/perfil"
-            className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-white/[0.05]"
+            title={plegada ? `${profile?.nombre ?? ""} ${profile?.apellidos ?? ""}`.trim() : undefined}
+            className={cn(
+              "flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-white/[0.05]",
+              plegada && "lg:justify-center",
+            )}
             onClick={() => setMobileOpen(false)}
           >
             <div className="flex size-9 items-center justify-center rounded-full bg-primary/15 text-xs font-bold text-primary ring-1 ring-primary/30">
               {initials}
             </div>
-            <div className="min-w-0 flex-1">
+            <div className={cn("min-w-0 flex-1", plegada && "lg:sr-only")}>
               <p className="truncate text-xs font-semibold text-white">
                 {profile?.nombre} {profile?.apellidos}
               </p>
@@ -262,6 +377,27 @@ export function AppShell({ children }: { children: ReactNode }) {
           aria-label="Cerrar menú"
         />
       )}
+
+      {/* Abierta encima en escritorio: pulsar fuera la pliega otra vez. */}
+      {abierta && !fijada && (
+        <button
+          type="button"
+          tabIndex={-1}
+          className="fixed inset-0 z-30 hidden bg-black/20 lg:block"
+          onClick={() => setAbierta(false)}
+          aria-label={t("nav.cerrarBarra")}
+        />
+      )}
+
+      {/* El hueco de la barra en la fila: la franja, o la barra entera si
+          está fijada. Abierta encima no lo ensancha, para no mover la página. */}
+      <div
+        aria-hidden="true"
+        className={cn(
+          "hidden shrink-0 transition-[width] duration-200 lg:block",
+          fijada ? "lg:w-64" : "lg:w-[4.5rem]",
+        )}
+      />
 
       {/* Main */}
       <div className="flex min-w-0 flex-1 flex-col">
