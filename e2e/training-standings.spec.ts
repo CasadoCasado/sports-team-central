@@ -64,27 +64,64 @@ test.describe("Entrenamientos dentro de una competición", () => {
     request,
   }) => {
     const { session: captain, team } = await seedCaptainWithTeam(request, "entreno-cap");
-    await seedPlayerInTeam(request, "entreno-jug", team.id, captain);
+    const ivan = await seedPlayerInTeam(request, "entreno-jug", team.id, captain);
+    const sara = await seedPlayerInTeam(request, "entreno-sara", team.id, captain, {
+      nombre: "Sara",
+      apellidos: "Lago",
+    });
     const competition = await seedCompetition(request, captain, team.id);
     const training = await seedTraining(request, captain, team.id, competition.id);
+
+    // Fueron tres: la capitana, Iván y Sara. Se apuntan y se marca que asistieron.
+    for (const s of [captain, ivan, sara]) {
+      const r = await request.post(`${API_URL}/event-responses/respond/`, {
+        headers: bearer(s),
+        data: { event_id: training.id, status: "confirmado" },
+      });
+      const { id } = (await r.json()) as { id: string };
+      await request.patch(`${API_URL}/event-responses/${id}/`, {
+        headers: bearer(captain),
+        data: { es_convocado: true },
+      });
+    }
 
     await loginAs(page, captain);
     await page.goto(`/eventos/${training.id}`);
 
     const results = page.getByRole("heading", { name: /cómo quedó el entreno/i });
     await expect(results).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByText(/asistieron 3/i)).toBeVisible();
 
-    // Una pista: la capitana la aguanta y su jugador reta.
-    await page.getByRole("button", { name: /añadir pista/i }).click();
-    const addPlayer = page.getByRole("combobox").last();
-    for (const nombre of [/marta/i, /iván/i]) {
-      await addPlayer.click();
-      await page.getByRole("option", { name: nombre }).click();
-    }
-    await page
-      .getByRole("button", { name: /marcar como pareja que aguanta la pista/i })
-      .first()
-      .click();
+    // Tres para una pista de cuatro: ofrece crear el invitado que falta.
+    const aviso = page.getByRole("alertdialog");
+    await expect(async () => {
+      await page.getByRole("button", { name: /repartir 1 pista/i }).click();
+      await expect(aviso).toBeVisible({ timeout: 1_500 });
+    }).toPass({ timeout: 20_000 });
+    await expect(aviso).toContainText(/falta 1 jugador/i);
+    await aviso.getByRole("button", { name: /crear 1 invitado/i }).click();
+
+    const pista = page.locator('[data-pista-entreno="1"]');
+    await expect(pista).toBeVisible();
+    await expect(page.getByRole("button", { name: /^invitado 1\. arrástralo/i })).toBeVisible();
+
+    // Tocar al jugador y luego el hueco: la capitana y el invitado ganaron.
+    const colocar = async (quien: RegExp, ganador: boolean) => {
+      await page.getByRole("button", { name: quien }).click();
+      const lado = pista.locator("[data-hueco]").filter({
+        hasText: ganador ? /ganadores/i : /perdedores/i,
+      });
+      await lado
+        .getByRole("button", { name: /poner a .* aquí/i })
+        .first()
+        .click();
+    };
+    await colocar(/^marta casado\. arrástralo/i, true);
+    await colocar(/^invitado 1\. arrástralo/i, true);
+    await colocar(/^iván ruiz\. arrástralo/i, false);
+    await colocar(/^sara lago\. arrástralo/i, false);
+    await expect(page.getByText(/todos colocados/i)).toBeVisible();
+
     await page.getByRole("button", { name: /guardar resultados/i }).click();
     await expect(page.getByText(/resultados del entreno guardados/i)).toBeVisible();
 
@@ -99,9 +136,9 @@ test.describe("Entrenamientos dentro de una competición", () => {
 
     // Al finalizarla aparece el podio.
     await page.getByRole("button", { name: /finalizar competición/i }).click();
-    const aviso = page.getByRole("alertdialog");
-    await expect(aviso.getByText(/dar por terminada la competición/i)).toBeVisible();
-    await aviso.getByRole("button", { name: /^finalizar$/i }).click();
+    const fin = page.getByRole("alertdialog");
+    await expect(fin.getByText(/dar por terminada la competición/i)).toBeVisible();
+    await fin.getByRole("button", { name: /^finalizar$/i }).click();
     await expect(page.getByRole("heading", { name: /^podio$/i })).toBeVisible();
     await expect(page.getByRole("button", { name: /reabrir competición/i })).toBeVisible();
   });
