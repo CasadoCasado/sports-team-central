@@ -53,6 +53,8 @@ import {
 } from "@/lib/padel-scoring";
 import { cn, inicialesDe } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { InvitarAlEntreno } from "@/components/invitar-al-entreno";
+import { nombreVisible } from "@/lib/invitados";
 import { RepartoPadel } from "@/components/convocatoria-pro";
 import { QuimicaAviso, QuimicaBoton } from "@/components/quimica";
 import { useQuimicas } from "@/hooks/use-quimica";
@@ -562,6 +564,22 @@ function CallupSection({
     onError: (e: Error) => toast.error(e.message),
   });
 
+  async function quitarInvitado(respuestaId: string, nombre: string) {
+    const ok = await confirmar({
+      title: t("invitados.quitarTitulo", { nombre }),
+      description: t("invitados.quitarTexto"),
+      confirmLabel: t("invitados.quitar"),
+      tone: "danger",
+    });
+    if (!ok) return;
+    try {
+      await api.delete(`/event-responses/${respuestaId}/`);
+      qc.invalidateQueries({ queryKey: ["event-responses", eventId] });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : t("common.error"));
+    }
+  }
+
   const myResp = userId ? respByUser.get(userId) : undefined;
   const isMember = !!members?.some((m) => m.user_id === userId);
 
@@ -640,9 +658,13 @@ function CallupSection({
       )}
 
       <div className="p-4 sm:p-5">
-        <h3 className="mb-3 text-2xs font-bold uppercase tracking-widest text-muted-foreground">
-          {t("callups.signedUpList")} ({signedUp.length})
-        </h3>
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <h3 className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
+            {t("callups.signedUpList")} ({signedUp.length})
+          </h3>
+          {/* Invitados: de momento solo en los entrenos. */}
+          {isManager && event.tipo === "entrenamiento" && <InvitarAlEntreno eventId={eventId} />}
+        </div>
         {signedUp.length === 0 && (
           <p className="text-xs text-muted-foreground">{t("callups.noSignedUp")}</p>
         )}
@@ -662,6 +684,9 @@ function CallupSection({
         <div className="grid gap-2 lg:grid-cols-2">
           {signedUp.map((r) => {
             const m = members?.find((x) => x.user_id === r.user_id);
+            // Un invitado no es del equipo: su perfil llega con la respuesta.
+            const perfil = m?.profile ?? r.profile;
+            const invitado = !!r.profile?.es_invitado;
             const status = r.status as ResponseStatus;
             return (
               <div
@@ -672,15 +697,30 @@ function CallupSection({
                 )}
               >
                 <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-card text-xs font-bold ring-1 ring-border">
-                  {(m?.profile?.nombre?.[0] ?? "") + (m?.profile?.apellidos?.[0] ?? "") || "?"}
+                  {(perfil?.nombre?.[0] ?? "") + (invitado ? "" : (perfil?.apellidos?.[0] ?? "")) || "?"}
                 </div>
                 <div className="min-w-0 sm:flex-1">
-                  <p className="text-sm font-medium break-words">
-                    {m?.profile?.nombre} {m?.profile?.apellidos}
-                  </p>
-                  <p className="text-2xs uppercase tracking-widest text-muted-foreground">
-                    {m?.role}
-                  </p>
+                  <p className="text-sm font-medium break-words">{nombreVisible(perfil)}</p>
+                  {invitado ? (
+                    <p className="flex items-center gap-2">
+                      <span className="rounded-full border border-evt-social/40 bg-evt-social/10 px-2 py-0.5 text-3xs font-bold uppercase tracking-widest text-evt-social">
+                        {t("invitados.etiqueta")}
+                      </span>
+                      {isManager && (
+                        <button
+                          type="button"
+                          onClick={() => void quitarInvitado(r.id, nombreVisible(perfil))}
+                          className="text-3xs font-bold uppercase tracking-widest text-muted-foreground underline-offset-2 hover:text-danger hover:underline"
+                        >
+                          {t("invitados.quitar")}
+                        </button>
+                      )}
+                    </p>
+                  ) : (
+                    <p className="text-2xs uppercase tracking-widest text-muted-foreground">
+                      {m?.role}
+                    </p>
+                  )}
                 </div>
                 <div className="col-span-2 flex shrink-0 items-center justify-between gap-2 sm:col-auto sm:justify-end">
                   <span

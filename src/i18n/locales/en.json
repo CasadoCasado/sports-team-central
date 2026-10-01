@@ -1267,5 +1267,19 @@
     "leyendaQuimica": "Chemistry (thick: mutual)",
     "cargando": "Getting the PRO board ready…",
     "cargandoPropuestas": "Finding the best pairs…"
+  },
+  "invitados": {
+    "anadir": "Add guest",
+    "titulo": "Add guest",
+    "explica": "Someone from outside joining this session. Plays like anyone else, but isn't on the team and doesn't count in the standings.",
+    "nombre": "Name",
+    "apodo": "Nickname",
+    "apodoPlaceholder": "What you call them (optional)",
+    "guardar": "Add to session",
+    "anadido": "{{nombre}} added as a guest",
+    "etiqueta": "Guest",
+    "quitar": "Remove",
+    "quitarTitulo": "Remove {{nombre}} from the session?",
+    "quitarTexto": "They're no longer signed up for this session. They can be added again another day."
   }
 }

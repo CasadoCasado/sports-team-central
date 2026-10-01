@@ -1267,5 +1267,19 @@
     "leyendaQuimica": "Química (doble: mutua)",
     "cargando": "Preparando el tablero PRO…",
     "cargandoPropuestas": "Buscando las mejores parejas…"
+  },
+  "invitados": {
+    "anadir": "Añadir invitado",
+    "titulo": "Añadir invitado",
+    "explica": "Alguien de fuera que viene a este entreno. Juega como uno más, pero no es del equipo ni cuenta en la clasificación.",
+    "nombre": "Nombre",
+    "apodo": "Apodo",
+    "apodoPlaceholder": "Cómo le llamáis (opcional)",
+    "guardar": "Añadir al entreno",
+    "anadido": "{{nombre}} apuntado como invitado",
+    "etiqueta": "Invitado",
+    "quitar": "Quitar",
+    "quitarTitulo": "¿Quitar a {{nombre}} del entreno?",
+    "quitarTexto": "Deja de estar apuntado a este entreno. Si vuelve otro día, se le puede añadir de nuevo."
   }
 }
