@@ -12,7 +12,7 @@
  */
 
 import { useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Sparkles, Star, Swords } from "lucide-react";
@@ -28,6 +28,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { confirmar } from "@/components/confirm-dialog";
+import { PadelCourtsBoard } from "@/components/padel-courts-board";
 
 export type ParejaPro = {
   a: string;
@@ -173,9 +174,15 @@ type Evento = {
 /**
  * La barra PRO encima del tablero: el conmutador Normal/PRO, lo que pasó
  * contra el rival y «Sugerir parejas».
+ *
+ * Es también donde se activa: en un equipo sin PRO, pulsar «PRO» lo activa
+ * para el equipo si quien pulsa es el capitán o el dueño; al resto de la
+ * gestión se le dice que lo activa el capitán.
  */
-export function BarraPro({
+function BarraPro({
   event,
+  equipo,
+  puedeActivar,
   pro,
   activo,
   onActivo,
@@ -184,6 +191,9 @@ export function BarraPro({
   onChanged,
 }: {
   event: Evento;
+  equipo: { id: string; nombre: string; es_pro: boolean };
+  /** El capitán o el dueño: `can_manage_roles` en el backend. */
+  puedeActivar: boolean;
   pro: TableroPro | undefined;
   activo: boolean;
   onActivo: (v: boolean) => void;
@@ -194,8 +204,42 @@ export function BarraPro({
   onChanged: () => void;
 }) {
   const { t, i18n } = useTranslation();
+  const qc = useQueryClient();
   const [abierto, setAbierto] = useState(false);
   const cerrada = event.convocatoria_confirmada;
+
+  const cambiarPro = useMutation({
+    mutationFn: (on: boolean) => api.post(`/teams/${equipo.id}/pro/`, { activo: on }),
+    onSuccess: (_d, on) => {
+      toast.success(t(on ? "pro.activado" : "pro.quitado", { team: equipo.nombre }));
+      onActivo(on);
+      qc.invalidateQueries({ queryKey: ["team-sport", equipo.id] });
+      qc.invalidateQueries({ queryKey: ["my-teams-full"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  async function pulsarPro() {
+    if (equipo.es_pro) return onActivo(true);
+    if (!puedeActivar) return toast.info(t("pro.soloCapitan"));
+    const ok = await confirmar({
+      title: t("pro.activarTitulo", { team: equipo.nombre }),
+      description: t("pro.explica"),
+      confirmLabel: t("pro.activar"),
+      icon: Star,
+    });
+    if (ok) cambiarPro.mutate(true);
+  }
+
+  async function quitarPro() {
+    const ok = await confirmar({
+      title: t("pro.quitarTitulo", { team: equipo.nombre }),
+      description: t("pro.quitarTexto"),
+      confirmLabel: t("pro.quitar"),
+      tone: "danger",
+    });
+    if (ok) cambiarPro.mutate(false);
+  }
 
   const aplicar = useMutation({
     mutationFn: (pistas: string[][]) => api.post(`/events/${event.id}/parejas/`, { pistas }),
@@ -253,7 +297,8 @@ export function BarraPro({
           <button
             type="button"
             aria-pressed={activo}
-            onClick={() => onActivo(true)}
+            onClick={pulsarPro}
+            disabled={cambiarPro.isPending}
             className={boton(activo)}
           >
             <Star className="size-3.5" aria-hidden="true" />
@@ -261,17 +306,30 @@ export function BarraPro({
           </button>
         </div>
         {activo && (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setAbierto(true)}
-            disabled={!pro || cerrada}
-            title={cerrada ? t("pro.sugerirCerrada") : undefined}
-            className="min-h-9 text-2xs font-bold uppercase tracking-widest"
-          >
-            <Sparkles className="mr-1.5 size-3.5" aria-hidden="true" />
-            {t("pro.sugerir")}
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            {puedeActivar && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={quitarPro}
+                disabled={cambiarPro.isPending}
+                className="min-h-9 text-2xs font-bold uppercase tracking-widest text-muted-foreground"
+              >
+                {t("pro.quitar")}
+              </Button>
+            )}
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setAbierto(true)}
+              disabled={!pro || cerrada}
+              title={cerrada ? t("pro.sugerirCerrada") : undefined}
+              className="min-h-9 text-2xs font-bold uppercase tracking-widest"
+            >
+              <Sparkles className="mr-1.5 size-3.5" aria-hidden="true" />
+              {t("pro.sugerir")}
+            </Button>
+          </div>
         )}
       </div>
 
@@ -404,5 +462,72 @@ function Chip({ tono, children }: { tono?: "ok"; children: React.ReactNode }) {
     >
       {children}
     </span>
+  );
+}
+
+type Miembro = {
+  user_id: string;
+  role?: string;
+  profile: { nombre: string; apellidos: string } | null;
+};
+
+/**
+ * El reparto de pistas de un partido de pádel, con su barra Normal/PRO. Lo
+ * usan la ficha del partido y Enfrentamientos, para que PRO se active y se use
+ * en el mismo sitio en las dos.
+ */
+export function RepartoPadel({
+  event,
+  equipo,
+  userId,
+  responses,
+  members,
+  onChanged,
+}: {
+  event: Parameters<typeof PadelCourtsBoard>[0]["event"];
+  equipo: { id: string; nombre: string; owner_id: string; es_pro: boolean };
+  userId: string | null;
+  responses: Parameters<typeof PadelCourtsBoard>[0]["responses"];
+  members: Miembro[];
+  onChanged: () => void;
+}) {
+  const qc = useQueryClient();
+  const [modoPro, setModoPro] = useModoPro();
+  const activo = equipo.es_pro && modoPro;
+  const { data: pro } = useTableroPro(event.id, activo);
+  const miRol = members.find((m) => m.user_id === userId)?.role;
+  const puedeActivar = !!userId && (equipo.owner_id === userId || miRol === "capitan");
+
+  // El tablero normal y el PRO pintan las mismas respuestas: tras cualquier
+  // cambio se vuelven a pedir las dos cosas.
+  function alCambiar() {
+    onChanged();
+    qc.invalidateQueries({ queryKey: ["event-pro", event.id] });
+  }
+
+  return (
+    <>
+      <BarraPro
+        event={event}
+        equipo={equipo}
+        puedeActivar={puedeActivar}
+        pro={pro}
+        activo={activo}
+        onActivo={setModoPro}
+        nombre={(uid) => {
+          const p = members.find((m) => m.user_id === uid)?.profile;
+          return p ? `${p.nombre} ${p.apellidos?.[0] ?? ""}.` : "?";
+        }}
+        hayReparto={responses.some((r) => r.padel_pista != null)}
+        onChanged={alCambiar}
+      />
+      <PadelCourtsBoard
+        event={event}
+        responses={responses}
+        members={members}
+        onChanged={alCambiar}
+        pro={activo ? pro : null}
+      />
+    </>
   );
 }

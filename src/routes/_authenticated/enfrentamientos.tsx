@@ -25,7 +25,7 @@ import { EmptyTeamState } from "@/components/empty-team-state";
 import { EventFormDialog } from "@/components/event-form-dialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { PadelCourtsBoard } from "@/components/padel-courts-board";
+import { RepartoPadel } from "@/components/convocatoria-pro";
 import { QuimicaPanel, type Candidato } from "@/components/quimica";
 import { useQuimicas } from "@/hooks/use-quimica";
 
@@ -287,10 +287,12 @@ function Matches() {
                   </div>
                 </div>
 
-                {isPadel && isManager && isOpen && (
+                {isPadel && isManager && isOpen && team && (
                   <div className="mt-4 rounded-md border border-border bg-card/40 p-4">
-                    <PadelCourtsBoard
+                    <RepartoPadel
                       event={e}
+                      equipo={team}
+                      userId={user?.id ?? null}
                       responses={resps}
                       members={members ?? []}
                       onChanged={() => {

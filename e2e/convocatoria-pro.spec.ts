@@ -129,20 +129,31 @@ test.describe("Convocatoria PRO", () => {
   }) => {
     const e = await montar(request);
 
-    // Sin PRO, el tablero es el de siempre.
+    // Sin PRO, la co-capitana ve el conmutador, pero activarlo es del capitán.
     await loginAs(page, e.cocap);
     await page.goto(`/eventos/${e.eventId}`);
-    await expect(page.locator('[data-drop="1"]')).toBeVisible({ timeout: 20_000 });
-    await expect(page.getByRole("group", { name: /modo del tablero/i })).toHaveCount(0);
+    const modoSinPro = page.getByRole("group", { name: /modo del tablero/i });
+    await pulsar(
+      modoSinPro.getByRole("button", { name: /^pro$/i }),
+      page.getByText(/lo activa el capitán/i),
+    );
+    await expect(page.getByRole("button", { name: /sugerir parejas/i })).toHaveCount(0);
 
-    // La capitana lo activa desde Mi Equipo.
+    // La capitana lo activa desde el mismo conmutador, en el partido.
     const ctx = await browser.newContext({ locale: "es-ES" });
     const suya = await ctx.newPage();
     await loginAs(suya, e.capitana);
-    await suya.goto("/mi-equipo");
-    const interruptor = suya.getByRole("switch", { name: /activar pro/i });
-    await pulsar(interruptor, suya.getByRole("switch", { name: /quitar pro/i }));
+    await suya.goto(`/eventos/${e.eventId}`);
+    const aviso = suya.getByRole("alertdialog");
+    await pulsar(
+      suya
+        .getByRole("group", { name: /modo del tablero/i })
+        .getByRole("button", { name: /^pro$/i }),
+      aviso,
+    );
+    await aviso.getByRole("button", { name: /activar pro/i }).click();
     await expect(suya.getByText(/pro activado/i)).toBeVisible();
+    await expect(suya.getByRole("button", { name: /sugerir parejas/i })).toBeVisible();
     await ctx.close();
 
     // La co-capitana lo ve en el partido, con lo que pasó contra el rival.
@@ -181,6 +192,19 @@ test.describe("Convocatoria PRO", () => {
     await expect(page.getByText(/convocatoria confirmada\./i)).toBeVisible();
     await modo.getByRole("button", { name: /^pro$/i }).click();
     await expect(page.getByRole("button", { name: /sugerir parejas/i })).toBeDisabled();
+
+    // En Enfrentamientos, el mismo conmutador sobre el mismo reparto.
+    await page.goto("/enfrentamientos");
+    await pulsar(
+      page.getByRole("button", { name: /asignación de pistas/i }).first(),
+      page.getByRole("group", { name: /modo del tablero/i }),
+    );
+    await expect(
+      page
+        .getByRole("group", { name: /modo del tablero/i })
+        .getByRole("button", { name: /^pro$/i }),
+    ).toHaveAttribute("aria-pressed", "true");
+    await expect(page.locator('[data-drop="1"]')).toContainText(/juntos 1-0/i);
   });
 
   test("los jugadores no ven PRO aunque el equipo lo tenga", async ({ page, request }) => {

@@ -52,8 +52,7 @@ import {
   type SetPair,
 } from "@/lib/padel-scoring";
 import { cn, inicialesDe } from "@/lib/utils";
-import { PadelCourtsBoard } from "@/components/padel-courts-board";
-import { BarraPro, useModoPro, useTableroPro } from "@/components/convocatoria-pro";
+import { RepartoPadel } from "@/components/convocatoria-pro";
 import { QuimicaAviso, QuimicaBoton } from "@/components/quimica";
 import { useQuimicas } from "@/hooks/use-quimica";
 import type {
@@ -433,10 +432,6 @@ function CallupSection({
   // donde se juega en parejas por pista.
   const hayQuimica = isPadel && event.tipo === "partido";
   const confirmada = event.convocatoria_confirmada;
-  // PRO va por equipo y lo ve toda la gestión; los jugadores, nunca.
-  const hayPro = hayQuimica && isManager && !!team?.es_pro;
-  const [modoPro, setModoPro] = useModoPro();
-  const { data: tableroPro } = useTableroPro(eventId, hayPro && modoPro);
 
   const { data: members } = useQuery({
     queryKey: ["team-members-full", teamId],
@@ -538,15 +533,6 @@ function CallupSection({
     onSuccess: () => qc.invalidateQueries({ queryKey: ["event-responses", eventId] }),
     onError: (e: Error) => toast.error(e.message),
   });
-
-  // El tablero normal y el PRO pintan las mismas respuestas: tras cualquier
-  // cambio se vuelven a pedir las dos cosas.
-  function alCambiarElReparto() {
-    qc.invalidateQueries({ queryKey: ["event-responses", eventId] });
-    qc.invalidateQueries({ queryKey: ["event", eventId] });
-    qc.invalidateQueries({ queryKey: ["quimicas"] });
-    qc.invalidateQueries({ queryKey: ["event-pro", eventId] });
-  }
 
   const myResp = userId ? respByUser.get(userId) : undefined;
   const isMember = !!members?.some((m) => m.user_id === userId);
@@ -712,27 +698,20 @@ function CallupSection({
 
         {hayQuimica && isManager && (
           <div className="mt-6 border-t border-border pt-5">
-            {hayPro && (
-              <BarraPro
+            {team && (
+              <RepartoPadel
                 event={event}
-                pro={tableroPro}
-                activo={modoPro}
-                onActivo={setModoPro}
-                nombre={(uid) => {
-                  const p = members?.find((m) => m.user_id === uid)?.profile;
-                  return p ? `${p.nombre} ${p.apellidos?.[0] ?? ""}.` : "?";
+                equipo={team}
+                userId={userId}
+                responses={signedUp}
+                members={members ?? []}
+                onChanged={() => {
+                  qc.invalidateQueries({ queryKey: ["event-responses", eventId] });
+                  qc.invalidateQueries({ queryKey: ["event", eventId] });
+                  qc.invalidateQueries({ queryKey: ["quimicas"] });
                 }}
-                hayReparto={signedUp.some((r) => r.padel_pista != null)}
-                onChanged={alCambiarElReparto}
               />
             )}
-            <PadelCourtsBoard
-              event={event}
-              responses={signedUp}
-              members={members ?? []}
-              onChanged={alCambiarElReparto}
-              pro={hayPro && modoPro ? tableroPro : null}
-            />
           </div>
         )}
       </div>
