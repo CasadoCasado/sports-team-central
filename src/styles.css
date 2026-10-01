@@ -591,6 +591,9 @@
   --pro-ok-bg: rgb(15 122 80 / 0.1);
   --pro-warn: #9a5800;
   --pro-warn-bg: rgb(245 165 36 / 0.14);
+  /* Química: el violeta de siempre en la app, más vivo que el resto. */
+  --pro-quim: #7c3aed;
+  --pro-quim-bg: rgb(124 58 237 / 0.07);
   /* Matriz: de peor a mejor, con su texto. */
   --pro-m1: #c2620e;
   --pro-m1-txt: #ffffff;
@@ -625,6 +628,8 @@
   --pro-ok-bg: rgb(52 211 153 / 0.12);
   --pro-warn: #f5b94a;
   --pro-warn-bg: rgb(245 165 36 / 0.12);
+  --pro-quim: #b794f6;
+  --pro-quim-bg: rgb(183 148 246 / 0.1);
   --pro-m1: #b8620e;
   --pro-m1-txt: #ffffff;
   --pro-m2: #6b4a1e;

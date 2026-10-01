@@ -1243,6 +1243,11 @@
     "porProbar": "Worth a try",
     "porProbarTexto": "{{parejas}} have never played together. A friendly is a good time.",
     "quitarDeLaPista": "Remove {{name}} from the court",
-    "arrastrar": "{{name}}. Drag to a court"
+    "arrastrar": "{{name}}. Drag to a court",
+    "quimicaTitulo": "Chemistry",
+    "separados": "Apart",
+    "juntarA": "Put {{a}} and {{b}} together",
+    "sinElegir": "Haven't chosen: {{nombres}}",
+    "leyendaQuimica": "Chemistry (thick: mutual)"
   }
 }

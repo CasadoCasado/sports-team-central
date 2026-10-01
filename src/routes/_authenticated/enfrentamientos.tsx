@@ -203,7 +203,7 @@ function Matches() {
         )}
       </div>
 
-      <section className="surface-card overflow-hidden">
+      <section className="surface-card overflow-clip">
         <div className="border-b border-border px-5 py-3 text-2xs font-bold uppercase tracking-widest text-muted-foreground">
           {t("events.upcoming")}
         </div>

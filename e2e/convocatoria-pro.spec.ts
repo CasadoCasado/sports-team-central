@@ -156,6 +156,18 @@ test.describe("Convocatoria PRO", () => {
     await expect(suya.getByRole("button", { name: /sugerir parejas/i })).toBeVisible();
     await ctx.close();
 
+    // Sara y Noa se eligen: química mutua.
+    for (const [de, a] of [
+      [e.sara, e.noa],
+      [e.noa, e.sara],
+    ] as const) {
+      const q = await request.post(`${API_URL}/quimicas/`, {
+        headers: bearer(de),
+        data: { event_id: e.eventId, target_user_id: a.userId },
+      });
+      expect(q.ok(), await q.text()).toBe(true);
+    }
+
     // La co-capitana lo ve en el partido, con lo que pasó contra el rival.
     await page.reload();
     const modo = page.getByRole("group", { name: /modo del tablero/i });
@@ -210,6 +222,11 @@ test.describe("Convocatoria PRO", () => {
       .getByRole("button", { name: /usar esta/i })
       .click();
     await expect(dialogo).toHaveCount(0);
+
+    // La química, siempre a la vista: Sara y Noa, ya juntas en la pista 1.
+    const quimica = page.locator("[data-panel-quimica]");
+    await expect(quimica).toContainText(/(sara ⇄ noa|noa ⇄ sara)/i);
+    await expect(quimica).toContainText(/en pista 1/i);
 
     const pistaPro1 = page.locator('[data-pista-pro="1"]');
     await expect(pistaPro1).toContainText(/(sara y noa|noa y sara)/i);
