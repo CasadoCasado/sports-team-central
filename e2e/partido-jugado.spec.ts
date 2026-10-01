@@ -49,16 +49,37 @@ test("en un partido jugado no se toca la convocatoria", async ({ page, request }
   await expect(page.getByRole("heading", { name: /^convocatorias$/i })).toBeVisible({
     timeout: 20_000,
   });
-  await expect(page.getByText("Sara Lago").first()).toBeVisible();
+  // Plegada de inicio, con el resumen: quién jugó en cada pista.
+  const resumen = page.locator("[data-resumen-convocatoria]");
+  await expect(resumen).toContainText(/jugó 1/i);
+  await expect(resumen).toContainText(/pista 1\s*sara lago/i);
   await expect(page.locator('[data-drop="1"]')).toHaveCount(0);
+
+  // Desplegada, la lista de siempre, sin nada que tocar.
+  await page.getByRole("button", { name: /ver convocatoria/i }).click();
   await expect(page.getByRole("checkbox", { name: /convocar a/i })).toHaveCount(0);
   await expect(page.getByTitle(/convocado: jugó este partido/i)).toBeVisible();
+  await page.getByRole("button", { name: /ocultar/i }).click();
+  await expect(resumen).toBeVisible();
 
   const res = await request.patch(`${API_URL}/event-responses/${respId}/`, {
     headers: bearer(capitana),
     data: { padel_pista: 2 },
   });
   expect(res.status()).toBe(400);
+
+  // El resultado dice quién jugó cada pista, y ya no hay lista aparte.
+  await request.post(`${API_URL}/match-results/bulk/`, {
+    headers: bearer(capitana),
+    data: {
+      event_id: id,
+      results: [{ pista: 1, set1_local: 6, set1_visitante: 3, set2_local: 6, set2_visitante: 2 }],
+    },
+  });
+  await page.reload();
+  await expect(page.getByTitle("Sara L.")).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByTitle("Club Náutico").first()).toBeVisible();
+  await expect(page.getByText(/jugadores participantes/i)).toHaveCount(0);
 });
 
 test("el ★ dice para qué sirve", async ({ page, request }) => {

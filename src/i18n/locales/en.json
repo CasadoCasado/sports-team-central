@@ -612,7 +612,14 @@
       "convocarA": "{{name}} attended",
       "convocarCorto": "Attended",
       "convocadoCorto": "Attended"
-    }
+    },
+    "ocultar": "Hide",
+    "verDetalle": "See call-up",
+    "resumenConvocados_one": "1 played",
+    "resumenConvocados_other": "{{count}} played",
+    "resumenNadie": "Nobody was called up.",
+    "resumenApuntados": "Signed up but didn't play",
+    "resumenNoPodian": "Couldn't make it"
   },
   "common": {
     "loading": "Loading...",
@@ -818,7 +825,8 @@
     "pendingResult": "Pending",
     "backToResults": "Back to results",
     "valePuntos_one": "worth {{count}} point",
-    "valePuntos_other": "worth {{count}} points"
+    "valePuntos_other": "worth {{count}} points",
+    "rival": "Opponent"
   },
   "a11y": {
     "fontSize": "Text size",

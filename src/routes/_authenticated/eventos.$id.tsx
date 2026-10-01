@@ -7,6 +7,7 @@ import { es as esLocale, enUS } from "date-fns/locale";
 import {
   ArrowLeft,
   Calendar as CalIcon,
+  ChevronDown,
   ClipboardList,
   Clock,
   MapPin,
@@ -348,6 +349,7 @@ function EventDetail() {
           padelNumPistas={event.padel_num_pistas}
           puntosPista={event.puntos_pista_efectivos ?? null}
           esLocal={event.es_local ?? true}
+          rival={event.rival ?? null}
           isManager={!!isManager}
         />
       )}
@@ -465,6 +467,9 @@ function CallupSection({
   // En un entreno no se convoca: se apunta quién vino. Es el mismo campo
   // (`es_convocado`), pero la casilla dice «Asistió».
   const esEntreno = event.tipo === "entrenamiento";
+  // Jugado el partido, la convocatoria ya solo se consulta: va plegada, con un
+  // resumen de quién jugó en cada pista y quién estaba apuntado.
+  const [abierta, setAbierta] = useState(!jugado);
   const k = (clave: string) => (esEntreno ? `callups.entreno.${clave}` : `callups.${clave}`);
 
   const { data: members } = useQuery({
@@ -617,6 +622,21 @@ function CallupSection({
             </p>
           </div>
         </div>
+        {jugado && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setAbierta((v) => !v)}
+            aria-expanded={abierta}
+            className="min-h-9 text-2xs font-bold uppercase tracking-widest"
+          >
+            {abierta ? t("callups.ocultar") : t("callups.verDetalle")}
+            <ChevronDown
+              className={cn("ml-1 size-3.5 transition-transform", abierta && "rotate-180")}
+              aria-hidden="true"
+            />
+          </Button>
+        )}
         {userId && isMember && !myResp && !jugado && (
           <Button
             onClick={() => signUp.mutate()}
@@ -632,6 +652,17 @@ function CallupSection({
         )}
       </div>
 
+      {jugado && !abierta ? (
+        <ResumenConvocatoria
+          responses={signedUp}
+          nombre={(uid) => {
+            const r = signedUp.find((x) => x.user_id === uid);
+            const m = members?.find((x) => x.user_id === uid);
+            return nombreVisible(m?.profile ?? r?.profile);
+          }}
+        />
+      ) : (
+      <>
       {userId && myResp && (
         <div className="border-b border-border p-4 sm:p-5">
           <div className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
@@ -827,6 +858,8 @@ function CallupSection({
           </div>
         )}
       </div>
+      </>
+      )}
     </div>
   );
 }
@@ -921,6 +954,7 @@ function MatchResultsSection({
   padelNumPistas,
   puntosPista,
   esLocal,
+  rival,
   isManager,
 }: {
   eventId: string;
@@ -930,6 +964,7 @@ function MatchResultsSection({
   /** Lo que vale cada pista; sin lista no se dice, porque vale 1. */
   puntosPista: number[] | null;
   esLocal: boolean;
+  rival: string | null;
   isManager: boolean;
 }) {
   const { t } = useTranslation();
@@ -1125,9 +1160,18 @@ function MatchResultsSection({
   );
 
   const teamSide = esLocal ? 1 : 2;
-  const nameOf = (uid: string) => {
-    const p = participations?.find((x) => x.user_id === uid)?.profile;
-    return p ? `${p.nombre} ${p.apellidos}`.trim() : "—";
+  // Quién jugó cada pista, para ponerlo junto a nuestro lado del marcador:
+  // «Manuel M. y Aitor E.». El otro lado es el rival.
+  const corto = (p: MatchParticipation["profile"]) =>
+    p ? (p.apodo ?? `${p.nombre} ${p.apellidos ? `${p.apellidos[0]}.` : ""}`.trim()) : "—";
+  const jugaron = (pista: number | null) =>
+    (participations ?? [])
+      .filter((x) => (isPadel ? x.pista === pista : true))
+      .map((x) => corto(x.profile))
+      .join(" y ");
+  const quienes = (side: "local" | "visitante", pista: number) => {
+    const nuestro = (side === "local") === esLocal;
+    return nuestro ? jugaron(pista) || (team?.nombre ?? "") : rival || t("results.rival");
   };
 
   return (
@@ -1168,9 +1212,20 @@ function MatchResultsSection({
                   <span className="text-center">{t("results.set")} 3</span>
                 </div>
                 {(["local", "visitante"] as const).map((side) => (
-                  <div key={side} className="grid grid-cols-[3.25rem_repeat(3,minmax(0,1fr))] items-center gap-1.5 sm:grid-cols-[80px_repeat(3,minmax(0,1fr))] sm:gap-2">
-                    <span className="truncate text-3xs font-bold uppercase tracking-widest sm:text-xs">
-                      {t(`results.${side}`)}
+                  <div key={side} className="grid grid-cols-[6.5rem_repeat(3,minmax(0,1fr))] items-center gap-1.5 sm:grid-cols-[13rem_repeat(3,minmax(0,1fr))] sm:gap-2">
+                    <span className="min-w-0">
+                      <span className="block text-3xs font-bold uppercase tracking-widest text-muted-foreground">
+                        {t(`results.${side}`)}
+                      </span>
+                      <span
+                        className={cn(
+                          "block truncate text-xs sm:text-sm",
+                          (side === "local") === esLocal ? "font-bold" : "text-muted-foreground",
+                        )}
+                        title={quienes(side, row.pista)}
+                      >
+                        {quienes(side, row.pista)}
+                      </span>
                     </span>
                     {[1, 2, 3].map((setNum) => {
                       const key = `set${setNum}_${side}` as keyof MatchResultRow;
@@ -1194,6 +1249,7 @@ function MatchResultsSection({
                   <div className="mb-1 text-2xs font-bold uppercase tracking-widest text-muted-foreground">
                     {t("results.local")}
                   </div>
+                  <div className="mb-1 max-w-40 truncate text-xs">{quienes("local", row.pista)}</div>
                   <NumInput
                     value={row.set1_local}
                     onChange={(v) => updateCell(idx, "set1_local", v)}
@@ -1205,6 +1261,7 @@ function MatchResultsSection({
                   <div className="mb-1 text-2xs font-bold uppercase tracking-widest text-muted-foreground">
                     {t("results.visitante")}
                   </div>
+                  <div className="mb-1 max-w-40 truncate text-xs">{quienes("visitante", row.pista)}</div>
                   <NumInput
                     value={row.set1_visitante}
                     onChange={(v) => updateCell(idx, "set1_visitante", v)}
@@ -1287,23 +1344,6 @@ function MatchResultsSection({
         </AlertDialog>
 
 
-        {(participations?.length ?? 0) > 0 && (
-          <div className="rounded-md border border-border p-4">
-            <h3 className="text-2xs mb-3 font-bold uppercase tracking-widest text-muted-foreground">
-              {t("results.participants")}
-            </h3>
-            <ul className="space-y-1 text-sm">
-              {participations!.map((p) => (
-                <li key={p.user_id} className="flex items-center justify-between gap-2">
-                  <span className="truncate">{nameOf(p.user_id)}</span>
-                  <span className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
-                    {p.pista ? `${t("results.pista")} ${p.pista}` : ""}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
       </div>
     </div>
   );
@@ -1367,6 +1407,67 @@ function OutcomeBadge({
       {outcome === "victoria" ? <Trophy className="size-3.5" /> : <XCircle className="size-3.5" />}
       {t(`results.${outcome}`)} · {won}-{lost}
     </span>
+  );
+}
+
+/**
+ * La convocatoria de un partido ya jugado, de un vistazo: quién jugó en cada
+ * pista, quién más estaba apuntado y quién no podía.
+ */
+function ResumenConvocatoria({
+  responses,
+  nombre,
+}: {
+  responses: EventResponse[];
+  nombre: (userId: string) => string;
+}) {
+  const { t } = useTranslation();
+  const convocados = responses.filter((r) => r.es_convocado);
+  const porPista = new Map<number, string[]>();
+  const sinPista: string[] = [];
+  for (const r of convocados) {
+    if (r.padel_pista) porPista.set(r.padel_pista, [...(porPista.get(r.padel_pista) ?? []), r.user_id]);
+    else sinPista.push(r.user_id);
+  }
+  const apuntados = responses.filter((r) => !r.es_convocado && r.status !== "rechazado");
+  const noPodian = responses.filter((r) => r.status === "rechazado");
+  const linea = (titulo: string, ids: string[]) =>
+    ids.length > 0 && (
+      <p className="text-sm">
+        <span className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
+          {titulo} ({ids.length})
+        </span>{" "}
+        {ids.map(nombre).join(", ")}
+      </p>
+    );
+  return (
+    <div className="space-y-3 p-4 sm:p-5" data-resumen-convocatoria>
+      <div className="space-y-1.5">
+        <p className="text-2xs font-bold uppercase tracking-widest text-primary">
+          ★ {t("callups.resumenConvocados", { count: convocados.length })}
+        </p>
+        {convocados.length === 0 && (
+          <p className="text-sm text-muted-foreground">{t("callups.resumenNadie")}</p>
+        )}
+        <ul className="grid gap-1.5 sm:grid-cols-2">
+          {[...porPista.entries()]
+            .sort(([a], [b]) => a - b)
+            .map(([pista, ids]) => (
+              <li key={pista} className="flex min-w-0 items-baseline gap-2 text-sm">
+                <span className="shrink-0 text-2xs font-bold uppercase tracking-widest text-muted-foreground">
+                  {t("callups.pista")} {pista}
+                </span>
+                <span className="min-w-0 truncate font-medium">{ids.map(nombre).join(" y ")}</span>
+              </li>
+            ))}
+          {sinPista.length > 0 && (
+            <li className="text-sm font-medium">{sinPista.map(nombre).join(", ")}</li>
+          )}
+        </ul>
+      </div>
+      {linea(t("callups.resumenApuntados"), apuntados.map((r) => r.user_id))}
+      {linea(t("callups.resumenNoPodian"), noPodian.map((r) => r.user_id))}
+    </div>
   );
 }
 
