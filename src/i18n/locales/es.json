@@ -1243,6 +1243,11 @@
     "porProbar": "Por probar",
     "porProbarTexto": "{{parejas}} nunca han jugado juntos. Un amistoso es buen momento.",
     "quitarDeLaPista": "Quitar a {{name}} de la pista",
-    "arrastrar": "{{name}}. Arrástralo a una pista"
+    "arrastrar": "{{name}}. Arrástralo a una pista",
+    "quimicaTitulo": "Química",
+    "separados": "Separados",
+    "juntarA": "Juntar a {{a}} y {{b}}",
+    "sinElegir": "Sin elegir: {{nombres}}",
+    "leyendaQuimica": "Química (doble: mutua)"
   }
 }

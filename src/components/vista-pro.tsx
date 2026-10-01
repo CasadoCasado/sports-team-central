@@ -21,7 +21,7 @@ import { createPortal } from "react-dom";
 import { useMutation } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Check, Clock, GripVertical, Plus, X } from "lucide-react";
+import { Check, Clock, GripVertical, Plus, Sparkles, X } from "lucide-react";
 
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -229,6 +229,8 @@ export function VistaPro({
     arrastrable,
     tocar,
     quitar: (u: string) => colocar(u, null),
+    juntar,
+    pistaDe: (u: string) => porUsuario.get(u)?.padel_pista ?? null,
     sobre,
     arrastrando: fantasma?.u ?? null,
   };
@@ -236,7 +238,7 @@ export function VistaPro({
   return (
     <div
       ref={raiz}
-      className="pro-ui @container overflow-hidden rounded-2xl border border-[var(--pro-line)]"
+      className="pro-ui @container overflow-clip rounded-2xl border border-[var(--pro-line)]"
     >
       <Tabs defaultValue="tablero">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--pro-line)] px-3 py-2 sm:px-4">
@@ -276,7 +278,12 @@ export function VistaPro({
 
         <TabsContent value="tablero" className="mt-0">
           <div className="grid gap-4 p-3 sm:p-4 @3xl:grid-cols-[240px_minmax(0,1fr)] @6xl:grid-cols-[240px_minmax(0,1fr)_300px]">
-            <ListaApuntados ctx={ctx} apuntados={apuntados} />
+            {/* La química va arriba y se queda a la vista al bajar por las
+                pistas: es lo primero que mira quien reparte. */}
+            <div className="space-y-4">
+              <PanelQuimica ctx={ctx} jugadores={apuntados.map((r) => r.user_id)} />
+              <ListaApuntados ctx={ctx} apuntados={apuntados} />
+            </div>
 
             <div className="min-w-0 space-y-3">
               {numPistas === 0 && (
@@ -363,6 +370,8 @@ type Ctx = {
   }>;
   tocar: (fn: () => void) => () => void;
   quitar: (u: string) => void;
+  juntar: (a: string, b: string) => void;
+  pistaDe: (u: string) => number | null;
   /** El destino bajo el puntero mientras se arrastra: «pool» o la pista. */
   sobre: string | null;
   arrastrando: string | null;
@@ -436,6 +445,106 @@ function Puntos({ forma, grande = false }: { forma: boolean[]; grande?: boolean 
   );
 }
 
+/**
+ * Quién tiene química con quién, siempre a la vista: primero las mutuas, que
+ * son las que más pesan al repartir, luego las de un solo lado, y quién aún no
+ * ha elegido. Cada una dice si están juntos en pista o no, con un botón para
+ * juntarlos.
+ */
+function PanelQuimica({ ctx, jugadores }: { ctx: Ctx; jugadores: string[] }) {
+  const { t } = useTranslation();
+  const dentro = new Set(jugadores);
+  const mutuas: [string, string][] = [];
+  const deUnLado: [string, string][] = [];
+  const vistos = new Set<string>();
+  for (const [de, a] of ctx.eligio) {
+    if (!dentro.has(de) || !dentro.has(a) || vistos.has(de)) continue;
+    if (ctx.eligio.get(a) === de) {
+      mutuas.push([de, a]);
+      vistos.add(de).add(a);
+    } else {
+      deUnLado.push([de, a]);
+    }
+  }
+  const sinElegir = jugadores.filter((u) => !ctx.eligio.has(u));
+
+  const estado = (a: string, b: string, mutua: boolean) => {
+    const pa = ctx.pistaDe(a);
+    const pb = ctx.pistaDe(b);
+    if (pa != null && pa === pb) {
+      return (
+        <span className="rounded-full bg-[var(--pro-ok-bg)] px-2 py-0.5 text-3xs font-extrabold uppercase tracking-widest text-[var(--pro-ok)]">
+          {t("quimica.enPista", { n: pa })}
+        </span>
+      );
+    }
+    const separados = pa != null && pb != null;
+    return (
+      <span className="flex items-center gap-1.5">
+        {separados && mutua && (
+          <span className="rounded-full bg-[var(--pro-warn-bg)] px-2 py-0.5 text-3xs font-extrabold uppercase tracking-widest text-[var(--pro-warn)]">
+            {t("pro.separados")}
+          </span>
+        )}
+        {!ctx.cerrada && (
+          <button
+            type="button"
+            onClick={() => ctx.juntar(a, b)}
+            disabled={ctx.moviendo}
+            aria-label={t("pro.juntarA", { a: ctx.pila(a), b: ctx.pila(b) })}
+            className={cn(
+              "min-h-8 rounded-lg px-2.5 text-3xs font-extrabold uppercase tracking-widest",
+              mutua
+                ? "bg-[var(--pro-quim)] text-white"
+                : "border border-[var(--pro-line-2)] text-[var(--pro-muted)]",
+            )}
+          >
+            {t("quimica.juntar")}
+          </button>
+        )}
+      </span>
+    );
+  };
+
+  return (
+    <section
+      aria-label={t("pro.quimicaTitulo")}
+      data-panel-quimica
+      className="z-10 space-y-2 rounded-2xl border border-[var(--pro-quim)]/40 bg-[var(--pro-surface)] bg-[linear-gradient(var(--pro-quim-bg),var(--pro-quim-bg))] p-3 shadow-sm @3xl:sticky @3xl:top-20"
+    >
+      <h3 className="flex items-center gap-1.5 text-sm font-extrabold text-[var(--pro-quim)]">
+        <Sparkles className="size-4" aria-hidden="true" />
+        {t("pro.quimicaTitulo")}
+      </h3>
+      {mutuas.length === 0 && deUnLado.length === 0 && (
+        <p className="text-xs text-[var(--pro-muted)]">{t("quimica.nadieTodavia")}</p>
+      )}
+      {mutuas.map(([a, b]) => (
+        <div key={a} className="flex flex-wrap items-center justify-between gap-2 text-sm">
+          <span className="font-bold">
+            {ctx.pila(a)} <span className="text-[var(--pro-quim)]">⇄</span> {ctx.pila(b)}
+          </span>
+          {estado(a, b, true)}
+        </div>
+      ))}
+      {deUnLado.map(([de, a]) => (
+        <div key={de} className="flex flex-wrap items-center justify-between gap-2 text-sm">
+          <span>
+            <strong>{ctx.pila(de)}</strong> <span className="text-[var(--pro-quim)]">→</span>{" "}
+            {ctx.pila(a)}
+          </span>
+          {estado(de, a, false)}
+        </div>
+      ))}
+      {sinElegir.length > 0 && (
+        <p className="border-t border-[var(--pro-quim)]/20 pt-2 text-xs text-[var(--pro-muted)]">
+          {t("pro.sinElegir", { nombres: sinElegir.map(ctx.pila).join(", ") })}
+        </p>
+      )}
+    </section>
+  );
+}
+
 function ListaApuntados({ ctx, apuntados }: { ctx: Ctx; apuntados: Respuesta[] }) {
   const { t } = useTranslation();
   const grupos: [string, Respuesta[]][] = [
@@ -481,6 +590,13 @@ function ListaApuntados({ ctx, apuntados }: { ctx: Ctx; apuntados: Respuesta[] }
                     <span className="block truncate text-sm font-semibold">
                       {ctx.nombre(r.user_id)}
                     </span>
+                    {ctx.eligio.get(r.user_id) && (
+                      <span className="flex items-center gap-1 text-xs font-semibold text-[var(--pro-quim)]">
+                        <Sparkles className="size-3" aria-hidden="true" />
+                        {ctx.mutua(r.user_id, ctx.eligio.get(r.user_id)!) ? "⇄" : "→"}{" "}
+                        {ctx.pila(ctx.eligio.get(r.user_id)!)}
+                      </span>
+                    )}
                     <span className="block text-xs text-[var(--pro-muted)]">
                       {r.padel_pista != null
                         ? `${t("callups.pista")} ${r.padel_pista}`
@@ -1088,19 +1204,33 @@ function Matriz({
                     const v = n ? Math.round((100 * r.g) / n) : 0;
                     const tono = color(v);
                     const pocos = n > 0 && n < 3;
+                    const quim = ctx.mutua(f, c)
+                      ? "mutua"
+                      : ctx.eligio.get(f) === c || ctx.eligio.get(c) === f
+                        ? "lado"
+                        : null;
                     return (
                       <td key={c}>
                         <button
+                          data-quimica={quim ?? undefined}
                           type="button"
                           onClick={() => onJuntar(f, c)}
                           disabled={ctx.cerrada || ctx.moviendo}
                           aria-label={
-                            n
+                            (n
                               ? t("pro.celda", { a: ctx.pila(f), b: ctx.pila(c), g: r.g, p: r.p })
-                              : t("pro.celdaNunca", { a: ctx.pila(f), b: ctx.pila(c) })
+                              : t("pro.celdaNunca", { a: ctx.pila(f), b: ctx.pila(c) })) +
+                            (quim === "mutua"
+                              ? `. ${t("pro.quimicaMutua")}`
+                              : quim
+                                ? `. ${t("pro.quimicaUnLado")}`
+                                : "")
                           }
                           className={cn(
-                            "flex h-12 w-14 flex-col items-center justify-center rounded-xl disabled:cursor-default",
+                            "relative flex h-12 w-14 flex-col items-center justify-center rounded-xl disabled:cursor-default",
+                            quim === "mutua" &&
+                              "ring-2 ring-[var(--pro-quim)] ring-offset-2 ring-offset-[var(--pro-bg)]",
+                            quim === "lado" && "ring-1 ring-[var(--pro-quim)]",
                             !n &&
                               "border border-dashed border-[var(--pro-line-2)] text-[var(--pro-muted)]",
                             pocos && "border border-dashed border-[var(--pro-line-2)] opacity-80",
@@ -1116,6 +1246,12 @@ function Matriz({
                               : undefined
                           }
                         >
+                          {quim && (
+                            <Sparkles
+                              className="absolute -right-1.5 -top-1.5 size-4 rounded-full bg-[var(--pro-quim)] p-0.5 text-white"
+                              aria-hidden="true"
+                            />
+                          )}
                           <span className="text-base font-extrabold">{n ? `${v}%` : "—"}</span>
                           <span className="text-3xs font-semibold opacity-85">
                             {n ? `${r.g}-${r.p}` : t("pro.nunca")}
@@ -1150,6 +1286,10 @@ function Matriz({
           <span className="inline-flex items-center gap-1.5">
             <span className="size-3.5 rounded border border-dashed border-[var(--pro-line-2)]" />
             {t("pro.leyendaNunca")}
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className="size-3.5 rounded ring-2 ring-[var(--pro-quim)]" />
+            {t("pro.leyendaQuimica")}
           </span>
         </div>
       </div>

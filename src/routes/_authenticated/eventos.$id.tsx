@@ -558,7 +558,7 @@ function CallupSection({
   };
 
   return (
-    <div className="surface-card overflow-hidden">
+    <div className="surface-card overflow-clip">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-5">
         <div className="flex items-center gap-3">
           <div className="flex size-10 items-center justify-center rounded-md bg-primary/10 text-primary">
