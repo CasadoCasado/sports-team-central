@@ -7,6 +7,7 @@ import { es as esLocale, enUS } from "date-fns/locale";
 import {
   ArrowLeft,
   Calendar as CalIcon,
+  Check,
   ChevronDown,
   ClipboardList,
   Clock,
@@ -1065,6 +1066,7 @@ function MatchResultsSection({
       });
     },
     onSuccess: async () => {
+      setModificando(false);
       toast.success(t("results.saved"));
       // El backend recalcula el resultado del enfrentamiento y las
       // participaciones de los convocados al guardar; refrescamos todo
@@ -1092,6 +1094,11 @@ function MatchResultsSection({
   });
 
   const [confirmOpen, setConfirmOpen] = useState(false);
+  // Guardado, el marcador queda fijo; «Modificar» lo vuelve editable y al
+  // guardar otra vez se fija de nuevo.
+  const guardado = (existing ?? []).length > 0;
+  const [modificando, setModificando] = useState(false);
+  const editable = isManager && (!guardado || modificando);
 
   const handleSave = () => {
     const err = validate();
@@ -1154,6 +1161,15 @@ function MatchResultsSection({
       className="w-full max-w-14 min-h-9 rounded-md border border-border bg-background px-1 py-1 text-center text-sm font-bold disabled:opacity-60"
     />
   );
+  // Fijo (guardado o sin permiso): el número a secas, sin casilla.
+  const Num = (props: Parameters<typeof NumInput>[0]) =>
+    props.disabled ? (
+      <span className="flex min-h-9 w-full max-w-14 items-center justify-center text-sm font-bold tabular-nums">
+        {props.value ?? "–"}
+      </span>
+    ) : (
+      NumInput(props)
+    );
 
   const teamSide = esLocal ? 1 : 2;
   // Quién jugó cada pista, para ponerlo junto a nuestro lado del marcador:
@@ -1182,6 +1198,27 @@ function MatchResultsSection({
         <OutcomeBadge outcome={summary.outcome} won={summary.won} lost={summary.lost} />
       </div>
       <div className="space-y-4 p-4 sm:p-5">
+        {isManager && guardado && !modificando && (
+          <div
+            data-resultados-guardados
+            className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-ok/35 bg-ok/10 px-3 py-2.5 text-sm"
+          >
+            <span className="flex items-center gap-2 font-semibold">
+              <Check className="size-4 shrink-0 text-ok" aria-hidden="true" />
+              {t("results.guardados")}
+            </span>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => setModificando(true)}
+              className="text-2xs font-bold uppercase tracking-widest"
+            >
+              <Pencil className="mr-1.5 size-3.5" aria-hidden="true" />
+              {t("results.modificar")}
+            </Button>
+          </div>
+        )}
         {rows.map((row, idx) => (
           <div key={row.pista} className="rounded-md border border-border p-3 sm:p-4">
             <div className="mb-3 flex items-center justify-between gap-2">
@@ -1227,10 +1264,10 @@ function MatchResultsSection({
                       const key = `set${setNum}_${side}` as keyof MatchResultRow;
                       return (
                         <div key={setNum} className="flex justify-center">
-                          <NumInput
+                          <Num
                             value={row[key] as number | null}
                             onChange={(v) => updateCell(idx, key, v)}
-                            disabled={!isManager}
+                            disabled={!editable}
                             max={7}
                           />
                         </div>
@@ -1246,10 +1283,10 @@ function MatchResultsSection({
                     {t("results.local")}
                   </div>
                   <div className="mb-1 max-w-40 truncate text-xs">{quienes("local", row.pista)}</div>
-                  <NumInput
+                  <Num
                     value={row.set1_local}
                     onChange={(v) => updateCell(idx, "set1_local", v)}
-                    disabled={!isManager}
+                    disabled={!editable}
                   />
                 </div>
                 <span className="text-display text-2xl font-black text-muted-foreground">:</span>
@@ -1258,10 +1295,10 @@ function MatchResultsSection({
                     {t("results.visitante")}
                   </div>
                   <div className="mb-1 max-w-40 truncate text-xs">{quienes("visitante", row.pista)}</div>
-                  <NumInput
+                  <Num
                     value={row.set1_visitante}
                     onChange={(v) => updateCell(idx, "set1_visitante", v)}
-                    disabled={!isManager}
+                    disabled={!editable}
                   />
                 </div>
               </div>
@@ -1271,7 +1308,7 @@ function MatchResultsSection({
 
         <p className="text-2xs text-muted-foreground">{t("results.autoNote")}</p>
 
-        {isManager && (
+        {editable && (
           <div className="flex justify-end">
             <Button
               onClick={handleSave}

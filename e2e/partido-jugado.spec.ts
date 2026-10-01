@@ -81,6 +81,15 @@ test("en un partido jugado no se toca la convocatoria", async ({ page, request }
   await expect(page.getByTitle("Sara L.")).toBeVisible({ timeout: 20_000 });
   await expect(page.getByTitle("Club Náutico").first()).toBeVisible();
   await expect(page.getByText(/jugadores participantes/i)).toHaveCount(0);
+
+  // Guardado, el marcador es fijo; «Modificar» lo vuelve editable.
+  const guardados = page.locator("[data-resultados-guardados]");
+  await expect(guardados).toContainText(/resultados guardados/i);
+  await expect(page.getByRole("spinbutton")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /guardar resultados/i })).toHaveCount(0);
+  await guardados.getByRole("button", { name: /modificar/i }).click();
+  await expect(page.getByRole("spinbutton").first()).toBeVisible();
+  await expect(page.getByRole("button", { name: /guardar resultados/i })).toBeVisible();
 });
 
 test("el ★ dice para qué sirve", async ({ page, request }) => {

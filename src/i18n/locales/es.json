@@ -821,7 +821,9 @@
     "backToResults": "Volver a resultados",
     "valePuntos_one": "vale {{count}} punto",
     "valePuntos_other": "vale {{count}} puntos",
-    "rival": "Rival"
+    "rival": "Rival",
+    "guardados": "Resultados guardados",
+    "modificar": "Modificar"
   },
   "a11y": {
     "fontSize": "Tamaño de texto",
@@ -1050,8 +1052,8 @@
     "cuentaAsistentes_other": "Asistieron {{count}}. Arrastra a cada uno a su pista y a su lado: ganadores y perdedores.",
     "repartir_one": "Repartir 1 pista",
     "repartir_other": "Repartir {{count}} pistas",
-    "guardadoFijo": "Resultado guardado. Reábrelo si hay que cambiar algo.",
-    "reabrir": "Reabrir"
+    "guardadoFijo": "Resultados guardados",
+    "reabrir": "Modificar"
   },
   "standings": {
     "title": "Clasificación",
