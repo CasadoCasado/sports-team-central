@@ -600,7 +600,9 @@
     "convocarHint": "Call up {{name}}: plays the match, not just signed up",
     "desconvocarHint": "{{name}} is called up. Untick to drop them from the match (and their court)",
     "convocarA": "Call up {{name}}",
-    "convocadoHint": "Called up: played this match"
+    "convocadoHint": "Called up: played this match",
+    "convocarCorto": "Call up",
+    "convocadoCorto": "Called up"
   },
   "common": {
     "loading": "Loading...",
@@ -1261,6 +1263,8 @@
     "separados": "Apart",
     "juntarA": "Put {{a}} and {{b}} together",
     "sinElegir": "Haven't chosen: {{nombres}}",
-    "leyendaQuimica": "Chemistry (thick: mutual)"
+    "leyendaQuimica": "Chemistry (thick: mutual)",
+    "cargando": "Getting the PRO board ready…",
+    "cargandoPropuestas": "Finding the best pairs…"
   }
 }

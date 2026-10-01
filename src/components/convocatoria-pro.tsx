@@ -30,6 +30,7 @@ import {
 import { confirmar } from "@/components/confirm-dialog";
 import { PadelCourtsBoard } from "@/components/padel-courts-board";
 import { VistaPro } from "@/components/vista-pro";
+import { CargandoPro } from "@/components/cargando-pro";
 import { parejaPro, type PropuestaPro, type TableroPro } from "@/lib/pro";
 
 const CLAVE_MODO = "teamup:convocatoria-pro";
@@ -108,6 +109,16 @@ function BarraPro({
   const { t, i18n } = useTranslation();
   const qc = useQueryClient();
   const [abierto, setAbierto] = useState(false);
+  // Las propuestas son lo único caro de PRO: se piden al abrir el diálogo, no
+  // al cargar el tablero.
+  const { data: propuestas, isFetching: buscando } = useQuery({
+    queryKey: ["event-pro-propuestas", event.id],
+    queryFn: () =>
+      api
+        .get<{ propuestas: PropuestaPro[] }>(`/events/${event.id}/propuestas/`)
+        .then((r) => r.propuestas),
+    enabled: abierto && !event.convocatoria_confirmada,
+  });
   const cerrada = event.convocatoria_confirmada;
 
   const cambiarPro = useMutation({
@@ -241,11 +252,12 @@ function BarraPro({
             <DialogTitle>{t("pro.sugerirTitulo")}</DialogTitle>
             <DialogDescription>{t("pro.sugerirExplica")}</DialogDescription>
           </DialogHeader>
-          {pro && pro.propuestas.length === 0 && (
+          {buscando && !propuestas && <CargandoPro texto={t("pro.cargandoPropuestas")} />}
+          {propuestas && propuestas.length === 0 && (
             <p className="text-sm text-muted-foreground">{t("pro.sinPropuestas")}</p>
           )}
           <div className="grid gap-3 md:grid-cols-3">
-            {pro?.propuestas.map((p) => (
+            {propuestas?.map((p) => (
               <article
                 key={p.id}
                 aria-label={t(`pro.propuesta_${p.id}`)}
@@ -263,7 +275,7 @@ function BarraPro({
                 </p>
                 <ol className="space-y-2">
                   {p.pistas.map(([a, b], i) => {
-                    const par = b ? parejaPro(pro, a, b) : undefined;
+                    const par = b && pro ? parejaPro(pro, a, b) : undefined;
                     const vs = b ? contraRival(a, b) : undefined;
                     return (
                       <li key={i} className="rounded-lg bg-muted/50 p-2 text-xs">
@@ -394,7 +406,7 @@ export function RepartoPadel({
             onChanged={alCambiar}
           />
         ) : (
-          <div className="pro-ui h-64 animate-pulse rounded-2xl" aria-busy="true" />
+          <CargandoPro className="pro-ui rounded-2xl border border-[var(--pro-line)]" />
         )
       ) : (
         <PadelCourtsBoard

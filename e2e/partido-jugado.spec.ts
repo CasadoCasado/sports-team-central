@@ -89,4 +89,8 @@ test("el ★ dice para qué sirve", async ({ page, request }) => {
   const casilla = page.getByRole("checkbox", { name: /convocar a marta casado/i });
   await expect(casilla).toBeVisible({ timeout: 20_000 });
   await expect(page.getByTitle(/convocar a marta casado: entra en el partido/i)).toBeVisible();
+  // Además se lee al lado, y al pasar el ratón sale la explicación enseguida.
+  await expect(page.getByText(/^convocar$/i).first()).toBeVisible();
+  await page.getByTitle(/convocar a marta casado: entra en el partido/i).hover();
+  await expect(page.getByRole("tooltip")).toContainText(/entra en el partido/i);
 });
