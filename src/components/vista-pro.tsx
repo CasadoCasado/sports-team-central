@@ -278,8 +278,8 @@ export function VistaPro({
 
         <TabsContent value="tablero" className="mt-0">
           <div className="grid gap-4 p-3 sm:p-4 @3xl:grid-cols-[240px_minmax(0,1fr)] @6xl:grid-cols-[240px_minmax(0,1fr)_300px]">
-            {/* La química va arriba y se queda a la vista al bajar por las
-                pistas: es lo primero que mira quien reparte. */}
+            {/* La química va arriba del todo: es lo primero que mira quien
+                reparte. */}
             <div className="space-y-4">
               <PanelQuimica ctx={ctx} jugadores={apuntados.map((r) => r.user_id)} />
               <ListaApuntados ctx={ctx} apuntados={apuntados} />
@@ -446,7 +446,7 @@ function Puntos({ forma, grande = false }: { forma: boolean[]; grande?: boolean 
 }
 
 /**
- * Quién tiene química con quién, siempre a la vista: primero las mutuas, que
+ * Quién tiene química con quién: primero las mutuas, que
  * son las que más pesan al repartir, luego las de un solo lado, y quién aún no
  * ha elegido. Cada una dice si están juntos en pista o no, con un botón para
  * juntarlos.
@@ -510,7 +510,7 @@ function PanelQuimica({ ctx, jugadores }: { ctx: Ctx; jugadores: string[] }) {
     <section
       aria-label={t("pro.quimicaTitulo")}
       data-panel-quimica
-      className="z-10 space-y-2 rounded-2xl border border-[var(--pro-quim)]/40 bg-[var(--pro-surface)] bg-[linear-gradient(var(--pro-quim-bg),var(--pro-quim-bg))] p-3 shadow-sm @3xl:sticky @3xl:top-20"
+      className="space-y-2 rounded-2xl border border-[var(--pro-quim)]/40 bg-[var(--pro-surface)] bg-[linear-gradient(var(--pro-quim-bg),var(--pro-quim-bg))] p-3"
     >
       <h3 className="flex items-center gap-1.5 text-sm font-extrabold text-[var(--pro-quim)]">
         <Sparkles className="size-4" aria-hidden="true" />
