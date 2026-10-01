@@ -614,12 +614,7 @@
       "convocadoCorto": "Asistió"
     },
     "ocultar": "Ocultar",
-    "verDetalle": "Ver convocatoria",
-    "resumenConvocados_one": "Jugó 1",
-    "resumenConvocados_other": "Jugaron {{count}}",
-    "resumenNadie": "Nadie quedó convocado.",
-    "resumenApuntados": "Apuntados que no jugaron",
-    "resumenNoPodian": "No podían"
+    "verDetalle": "Ver convocatoria"
   },
   "common": {
     "loading": "Cargando...",

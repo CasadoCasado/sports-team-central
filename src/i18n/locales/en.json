@@ -614,12 +614,7 @@
       "convocadoCorto": "Attended"
     },
     "ocultar": "Hide",
-    "verDetalle": "See call-up",
-    "resumenConvocados_one": "1 played",
-    "resumenConvocados_other": "{{count}} played",
-    "resumenNadie": "Nobody was called up.",
-    "resumenApuntados": "Signed up but didn't play",
-    "resumenNoPodian": "Couldn't make it"
+    "verDetalle": "See call-up"
   },
   "common": {
     "loading": "Loading...",
