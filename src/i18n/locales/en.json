@@ -28,7 +28,11 @@
     "admin": "Admin",
     "logros": "Achievements",
     "ayuda": "Help",
-    "demo": "Try without an account"
+    "demo": "Try without an account",
+    "abrirBarra": "Open menu",
+    "cerrarBarra": "Collapse menu",
+    "fijarBarra": "Pin",
+    "soltarBarra": "Collapse"
   },
   "auth": {
     "welcome": "Welcome to TeamUp",

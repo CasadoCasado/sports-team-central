@@ -28,7 +28,11 @@
     "admin": "Administración",
     "logros": "Logros",
     "ayuda": "Ayuda",
-    "demo": "Probar sin cuenta"
+    "demo": "Probar sin cuenta",
+    "abrirBarra": "Abrir menú",
+    "cerrarBarra": "Plegar menú",
+    "fijarBarra": "Fijar",
+    "soltarBarra": "Plegar"
   },
   "auth": {
     "welcome": "Bienvenido a TeamUp",
