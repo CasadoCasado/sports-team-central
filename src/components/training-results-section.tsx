@@ -135,7 +135,12 @@ export function TrainingResultsSection({
   }, [courts]);
 
   const closed = !!competition?.finalizada;
-  const canEdit = isManager && hasStarted && !closed;
+  // Guardado, el resultado queda fijo: sin arrastrar ni quitar. «Reabrir» lo
+  // vuelve editable, y al guardar otra vez se fija de nuevo.
+  const guardado = (courts ?? []).length > 0;
+  const [reabierto, setReabierto] = useState(false);
+  const puedeGestionar = isManager && hasStarted && !closed;
+  const canEdit = puedeGestionar && (!guardado || reabierto);
 
   const assigned = useMemo(
     () => new Set(draft.flatMap((c) => c.players.map((p) => p.user_id))),
@@ -155,6 +160,7 @@ export function TrainingResultsSection({
       }),
     onSuccess: async () => {
       toast.success(t("training.saved"));
+      setReabierto(false);
       await Promise.all([
         qc.invalidateQueries({ queryKey: ["training-courts", eventId] }),
         qc.invalidateQueries({ queryKey: ["competition-standings"] }),
@@ -347,6 +353,10 @@ export function TrainingResultsSection({
       )}
 
       <div className="space-y-4 p-4 sm:p-5">
+        {puedeGestionar && guardado && !reabierto && (
+          <GuardadoReabrir onReabrir={() => setReabierto(true)} />
+        )}
+
         {canEdit && (
           <p className="text-2xs text-muted-foreground">
             {sinMarcar
@@ -393,6 +403,30 @@ export function TrainingResultsSection({
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function GuardadoReabrir({ onReabrir }: { onReabrir: () => void }) {
+  const { t } = useTranslation();
+  return (
+    <div
+      data-entreno-guardado
+      className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-ok/35 bg-ok/10 px-3 py-2.5 text-sm"
+    >
+      <span className="flex items-center gap-2">
+        <Lock className="size-4 shrink-0 text-ok" aria-hidden="true" />
+        {t("training.guardadoFijo")}
+      </span>
+      <Button
+        type="button"
+        size="sm"
+        variant="outline"
+        onClick={onReabrir}
+        className="text-2xs font-bold uppercase tracking-widest"
+      >
+        {t("training.reabrir")}
+      </Button>
     </div>
   );
 }

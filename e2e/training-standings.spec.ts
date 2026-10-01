@@ -125,6 +125,17 @@ test.describe("Entrenamientos dentro de una competición", () => {
     await page.getByRole("button", { name: /guardar resultados/i }).click();
     await expect(page.getByText(/resultados del entreno guardados/i)).toBeVisible();
 
+    // Guardado, queda fijo: sin arrastrar, sin quitar y sin guardar otra vez.
+    const fijo = page.locator("[data-entreno-guardado]");
+    await expect(fijo).toBeVisible();
+    await expect(page.getByRole("button", { name: /guardar resultados/i })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: /arrástralo/i })).toHaveCount(0);
+    await expect(pista).toContainText("Marta Casado");
+    // «Reabrir» lo vuelve editable.
+    await fijo.getByRole("button", { name: /^reabrir$/i }).click();
+    await expect(page.getByRole("button", { name: /guardar resultados/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /^marta casado\. arrástralo/i })).toBeVisible();
+
     // La clasificación de la competición ya cuenta ese puesto.
     await page.goto(`/competiciones/${competition.id}`);
     await expect(page.getByRole("heading", { name: /clasificación/i })).toBeVisible({
@@ -228,6 +239,13 @@ test.describe("Otros formatos de entrenamiento", () => {
     await page.getByRole("spinbutton", { name: /juegos en contra/i }).fill("6");
     await page.getByRole("button", { name: /guardar resultados/i }).click();
     await expect(page.getByText(/resultados del entreno guardados/i)).toBeVisible();
+    // Guardado, fijo: ni casillas ni guardar, hasta que se reabre.
+    await expect(page.getByRole("spinbutton", { name: /juegos a favor/i })).toHaveCount(0);
+    await page
+      .locator("[data-entreno-guardado]")
+      .getByRole("button", { name: /^reabrir$/i })
+      .click();
+    await expect(page.getByRole("spinbutton", { name: /juegos a favor/i })).toBeVisible();
 
     await page.goto(`/competiciones/${competition.id}`);
     const primera = page.locator("tbody tr").first();

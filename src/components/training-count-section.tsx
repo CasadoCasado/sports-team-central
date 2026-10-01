@@ -88,15 +88,17 @@ export function TrainingCountSection({
   /** Quien se apuntó sale primero: es a quien más probablemente hay que añadir. */
   const pool = useMemo(() => {
     const signedUp = new Set((responses ?? []).map((r) => r.user_id));
-    return (members ?? [])
-      .map((m) => ({
-        user_id: m.user_id,
-        nombre: nameOf(m.profile),
-        signedUp: signedUp.has(m.user_id),
-      }))
-      // Los invitados apuntados al entreno también juegan, aunque no sean del equipo.
-      .concat(invitadosApuntados(responses))
-      .sort((a, b) => Number(b.signedUp) - Number(a.signedUp) || a.nombre.localeCompare(b.nombre));
+    return (
+      (members ?? [])
+        .map((m) => ({
+          user_id: m.user_id,
+          nombre: nameOf(m.profile),
+          signedUp: signedUp.has(m.user_id),
+        }))
+        // Los invitados apuntados al entreno también juegan, aunque no sean del equipo.
+        .concat(invitadosApuntados(responses))
+        .sort((a, b) => Number(b.signedUp) - Number(a.signedUp) || a.nombre.localeCompare(b.nombre))
+    );
   }, [members, responses]);
 
   const nameById = useMemo(() => {
@@ -119,7 +121,11 @@ export function TrainingCountSection({
     );
   }, [scores, esAmericano]);
 
-  const canEdit = isManager && hasStarted && !closed;
+  // Guardado, el recuento queda fijo; «Reabrir» lo vuelve editable.
+  const guardado = (scores ?? []).length > 0;
+  const [reabierto, setReabierto] = useState(false);
+  const puedeGestionar = isManager && hasStarted && !closed;
+  const canEdit = puedeGestionar && (!guardado || reabierto);
   const assigned = useMemo(() => new Set(draft.map((d) => d.user_id)), [draft]);
   const available = pool.filter((p) => !assigned.has(p.user_id));
 
@@ -136,6 +142,7 @@ export function TrainingCountSection({
       }),
     onSuccess: async () => {
       toast.success(t("training.saved"));
+      setReabierto(false);
       await Promise.all([
         qc.invalidateQueries({ queryKey: ["training-scores", eventId] }),
         qc.invalidateQueries({ queryKey: ["competition-standings"] }),
@@ -192,6 +199,9 @@ export function TrainingCountSection({
       )}
 
       <div className="space-y-3 p-4 sm:p-5">
+        {puedeGestionar && guardado && !reabierto && (
+          <GuardadoReabrir onReabrir={() => setReabierto(true)} />
+        )}
         {rows.length === 0 && (
           <p className="text-sm text-muted-foreground">
             {canEdit ? t("training.countEmptyManager") : t("training.countEmpty")}
@@ -213,20 +223,31 @@ export function TrainingCountSection({
             className="grid grid-cols-[minmax(0,1fr)_3.25rem_3.25rem_2rem] items-center gap-1.5 rounded-md border border-border px-2 py-2 sm:grid-cols-[minmax(0,1fr)_5rem_5rem_2rem] sm:gap-2 sm:px-3"
           >
             <span className="min-w-0 truncate text-sm">{nameById.get(row.user_id) ?? "—"}</span>
-            {(["favor", "contra"] as const).map((campo) => (
-              <input
-                key={campo}
-                type="number"
-                min={0}
-                max={999}
-                inputMode="numeric"
-                value={row[campo]}
-                disabled={!canEdit}
-                aria-label={`${campo === "favor" ? etiquetaFavor : etiquetaContra} — ${nameById.get(row.user_id) ?? ""}`}
-                onChange={(e) => setValue(row.user_id, campo, e.target.value)}
-                className="w-full rounded-md border border-border bg-background px-2 py-1 text-center text-sm font-bold disabled:opacity-60"
-              />
-            ))}
+            {(["favor", "contra"] as const).map((campo) =>
+              // Fijo (guardado, o sin permiso), el número a secas.
+              !canEdit ? (
+                <span
+                  key={campo}
+                  aria-label={`${campo === "favor" ? etiquetaFavor : etiquetaContra} — ${nameById.get(row.user_id) ?? ""}`}
+                  className="text-center text-sm font-bold tabular-nums"
+                >
+                  {row[campo]}
+                </span>
+              ) : (
+                <input
+                  key={campo}
+                  type="number"
+                  min={0}
+                  max={999}
+                  inputMode="numeric"
+                  value={row[campo]}
+                  disabled={!canEdit}
+                  aria-label={`${campo === "favor" ? etiquetaFavor : etiquetaContra} — ${nameById.get(row.user_id) ?? ""}`}
+                  onChange={(e) => setValue(row.user_id, campo, e.target.value)}
+                  className="w-full rounded-md border border-border bg-background px-2 py-1 text-center text-sm font-bold disabled:opacity-60"
+                />
+              ),
+            )}
             {canEdit ? (
               <button
                 type="button"
@@ -300,6 +321,30 @@ export function TrainingHeader({
         </div>
       </div>
       {action}
+    </div>
+  );
+}
+
+function GuardadoReabrir({ onReabrir }: { onReabrir: () => void }) {
+  const { t } = useTranslation();
+  return (
+    <div
+      data-entreno-guardado
+      className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-ok/35 bg-ok/10 px-3 py-2.5 text-sm"
+    >
+      <span className="flex items-center gap-2">
+        <Lock className="size-4 shrink-0 text-ok" aria-hidden="true" />
+        {t("training.guardadoFijo")}
+      </span>
+      <Button
+        type="button"
+        size="sm"
+        variant="outline"
+        onClick={onReabrir}
+        className="text-2xs font-bold uppercase tracking-widest"
+      >
+        {t("training.reabrir")}
+      </Button>
     </div>
   );
 }
