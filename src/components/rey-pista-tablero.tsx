@@ -194,7 +194,7 @@ export function ReyPistaTablero({
           elegido ? t("training.ponerAqui", { name: nombre(elegido) }) : t("training.huecoLibre")
         }
         className={cn(
-          "flex min-h-11 w-full items-center justify-center rounded-lg border-[1.5px] border-dashed text-xs text-muted-foreground transition-colors disabled:cursor-default",
+          "flex min-h-11 min-w-28 flex-1 items-center justify-center rounded-lg border-[1.5px] border-dashed text-xs text-muted-foreground transition-colors disabled:cursor-default",
           marcado || elegido ? "border-primary bg-primary/5 text-primary" : "border-border",
         )}
       >
@@ -224,9 +224,12 @@ export function ReyPistaTablero({
           {ganador && <Crown className="size-3" aria-hidden="true" />}
           {ganador ? t("training.ganadores") : t("training.perdedores")}
         </p>
-        {Array.from({ length: Math.max(POR_LADO, ocupantes.length) }, (_, i) =>
-          hueco(c.pista, ganador, ocupantes[i], i),
-        )}
+        {/* Los dos del lado, en la misma línea; si no caben, bajan. */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          {Array.from({ length: Math.max(POR_LADO, ocupantes.length) }, (_, i) =>
+            hueco(c.pista, ganador, ocupantes[i], i),
+          )}
+        </div>
       </div>
     );
   };
