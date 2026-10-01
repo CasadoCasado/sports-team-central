@@ -31,6 +31,14 @@ test("plegada, abierta por encima y fijada", async ({ page, request }) => {
   await expect.poll(() => anchoDe(page, "#main-sidebar")).toBe(256);
   expect(await anchoDe(page, "main")).toBe(main);
   await page.keyboard.press("Escape");
+  await page.mouse.move(1000, 500);
+  await expect.poll(() => anchoDe(page, "#main-sidebar")).toBe(72);
+
+  // Con el ratón encima también se abre, y al salir se pliega.
+  await page.mouse.move(36, 400);
+  await expect.poll(() => anchoDe(page, "#main-sidebar")).toBe(256);
+  expect(await anchoDe(page, "main")).toBe(main);
+  await page.mouse.move(1000, 500);
   await expect.poll(() => anchoDe(page, "#main-sidebar")).toBe(72);
 
   // Fijada: ocupa su sitio y se recuerda al volver.

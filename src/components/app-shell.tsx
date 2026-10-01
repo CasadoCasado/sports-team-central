@@ -1,4 +1,4 @@
-import { type ReactNode, useState } from "react";
+import { type PointerEvent as ReactPointerEvent, type ReactNode, useRef, useState } from "react";
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { useIsAdmin } from "@/hooks/use-is-admin";
@@ -72,14 +72,38 @@ export function AppShell({ children }: { children: ReactNode }) {
   function fijar(v: boolean) {
     setFijada(v);
     setAbierta(false);
+    setEncima(false);
     try {
       window.localStorage.setItem(CLAVE_FIJADA, v ? "1" : "0");
     } catch {
       // Ventana privada: vale para esta visita.
     }
   }
+  // Con el ratón encima, la franja también se abre por encima, con un
+  // pequeño retraso para que cruzarla de camino a otra cosa no la despliegue,
+  // y otro al salir para que un tropiezo del ratón no la cierre.
+  const [encima, setEncima] = useState(false);
+  const temporizador = useRef<ReturnType<typeof setTimeout> | null>(null);
+  function alEntrar(e: ReactPointerEvent) {
+    if (e.pointerType !== "mouse" || fijada) return;
+    if (temporizador.current) clearTimeout(temporizador.current);
+    temporizador.current = setTimeout(() => setEncima(true), 150);
+  }
+  function alSalir(e: ReactPointerEvent) {
+    if (e.pointerType !== "mouse") return;
+    if (temporizador.current) clearTimeout(temporizador.current);
+    temporizador.current = setTimeout(() => setEncima(false), 250);
+  }
+  function plegar() {
+    if (temporizador.current) clearTimeout(temporizador.current);
+    setAbierta(false);
+    setEncima(false);
+  }
+  useEffect(() => () => {
+    if (temporizador.current) clearTimeout(temporizador.current);
+  }, []);
   /** Solo cuenta desde `lg`: en móvil la barra es el cajón de siempre. */
-  const plegada = !fijada && !abierta;
+  const plegada = !fijada && !abierta && !encima;
 
   const { data: unreadCount } = useQuery({
     queryKey: ["shell-unread", user?.id],
@@ -100,6 +124,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   useEffect(() => {
     setMobileOpen(false);
     setAbierta(false);
+    setEncima(false);
   }, [pathname]);
 
   useEffect(() => {
@@ -207,10 +232,12 @@ export function AppShell({ children }: { children: ReactNode }) {
           "fixed inset-y-0 left-0 z-40 flex w-[17rem] max-w-[85vw] shrink-0 flex-col overscroll-contain bg-[color:var(--color-ink)] pb-[env(safe-area-inset-bottom)] text-[color:var(--color-ink-foreground)] transition-[transform,width] duration-200 will-change-transform lg:max-w-none lg:translate-x-0 lg:pb-0",
           mobileOpen ? "translate-x-0" : "-translate-x-full",
           plegada ? "lg:w-[4.5rem]" : "lg:w-64",
-          abierta && !fijada && "lg:shadow-2xl",
+          !fijada && !plegada && "lg:shadow-2xl",
         )}
         aria-label="Navegación principal"
         aria-hidden={undefined}
+        onPointerEnter={alEntrar}
+        onPointerLeave={alSalir}
       >
         <div className={cn("flex h-16 items-center gap-3 px-6", plegada && "lg:justify-center lg:px-0")}>
           <img
@@ -233,7 +260,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
 
         {/* Abrir, fijar o plegar: solo en escritorio. */}
-        <div className={cn("hidden px-3 lg:flex", plegada ? "justify-center" : "justify-end gap-1")}>
+        <div className={cn("hidden px-3 lg:flex", plegada ? "justify-center" : "justify-between gap-1")}>
           {plegada ? (
             <button
               type="button"
@@ -265,7 +292,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               {!fijada && (
                 <button
                   type="button"
-                  onClick={() => setAbierta(false)}
+                  onClick={plegar}
                   aria-label={t("nav.cerrarBarra")}
                   title={t("nav.cerrarBarra")}
                   className="inline-flex size-9 items-center justify-center rounded-lg text-[color:var(--color-ink-muted)] hover:bg-white/[0.06] hover:text-white"
