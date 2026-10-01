@@ -21,13 +21,14 @@ import { createPortal } from "react-dom";
 import { useMutation } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Check, Clock, GripVertical, Plus, Sparkles, X } from "lucide-react";
+import { Check, Clock, Copy, GripVertical, Plus, Sparkles, X } from "lucide-react";
 
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { useQuimicas } from "@/hooks/use-quimica";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { parejaPro, type TableroPro } from "@/lib/pro";
+import { nombreParaCompartir, textoAlineacion } from "@/lib/alineacion";
 
 type Respuesta = {
   id: string;
@@ -43,6 +44,9 @@ type Miembro = {
 
 type Evento = {
   id: string;
+  titulo: string;
+  fecha_inicio: string;
+  ubicacion?: string | null;
   rival?: string | null;
   padel_num_pistas: number | null;
   convocatoria_confirmada: boolean;
@@ -64,7 +68,7 @@ export function VistaPro({
   pro: TableroPro;
   onChanged: () => void;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const cerrada = event.convocatoria_confirmada;
   const numPistas = event.padel_num_pistas ?? 0;
   const pistas = Array.from({ length: numPistas }, (_, i) => i + 1);
@@ -215,6 +219,24 @@ export function VistaPro({
     onError: (e: Error) => toast.error(e.message),
   });
 
+  async function copiar() {
+    const texto = textoAlineacion(
+      event,
+      pistas.map((n) => ({
+        pista: n,
+        nombres: enPista(n).map((r) => nombreParaCompartir(perfil(r.user_id))),
+      })),
+      t,
+      i18n.language,
+    );
+    try {
+      await navigator.clipboard.writeText(texto);
+      toast.success(t("quimica.copiadas"));
+    } catch {
+      toast.error(t("common.error"));
+    }
+  }
+
   const ctx: Ctx = {
     pro,
     nombre,
@@ -250,8 +272,18 @@ export function VistaPro({
               {t("pro.tabMatriz")}
             </TabsTrigger>
           </TabsList>
-          {cerrada
-            ? !event.finalizado && (
+          {cerrada ? (
+            <div className="flex flex-wrap gap-2">
+              {/* Confirmada, las parejas se copian para el grupo del equipo. */}
+              <button
+                type="button"
+                onClick={() => void copiar()}
+                className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-[var(--pro-blue)] px-4 text-2xs font-extrabold uppercase tracking-widest text-white"
+              >
+                <Copy className="size-4" aria-hidden="true" />
+                {t("quimica.copiarTexto")}
+              </button>
+              {!event.finalizado && (
                 <button
                   type="button"
                   onClick={() => confirmar.mutate(false)}
@@ -260,18 +292,21 @@ export function VistaPro({
                 >
                   {t("quimica.reabrir")}
                 </button>
-              )
-            : numPistas > 0 && (
-                <button
-                  type="button"
-                  onClick={() => confirmar.mutate(true)}
-                  disabled={confirmar.isPending}
-                  className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-[var(--pro-blue)] px-4 text-2xs font-extrabold uppercase tracking-widest text-white"
-                >
-                  <Check className="size-4" aria-hidden="true" />
-                  {t("quimica.confirmar")}
-                </button>
               )}
+            </div>
+          ) : (
+            numPistas > 0 && (
+              <button
+                type="button"
+                onClick={() => confirmar.mutate(true)}
+                disabled={confirmar.isPending}
+                className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-[var(--pro-blue)] px-4 text-2xs font-extrabold uppercase tracking-widest text-white"
+              >
+                <Check className="size-4" aria-hidden="true" />
+                {t("quimica.confirmar")}
+              </button>
+            )
+          )}
         </div>
 
         {pro.rival && <FranjaRival pro={pro} pila={pila} />}

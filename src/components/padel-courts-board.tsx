@@ -3,10 +3,9 @@ import { createPortal } from "react-dom";
 import { useMutation } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { format } from "date-fns";
-import { es as esLocale, enUS } from "date-fns/locale";
 import { Check, Copy, GripVertical, Hand, Lock, Sparkles } from "lucide-react";
 
+import { nombreParaCompartir, textoAlineacion } from "@/lib/alineacion";
 import { api } from "@/lib/api";
 import { useQuimicas } from "@/hooks/use-quimica";
 import { cn } from "@/lib/utils";
@@ -85,10 +84,8 @@ export function PadelCourtsBoard({ event, responses, members, onChanged }: Props
     return p ? `${p.nombre} ${p.apellidos?.[0] ?? ""}.` : "?";
   };
   // Nombre y primer apellido: basta para no confundir a dos del mismo nombre.
-  const paraCompartir = (userId: string) => {
-    const p = members.find((m) => m.user_id === userId)?.profile;
-    return p ? `${p.nombre} ${p.apellidos?.split(" ")[0] ?? ""}`.trim() : "?";
-  };
+  const paraCompartir = (userId: string) =>
+    nombreParaCompartir(members.find((m) => m.user_id === userId)?.profile);
   const pila = (userId: string) =>
     members.find((m) => m.user_id === userId)?.profile?.nombre ?? "?";
 
@@ -177,21 +174,12 @@ export function PadelCourtsBoard({ event, responses, members, onChanged }: Props
   // negrita en WhatsApp y Telegram. Las pistas vacías no salen; a la que le
   // falta uno se le dice.
   function textoParaCompartir() {
-    const locale = i18n.language.startsWith("en") ? enUS : esLocale;
-    const inicio = new Date(event.fecha_inicio);
-    const titulo = event.rival ? `${event.titulo} vs ${event.rival}` : event.titulo;
-    const cuando = [format(inicio, "EEE d LLL · HH:mm", { locale }), event.ubicacion]
-      .filter(Boolean)
-      .join(" · ");
-    const lineas = pistas.flatMap((n) => {
-      const [a, b] = enPista(n).map((r) => paraCompartir(r.user_id));
-      if (!a) return [];
-      const quienes = b
-        ? t("quimica.compartirPareja", { a, b })
-        : t("quimica.compartirFaltaPareja", { a });
-      return [`*${t("callups.pista")} ${n}:* ${quienes}`];
-    });
-    return `🎾 *${titulo}*\n${cuando}\n\n${lineas.join("\n")}`;
+    return textoAlineacion(
+      event,
+      pistas.map((n) => ({ pista: n, nombres: enPista(n).map((r) => paraCompartir(r.user_id)) })),
+      t,
+      i18n.language,
+    );
   }
 
   // Los nombres llegan en otra consulta: copiar antes daría «? y ?».
