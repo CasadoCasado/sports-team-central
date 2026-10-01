@@ -128,9 +128,11 @@ async function pulsar(boton: Locator, luego: Locator) {
 test.describe("Convocatoria PRO", () => {
   test("la capitana activa PRO y la co-capitana reparte con propuestas", async ({
     page,
+    context,
     request,
     browser,
   }) => {
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
     const e = await montar(request);
 
     // Sin PRO, la co-capitana ve el conmutador, pero activarlo es del capitán.
@@ -262,6 +264,12 @@ test.describe("Convocatoria PRO", () => {
     await expect(page.getByText(/convocatoria confirmada\./i)).toBeVisible();
     await modo.getByRole("button", { name: /^pro$/i }).click();
     await expect(page.getByRole("button", { name: /sugerir parejas/i })).toBeDisabled();
+
+    // Confirmada, en PRO también se copia la alineación para el grupo.
+    await page.getByRole("button", { name: /^copiar texto$/i }).click();
+    await expect(page.getByText(/pistas copiadas/i)).toBeVisible();
+    const texto = await page.evaluate(() => navigator.clipboard.readText());
+    expect(texto).toMatch(/\*Pista 1:\* (Sara Lago y Noa Vilar|Noa Vilar y Sara Lago)/);
     await expect(page.getByRole("button", { name: /reabrir/i })).toBeVisible();
 
     // En Enfrentamientos, el mismo conmutador y la misma vista.
