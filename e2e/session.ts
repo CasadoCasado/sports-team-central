@@ -204,3 +204,24 @@ export async function fillForm(entries: [Locator, string][]) {
     }
   }).toPass({ timeout: 30_000 });
 }
+
+/**
+ * Lleva un partido al pasado, como si ya se hubiera jugado.
+ *
+ * Un partido jugado no cambia su convocatoria (ver
+ * `asegurar_partido_abierto` en el backend), así que para preparar uno con
+ * apuntados y pistas se monta en el futuro y luego se mueve aquí, que es lo
+ * que pasa de verdad: se convoca antes y se juega después.
+ */
+export async function pasarAlPasado(
+  api: APIRequestContext,
+  quien: Session,
+  eventId: string,
+  dias = 3,
+) {
+  const res = await api.patch(`${API_URL}/events/${eventId}/`, {
+    headers: bearer(quien),
+    data: { fecha_inicio: new Date(Date.now() - dias * 86_400_000).toISOString() },
+  });
+  await ok(res, `llevar al pasado el evento ${eventId}`);
+}

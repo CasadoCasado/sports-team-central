@@ -126,6 +126,8 @@ export type TeamEvent = {
   padel_num_pistas: number | null;
   /** Lo que vale cada pista en el marcador, en orden; sin lista, 1 cada una. */
   puntos_pista?: number[] | null;
+  /** Los que valen de verdad: los del partido o, si no tiene, los de su competición. */
+  puntos_pista_efectivos?: number[] | null;
   /** Formato de un entreno suelto. Dentro de una competición manda el de ella. */
   formato_entreno: TrainingFormat | null;
   competition_nombre: string | null;

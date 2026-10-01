@@ -163,7 +163,9 @@ function EventDetail() {
 
   return (
     <div
-      className={cn("mx-auto space-y-6", anchoPro && !soloResultado ? "max-w-7xl" : "max-w-5xl")}
+      className={cn("mx-auto space-y-6", anchoPro && !soloResultado && !(event.tipo === "partido" && event.finalizado)
+          ? "max-w-7xl"
+          : "max-w-5xl")}
     >
       <Link
         to={soloResultado ? "/resultados" : "/calendario"}
@@ -341,7 +343,7 @@ function EventDetail() {
           teamId={event.team_id}
           startISO={event.fecha_inicio}
           padelNumPistas={event.padel_num_pistas}
-          puntosPista={event.puntos_pista ?? null}
+          puntosPista={event.puntos_pista_efectivos ?? null}
           esLocal={event.es_local ?? true}
           isManager={!!isManager}
         />
@@ -454,6 +456,9 @@ function CallupSection({
   // donde se juega en parejas por pista.
   const hayQuimica = isPadel && event.tipo === "partido";
   const confirmada = event.convocatoria_confirmada;
+  // Un partido ya jugado no cambia su convocatoria ni sus parejas: se ve,
+  // pero nada se toca (el backend tampoco lo deja).
+  const jugado = event.tipo === "partido" && event.finalizado;
 
   const { data: members } = useQuery({
     queryKey: ["team-members-full", teamId],
@@ -561,7 +566,8 @@ function CallupSection({
 
   // Puedo dar química si estoy apuntado y no he dicho «No puedo». Para la
   // gestión llega la de todos; aquí solo interesa la mía.
-  const puedoDarQuimica = hayQuimica && !!myResp && myResp.status !== "rechazado";
+  const puedoDarQuimica =
+    hayQuimica && !jugado && !!myResp && myResp.status !== "rechazado";
   const { data: quimicas } = useQuimicas([eventId], hayQuimica);
   const miQuimica = quimicas?.find((q) => q.user_id === userId)?.target_user_id ?? null;
   const nombreDe = (uid: string) => {
@@ -584,11 +590,11 @@ function CallupSection({
               <span title={t("callups.response_reserva")}>{reserve} R</span> ·{" "}
               <span title={t("callups.response_duda")}>{doubt} ?</span> ·{" "}
               <span title={t("callups.response_rechazado")}>{rejected} ✕</span> ·{" "}
-              {convocados.length} ★
+              <span title={t("callups.convocadosHint")}>{convocados.length} ★</span>
             </p>
           </div>
         </div>
-        {userId && isMember && !myResp && (
+        {userId && isMember && !myResp && !jugado && (
           <Button
             onClick={() => signUp.mutate()}
             className="bg-primary text-primary-foreground uppercase tracking-widest font-bold hover:opacity-90"
@@ -596,7 +602,7 @@ function CallupSection({
             {t("callups.signUp")}
           </Button>
         )}
-        {userId && myResp && !isManager && (
+        {userId && myResp && !isManager && !jugado && (
           <Button variant="outline" onClick={() => withdraw.mutate()}>
             {t("callups.withdraw")}
           </Button>
@@ -626,7 +632,9 @@ function CallupSection({
               </p>
             )
           )}
-          <PlayerResponseForm response={myResp} eventId={eventId} userId={userId} />
+          {!jugado && (
+            <PlayerResponseForm response={myResp} eventId={eventId} userId={userId} />
+          )}
         </div>
       )}
 
@@ -699,12 +707,22 @@ function CallupSection({
                       cerrada={confirmada}
                     />
                   )}
-                  {isManager && (
-                    <label className="flex min-h-9 cursor-pointer items-center gap-1 text-2xs font-bold uppercase tracking-widest">
+                  {/* ★ = convocado: el que entra en el partido, no solo
+                      apuntado. Jugado el partido ya no se cambia. */}
+                  {isManager && !jugado && (
+                    <label
+                      title={
+                        r.es_convocado
+                          ? t("callups.desconvocarHint", { name: nombreDe(r.user_id) })
+                          : t("callups.convocarHint", { name: nombreDe(r.user_id) })
+                      }
+                      className="flex min-h-9 cursor-pointer items-center gap-1 text-2xs font-bold uppercase tracking-widest"
+                    >
                       <input
                         type="checkbox"
                         className="size-4"
                         checked={r.es_convocado}
+                        aria-label={t("callups.convocarA", { name: nombreDe(r.user_id) })}
                         onChange={(e) =>
                           toggleConvocado.mutate({ id: r.id, value: e.target.checked })
                         }
@@ -712,13 +730,21 @@ function CallupSection({
                       ★
                     </label>
                   )}
+                  {jugado && r.es_convocado && (
+                    <span
+                      title={t("callups.convocadoHint")}
+                      className="text-2xs font-bold uppercase tracking-widest text-primary"
+                    >
+                      ★
+                    </span>
+                  )}
                 </div>
               </div>
             );
           })}
         </div>
 
-        {hayQuimica && isManager && (
+        {hayQuimica && isManager && !jugado && (
           <div className="mt-6 border-t border-border pt-5">
             {team && (
               <RepartoPadel

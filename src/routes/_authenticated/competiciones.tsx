@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Trophy, Plus, Pencil, Trash2, ListOrdered, MapPin, Globe } from "lucide-react";
+import { escribirPuntosPista, leerPuntosPista } from "@/lib/puntos-pista";
 import { api } from "@/lib/api";
 import { invalidateCompetitionQueries } from "@/lib/query-keys";
 import { useSession } from "@/hooks/use-session";
@@ -51,6 +52,8 @@ type Competition = {
   provincia_nombre: string | null;
   abierto: boolean;
   plazas: number | null;
+  /** Lo que vale cada pista en sus partidos; lo heredan todos. */
+  puntos_pista: number[] | null;
   inscritos: number;
 };
 
@@ -312,6 +315,7 @@ function CompDialog({
   const [provincia, setProvincia] = useState<string | null>(null);
   const [abierto, setAbierto] = useState(false);
   const [plazas, setPlazas] = useState("");
+  const [puntosPista, setPuntosPista] = useState("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -327,6 +331,7 @@ function CompDialog({
     setProvincia(initial.id ? (initial.provincia ?? null) : (profile?.provincia ?? null));
     setAbierto(initial.abierto ?? false);
     setPlazas(initial.plazas ? String(initial.plazas) : "");
+    setPuntosPista(escribirPuntosPista(initial.puntos_pista));
   }, [initial, profile?.provincia]);
 
   const isEdit = !!initial.id;
@@ -337,6 +342,8 @@ function CompDialog({
     mutationFn: async () => {
       if (!user || !nombre.trim()) throw new Error(t("auth.required"));
       if (isTorneo && abierto && !provincia) throw new Error(t("torneos.provinciaFalta"));
+      const puntos = leerPuntosPista(puntosPista);
+      if (puntos === undefined) throw new Error(t("events.puntosPistaError"));
       const payload = {
         team_id: teamId,
         nombre: nombre.trim(),
@@ -351,6 +358,7 @@ function CompDialog({
         // Solo un torneo puede ser abierto; al cambiar de tipo se cierra.
         abierto: isTorneo && abierto,
         plazas: isTorneo && abierto && plazas ? Number(plazas) : null,
+        puntos_pista: puntos,
       };
       if (isEdit) {
         await api.patch(`/competitions/${initial.id!}/`, payload);
@@ -459,6 +467,18 @@ function CompDialog({
               )}
             </div>
           )}
+
+          <div>
+            <Label htmlFor="comp-puntos">{t("events.puntosPista")}</Label>
+            <Input
+              id="comp-puntos"
+              inputMode="numeric"
+              value={puntosPista}
+              onChange={(e) => setPuntosPista(e.target.value)}
+              placeholder="3, 3, 2, 2, 2"
+            />
+            <p className="mt-1.5 text-xxs text-muted-foreground">{t("competitions.puntosPistaHint")}</p>
+          </div>
 
           <div>
             <Label>{t("competitions.formato")}</Label>

@@ -4,6 +4,7 @@ import {
   API_URL,
   bearer,
   loginAs,
+  pasarAlPasado,
   seedCaptainWithTeam,
   seedPlayerInTeam,
   type Session,
@@ -76,7 +77,9 @@ async function montar(request: APIRequestContext): Promise<Equipo> {
 
   // Hace una semana contra el mismo rival: Sara y Noa ganaron la pista 1;
   // Iván y Diego perdieron la 2.
-  const antes = await partido(request, capitana, team.id, -7);
+  // Se monta en el futuro y se lleva al pasado: un partido jugado ya no
+  // cambia su convocatoria.
+  const antes = await partido(request, capitana, team.id, 1);
   for (const s of [sara, noa, ivan, cocap]) await apuntar(request, s, antes);
   const resp = (await (
     await request.get(`${API_URL}/event-responses/?event_id=${antes}`, {
@@ -96,6 +99,7 @@ async function montar(request: APIRequestContext): Promise<Equipo> {
     });
     expect(res.ok(), await res.text()).toBe(true);
   }
+  await pasarAlPasado(request, capitana, antes, 7);
   const res = await request.post(`${API_URL}/match-results/bulk/`, {
     headers: bearer(capitana),
     data: {
@@ -190,17 +194,25 @@ test.describe("Convocatoria PRO", () => {
     await expect(pistaPro2).toContainText(/iván · falta pareja/i);
 
     // Y arrastrando: Diego, desde «Sin pista» al hueco que queda en la pista 2.
-    const diego = page.getByRole("button", { name: /^diego otero\. arrástralo/i });
-    const origen = (await diego.boundingBox())!;
-    const hueco = (await pistaPro2
-      .getByRole("button", { name: /hueco libre|poner a/i })
-      .boundingBox())!;
-    await page.mouse.move(origen.x + origen.width / 2, origen.y + origen.height / 2);
-    await page.mouse.down();
-    await page.mouse.move(origen.x + 30, origen.y + 20, { steps: 4 });
-    await page.mouse.move(hueco.x + hueco.width / 2, hueco.y + hueco.height / 2, { steps: 10 });
-    await page.mouse.up();
-    await expect(pistaPro2).toContainText(/(iván y diego|diego e iván|diego y iván)/i);
+    // Se mide justo antes de arrastrar y se reintenta: tras el cambio de
+    // antes la página se recoloca un instante.
+    await expect(async () => {
+      const diego = page.getByRole("button", { name: /^diego otero\. arrástralo/i });
+      const origen = (await diego.boundingBox())!;
+      const hueco = (await pistaPro2
+        .getByRole("button", { name: /hueco libre|poner a/i })
+        .boundingBox())!;
+      await page.mouse.move(origen.x + origen.width / 2, origen.y + origen.height / 2);
+      await page.mouse.down();
+      await page.mouse.move(origen.x + 30, origen.y + 20, { steps: 4 });
+      await page.mouse.move(hueco.x + hueco.width / 2, hueco.y + hueco.height / 2, {
+        steps: 10,
+      });
+      await page.mouse.up();
+      await expect(pistaPro2).toContainText(/(iván y diego|diego e iván|diego y iván)/i, {
+        timeout: 3_000,
+      });
+    }).toPass({ timeout: 20_000 });
 
     // La «×» sobre la ficha de la pista la devuelve a «Sin pista».
     await pistaPro2.getByRole("button", { name: /^diego otero$/i }).hover();
