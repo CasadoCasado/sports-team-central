@@ -66,6 +66,8 @@ export type Team = {
   color_secundario: string | null;
   instalacion: string | null;
   inscripciones_abiertas: boolean;
+  /** Convocatoria PRO: la activa el capitán y la ve la gestión. */
+  es_pro: boolean;
   member_count: number;
   created_at: string;
   updated_at: string;
