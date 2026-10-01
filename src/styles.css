@@ -641,3 +641,56 @@
   --pro-m5: #d7f24b;
   --pro-m5-txt: #0b1222;
 }
+
+/* Mientras carga PRO: la pelota bota sobre la pista azul. Es la animación de
+ * la bienvenida del lienzo; sin movimiento si el sistema lo pide. */
+@keyframes pro-bote {
+  0%,
+  100% {
+    transform: translateY(0) scaleY(0.92) scaleX(1.06);
+  }
+  12% {
+    transform: translateY(-4px) scaleY(1) scaleX(1);
+  }
+  50% {
+    transform: translateY(-44px);
+  }
+  88% {
+    transform: translateY(-4px) scaleY(1) scaleX(1);
+  }
+}
+@keyframes pro-sombra {
+  0%,
+  100% {
+    transform: scaleX(1);
+    opacity: 0.55;
+  }
+  50% {
+    transform: scaleX(0.55);
+    opacity: 0.2;
+  }
+}
+@keyframes pro-avance {
+  from {
+    left: 18%;
+  }
+  to {
+    left: 82%;
+  }
+}
+.pro-bote {
+  animation: pro-bote 0.9s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+.pro-sombra {
+  animation: pro-sombra 0.9s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+.pro-avance {
+  animation: pro-avance 1.8s ease-in-out infinite alternate;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pro-bote,
+  .pro-sombra,
+  .pro-avance {
+    animation: none;
+  }
+}

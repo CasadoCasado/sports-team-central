@@ -52,6 +52,7 @@ import {
   type SetPair,
 } from "@/lib/padel-scoring";
 import { cn, inicialesDe } from "@/lib/utils";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { RepartoPadel } from "@/components/convocatoria-pro";
 import { QuimicaAviso, QuimicaBoton } from "@/components/quimica";
 import { useQuimicas } from "@/hooks/use-quimica";
@@ -710,25 +711,44 @@ function CallupSection({
                   {/* ★ = convocado: el que entra en el partido, no solo
                       apuntado. Jugado el partido ya no se cambia. */}
                   {isManager && !jugado && (
-                    <label
-                      title={
-                        r.es_convocado
+                    <TooltipProvider delayDuration={150}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <label
+                          title={
+                            r.es_convocado
+                              ? t("callups.desconvocarHint", { name: nombreDe(r.user_id) })
+                              : t("callups.convocarHint", { name: nombreDe(r.user_id) })
+                          }
+                          className={cn(
+                            "flex min-h-9 cursor-pointer items-center gap-1.5 rounded-md border px-2 text-2xs font-bold uppercase tracking-widest",
+                            r.es_convocado
+                              ? "border-primary/40 bg-primary/10 text-primary"
+                              : "border-border text-muted-foreground",
+                          )}
+                        >
+                          <input
+                            type="checkbox"
+                            className="size-4"
+                            checked={r.es_convocado}
+                            aria-label={t("callups.convocarA", { name: nombreDe(r.user_id) })}
+                            onChange={(e) =>
+                              toggleConvocado.mutate({ id: r.id, value: e.target.checked })
+                            }
+                          />
+                          <span aria-hidden="true">★</span>
+                          <span className="hidden sm:inline" aria-hidden="true">
+                            {r.es_convocado ? t("callups.convocadoCorto") : t("callups.convocarCorto")}
+                          </span>
+                        </label>
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-64 text-xs">
+                        {r.es_convocado
                           ? t("callups.desconvocarHint", { name: nombreDe(r.user_id) })
-                          : t("callups.convocarHint", { name: nombreDe(r.user_id) })
-                      }
-                      className="flex min-h-9 cursor-pointer items-center gap-1 text-2xs font-bold uppercase tracking-widest"
-                    >
-                      <input
-                        type="checkbox"
-                        className="size-4"
-                        checked={r.es_convocado}
-                        aria-label={t("callups.convocarA", { name: nombreDe(r.user_id) })}
-                        onChange={(e) =>
-                          toggleConvocado.mutate({ id: r.id, value: e.target.checked })
-                        }
-                      />
-                      ★
-                    </label>
+                          : t("callups.convocarHint", { name: nombreDe(r.user_id) })}
+                      </TooltipContent>
+                    </Tooltip>
+                    </TooltipProvider>
                   )}
                   {jugado && r.es_convocado && (
                     <span

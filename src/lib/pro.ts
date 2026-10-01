@@ -45,7 +45,8 @@ export type TableroPro = {
     jugadores: Record<string, { ganados: number; perdidos: number }>;
   } | null;
   quimica_mutua: [string, string][];
-  propuestas: PropuestaPro[];
+  /** Van aparte (`/propuestas/`): aquí llegan vacías. */
+  propuestas: PropuestaPro[] | null;
 };
 
 export function parejaPro(pro: TableroPro, a: string, b: string) {

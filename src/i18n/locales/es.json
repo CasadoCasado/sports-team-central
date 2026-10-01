@@ -600,7 +600,9 @@
     "convocarHint": "Convocar a {{name}}: entra en el partido, no solo apuntado",
     "desconvocarHint": "{{name}} está convocado. Desmárcalo para quitarle del partido (y de su pista)",
     "convocarA": "Convocar a {{name}}",
-    "convocadoHint": "Convocado: jugó este partido"
+    "convocadoHint": "Convocado: jugó este partido",
+    "convocarCorto": "Convocar",
+    "convocadoCorto": "Convocado"
   },
   "common": {
     "loading": "Cargando...",
@@ -1261,6 +1263,8 @@
     "separados": "Separados",
     "juntarA": "Juntar a {{a}} y {{b}}",
     "sinElegir": "Sin elegir: {{nombres}}",
-    "leyendaQuimica": "Química (doble: mutua)"
+    "leyendaQuimica": "Química (doble: mutua)",
+    "cargando": "Preparando el tablero PRO…",
+    "cargandoPropuestas": "Buscando las mejores parejas…"
   }
 }
