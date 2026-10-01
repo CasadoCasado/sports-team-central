@@ -341,6 +341,7 @@ function EventDetail() {
           teamId={event.team_id}
           startISO={event.fecha_inicio}
           padelNumPistas={event.padel_num_pistas}
+          puntosPista={event.puntos_pista ?? null}
           esLocal={event.es_local ?? true}
           isManager={!!isManager}
         />
@@ -365,6 +366,7 @@ function EventDetail() {
             requiere_convocatoria: event.requiere_convocatoria,
             convocatoria_cierra_en: toDateTimeLocal(event.convocatoria_cierra_en),
             padel_num_pistas: event.padel_num_pistas,
+            puntos_pista: event.puntos_pista?.join(", ") ?? "",
             formato_entreno: event.formato_entreno,
           }}
         />
@@ -827,6 +829,7 @@ function MatchResultsSection({
   teamId,
   startISO,
   padelNumPistas,
+  puntosPista,
   esLocal,
   isManager,
 }: {
@@ -834,6 +837,8 @@ function MatchResultsSection({
   teamId: string;
   startISO: string;
   padelNumPistas: number | null;
+  /** Lo que vale cada pista; sin lista no se dice, porque vale 1. */
+  puntosPista: number[] | null;
   esLocal: boolean;
   isManager: boolean;
 }) {
@@ -1053,6 +1058,11 @@ function MatchResultsSection({
               {isPadel ? (
                 <div className="text-2xs font-bold uppercase tracking-widest text-primary">
                   {t("results.pista")} {row.pista}
+                  {puntosPista && (
+                    <span className="ml-2 rounded-full bg-primary/10 px-2 py-0.5 normal-case tracking-normal">
+                      {t("results.valePuntos", { count: puntosPista[row.pista - 1] ?? 1 })}
+                    </span>
+                  )}
                 </div>
               ) : (
                 <span />

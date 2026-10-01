@@ -444,7 +444,10 @@
       "ganado": "Ganado",
       "perdido": "Perdido",
       "empate": "Empate"
-    }
+    },
+    "puntosPista": "Puntos por pista",
+    "puntosPistaHint": "Lo que vale cada pista en el marcador, en orden. Por ejemplo «3, 3, 2, 2, 2». Vacío: 1 punto cada pista.",
+    "puntosPistaError": "Los puntos por pista tienen que ser números del 1 al 10, separados por comas."
   },
   "competitions": {
     "title": "Competiciones",
@@ -794,7 +797,9 @@
     "empate": "Empate",
     "pendingCourt": "Sin resolver",
     "pendingResult": "Pendiente",
-    "backToResults": "Volver a resultados"
+    "backToResults": "Volver a resultados",
+    "valePuntos_one": "vale {{count}} punto",
+    "valePuntos_other": "vale {{count}} puntos"
   },
   "a11y": {
     "fontSize": "Tamaño de texto",

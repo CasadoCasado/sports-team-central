@@ -444,7 +444,10 @@
       "ganado": "Won",
       "perdido": "Lost",
       "empate": "Draw"
-    }
+    },
+    "puntosPista": "Points per court",
+    "puntosPistaHint": "What each court is worth in the score, in order. For example «3, 3, 2, 2, 2». Empty: 1 point per court.",
+    "puntosPistaError": "Points per court must be numbers from 1 to 10, separated by commas."
   },
   "competitions": {
     "title": "Competitions",
@@ -794,7 +797,9 @@
     "empate": "Draw",
     "pendingCourt": "Unresolved",
     "pendingResult": "Pending",
-    "backToResults": "Back to results"
+    "backToResults": "Back to results",
+    "valePuntos_one": "worth {{count}} point",
+    "valePuntos_other": "worth {{count}} points"
   },
   "a11y": {
     "fontSize": "Text size",

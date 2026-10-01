@@ -47,8 +47,18 @@ export type EventFormValues = {
   requiere_convocatoria: boolean;
   convocatoria_cierra_en: string;
   padel_num_pistas: number | null;
+  /** «3, 3, 2, 2, 2»: lo que vale cada pista. Vacío, 1 cada una. */
+  puntos_pista: string;
   formato_entreno: TrainingFormat | null;
 };
+
+/** «3, 3, 2 2 2» → [3, 3, 2, 2, 2]; vacío → null; algo que no cuadra → undefined. */
+export function leerPuntosPista(texto: string): number[] | null | undefined {
+  const trozos = texto.split(/[\s,;]+/).filter(Boolean);
+  if (trozos.length === 0) return null;
+  const valores = trozos.map(Number);
+  return valores.every((v) => Number.isInteger(v) && v >= 1 && v <= 10) ? valores : undefined;
+}
 
 const emptyValues = (): EventFormValues => ({
   tipo: "entrenamiento",
@@ -64,6 +74,7 @@ const emptyValues = (): EventFormValues => ({
   requiere_convocatoria: false,
   convocatoria_cierra_en: "",
   padel_num_pistas: null,
+  puntos_pista: "",
   formato_entreno: null,
 });
 
@@ -165,6 +176,8 @@ export function EventFormDialog({
       if (!user) throw new Error("No user");
       if (!values.titulo.trim()) throw new Error(t("auth.required"));
       if (!values.fecha_inicio) throw new Error(t("auth.required"));
+      const puntos = leerPuntosPista(values.puntos_pista);
+      if (puntos === undefined) throw new Error(t("events.puntosPistaError"));
       const payload = {
         team_id: teamId,
         tipo: values.tipo,
@@ -185,6 +198,7 @@ export function EventFormDialog({
           isPadel && values.tipo === "partido" && values.padel_num_pistas
             ? values.padel_num_pistas
             : null,
+        puntos_pista: isPadel && values.tipo === "partido" ? puntos : null,
         formato_entreno:
           values.tipo === "entrenamiento" && !values.competition_id
             ? values.formato_entreno
@@ -459,6 +473,19 @@ export function EventFormDialog({
                     }
                     placeholder={t("events.padelPistasHint")}
                   />
+                </div>
+              )}
+              {isPadel && (
+                <div>
+                  <Label htmlFor="puntos_pista">{t("events.puntosPista")}</Label>
+                  <Input
+                    id="puntos_pista"
+                    inputMode="numeric"
+                    value={values.puntos_pista}
+                    onChange={(e) => setValues((s) => ({ ...s, puntos_pista: e.target.value }))}
+                    placeholder="3, 3, 2, 2, 2"
+                  />
+                  <p className="mt-1 text-xs text-muted-foreground">{t("events.puntosPistaHint")}</p>
                 </div>
               )}
             </>
