@@ -612,7 +612,14 @@
       "convocarA": "{{name}} asistió",
       "convocarCorto": "Asistió",
       "convocadoCorto": "Asistió"
-    }
+    },
+    "ocultar": "Ocultar",
+    "verDetalle": "Ver convocatoria",
+    "resumenConvocados_one": "Jugó 1",
+    "resumenConvocados_other": "Jugaron {{count}}",
+    "resumenNadie": "Nadie quedó convocado.",
+    "resumenApuntados": "Apuntados que no jugaron",
+    "resumenNoPodian": "No podían"
   },
   "common": {
     "loading": "Cargando...",
@@ -818,7 +825,8 @@
     "pendingResult": "Pendiente",
     "backToResults": "Volver a resultados",
     "valePuntos_one": "vale {{count}} punto",
-    "valePuntos_other": "vale {{count}} puntos"
+    "valePuntos_other": "vale {{count}} puntos",
+    "rival": "Rival"
   },
   "a11y": {
     "fontSize": "Tamaño de texto",
