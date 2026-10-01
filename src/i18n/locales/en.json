@@ -611,7 +611,12 @@
       "desconvocarHint": "{{name}} came to the session. Untick if they didn't make it",
       "convocarA": "{{name}} attended",
       "convocarCorto": "Attended",
-      "convocadoCorto": "Attended"
+      "convocadoCorto": "Attended",
+      "cerrar": "Close call-up",
+      "reabrir": "Reopen call-up",
+      "cerrada": "Call-up closed: nobody can sign up or change their answer.",
+      "reabierta": "Call-up reopened.",
+      "cerradaEtiqueta": "Closed"
     },
     "ocultar": "Hide",
     "verDetalle": "See call-up"

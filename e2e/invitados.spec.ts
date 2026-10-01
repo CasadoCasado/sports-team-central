@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-import { API_URL, bearer, loginAs, seedCaptainWithTeam } from "./session";
+import { API_URL, bearer, loginAs, seedCaptainWithTeam, seedPlayerInTeam } from "./session";
 
 /**
  * Invitados en los entrenos: la gestión apunta a alguien de fuera con su
@@ -66,4 +66,53 @@ test("en un partido no se ofrece añadir invitados", async ({ page, request }) =
     timeout: 20_000,
   });
   await expect(page.getByRole("button", { name: /añadir invitado/i })).toHaveCount(0);
+});
+
+test("la capitana cierra la convocatoria del entreno y nadie más se apunta", async ({
+  page,
+  browser,
+  request,
+}) => {
+  const { session: capitana, team } = await seedCaptainWithTeam(request, "cierre");
+  const sara = await seedPlayerInTeam(request, "cierre-sara", team.id, capitana, {
+    nombre: "Sara",
+    apellidos: "Lago",
+  });
+  const res = await request.post(`${API_URL}/events/`, {
+    headers: bearer(capitana),
+    data: {
+      team_id: team.id,
+      tipo: "entrenamiento",
+      titulo: "Entreno del jueves",
+      fecha_inicio: new Date(Date.now() + 86_400_000).toISOString(),
+      requiere_convocatoria: true,
+    },
+  });
+  const { id } = (await res.json()) as { id: string };
+
+  await loginAs(page, capitana);
+  await page.goto(`/eventos/${id}`);
+  await expect(async () => {
+    await page.getByRole("button", { name: /^cerrar convocatoria$/i }).click();
+    await expect(page.locator("[data-entreno-cerrado]")).toBeVisible({ timeout: 1_500 });
+  }).toPass({ timeout: 20_000 });
+  await expect(page.getByRole("button", { name: /^reabrir convocatoria$/i })).toBeVisible();
+
+  // Sara entra después: ve que está cerrada y no puede apuntarse.
+  const ctx = await browser.newContext({ locale: "es-ES" });
+  const suya = await ctx.newPage();
+  await loginAs(suya, sara);
+  await suya.goto(`/eventos/${id}`);
+  await expect(suya.locator("[data-entreno-cerrado]")).toBeVisible({ timeout: 20_000 });
+  await expect(suya.getByRole("button", { name: /^apuntarme$/i })).toHaveCount(0);
+  const intento = await request.post(`${API_URL}/event-responses/respond/`, {
+    headers: bearer(sara),
+    data: { event_id: id, status: "confirmado" },
+  });
+  expect(intento.status()).toBe(400);
+  await ctx.close();
+
+  // Y la capitana la reabre.
+  await page.getByRole("button", { name: /^reabrir convocatoria$/i }).click();
+  await expect(page.locator("[data-entreno-cerrado]")).toHaveCount(0);
 });

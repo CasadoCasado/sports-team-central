@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import { es as esLocale, enUS } from "date-fns/locale";
 import {
   ArrowLeft,
+  Lock,
   Calendar as CalIcon,
   Check,
   ChevronDown,
@@ -471,6 +472,18 @@ function CallupSection({
   // Jugado el partido, la convocatoria ya solo se consulta: va plegada, solo
   // la cabecera; «Ver convocatoria» despliega la lista.
   const [abierta, setAbierta] = useState(!jugado);
+  // Un entreno se cierra cuando la gestión quiere: ya nadie se apunta ni
+  // cambia su respuesta (la gestión sí sigue marcando quién asistió).
+  const entrenoCerrado = esEntreno && confirmada;
+  const cerrarEntreno = useMutation({
+    mutationFn: (cerrar: boolean) =>
+      api.post(`/events/${eventId}/confirmar/`, { confirmada: cerrar }),
+    onSuccess: (_d, cerrar) => {
+      toast.success(t(cerrar ? "callups.entreno.cerrada" : "callups.entreno.reabierta"));
+      qc.invalidateQueries({ queryKey: ["event", eventId] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
   const k = (clave: string) => (esEntreno ? `callups.entreno.${clave}` : `callups.${clave}`);
 
   const { data: members } = useQuery({
@@ -643,7 +656,31 @@ function CallupSection({
             />
           </Button>
         )}
-        {userId && isMember && !myResp && !jugado && (
+        {esEntreno && (entrenoCerrado || isManager) && (
+          <div className="flex flex-wrap items-center gap-2">
+            {entrenoCerrado && (
+              <span
+                data-entreno-cerrado
+                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted px-2.5 py-1 text-2xs font-bold uppercase tracking-widest text-muted-foreground"
+              >
+                <Lock className="size-3" aria-hidden="true" />
+                {t("callups.entreno.cerradaEtiqueta")}
+              </span>
+            )}
+            {isManager && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => cerrarEntreno.mutate(!entrenoCerrado)}
+                disabled={cerrarEntreno.isPending}
+                className="min-h-9 text-2xs font-bold uppercase tracking-widest"
+              >
+                {entrenoCerrado ? t("callups.entreno.reabrir") : t("callups.entreno.cerrar")}
+              </Button>
+            )}
+          </div>
+        )}
+        {userId && isMember && !myResp && !jugado && !entrenoCerrado && (
           <Button
             onClick={() => signUp.mutate()}
             className="bg-primary text-primary-foreground uppercase tracking-widest font-bold hover:opacity-90"
@@ -651,7 +688,7 @@ function CallupSection({
             {t("callups.signUp")}
           </Button>
         )}
-        {userId && myResp && !isManager && !jugado && (
+        {userId && myResp && !isManager && !jugado && !entrenoCerrado && (
           <Button variant="outline" onClick={() => withdraw.mutate()}>
             {t("callups.withdraw")}
           </Button>
@@ -683,7 +720,7 @@ function CallupSection({
               </p>
             )
           )}
-          {!jugado && (
+          {!jugado && !(entrenoCerrado && !isManager) && (
             <PlayerResponseForm response={myResp} eventId={eventId} userId={userId} />
           )}
         </div>
