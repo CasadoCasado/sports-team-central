@@ -467,8 +467,8 @@ function CallupSection({
   // En un entreno no se convoca: se apunta quién vino. Es el mismo campo
   // (`es_convocado`), pero la casilla dice «Asistió».
   const esEntreno = event.tipo === "entrenamiento";
-  // Jugado el partido, la convocatoria ya solo se consulta: va plegada, con un
-  // resumen de quién jugó en cada pista y quién estaba apuntado.
+  // Jugado el partido, la convocatoria ya solo se consulta: va plegada, solo
+  // la cabecera; «Ver convocatoria» despliega la lista.
   const [abierta, setAbierta] = useState(!jugado);
   const k = (clave: string) => (esEntreno ? `callups.entreno.${clave}` : `callups.${clave}`);
 
@@ -605,7 +605,12 @@ function CallupSection({
 
   return (
     <div className="surface-card overflow-clip">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-5">
+      <div
+        className={cn(
+          "flex flex-wrap items-center justify-between gap-3 p-5",
+          (!jugado || abierta) && "border-b border-border",
+        )}
+      >
         <div className="flex items-center gap-3">
           <div className="flex size-10 items-center justify-center rounded-md bg-primary/10 text-primary">
             <ClipboardList className="size-5" />
@@ -652,16 +657,7 @@ function CallupSection({
         )}
       </div>
 
-      {jugado && !abierta ? (
-        <ResumenConvocatoria
-          responses={signedUp}
-          nombre={(uid) => {
-            const r = signedUp.find((x) => x.user_id === uid);
-            const m = members?.find((x) => x.user_id === uid);
-            return nombreVisible(m?.profile ?? r?.profile);
-          }}
-        />
-      ) : (
+      {jugado && !abierta ? null : (
       <>
       {userId && myResp && (
         <div className="border-b border-border p-4 sm:p-5">
@@ -1409,65 +1405,3 @@ function OutcomeBadge({
     </span>
   );
 }
-
-/**
- * La convocatoria de un partido ya jugado, de un vistazo: quién jugó en cada
- * pista, quién más estaba apuntado y quién no podía.
- */
-function ResumenConvocatoria({
-  responses,
-  nombre,
-}: {
-  responses: EventResponse[];
-  nombre: (userId: string) => string;
-}) {
-  const { t } = useTranslation();
-  const convocados = responses.filter((r) => r.es_convocado);
-  const porPista = new Map<number, string[]>();
-  const sinPista: string[] = [];
-  for (const r of convocados) {
-    if (r.padel_pista) porPista.set(r.padel_pista, [...(porPista.get(r.padel_pista) ?? []), r.user_id]);
-    else sinPista.push(r.user_id);
-  }
-  const apuntados = responses.filter((r) => !r.es_convocado && r.status !== "rechazado");
-  const noPodian = responses.filter((r) => r.status === "rechazado");
-  const linea = (titulo: string, ids: string[]) =>
-    ids.length > 0 && (
-      <p className="text-sm">
-        <span className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
-          {titulo} ({ids.length})
-        </span>{" "}
-        {ids.map(nombre).join(", ")}
-      </p>
-    );
-  return (
-    <div className="space-y-3 p-4 sm:p-5" data-resumen-convocatoria>
-      <div className="space-y-1.5">
-        <p className="text-2xs font-bold uppercase tracking-widest text-primary">
-          ★ {t("callups.resumenConvocados", { count: convocados.length })}
-        </p>
-        {convocados.length === 0 && (
-          <p className="text-sm text-muted-foreground">{t("callups.resumenNadie")}</p>
-        )}
-        <ul className="grid gap-1.5 sm:grid-cols-2">
-          {[...porPista.entries()]
-            .sort(([a], [b]) => a - b)
-            .map(([pista, ids]) => (
-              <li key={pista} className="flex min-w-0 items-baseline gap-2 text-sm">
-                <span className="shrink-0 text-2xs font-bold uppercase tracking-widest text-muted-foreground">
-                  {t("callups.pista")} {pista}
-                </span>
-                <span className="min-w-0 truncate font-medium">{ids.map(nombre).join(" y ")}</span>
-              </li>
-            ))}
-          {sinPista.length > 0 && (
-            <li className="text-sm font-medium">{sinPista.map(nombre).join(", ")}</li>
-          )}
-        </ul>
-      </div>
-      {linea(t("callups.resumenApuntados"), apuntados.map((r) => r.user_id))}
-      {linea(t("callups.resumenNoPodian"), noPodian.map((r) => r.user_id))}
-    </div>
-  );
-}
-

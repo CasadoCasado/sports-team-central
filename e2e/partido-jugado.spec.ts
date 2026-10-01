@@ -49,18 +49,19 @@ test("en un partido jugado no se toca la convocatoria", async ({ page, request }
   await expect(page.getByRole("heading", { name: /^convocatorias$/i })).toBeVisible({
     timeout: 20_000,
   });
-  // Plegada de inicio, con el resumen: quién jugó en cada pista.
-  const resumen = page.locator("[data-resumen-convocatoria]");
-  await expect(resumen).toContainText(/jugó 1/i);
-  await expect(resumen).toContainText(/pista 1\s*sara lago/i);
+  // Plegada de inicio: solo la cabecera, sin la lista ni el reparto.
+  await expect(page.getByText("Sara Lago")).toHaveCount(0);
   await expect(page.locator('[data-drop="1"]')).toHaveCount(0);
+  const ver = page.getByRole("button", { name: /ver convocatoria/i });
+  await expect(ver).toHaveAttribute("aria-expanded", "false");
 
   // Desplegada, la lista de siempre, sin nada que tocar.
-  await page.getByRole("button", { name: /ver convocatoria/i }).click();
+  await ver.click();
+  await expect(page.getByText("Sara Lago").first()).toBeVisible();
   await expect(page.getByRole("checkbox", { name: /convocar a/i })).toHaveCount(0);
   await expect(page.getByTitle(/convocado: jugó este partido/i)).toBeVisible();
   await page.getByRole("button", { name: /ocultar/i }).click();
-  await expect(resumen).toBeVisible();
+  await expect(page.getByText("Sara Lago")).toHaveCount(0);
 
   const res = await request.patch(`${API_URL}/event-responses/${respId}/`, {
     headers: bearer(capitana),
