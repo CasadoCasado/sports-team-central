@@ -7,6 +7,7 @@
  * igual que los resultados de un partido van a `/match-results/bulk/`.
  */
 
+import { invitadosApuntados } from "@/lib/invitados";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -122,6 +123,8 @@ export function TrainingResultsSection({
         nombre: nameOf(m.profile),
         signedUp: signedUp.has(m.user_id),
       }))
+      // Los invitados apuntados al entreno también juegan, aunque no sean del equipo.
+      .concat(invitadosApuntados(responses))
       .sort((a, b) => Number(b.signedUp) - Number(a.signedUp) || a.nombre.localeCompare(b.nombre));
   }, [members, responses]);
 

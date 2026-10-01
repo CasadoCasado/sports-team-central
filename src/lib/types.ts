@@ -34,6 +34,10 @@ export type Profile = {
   avatar_url: string | null;
   /** Revés, derecha o los dos; ver `lib/lado.ts`. */
   posicion?: string | null;
+  /** Cómo le llaman; lo llevan sobre todo los invitados. */
+  apodo?: string | null;
+  /** Alguien de fuera que viene a un entreno: no es del equipo. */
+  es_invitado?: boolean;
 };
 
 export type FullProfile = Profile & {
