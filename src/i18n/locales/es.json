@@ -611,7 +611,12 @@
       "desconvocarHint": "{{name}} vino al entreno. Desmárcalo si al final no vino",
       "convocarA": "{{name}} asistió",
       "convocarCorto": "Asistió",
-      "convocadoCorto": "Asistió"
+      "convocadoCorto": "Asistió",
+      "cerrar": "Cerrar convocatoria",
+      "reabrir": "Reabrir convocatoria",
+      "cerrada": "Convocatoria cerrada: ya nadie se apunta ni cambia su respuesta.",
+      "reabierta": "Convocatoria reabierta.",
+      "cerradaEtiqueta": "Cerrada"
     },
     "ocultar": "Ocultar",
     "verDetalle": "Ver convocatoria"
