@@ -197,8 +197,9 @@ test.describe("Química en una convocatoria", () => {
     await expect(page.locator('[data-drop="2"]')).toContainText("Noa V.", { timeout: 20_000 });
 
     await page.getByRole("button", { name: /^confirmar convocatoria$/i }).click();
-    await expect(page.getByText(/convocatoria confirmada\./i)).toBeVisible();
-    // Confirmada, ya no se arrastra.
+    // Confirmada, solo quedan las pistas: ya no se arrastra.
+    await expect(page.locator("[data-pistas-cerradas]")).toBeVisible();
+    await expect(page.locator("[data-pistas-cerradas]")).toContainText("Noa Vilar");
     await expect(page.getByRole("button", { name: /arrástralo/i })).toHaveCount(0);
   });
 
@@ -266,9 +267,13 @@ test.describe("Química en una convocatoria", () => {
 
     await loginAs(page, e.sara);
     await page.goto(`/eventos/${e.eventId}`);
-    await expect(page.getByText(/la química está cerrada/i)).toBeVisible({ timeout: 20_000 });
-    await expect(page.getByText(/tú se la diste a diego otero/i)).toBeVisible();
-    await expect(page.getByRole("button", { name: /química con noa vilar/i })).toBeDisabled();
+    // Cerrada y sin jugar solo se ven las pistas: la suya, marcada, y nada
+    // de química ni de la lista de apuntados.
+    const pistas = page.locator("[data-pistas-cerradas]");
+    await expect(pistas.getByRole("listitem").first()).toContainText(/sara lago.*tu pista/i, {
+      timeout: 20_000,
+    });
+    await expect(page.getByRole("button", { name: /química con noa vilar/i })).toHaveCount(0);
 
     await page.goto("/enfrentamientos");
     await expect(page.getByText(/convocado · pista 1 · química cerrada/i)).toBeVisible({

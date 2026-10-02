@@ -552,6 +552,12 @@
     "quitado": "Equipo quitado del torneo"
   },
   "callups": {
+    "cerrada": {
+      "etiqueta": "Convocatoria cerrada",
+      "reabrir": "Reabrir convocatoria",
+      "sinPistas": "No hay pistas repartidas.",
+      "tuPista": "Tu pista"
+    },
     "title": "Convocatorias",
     "openConvocatoria": "Abrir convocatoria",
     "closeConvocatoria": "Cerrar convocatoria",
