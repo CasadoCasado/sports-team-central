@@ -283,6 +283,9 @@
     "forPeople": "Personas concretas",
     "pickPeople": "Elige a quién se le cobra",
     "pickPeopleHint": "Le llegará un aviso con el pago pendiente.",
+    "searchPeople": "Buscar por nombre",
+    "noPeopleFound": "Nadie del equipo se llama así",
+    "unpick": "Quitar a {{name}}",
     "individual": "Individual",
     "createdIndividual_one": "Pago creado y avisada {{count}} persona",
     "createdIndividual_other": "Pago creado y avisadas {{count}} personas"
