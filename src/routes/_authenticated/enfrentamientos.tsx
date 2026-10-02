@@ -91,7 +91,9 @@ function Matches() {
       }),
   });
 
-  const eventIds = (data ?? []).map((e) => e.id);
+  // Solo los próximos: los pasados se listan sin contador ni reparto, y pedir
+  // las respuestas de toda la temporada eran cientos de filas para nada.
+  const eventIds = (data ?? []).filter((e) => e.fecha_inicio >= now).map((e) => e.id);
   const { data: responses } = useQuery({
     queryKey: ["match-responses", active?.team_id, eventIds.join(",")],
     enabled: eventIds.length > 0,
@@ -114,8 +116,7 @@ function Matches() {
     },
   });
 
-  const upcomingIds = (data ?? []).filter((e) => e.fecha_inicio >= now).map((e) => e.id);
-  const { data: quimicas } = useQuimicas(upcomingIds, isPadel);
+  const { data: quimicas } = useQuimicas(eventIds, isPadel);
 
   const respByEvent = useMemo(() => {
     const m = new Map<string, typeof responses>();

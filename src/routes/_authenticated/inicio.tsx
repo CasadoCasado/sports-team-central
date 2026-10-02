@@ -16,8 +16,9 @@ import {
   Trophy,
 } from "lucide-react";
 import { api } from "@/lib/api";
+import { pedirContadores, pedirMisEquipos } from "@/lib/query-keys";
 import { Picture } from "@/components/picture";
-import type { EventResponse, TeamEvent, TeamMember } from "@/lib/types";
+import type { EventResponse, TeamEvent } from "@/lib/types";
 import { useProfile } from "@/hooks/use-profile";
 import { useSession } from "@/hooks/use-session";
 import { eventTypeStyles } from "@/lib/events";
@@ -101,8 +102,7 @@ function Inicio() {
   const { data: teams } = useQuery({
     queryKey: ["my-teams", user?.id],
     enabled: !!user,
-    queryFn: () =>
-      api.get<TeamMember[]>("/team-members/", { mine: 1, status: "activo" }),
+    queryFn: () => pedirMisEquipos(qc, user?.id),
   });
 
   const teamIds = (teams ?? [])
@@ -113,7 +113,7 @@ function Inicio() {
     queryKey: ["my-invitations-count", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const badge = await api.get<{ invitations: number }>("/notifications/badge/");
+      const badge = await pedirContadores(qc, user?.id);
       return badge.invitations;
     },
   });
@@ -158,7 +158,7 @@ function Inicio() {
     queryKey: ["unread-notifs", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const badge = await api.get<{ notifications: number }>("/notifications/badge/");
+      const badge = await pedirContadores(qc, user?.id);
       return badge.notifications;
     },
   });

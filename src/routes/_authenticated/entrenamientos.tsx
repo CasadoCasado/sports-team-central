@@ -49,7 +49,10 @@ function Trainings() {
       }),
   });
 
-  const eventIds = (data ?? []).map((e) => e.id);
+  // Solo los próximos: de los pasados no se pinta ni el contador ni el
+  // «Desapuntarme», y pedir las respuestas de toda la temporada eran cientos
+  // de filas para nada.
+  const eventIds = (data ?? []).filter((e) => e.fecha_inicio >= now).map((e) => e.id);
   const { data: responses } = useQuery({
     queryKey: ["training-responses", active?.team_id, eventIds.join(",")],
     enabled: eventIds.length > 0,

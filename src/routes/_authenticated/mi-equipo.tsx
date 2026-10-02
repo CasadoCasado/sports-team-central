@@ -13,9 +13,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn, inicialesDe } from "@/lib/utils";
 import { api } from "@/lib/api";
+import { pedirMisEquipos } from "@/lib/query-keys";
 import { ImageUpload } from "@/components/image-upload";
 import { traducirErrorDeImagen } from "@/lib/images";
-import { MANAGER_ROLES, type Team, type TeamMember, type TeamRole } from "@/lib/types";
+import { MANAGER_ROLES, type Team, type TeamRole } from "@/lib/types";
 import { useSession } from "@/hooks/use-session";
 import { useProfile } from "@/hooks/use-profile";
 import { Button } from "@/components/ui/button";
@@ -64,8 +65,7 @@ function MiEquipo() {
   const { data: memberships, isLoading } = useQuery({
     queryKey: ["my-teams-full", user?.id],
     enabled: !!user,
-    queryFn: () =>
-      api.get<TeamMember[]>("/team-members/", { mine: 1, status: "activo" }),
+    queryFn: () => pedirMisEquipos(qc, user?.id),
   });
 
   const canCreateTeam = profile?.preferred_role === "capitan";
