@@ -260,17 +260,19 @@ test.describe("Convocatoria PRO", () => {
     await expect(page.getByText(/contra club náutico/i)).toHaveCount(0);
 
     // Y desde Normal se confirma como siempre; en PRO ya no se sugiere.
+    // Confirmada, ni Normal ni PRO: solo las pistas, y desde ahí se copia la
+    // alineación para el grupo.
     await page.getByRole("button", { name: /^confirmar convocatoria$/i }).click();
-    await expect(page.getByText(/convocatoria confirmada\./i)).toBeVisible();
-    await modo.getByRole("button", { name: /^pro$/i }).click();
-    await expect(page.getByRole("button", { name: /sugerir parejas/i })).toBeDisabled();
-
-    // Confirmada, en PRO también se copia la alineación para el grupo.
+    await expect(page.locator("[data-pistas-cerradas]")).toBeVisible();
+    await expect(modo).toHaveCount(0);
     await page.getByRole("button", { name: /^copiar texto$/i }).click();
     await expect(page.getByText(/pistas copiadas/i)).toBeVisible();
     const texto = await page.evaluate(() => navigator.clipboard.readText());
     expect(texto).toMatch(/\*Pista 1:\* (Sara Lago y Noa Vilar|Noa Vilar y Sara Lago)/);
-    await expect(page.getByRole("button", { name: /reabrir/i })).toBeVisible();
+    // Reabrir vuelve al tablero, con su conmutador.
+    await page.getByRole("button", { name: /reabrir convocatoria/i }).click();
+    await modo.getByRole("button", { name: /^pro$/i }).click();
+    await expect(page.locator('[data-pista-pro="1"]')).toBeVisible();
 
     // En Enfrentamientos, el mismo conmutador y la misma vista.
     await page.goto("/enfrentamientos");

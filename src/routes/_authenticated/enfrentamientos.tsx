@@ -257,7 +257,8 @@ function Matches() {
                         onAbrir={() => setPanel({ eventId: e.id, recien: false })}
                       />
                     )}
-                    {myResp ? (
+                    {/* Cerrada la convocatoria, ya nadie se apunta ni se borra. */}
+                    {e.convocatoria_confirmada ? null : myResp ? (
                       <Button
                         size="sm"
                         variant="outline"

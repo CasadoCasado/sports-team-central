@@ -32,6 +32,7 @@ import { PadelCourtsBoard } from "@/components/padel-courts-board";
 import { VistaPro } from "@/components/vista-pro";
 import { CargandoPro } from "@/components/cargando-pro";
 import { parejaPro, type PropuestaPro, type TableroPro } from "@/lib/pro";
+import { PistasCerradas } from "@/components/pistas-cerradas";
 
 const CLAVE_MODO = "teamup:convocatoria-pro";
 
@@ -378,6 +379,21 @@ export function RepartoPadel({
   function alCambiar() {
     onChanged();
     qc.invalidateQueries({ queryKey: ["event-pro", event.id] });
+  }
+
+  // Cerrada y sin jugar, ya no se reparte: solo las pistas. Reabrir vuelve
+  // aquí, al reparto normal o PRO tal como estaba.
+  if (event.convocatoria_confirmada && !event.finalizado) {
+    return (
+      <PistasCerradas
+        event={event}
+        responses={responses}
+        members={members}
+        userId={userId}
+        isManager
+        onChanged={alCambiar}
+      />
+    );
   }
 
   return (

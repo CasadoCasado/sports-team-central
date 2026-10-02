@@ -59,6 +59,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { InvitarAlEntreno } from "@/components/invitar-al-entreno";
 import { nombreVisible } from "@/lib/invitados";
 import { RepartoPadel } from "@/components/convocatoria-pro";
+import { PistasCerradas } from "@/components/pistas-cerradas";
 import { QuimicaAviso, QuimicaBoton } from "@/components/quimica";
 import { useQuimicas } from "@/hooks/use-quimica";
 import type {
@@ -466,6 +467,12 @@ function CallupSection({
   // Un partido ya jugado no cambia su convocatoria ni sus parejas: se ve,
   // pero nada se toca (el backend tampoco lo deja).
   const jugado = event.tipo === "partido" && event.finalizado;
+  // Un partido tiene tres momentos: convocatoria abierta (se apunta, se
+  // convoca y se reparten pistas), cerrada sin jugar (solo las pistas, en
+  // orden) y jugado (queda como quedó). La gestión pasa del primero al
+  // segundo y vuelve con «Reabrir».
+  const partidoCerrado = event.tipo === "partido" && confirmada && !jugado;
+  const soloPistas = partidoCerrado && hayQuimica;
   // En un entreno no se convoca: se apunta quién vino. Es el mismo campo
   // (`es_convocado`), pero la casilla dice «Asistió».
   const esEntreno = event.tipo === "entrenamiento";
@@ -622,7 +629,7 @@ function CallupSection({
       <div
         className={cn(
           "flex flex-wrap items-center justify-between gap-3 p-5",
-          (!jugado || abierta) && "border-b border-border",
+          (!jugado || abierta) && !soloPistas && "border-b border-border",
         )}
       >
         <div className="flex items-center gap-3">
@@ -631,6 +638,7 @@ function CallupSection({
           </div>
           <div>
             <h2 className="text-display text-lg font-bold uppercase tracking-tight">{t("callups.title")}</h2>
+            {!soloPistas && (
             <p className="text-xxs text-muted-foreground">
               {signedUp.length} <Users className="inline size-3" /> ·{" "}
               <span title={t("callups.response_confirmado")}>{confirmed} ✓</span> ·{" "}
@@ -639,6 +647,7 @@ function CallupSection({
               <span title={t("callups.response_rechazado")}>{rejected} ✕</span> ·{" "}
               <span title={t(k("convocadosHint"))}>{convocados.length} ★</span>
             </p>
+            )}
           </div>
         </div>
         {jugado && (
@@ -680,7 +689,7 @@ function CallupSection({
             )}
           </div>
         )}
-        {userId && isMember && !myResp && !jugado && !entrenoCerrado && (
+        {userId && isMember && !myResp && !jugado && !entrenoCerrado && !partidoCerrado && (
           <Button
             onClick={() => signUp.mutate()}
             className="bg-primary text-primary-foreground uppercase tracking-widest font-bold hover:opacity-90"
@@ -688,14 +697,29 @@ function CallupSection({
             {t("callups.signUp")}
           </Button>
         )}
-        {userId && myResp && !isManager && !jugado && !entrenoCerrado && (
+        {userId && myResp && !isManager && !jugado && !entrenoCerrado && !partidoCerrado && (
           <Button variant="outline" onClick={() => withdraw.mutate()}>
             {t("callups.withdraw")}
           </Button>
         )}
       </div>
 
-      {jugado && !abierta ? null : (
+      {soloPistas ? (
+        <div className="px-4 pb-4 sm:px-5 sm:pb-5">
+          <PistasCerradas
+            event={event}
+            responses={signedUp}
+            members={members ?? []}
+            userId={userId}
+            isManager={isManager}
+            onChanged={() => {
+              qc.invalidateQueries({ queryKey: ["event-responses", eventId] });
+              qc.invalidateQueries({ queryKey: ["event", eventId] });
+              qc.invalidateQueries({ queryKey: ["event-pro", eventId] });
+            }}
+          />
+        </div>
+      ) : jugado && !abierta ? null : (
       <>
       {userId && myResp && (
         <div className="border-b border-border p-4 sm:p-5">
@@ -720,7 +744,7 @@ function CallupSection({
               </p>
             )
           )}
-          {!jugado && !(entrenoCerrado && !isManager) && (
+          {!jugado && !(entrenoCerrado && !isManager) && !(partidoCerrado && !isManager) && (
             <PlayerResponseForm response={myResp} eventId={eventId} userId={userId} />
           )}
         </div>

@@ -552,6 +552,12 @@
     "quitado": "Team removed from the tournament"
   },
   "callups": {
+    "cerrada": {
+      "etiqueta": "Call-up closed",
+      "reabrir": "Reopen call-up",
+      "sinPistas": "No courts assigned.",
+      "tuPista": "Your court"
+    },
     "title": "Call-ups",
     "openConvocatoria": "Open call-up",
     "closeConvocatoria": "Close call-up",
