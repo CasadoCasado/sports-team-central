@@ -277,7 +277,15 @@
     "pending": "Pending",
     "myStatus": "My payment",
     "markPaid": "Mark as paid",
-    "markedPaid": "Paid"
+    "markedPaid": "Paid",
+    "forWhom": "Who is it for?",
+    "forTeam": "Whole team",
+    "forPeople": "Specific people",
+    "pickPeople": "Choose who to charge",
+    "pickPeopleHint": "They'll get a notice with the pending payment.",
+    "individual": "Individual",
+    "createdIndividual_one": "Payment created and {{count}} person notified",
+    "createdIndividual_other": "Payment created and {{count}} people notified"
   },
   "help": {
     "title": "Help",
@@ -320,7 +328,8 @@
       "recordatorio": "Reminders",
       "solicitud": "Requests",
       "evento": "Events",
-      "event_reminder": "Event reminders"
+      "event_reminder": "Event reminders",
+      "pago": "Payments"
     }
   },
   "profile": {

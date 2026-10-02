@@ -461,6 +461,7 @@ export type TeamFee = {
   amount: string;
   currency: string;
   due_date: string | null;
+  individual: boolean;
   created_at: string;
 };
 

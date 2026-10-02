@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Plus, Wallet, Check, Clock, Trash2 } from "lucide-react";
+import { Plus, Wallet, Check, Clock, Trash2, User } from "lucide-react";
 import { api } from "@/lib/api";
 import type { FeePayment, TeamFee, TeamMember } from "@/lib/types";
 import { useSession } from "@/hooks/use-session";
@@ -11,6 +11,7 @@ import { useActiveTeam } from "@/hooks/use-active-team";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -41,6 +42,7 @@ type Fee = {
   amount: number;
   currency: string;
   due_date: string | null;
+  individual: boolean;
   created_at: string;
 };
 
@@ -95,6 +97,10 @@ function Pagos() {
   const [concepto, setConcepto] = useState("");
   const [amount, setAmount] = useState("");
   const [dueDate, setDueDate] = useState("");
+  // Vacío: la cuota es de todo el equipo. Con gente: solo para ellos, y a
+  // cada uno le llega un aviso.
+  const [paraPersonas, setParaPersonas] = useState(false);
+  const [destinatarios, setDestinatarios] = useState<string[]>([]);
 
   const createFee = useMutation({
     mutationFn: async () => {
@@ -104,15 +110,23 @@ function Pagos() {
         concepto,
         amount,
         due_date: dueDate || null,
+        ...(paraPersonas ? { user_ids: destinatarios } : {}),
       });
     },
     onSuccess: () => {
-      toast.success(t("fees.created"));
+      toast.success(
+        paraPersonas
+          ? t("fees.createdIndividual", { count: destinatarios.length })
+          : t("fees.created"),
+      );
       setOpen(false);
       setConcepto("");
       setAmount("");
       setDueDate("");
+      setParaPersonas(false);
+      setDestinatarios([]);
       qc.invalidateQueries({ queryKey: ["fees"] });
+      qc.invalidateQueries({ queryKey: ["fee-payments"] });
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : t("common.error")),
   });
@@ -191,10 +205,66 @@ function Pagos() {
                     />
                   </div>
                 </div>
+                <div className="space-y-2">
+                  <Label>{t("fees.forWhom")}</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[false, true].map((personas) => (
+                      <button
+                        key={String(personas)}
+                        type="button"
+                        onClick={() => setParaPersonas(personas)}
+                        className={cn(
+                          "min-h-10 rounded-md border px-3 text-xs font-bold uppercase tracking-widest transition",
+                          paraPersonas === personas
+                            ? "border-primary bg-primary/15 text-primary"
+                            : "border-border text-muted-foreground hover:bg-muted",
+                        )}
+                      >
+                        {personas ? t("fees.forPeople") : t("fees.forTeam")}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {paraPersonas && (
+                  <div className="space-y-2">
+                    <div>
+                      <Label>{t("fees.pickPeople")}</Label>
+                      <p className="text-xs text-muted-foreground">{t("fees.pickPeopleHint")}</p>
+                    </div>
+                    <div className="max-h-56 divide-y divide-border overflow-y-auto rounded-md border border-border">
+                      {members?.map((m) => {
+                        const marcado = destinatarios.includes(m.user_id);
+                        return (
+                          <label
+                            key={m.user_id}
+                            className="flex min-h-10 cursor-pointer items-center gap-3 px-3 py-2 hover:bg-muted"
+                          >
+                            <Checkbox
+                              checked={marcado}
+                              onCheckedChange={() =>
+                                setDestinatarios((d) =>
+                                  marcado ? d.filter((x) => x !== m.user_id) : [...d, m.user_id],
+                                )
+                              }
+                            />
+                            <span className="min-w-0 flex-1 text-sm break-words">
+                              {m.profile?.nombre} {m.profile?.apellidos}
+                            </span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
                 <Button
                   className="w-full"
                   onClick={() => createFee.mutate()}
-                  disabled={!concepto || !amount || createFee.isPending}
+                  disabled={
+                    !concepto ||
+                    !amount ||
+                    (paraPersonas && destinatarios.length === 0) ||
+                    createFee.isPending
+                  }
                 >
                   {t("common.create")}
                 </Button>
@@ -216,12 +286,24 @@ function Pagos() {
             const myPayment = feePayments.find((p) => p.user_id === user?.id);
             const myPaid = myPayment?.status === "pagado";
             const paidCount = feePayments.filter((p) => p.status === "pagado").length;
+            // La individual solo cuenta a quien va dirigida; la de equipo, a todos.
+            const cobrados = fee.individual
+              ? (members ?? []).filter((m) => feePayments.some((p) => p.user_id === m.user_id))
+              : members;
 
             return (
               <div key={fee.id} className="surface-card overflow-hidden">
                 <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-border p-4">
                   <div className="min-w-[8rem] flex-1">
-                    <p className="text-sm font-bold break-words">{fee.concepto}</p>
+                    <p className="flex flex-wrap items-center gap-2 text-sm font-bold break-words">
+                      {fee.concepto}
+                      {fee.individual && (
+                        <span className="inline-flex items-center gap-1 rounded bg-primary/15 px-1.5 py-0.5 text-2xs font-bold uppercase tracking-widest text-primary">
+                          <User className="size-3" />
+                          {t("fees.individual")}
+                        </span>
+                      )}
+                    </p>
                     <p className="text-xs text-muted-foreground">
                       {fee.due_date
                         ? t("fees.dueOn", { date: new Date(fee.due_date).toLocaleDateString() })
@@ -234,7 +316,7 @@ function Pagos() {
                     </p>
                     {isManager && (
                       <p className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
-                        {paidCount} / {members?.length ?? 0} {t("fees.paid")}
+                        {paidCount} / {cobrados?.length ?? 0} {t("fees.paid")}
                       </p>
                     )}
                   </div>
@@ -251,9 +333,9 @@ function Pagos() {
                   )}
                 </div>
 
-                {isManager && members ? (
+                {isManager && cobrados ? (
                   <div className="divide-y divide-border">
-                    {members.map((m) => {
+                    {cobrados.map((m) => {
                       const paid =
                         feePayments.find((p) => p.user_id === m.user_id)?.status === "pagado";
                       return (
