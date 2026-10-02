@@ -17,6 +17,9 @@
 
 import type { QueryClient } from "@tanstack/react-query";
 
+import { api } from "@/lib/api";
+import type { TeamMember } from "@/lib/types";
+
 /** Todo lo que se pinta a partir de `/events/`. */
 export const EVENT_QUERY_KEYS = [
   ["events"], // listas por equipo: calendario, entrenamientos, enfrentamientos
@@ -57,4 +60,29 @@ export function invalidateEventQueries(qc: QueryClient) {
  */
 export function invalidateCompetitionQueries(qc: QueryClient) {
   return invalidateAll(qc, [...COMPETITION_QUERY_KEYS, ...EVENT_QUERY_KEYS]);
+}
+
+/**
+ * Peticiones que varias pantallas hacen a la vez con claves distintas: el
+ * contador de avisos (barra lateral e Inicio, dos veces) y «mis equipos»
+ * (Inicio, Mi equipo y el equipo activo). Cada una conserva su clave —y sus
+ * invalidaciones—, pero si coinciden en el tiempo comparten una sola llamada
+ * en vuelo. Sin `staleTime`: nunca devuelve algo más viejo que antes.
+ */
+export function compartida<T>(qc: QueryClient, clave: readonly unknown[], pedir: () => Promise<T>) {
+  return qc.fetchQuery({ queryKey: ["compartida", ...clave], queryFn: pedir, staleTime: 0 });
+}
+
+/** `/notifications/badge/`: los contadores de la barra y de Inicio. */
+export function pedirContadores(qc: QueryClient, userId: string | undefined) {
+  return compartida(qc, ["badge", userId], () =>
+    api.get<{ total: number; invitations: number; notifications: number }>("/notifications/badge/"),
+  );
+}
+
+/** Mis pertenencias activas: Inicio, Mi equipo y el equipo activo. */
+export function pedirMisEquipos(qc: QueryClient, userId: string | undefined) {
+  return compartida(qc, ["mine", userId], () =>
+    api.get<TeamMember[]>("/team-members/", { mine: 1, status: "activo" }),
+  );
 }

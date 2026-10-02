@@ -30,6 +30,7 @@ import {
   PinOff,
 } from "lucide-react";
 import { api } from "@/lib/api";
+import { pedirContadores } from "@/lib/query-keys";
 import { signOut as clearSession } from "@/lib/auth";
 import { useProfile } from "@/hooks/use-profile";
 import { useSession } from "@/hooks/use-session";
@@ -114,7 +115,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     refetchInterval: 60_000,
     refetchOnWindowFocus: true,
     queryFn: async () => {
-      const badge = await api.get<{ total: number }>("/notifications/badge/");
+      const badge = await pedirContadores(qc, user?.id);
       return badge.total;
     },
   });

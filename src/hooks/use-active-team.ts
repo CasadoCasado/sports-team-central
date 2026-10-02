@@ -1,8 +1,9 @@
 import { useSyncExternalStore } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useSession } from "@/hooks/use-session";
 import { api } from "@/lib/api";
+import { pedirMisEquipos } from "@/lib/query-keys";
 import { MANAGER_ROLES, type TeamMember, type TeamRole } from "@/lib/types";
 
 const STORAGE_KEY = "vestuario:active-team";
@@ -60,15 +61,13 @@ export function setActiveTeamId(id: string) {
 
 export function useActiveTeam() {
   const { user } = useSession();
+  const qc = useQueryClient();
 
   const query = useQuery({
     queryKey: ["active-team-memberships", user?.id],
     enabled: !!user,
     queryFn: async (): Promise<ActiveTeamMembership[]> => {
-      const rows = await api.get<TeamMember[]>("/team-members/", {
-        mine: 1,
-        status: "activo",
-      });
+      const rows = await pedirMisEquipos(qc, user?.id);
       return rows
         .filter((m) => m.team)
         .map((m) => ({ team_id: m.team_id, role: m.role, team: m.team }));
