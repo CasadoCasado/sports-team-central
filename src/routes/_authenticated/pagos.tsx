@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Plus, Wallet, Check, Clock, Trash2, User } from "lucide-react";
+import { Plus, Wallet, Check, Clock, Trash2, User, Search, X } from "lucide-react";
 import { api } from "@/lib/api";
 import type { FeePayment, TeamFee, TeamMember } from "@/lib/types";
 import { useSession } from "@/hooks/use-session";
@@ -20,15 +20,22 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { normalizar } from "@/lib/localidades";
 import { confirmar } from "@/components/confirm-dialog";
 
 export const Route = createFileRoute("/_authenticated/pagos")({
   head: () => ({
     meta: [
       { title: "Pagos | TeamUp" },
-      { name: "description", content: "Controla las cuotas del equipo y el estado de pago de cada jugador." },
+      {
+        name: "description",
+        content: "Controla las cuotas del equipo y el estado de pago de cada jugador.",
+      },
       { property: "og:title", content: "Pagos | TeamUp" },
-      { property: "og:description", content: "Controla las cuotas del equipo y el estado de pago de cada jugador." },
+      {
+        property: "og:description",
+        content: "Controla las cuotas del equipo y el estado de pago de cada jugador.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -101,6 +108,15 @@ function Pagos() {
   // cada uno le llega un aviso.
   const [paraPersonas, setParaPersonas] = useState(false);
   const [destinatarios, setDestinatarios] = useState<string[]>([]);
+  const [busqueda, setBusqueda] = useState("");
+  const nombreDe = (m: {
+    profile?: { nombre?: string | null; apellidos?: string | null } | null;
+  }) => `${m.profile?.nombre ?? ""} ${m.profile?.apellidos ?? ""}`.trim();
+  const filtrados = (members ?? []).filter((m) =>
+    normalizar(nombreDe(m)).includes(normalizar(busqueda)),
+  );
+  const marcar = (userId: string) =>
+    setDestinatarios((d) => (d.includes(userId) ? d.filter((x) => x !== userId) : [...d, userId]));
 
   const createFee = useMutation({
     mutationFn: async () => {
@@ -125,6 +141,7 @@ function Pagos() {
       setDueDate("");
       setParaPersonas(false);
       setDestinatarios([]);
+      setBusqueda("");
       qc.invalidateQueries({ queryKey: ["fees"] });
       qc.invalidateQueries({ queryKey: ["fee-payments"] });
     },
@@ -231,22 +248,58 @@ function Pagos() {
                       <Label>{t("fees.pickPeople")}</Label>
                       <p className="text-xs text-muted-foreground">{t("fees.pickPeopleHint")}</p>
                     </div>
+                    {/* Los elegidos arriba, para no perderlos al filtrar. */}
+                    {destinatarios.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {members
+                          ?.filter((m) => destinatarios.includes(m.user_id))
+                          .map((m) => (
+                            <button
+                              key={m.user_id}
+                              type="button"
+                              onClick={() => marcar(m.user_id)}
+                              aria-label={t("fees.unpick", { name: nombreDe(m) })}
+                              className="inline-flex min-h-8 items-center gap-1 rounded-full bg-primary/15 px-3 text-xs font-bold text-primary hover:bg-primary/25"
+                            >
+                              {nombreDe(m)}
+                              <X className="size-3" />
+                            </button>
+                          ))}
+                      </div>
+                    )}
+                    <div className="relative">
+                      <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                      <Input
+                        value={busqueda}
+                        onChange={(e) => setBusqueda(e.target.value)}
+                        // Intro con una sola coincidencia la marca y deja el
+                        // buscador listo para la siguiente.
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && filtrados.length === 1) {
+                            e.preventDefault();
+                            marcar(filtrados[0].user_id);
+                            setBusqueda("");
+                          }
+                        }}
+                        placeholder={t("fees.searchPeople")}
+                        aria-label={t("fees.searchPeople")}
+                        className="pl-9"
+                      />
+                    </div>
                     <div className="max-h-56 divide-y divide-border overflow-y-auto rounded-md border border-border">
-                      {members?.map((m) => {
+                      {filtrados.length === 0 && (
+                        <p className="px-3 py-3 text-sm text-muted-foreground">
+                          {t("fees.noPeopleFound")}
+                        </p>
+                      )}
+                      {filtrados.map((m) => {
                         const marcado = destinatarios.includes(m.user_id);
                         return (
                           <label
                             key={m.user_id}
                             className="flex min-h-10 cursor-pointer items-center gap-3 px-3 py-2 hover:bg-muted"
                           >
-                            <Checkbox
-                              checked={marcado}
-                              onCheckedChange={() =>
-                                setDestinatarios((d) =>
-                                  marcado ? d.filter((x) => x !== m.user_id) : [...d, m.user_id],
-                                )
-                              }
-                            />
+                            <Checkbox checked={marcado} onCheckedChange={() => marcar(m.user_id)} />
                             <span className="min-w-0 flex-1 text-sm break-words">
                               {m.profile?.nombre} {m.profile?.apellidos}
                             </span>
@@ -323,7 +376,15 @@ function Pagos() {
                   {isManager && (
                     <button
                       onClick={async () => {
-                        if (await confirmar({ title: t("confirm.deleteFeeTitle"), description: t("confirm.noUndo"), confirmLabel: t("confirm.delete"), tone: "danger" })) deleteFee.mutate(fee.id);
+                        if (
+                          await confirmar({
+                            title: t("confirm.deleteFeeTitle"),
+                            description: t("confirm.noUndo"),
+                            confirmLabel: t("confirm.delete"),
+                            tone: "danger",
+                          })
+                        )
+                          deleteFee.mutate(fee.id);
                       }}
                       aria-label={t("common.delete")}
                       className="inline-flex size-10 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive sm:size-9"

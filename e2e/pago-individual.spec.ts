@@ -26,7 +26,13 @@ test("la capitana cobra a un jugador y a él le llega el aviso", async ({ page, 
   await dialogo.getByRole("textbox").first().fill("Pista del jueves");
   await dialogo.getByRole("spinbutton").fill("8.50");
   await dialogo.getByRole("button", { name: /personas concretas/i }).click();
-  await dialogo.getByText("Iván Ruiz").click();
+  // Se busca escribiendo: Lucía desaparece de la lista, e Intro marca a Iván.
+  const buscador = dialogo.getByRole("textbox", { name: /buscar por nombre/i });
+  await buscador.fill("ivan");
+  await expect(dialogo.getByText("Lucía Gil")).toHaveCount(0);
+  await buscador.press("Enter");
+  await expect(buscador).toHaveValue("");
+  await expect(dialogo.getByRole("button", { name: /quitar a iván ruiz/i })).toBeVisible();
   await dialogo.getByRole("button", { name: /^crear$/i }).click();
   await expect(dialogo).toHaveCount(0);
 

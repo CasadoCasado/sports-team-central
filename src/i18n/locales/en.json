@@ -283,6 +283,9 @@
     "forPeople": "Specific people",
     "pickPeople": "Choose who to charge",
     "pickPeopleHint": "They'll get a notice with the pending payment.",
+    "searchPeople": "Search by name",
+    "noPeopleFound": "Nobody on the team matches",
+    "unpick": "Remove {{name}}",
     "individual": "Individual",
     "createdIndividual_one": "Payment created and {{count}} person notified",
     "createdIndividual_other": "Payment created and {{count}} people notified"
