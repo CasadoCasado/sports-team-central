@@ -39,6 +39,7 @@ import type {
   Torneo,
 } from "@/lib/types";
 import { confirmar } from "@/components/confirm-dialog";
+import { LigaCompeticion, ligaQuery } from "@/components/liga-competicion";
 
 // El guion bajo de `competiciones_` deja esta pantalla fuera de la lista de
 // competiciones: es una página entera, no algo que se pinte dentro de ella.
@@ -138,6 +139,8 @@ function CompetitionDetail() {
     queryFn: () => api.get<Competition>(`/competitions/${id}/`),
   });
 
+  const { data: liga } = useQuery(ligaQuery(id));
+
   const { data: standings } = useQuery({
     queryKey: ["competition-standings", id],
     queryFn: () => api.get<CompetitionStandings>(`/competitions/${id}/standings/`),
@@ -175,6 +178,10 @@ function CompetitionDetail() {
 
   const rows = standings?.standings ?? [];
   const podium = standings?.podium ?? [];
+  const partidos = liga?.partidos.length ?? 0;
+  // Una liga de partidos sin entrenos no enseña la clasificación de jugadores
+  // ni la lista de entrenos vacía: lo suyo es la tabla de equipos.
+  const conEntrenos = formato !== null || (trainings?.length ?? 0) > 0 || partidos === 0;
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
@@ -208,11 +215,18 @@ function CompetitionDetail() {
                     {t("competitions.status.finalizada")}
                   </span>
                 )}
-                <span className="text-muted-foreground">
-                  {t("standings.trainingsCount", {
-                    count: standings?.entrenamientos ?? 0,
-                  })}
-                </span>
+                {partidos > 0 && (
+                  <span className="text-muted-foreground">
+                    {t("liga.partidosCount", { count: partidos })}
+                  </span>
+                )}
+                {conEntrenos && (
+                  <span className="text-muted-foreground">
+                    {t("standings.trainingsCount", {
+                      count: standings?.entrenamientos ?? 0,
+                    })}
+                  </span>
+                )}
                 {(standings?.entrenamientos ?? 0) > 0 && (
                   <span className="text-muted-foreground">
                     {t("standings.minimoPodio", { count: standings!.minimo_podio })}
@@ -274,121 +288,145 @@ function CompetitionDetail() {
         <TournamentEntries competition={competition} canManage={isManager} />
       )}
 
+      {/* La liga sale con enfrentamientos, o en una competición aún vacía y sin
+          formato de entreno (una liga recién creada, para ir metiendo los
+          resultados de los demás). Una de entrenos no la necesita. */}
+      {liga && (partidos > 0 || (formato === null && (trainings?.length ?? 0) === 0)) && (
+        <LigaCompeticion
+          competitionId={id}
+          liga={liga}
+          puedeGestionar={isManager}
+          finalizada={competition.finalizada}
+        />
+      )}
+
       {podium.length > 0 && <Podium rows={podium} />}
 
-      <section className="surface-card overflow-hidden">
-        <div className="flex items-center gap-3 border-b border-border p-5">
-          <div className="flex size-10 items-center justify-center rounded-md bg-primary/10 text-primary">
-            <ListOrdered className="size-5" />
+      {conEntrenos && (
+        <section className="surface-card overflow-hidden">
+          <div className="flex items-center gap-3 border-b border-border p-5">
+            <div className="flex size-10 items-center justify-center rounded-md bg-primary/10 text-primary">
+              <ListOrdered className="size-5" />
+            </div>
+            <div>
+              <h2 className="text-display text-lg font-bold uppercase tracking-tight">
+                {t("standings.title")}
+              </h2>
+              <p className="text-xxs text-muted-foreground">
+                {formato ? t(`standings.formatos.${formato}`) : t("standings.subtitle")}
+              </p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-display text-lg font-bold uppercase tracking-tight">
-              {t("standings.title")}
-            </h2>
-            <p className="text-xxs text-muted-foreground">
-              {formato ? t(`standings.formatos.${formato}`) : t("standings.subtitle")}
-            </p>
-          </div>
-        </div>
 
-        {formato === null ? (
-          <p className="p-6 text-sm text-muted-foreground">{t("standings.sinFormato")}</p>
-        ) : rows.length === 0 ? (
-          <p className="p-6 text-sm text-muted-foreground">{t("standings.empty")}</p>
-        ) : (
-          <>
-            {/* La clasificación se desplaza de lado en vez de estrujarse: con
+          {formato === null ? (
+            <p className="p-6 text-sm text-muted-foreground">{t("standings.sinFormato")}</p>
+          ) : rows.length === 0 ? (
+            <p className="p-6 text-sm text-muted-foreground">{t("standings.empty")}</p>
+          ) : (
+            <>
+              {/* La clasificación se desplaza de lado en vez de estrujarse: con
                 `w-full` a secas, en un móvil las columnas de números quedaban
                 en dos caracteres y los encabezados partidos en tres líneas. */}
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[34rem] text-sm">
-                <thead>
-                  <tr className="border-b border-border text-2xs font-bold uppercase tracking-widest text-muted-foreground">
-                    <th className="whitespace-nowrap px-3 py-2 text-left">{t("standings.puesto")}</th>
-                    <th className="whitespace-nowrap px-3 py-2 text-left">{t("standings.jugador")}</th>
-                    <th className="whitespace-nowrap px-3 py-2 text-right">{t("standings.entrenamientos")}</th>
-                    {columnas.map((col) => (
-                      <th key={col.key} className="whitespace-nowrap px-3 py-2 text-right">
-                        {col.label}
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[34rem] text-sm">
+                  <thead>
+                    <tr className="border-b border-border text-2xs font-bold uppercase tracking-widest text-muted-foreground">
+                      <th className="whitespace-nowrap px-3 py-2 text-left">
+                        {t("standings.puesto")}
                       </th>
-                    ))}
-                    <th className="whitespace-nowrap px-3 py-2 text-right">{t("standings.nota")}</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {rows.map((row) => (
-                    <tr
-                      key={row.user_id}
-                      className={cn("hover:bg-card", !row.clasificado && "opacity-60")}
-                    >
-                      <td className="px-3 py-2 font-black tabular-nums">{row.puesto}</td>
-                      <td className="max-w-[12rem] px-3 py-2">
-                        <span className="block truncate">{nameOf(row.profile)}</span>
-                        {!row.clasificado && (
-                          <span className="text-xxs text-muted-foreground">
-                            {t("standings.noClasificado")}
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-3 py-2 text-right tabular-nums">{row.entrenamientos}</td>
+                      <th className="whitespace-nowrap px-3 py-2 text-left">
+                        {t("standings.jugador")}
+                      </th>
+                      <th className="whitespace-nowrap px-3 py-2 text-right">
+                        {t("standings.entrenamientos")}
+                      </th>
                       {columnas.map((col) => (
-                        <td
-                          key={col.key}
-                          className="px-3 py-2 text-right tabular-nums text-muted-foreground"
-                        >
-                          {col.value(row)}
-                        </td>
+                        <th key={col.key} className="whitespace-nowrap px-3 py-2 text-right">
+                          {col.label}
+                        </th>
                       ))}
-                      <td className="px-3 py-2 text-right font-bold tabular-nums">{row.nota}</td>
+                      <th className="whitespace-nowrap px-3 py-2 text-right">
+                        {t("standings.nota")}
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <details className="border-t border-border px-5 py-3">
-              <summary className="cursor-pointer text-2xs font-bold uppercase tracking-widest text-muted-foreground">
-                {t("standings.reglaTitulo")}
-              </summary>
-              <p className="mt-2 text-xs text-muted-foreground">
-                {t("standings.regla", {
-                  media: standings?.media ?? 50,
-                  margen: standings?.margen ?? 5,
-                })}
-              </p>
-            </details>
-          </>
-        )}
-      </section>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {rows.map((row) => (
+                      <tr
+                        key={row.user_id}
+                        className={cn("hover:bg-card", !row.clasificado && "opacity-60")}
+                      >
+                        <td className="px-3 py-2 font-black tabular-nums">{row.puesto}</td>
+                        <td className="max-w-[12rem] px-3 py-2">
+                          <span className="block truncate">{nameOf(row.profile)}</span>
+                          {!row.clasificado && (
+                            <span className="text-xxs text-muted-foreground">
+                              {t("standings.noClasificado")}
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-3 py-2 text-right tabular-nums">{row.entrenamientos}</td>
+                        {columnas.map((col) => (
+                          <td
+                            key={col.key}
+                            className="px-3 py-2 text-right tabular-nums text-muted-foreground"
+                          >
+                            {col.value(row)}
+                          </td>
+                        ))}
+                        <td className="px-3 py-2 text-right font-bold tabular-nums">{row.nota}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <details className="border-t border-border px-5 py-3">
+                <summary className="cursor-pointer text-2xs font-bold uppercase tracking-widest text-muted-foreground">
+                  {t("standings.reglaTitulo")}
+                </summary>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  {t("standings.regla", {
+                    media: standings?.media ?? 50,
+                    margen: standings?.margen ?? 5,
+                  })}
+                </p>
+              </details>
+            </>
+          )}
+        </section>
+      )}
 
-      <section className="surface-card overflow-hidden">
-        <div className="border-b border-border px-5 py-3 text-2xs font-bold uppercase tracking-widest text-muted-foreground">
-          {t("standings.trainings")}
-        </div>
-        {(trainings?.length ?? 0) === 0 ? (
-          <p className="p-6 text-sm text-muted-foreground">{t("standings.noTrainings")}</p>
-        ) : (
-          <div className="divide-y divide-border">
-            {trainings!.map((e) => (
-              <Link
-                key={e.id}
-                to="/eventos/$id"
-                params={{ id: e.id }}
-                className="flex items-center gap-4 p-4 hover:bg-card"
-              >
-                <div className="flex size-10 items-center justify-center rounded-md bg-info/10 text-info ring-1 ring-info/30">
-                  <Dumbbell className="size-5" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold">{e.titulo}</p>
-                  <p className="text-xxs text-muted-foreground">
-                    {format(new Date(e.fecha_inicio), "PPP HH:mm", { locale })}
-                  </p>
-                </div>
-              </Link>
-            ))}
+      {conEntrenos && (
+        <section className="surface-card overflow-hidden">
+          <div className="border-b border-border px-5 py-3 text-2xs font-bold uppercase tracking-widest text-muted-foreground">
+            {t("standings.trainings")}
           </div>
-        )}
-      </section>
+          {(trainings?.length ?? 0) === 0 ? (
+            <p className="p-6 text-sm text-muted-foreground">{t("standings.noTrainings")}</p>
+          ) : (
+            <div className="divide-y divide-border">
+              {trainings!.map((e) => (
+                <Link
+                  key={e.id}
+                  to="/eventos/$id"
+                  params={{ id: e.id }}
+                  className="flex items-center gap-4 p-4 hover:bg-card"
+                >
+                  <div className="flex size-10 items-center justify-center rounded-md bg-info/10 text-info ring-1 ring-info/30">
+                    <Dumbbell className="size-5" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold">{e.titulo}</p>
+                    <p className="text-xxs text-muted-foreground">
+                      {format(new Date(e.fecha_inicio), "PPP HH:mm", { locale })}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
     </div>
   );
 }
@@ -423,14 +461,19 @@ function Podium({ rows }: { rows: CompetitionStanding[] }) {
         {steps.map((step) => {
           const winners = rows.filter((r) => r.puesto === step.puesto);
           return (
-            <div key={step.puesto} className="flex h-44 min-w-0 flex-col items-center justify-end gap-2">
+            <div
+              key={step.puesto}
+              className="flex h-44 min-w-0 flex-col items-center justify-end gap-2"
+            >
               <div className="min-w-0 space-y-1 text-center">
                 {winners.length === 0 ? (
                   <span className="text-xxs text-muted-foreground">—</span>
                 ) : (
                   winners.map((row) => (
                     <div key={row.user_id}>
-                      <p className="text-xs font-bold leading-tight break-words sm:text-sm">{nameOf(row.profile)}</p>
+                      <p className="text-xs font-bold leading-tight break-words sm:text-sm">
+                        {nameOf(row.profile)}
+                      </p>
                       <p className="text-xxs text-muted-foreground">
                         {t("standings.nota")} {row.nota}
                       </p>

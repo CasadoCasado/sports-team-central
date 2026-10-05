@@ -32,6 +32,7 @@ export const EVENT_QUERY_KEYS = [
   ["upcoming-callup-events"], // convocatorias
   ["competition-trainings"], // los entrenos de una competición
   ["competition-standings"], // su clasificación, que sale de esos entrenos
+  ["competition-liga"], // la liga: sus partidos y la tabla de equipos
 ] as const;
 
 /** Lo que se pinta a partir de `/competitions/`. */
@@ -39,6 +40,7 @@ export const COMPETITION_QUERY_KEYS = [
   ["competitions"], // la lista del equipo
   ["competition"], // el detalle
   ["competition-standings"], // la clasificación, que depende del formato
+  ["competition-liga"], // la tabla de equipos, que depende de los puntos por pista
   ["torneos"], // los torneos abiertos en otras sedes («fuera de casa»)
   ["torneo"], // uno de ellos, con sus equipos
 ] as const;
