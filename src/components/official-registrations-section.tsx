@@ -84,6 +84,12 @@ export function OfficialRegistrationsSection({
     [catalogo, registrations],
   );
 
+  // Sin inscripciones y sin ninguna abierta a la que apuntarse, la sección no
+  // sirve de nada y su «no está inscrito en ninguna» se leía como si
+  // contradijera las competiciones propias del equipo, que van justo encima.
+  if (!registrations || !catalogo) return null;
+  if (registrations.length === 0 && !(canManage && inscribibles.length > 0)) return null;
+
   return (
     <section className="surface-card p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">

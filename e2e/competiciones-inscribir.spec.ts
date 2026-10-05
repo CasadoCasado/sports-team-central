@@ -36,9 +36,14 @@ test("inscribir solo con inscripciones abiertas y si no estamos ya", async ({ pa
   const boton = page.getByRole("button", { name: /inscribir equipo/i });
   const seccion = page.getByRole("heading", { name: /inscripciones en competiciones/i });
 
+  // Nada abierto y sin inscripciones: ni botón ni sección, que solo decía
+  // «no está inscrito en ninguna» debajo de las competiciones del equipo.
   await conCatalogo(page, false);
   await page.goto("/competiciones");
-  await expect(seccion).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByRole("button", { name: /nueva competición/i })).toBeVisible({
+    timeout: 20_000,
+  });
+  await expect(seccion).toHaveCount(0);
   await expect(boton).toHaveCount(0);
 
   await page.unrouteAll();
@@ -67,7 +72,9 @@ test("inscribir solo con inscripciones abiertas y si no estamos ya", async ({ pa
     },
   ]);
   await page.reload();
+  // Inscritos: la sección sale con su inscripción, pero sin botón.
   await expect(page.getByText(/series nacionales · 2026\/27/i)).toBeVisible({ timeout: 20_000 });
+  await expect(seccion).toBeVisible();
   await expect(boton).toHaveCount(0);
 });
 
