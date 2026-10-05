@@ -1193,45 +1193,6 @@ function MatchResultsSection({
     });
   };
 
-  const NumInput = ({
-    value,
-    onChange,
-    disabled,
-    max = 99,
-  }: {
-    value: number | null;
-    onChange: (v: string) => void;
-    disabled?: boolean;
-    max?: number;
-  }) => (
-    <input
-      type="number"
-      min={0}
-      max={max}
-      inputMode="numeric"
-      value={value ?? ""}
-      onChange={(e) => {
-        const v = e.target.value;
-        if (v !== "") {
-          const n = Number(v);
-          if (n > max) return;
-        }
-        onChange(v);
-      }}
-      disabled={disabled}
-      className="w-full max-w-14 min-h-9 rounded-md border border-border bg-background px-1 py-1 text-center text-sm font-bold disabled:opacity-60"
-    />
-  );
-  // Fijo (guardado o sin permiso): el número a secas, sin casilla.
-  const Num = (props: Parameters<typeof NumInput>[0]) =>
-    props.disabled ? (
-      <span className="flex min-h-9 w-full max-w-14 items-center justify-center text-sm font-bold tabular-nums">
-        {props.value ?? "–"}
-      </span>
-    ) : (
-      NumInput(props)
-    );
-
   const teamSide = esLocal ? 1 : 2;
   // Quién jugó cada pista, para ponerlo junto a nuestro lado del marcador:
   // «Manuel M. y Aitor E.». El otro lado es el rival.
@@ -1258,7 +1219,7 @@ function MatchResultsSection({
         </div>
         <OutcomeBadge outcome={summary.outcome} won={summary.won} lost={summary.lost} />
       </div>
-      <div className="space-y-4 p-4 sm:p-5">
+      <div data-marcador className="space-y-4 p-4 sm:p-5">
         {isManager && guardado && !modificando && (
           <div
             data-resultados-guardados
@@ -1298,44 +1259,47 @@ function MatchResultsSection({
               <CourtBadge winner={winners[idx]} teamSide={teamSide} />
             </div>
             {isPadel ? (
-              <div className="space-y-2">
-                <div className="grid grid-cols-[3.25rem_repeat(3,minmax(0,1fr))] items-center gap-1.5 text-2xs font-bold uppercase tracking-widest text-muted-foreground sm:grid-cols-[80px_repeat(3,minmax(0,1fr))] sm:gap-2">
-                  <span />
-                  <span className="text-center">{t("results.set")} 1</span>
-                  <span className="text-center">{t("results.set")} 2</span>
-                  <span className="text-center">{t("results.set")} 3</span>
-                </div>
+              // Columna a columna (set a set) para que el cursor baje de local a
+              // visitante del mismo set y luego pase al siguiente.
+              <div className="grid grid-flow-col grid-cols-[6.5rem_repeat(3,minmax(0,1fr))] grid-rows-[auto_auto_auto] items-center gap-x-1.5 gap-y-2 sm:grid-cols-[13rem_repeat(3,minmax(0,1fr))] sm:gap-x-2">
+                <span />
                 {(["local", "visitante"] as const).map((side) => (
-                  <div key={side} className="grid grid-cols-[6.5rem_repeat(3,minmax(0,1fr))] items-center gap-1.5 sm:grid-cols-[13rem_repeat(3,minmax(0,1fr))] sm:gap-2">
-                    <span className="min-w-0">
-                      <span className="block text-3xs font-bold uppercase tracking-widest text-muted-foreground">
-                        {t(`results.${side}`)}
-                      </span>
-                      <span
-                        className={cn(
-                          "block truncate text-xs sm:text-sm",
-                          (side === "local") === esLocal ? "font-bold" : "text-muted-foreground",
-                        )}
-                        title={quienes(side, row.pista)}
-                      >
-                        {quienes(side, row.pista)}
-                      </span>
+                  <span key={side} className="min-w-0">
+                    <span className="block text-3xs font-bold uppercase tracking-widest text-muted-foreground">
+                      {t(`results.${side}`)}
                     </span>
-                    {[1, 2, 3].map((setNum) => {
-                      const key = `set${setNum}_${side}` as keyof MatchResultRow;
-                      return (
-                        <div key={setNum} className="flex justify-center">
-                          <Num
-                            value={row[key] as number | null}
-                            onChange={(v) => updateCell(idx, key, v)}
-                            disabled={!editable}
-                            max={7}
-                          />
-                        </div>
-                      );
-                    })}
-                  </div>
+                    <span
+                      className={cn(
+                        "block truncate text-xs sm:text-sm",
+                        (side === "local") === esLocal ? "font-bold" : "text-muted-foreground",
+                      )}
+                      title={quienes(side, row.pista)}
+                    >
+                      {quienes(side, row.pista)}
+                    </span>
+                  </span>
                 ))}
+                {[1, 2, 3].map((setNum) => [
+                  <span
+                    key={`h${setNum}`}
+                    className="text-center text-2xs font-bold uppercase tracking-widest text-muted-foreground"
+                  >
+                    {t("results.set")} {setNum}
+                  </span>,
+                  ...(["local", "visitante"] as const).map((side) => {
+                    const key = `set${setNum}_${side}` as keyof MatchResultRow;
+                    return (
+                      <div key={side + setNum} className="flex justify-center">
+                        <Num
+                          value={row[key] as number | null}
+                          onChange={(v) => updateCell(idx, key, v)}
+                          disabled={!editable}
+                          max={7}
+                        />
+                      </div>
+                    );
+                  }),
+                ])}
               </div>
             ) : (
               <div className="flex items-center justify-center gap-4">
@@ -1440,6 +1404,68 @@ function MatchResultsSection({
 
       </div>
     </div>
+  );
+}
+
+// Casilla del marcador: teclado numérico, solo dígitos y, en cuanto el número
+// no admite otra cifra, salta a la siguiente casilla del marcador.
+function NumInput({
+  value,
+  onChange,
+  disabled,
+  max = 99,
+}: {
+  value: number | null;
+  onChange: (v: string) => void;
+  disabled?: boolean;
+  max?: number;
+}) {
+  const siguiente = (el: HTMLInputElement) => {
+    const casillas = Array.from(
+      el.closest("[data-marcador]")?.querySelectorAll<HTMLInputElement>("input[data-casilla]") ??
+        [],
+    );
+    const next = casillas[casillas.indexOf(el) + 1];
+    if (next) next.focus();
+    else el.blur();
+  };
+  return (
+    <input
+      data-casilla
+      type="text"
+      inputMode="numeric"
+      pattern="[0-9]*"
+      enterKeyHint="next"
+      autoComplete="off"
+      maxLength={String(max).length}
+      value={value ?? ""}
+      onFocus={(e) => e.currentTarget.select()}
+      onChange={(e) => {
+        const v = e.target.value.replace(/\D/g, "");
+        if (v !== "" && Number(v) > max) return;
+        onChange(v);
+        if (v !== "" && Number(v) * 10 > max) siguiente(e.currentTarget);
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          siguiente(e.currentTarget);
+        }
+      }}
+      disabled={disabled}
+      className="w-full max-w-14 min-h-9 rounded-md border border-border bg-background px-1 py-1 text-center text-sm font-bold disabled:opacity-60"
+    />
+  );
+}
+
+// Fijo (guardado o sin permiso): el número a secas, sin casilla.
+function Num(props: Parameters<typeof NumInput>[0]) {
+  return props.disabled ? (
+    <span className="flex min-h-9 w-full max-w-14 items-center justify-center text-sm font-bold tabular-nums">
+      {props.value ?? "–"}
+    </span>
+  ) : (
+    <NumInput {...props} />
   );
 }
 
