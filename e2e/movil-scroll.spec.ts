@@ -64,3 +64,52 @@ test("las casillas no provocan zoom en el móvil", async ({ page, request }) => 
   });
   expect(tam).toBe("16px");
 });
+
+test("en el móvil la modal es la pantalla entera y no se arrastra", async ({ page, request }) => {
+  const { session } = await seedCaptainWithTeam(request, "movil-modal");
+  await loginAs(page, session);
+  await page.goto("/competiciones");
+  const crear = page.getByRole("button", { name: /crear competición|nueva competición/i }).first();
+  await expect(crear).toBeVisible({ timeout: 20_000 });
+  await crear.click();
+
+  const modal = page.getByRole("dialog");
+  await expect(modal).toBeVisible();
+  const vista = page.viewportSize()!;
+  await expect
+    .poll(async () => {
+      const caja = await modal.boundingBox();
+      return (
+        caja && [
+          Math.round(caja.x),
+          Math.round(caja.y),
+          Math.round(caja.width),
+          Math.round(caja.height),
+        ]
+      );
+    })
+    .toEqual([0, 0, vista.width, vista.height]);
+  await page.screenshot({
+    path: "/tmp/claude-1000/-home-mdc-proyectos-teamup/cf351afe-4f9d-4793-9a37-7a8548c59a72/scratchpad/modal.png",
+  });
+  await page.getByRole("button", { name: /close/i }).click();
+  await expect(modal).toHaveCount(0);
+
+  // La hoja del menú de cuenta no tiene asa: no se arrastra con el dedo.
+  await page
+    .getByRole("button", { name: /tu cuenta/i })
+    .first()
+    .click();
+  const hoja = page.getByRole("dialog");
+  await expect(hoja).toBeVisible();
+  await page.waitForTimeout(800); // que acabe de subir
+  const arriba = (await hoja.boundingBox())!.y;
+  await page.mouse.move(vista.width / 2, arriba + 20);
+  await page.mouse.down();
+  await page.mouse.move(vista.width / 2, arriba + 250, { steps: 10 });
+  expect(Math.round((await hoja.boundingBox())!.y)).toBe(Math.round(arriba));
+  await page.mouse.up();
+  await page.screenshot({
+    path: "/tmp/claude-1000/-home-mdc-proyectos-teamup/cf351afe-4f9d-4793-9a37-7a8548c59a72/scratchpad/hoja.png",
+  });
+});
