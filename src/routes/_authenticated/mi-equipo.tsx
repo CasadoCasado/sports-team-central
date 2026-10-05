@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { Guardando } from "@/components/guardando";
 import { LogOut, MapPin, Pencil, Plus, Search, Settings, Shield, Trash2, Upload } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import {
@@ -132,6 +133,7 @@ function MiEquipo() {
         <h1 className="text-display mb-6 text-3xl font-black tracking-tight">
           {t("team.createTitle")}
         </h1>
+        <Guardando activo={saving} />
         <form onSubmit={createTeam} className="surface-card space-y-4 p-6">
           <div>
             <Label htmlFor="nombre">{t("team.nombre")}</Label>

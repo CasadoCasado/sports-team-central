@@ -640,6 +640,7 @@
     "verDetalle": "See call-up"
   },
   "common": {
+    "guardando": "Saving…",
     "loading": "Loading...",
     "save": "Save",
     "cancel": "Cancel",

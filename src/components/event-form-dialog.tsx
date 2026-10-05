@@ -31,6 +31,7 @@ import type { EventType, Team, TrainingFormat } from "@/lib/types";
 
 const FORMATOS: TrainingFormat[] = ["rey_pista", "partidos", "americano"];
 import { teamRegistrationsQuery } from "@/lib/official-competitions";
+import { Guardando } from "@/components/guardando";
 
 
 export type EventFormValues = {
@@ -528,6 +529,7 @@ export function EventFormDialog({
           </DialogFooter>
         </form>
       </DialogContent>
+      <Guardando activo={save.isPending} />
     </Dialog>
   );
 }

@@ -640,6 +640,7 @@
     "verDetalle": "Ver convocatoria"
   },
   "common": {
+    "guardando": "Guardando…",
     "loading": "Cargando...",
     "save": "Guardar",
     "cancel": "Cancelar",
