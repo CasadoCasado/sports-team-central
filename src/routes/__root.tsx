@@ -16,6 +16,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { onAuthStateChange } from "@/lib/auth";
 import i18n from "@/i18n";
 import { registerServiceWorker } from "@/lib/register-sw";
+import { fijarPantalla } from "@/lib/pantalla-fija";
 import { TEMA_KEY, useTheme } from "@/hooks/use-theme";
 
 /**
@@ -98,9 +99,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       // `resizes-content`: en Android, al salir el teclado la ventana encoge y
       // los diálogos (que miden con `dvh`) caben encima en vez de quedar tapados.
+      // Sin zoom: la ventana del móvil está fija y solo sube y baja. Safari
+      // no respeta esto para el pellizco; lo remata `fijarPantalla`.
       {
         name: "viewport",
-        content: "width=device-width, initial-scale=1, interactive-widget=resizes-content",
+        content:
+          "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, interactive-widget=resizes-content",
       },
       { title: "TeamUp — Gestión de equipos deportivos" },
       {
@@ -167,6 +171,8 @@ function RootComponent() {
   useEffect(() => {
     void registerServiceWorker();
   }, []);
+
+  useEffect(() => fijarPantalla(), []);
 
   useEffect(() => {
     const saved = localStorage.getItem("i18nextLng");

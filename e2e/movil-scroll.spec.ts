@@ -124,3 +124,61 @@ test("en el móvil la modal es la pantalla entera y no se arrastra", async ({ pa
     path: "/tmp/claude-1000/-home-mdc-proyectos-teamup/cf351afe-4f9d-4793-9a37-7a8548c59a72/scratchpad/hoja.png",
   });
 });
+
+test("la ventana solo sube y baja: ni pellizco ni arrastre de lado", async ({ page, request }) => {
+  const { session } = await seedCaptainWithTeam(request, "movil-fija");
+  await loginAs(page, session);
+  await page.goto("/ayuda");
+  await expect(page.getByRole("button", { name: /^abrir menú$/i }).first()).toBeVisible({
+    timeout: 20_000,
+  });
+  await expect(page.locator('meta[name="viewport"]')).toHaveAttribute(
+    "content",
+    /maximum-scale=1, user-scalable=no/,
+  );
+
+  // Una tabla ancha con scroll lateral propio: ahí sí se arrastra de lado.
+  await page.evaluate(() => {
+    const caja = document.createElement("div");
+    caja.id = "ancha";
+    caja.style.cssText =
+      "overflow-x:auto;width:200px;height:80px;position:fixed;top:300px;left:20px";
+    caja.innerHTML = '<div style="width:900px;height:60px"></div>';
+    document.body.append(caja);
+    (window as unknown as { frenados: boolean[] }).frenados = [];
+    document.addEventListener("touchmove", (e) =>
+      (window as unknown as { frenados: boolean[] }).frenados.push(e.defaultPrevented),
+    );
+  });
+
+  const cdp = await page.context().newCDPSession(page);
+  const gesto = async (dedos: { x: number; y: number }[][]) => {
+    await page.evaluate(() => ((window as unknown as { frenados: boolean[] }).frenados = []));
+    const [primero, ...resto] = dedos;
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: primero! });
+    for (const paso of resto) {
+      await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: paso });
+    }
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+    return page.evaluate(() =>
+      (window as unknown as { frenados: boolean[] }).frenados.some(Boolean),
+    );
+  };
+  const linea = (x0: number, y0: number, x1: number, y1: number) =>
+    Array.from({ length: 6 }, (_, i) => [
+      { x: x0 + ((x1 - x0) * i) / 5, y: y0 + ((y1 - y0) * i) / 5 },
+    ]);
+
+  expect(await gesto(linea(300, 600, 80, 610))).toBe(true); // de lado: frenado
+  expect(await gesto(linea(200, 650, 205, 450))).toBe(false); // arriba: libre
+  expect(await gesto(linea(180, 340, 40, 342))).toBe(false); // tabla ancha: libre
+  // Pellizco con dos dedos: frenado.
+  expect(
+    await gesto(
+      Array.from({ length: 5 }, (_, i) => [
+        { x: 150 - i * 10, y: 500 },
+        { x: 250 + i * 10, y: 500 },
+      ]),
+    ),
+  ).toBe(true);
+});

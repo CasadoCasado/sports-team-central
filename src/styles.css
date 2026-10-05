@@ -303,9 +303,9 @@
 
   /* Sin zoom con doble toque. En el iPhone, dos toques seguidos —meter un
    * resultado, pulsar rápido un botón— ampliaban la página, y ampliada se
-   * arrastra de lado a lado. `manipulation` deja desplazar y el zoom con dos
-   * dedos, y quita solo el doble toque. Va en todos los elementos porque no se
-   * hereda pasado un contenedor con scroll propio (los diálogos, por ejemplo);
+   * arrastra de lado a lado. `manipulation` deja desplazar y quita el doble
+   * toque (el pellizco lo frena `fijarPantalla`). Va en todos los elementos
+   * porque no se hereda pasado un contenedor con scroll propio (los diálogos);
    * un `touch-none` de utilidad sigue ganando. */
   *,
   ::before,
@@ -319,8 +319,8 @@
    * no la devuelve al salir: la pantalla se queda grande y se mueve de lado a
    * lado con cada toque, también dentro de los diálogos. Los `text-sm` y
    * `text-xs` de las casillas bastaban para provocarlo. En pantallas
-   * táctiles estrechas todo campo va a 16 px como mínimo; no se usa
-   * `maximum-scale=1` porque en Android quitaría también el zoom con dos dedos. */
+   * táctiles estrechas todo campo va a 16 px como mínimo (además del
+   * `maximum-scale=1` del viewport, que Safari no siempre respeta). */
   @media (pointer: coarse) and (max-width: 1023px) {
     input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"]),
     textarea,
