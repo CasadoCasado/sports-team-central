@@ -63,6 +63,17 @@ test("las casillas no provocan zoom en el móvil", async ({ page, request }) => 
     return getComputedStyle(el).fontSize;
   });
   expect(tam).toBe("16px");
+
+  // Sin zoom con doble toque, también dentro de lo que tiene scroll propio.
+  const gesto = await page.evaluate(() => {
+    const caja = document.createElement("div");
+    caja.style.overflowY = "auto";
+    const boton = document.createElement("button");
+    caja.append(boton);
+    document.body.append(caja);
+    return getComputedStyle(boton).touchAction;
+  });
+  expect(gesto).toBe("manipulation");
 });
 
 test("en el móvil la modal es la pantalla entera y no se arrastra", async ({ page, request }) => {

@@ -292,6 +292,27 @@
     margin-right: 0 !important;
   }
 
+  /* Safari anterior a iOS 16 no conoce `clip` y no recortaba nada: la
+   * pantalla se arrastraba de lado. Ahí, `hidden` (sin pegajosos, pero quieta). */
+  @supports not (overflow: clip) {
+    html,
+    body {
+      overflow-x: hidden;
+    }
+  }
+
+  /* Sin zoom con doble toque. En el iPhone, dos toques seguidos —meter un
+   * resultado, pulsar rápido un botón— ampliaban la página, y ampliada se
+   * arrastra de lado a lado. `manipulation` deja desplazar y el zoom con dos
+   * dedos, y quita solo el doble toque. Va en todos los elementos porque no se
+   * hereda pasado un contenedor con scroll propio (los diálogos, por ejemplo);
+   * un `touch-none` de utilidad sigue ganando. */
+  *,
+  ::before,
+  ::after {
+    touch-action: manipulation;
+  }
+
   /* Sin zoom al tocar una casilla en el iPhone.
    *
    * Safari amplía la página al enfocar un campo con letra de menos de 16 px y
