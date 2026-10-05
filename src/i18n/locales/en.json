@@ -1387,6 +1387,10 @@
     "borrar": "Delete result",
     "borrarTitulo": "Delete this result?",
     "borrarTexto": "{{partido}} will no longer count in the table.",
-    "borrado": "Result deleted"
+    "borrado": "Result deleted",
+    "racha": "{{equipo}}'s last results",
+    "rachaW": "Won against {{rival}}, {{marcador}}",
+    "rachaL": "Lost to {{rival}}, {{marcador}}",
+    "rachaD": "Drew with {{rival}}, {{marcador}}"
   }
 }

@@ -156,6 +156,8 @@ export function LigaCompeticion({
         </div>
       </section>
 
+      <Racha liga={liga} />
+
       <section className="surface-card overflow-hidden" aria-labelledby="liga-partidos">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-3">
           <h2
@@ -382,3 +384,65 @@ function AnadirPartido({
     </Dialog>
   );
 }
+
+/**
+ * Los últimos resultados de nuestro equipo en la liga, del más antiguo al más
+ * reciente (el último, a la derecha): W ganado, L perdido, D empate.
+ */
+function Racha({ liga }: { liga: Liga }) {
+  const { t } = useTranslation();
+  const nuestro = liga.clasificacion.find((f) => f.nuestro)?.equipo;
+  if (!nuestro) return null;
+  const ultimos = liga.partidos
+    .filter((p) => p.origen === "nuestro" && p.puntos_local != null && p.puntos_visitante != null)
+    .slice(0, RACHA)
+    .reverse()
+    .map((p) => {
+      const local = p.local === nuestro;
+      const mios = (local ? p.puntos_local : p.puntos_visitante)!;
+      const suyos = (local ? p.puntos_visitante : p.puntos_local)!;
+      return {
+        id: p.id,
+        rival: local ? p.visitante : p.local,
+        marcador: `${mios} – ${suyos}`,
+        letra: mios > suyos ? "W" : mios < suyos ? "L" : "D",
+      };
+    });
+  if (ultimos.length === 0) return null;
+
+  return (
+    <section
+      aria-labelledby="liga-racha"
+      className="surface-card flex flex-wrap items-center justify-between gap-3 px-5 py-4"
+    >
+      <h2
+        id="liga-racha"
+        className="text-2xs font-bold uppercase tracking-widest text-muted-foreground"
+      >
+        {t("liga.racha", { equipo: nuestro })}
+      </h2>
+      <ol className="flex items-center gap-2">
+        {ultimos.map((r) => (
+          <li
+            key={r.id}
+            title={`${r.rival} · ${r.marcador}`}
+            aria-label={t(`liga.racha${r.letra}`, { rival: r.rival, marcador: r.marcador })}
+            className={cn(
+              "flex size-8 items-center justify-center rounded-full text-xs font-black text-white",
+              r.letra === "W"
+                ? "bg-ok"
+                : r.letra === "L"
+                  ? "bg-destructive"
+                  : "bg-muted-foreground",
+            )}
+          >
+            {r.letra}
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
+/** Cuántos resultados enseña la racha. */
+const RACHA = 5;

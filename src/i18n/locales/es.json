@@ -1387,6 +1387,10 @@
     "borrar": "Borrar resultado",
     "borrarTitulo": "¿Borrar este resultado?",
     "borrarTexto": "{{partido}} deja de contar en la clasificación.",
-    "borrado": "Resultado borrado"
+    "borrado": "Resultado borrado",
+    "racha": "Últimos resultados de {{equipo}}",
+    "rachaW": "Ganado a {{rival}}, {{marcador}}",
+    "rachaL": "Perdido con {{rival}}, {{marcador}}",
+    "rachaD": "Empate con {{rival}}, {{marcador}}"
   }
 }

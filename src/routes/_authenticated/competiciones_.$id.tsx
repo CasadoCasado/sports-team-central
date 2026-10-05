@@ -179,9 +179,10 @@ function CompetitionDetail() {
   const rows = standings?.standings ?? [];
   const podium = standings?.podium ?? [];
   const partidos = liga?.partidos.length ?? 0;
-  // Una liga de partidos sin entrenos no enseña la clasificación de jugadores
-  // ni la lista de entrenos vacía: lo suyo es la tabla de equipos.
-  const conEntrenos = formato !== null || (trainings?.length ?? 0) > 0 || partidos === 0;
+  // Una liga con enfrentamientos y sin entrenos no enseña la clasificación de
+  // jugadores ni la lista de entrenos vacía, aunque tenga formato de entreno
+  // puesto: lo suyo es la tabla de equipos.
+  const conEntrenos = (trainings?.length ?? 0) > 0 || partidos === 0;
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
