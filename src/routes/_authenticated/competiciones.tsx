@@ -206,7 +206,10 @@ function CompCard({
   });
 
   return (
-    <div className="surface-card min-w-0 p-4 sm:p-5">
+    // En columna y con el enlace empujado abajo (`mt-auto`): en una fila las
+    // dos tarjetas miden lo mismo, y «Ver clasificación» queda a la misma
+    // altura en las dos, lleve descripción o no.
+    <div className="surface-card flex min-w-0 flex-col p-4 sm:p-5">
       <div className="flex items-start gap-3">
         <div className="flex size-11 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
           <Trophy className="size-5" />
@@ -284,7 +287,7 @@ function CompCard({
       <Link
         to="/competiciones/$id"
         params={{ id: c.id }}
-        className="-ml-2 mt-2 inline-flex min-h-11 items-center gap-1.5 rounded-md px-2 text-2xs font-bold uppercase tracking-widest text-primary hover:underline"
+        className="-ml-2 mt-auto inline-flex min-h-11 items-center gap-1.5 self-start rounded-md px-2 pt-2 text-2xs font-bold uppercase tracking-widest text-primary hover:underline"
       >
         <ListOrdered className="size-3.5" /> {t("standings.seeStandings")}
       </Link>

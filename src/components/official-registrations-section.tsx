@@ -27,6 +27,7 @@ import {
   competitionsCatalogQuery,
   divisionsCatalogQuery,
   teamRegistrationsQuery,
+  type OfficialCompetition,
   type RegistrationStatus,
   type TeamRegistration,
 } from "@/lib/official-competitions";
@@ -47,6 +48,26 @@ export function statusBadgeClass(status: RegistrationStatus) {
   }
 }
 
+/**
+ * Las competiciones oficiales en las que el equipo puede inscribirse ahora:
+ * con las inscripciones abiertas y sin estar ya en su temporada actual (o en
+ * ninguna, si la competición no dice temporada).
+ */
+export function competicionesInscribibles(
+  catalogo: OfficialCompetition[],
+  inscripciones: TeamRegistration[],
+) {
+  return catalogo.filter(
+    (c) =>
+      c.activa &&
+      c.inscripciones_abiertas &&
+      !inscripciones.some(
+        (r) =>
+          r.competition_id === c.id && (!c.temporada_actual || r.temporada === c.temporada_actual),
+      ),
+  );
+}
+
 export function OfficialRegistrationsSection({
   teamId,
   canManage,
@@ -57,6 +78,11 @@ export function OfficialRegistrationsSection({
   const { t } = useTranslation();
   const [editing, setEditing] = useState<Partial<TeamRegistration> | null>(null);
   const { data: registrations } = useQuery(teamRegistrationsQuery(teamId));
+  const { data: catalogo } = useQuery(competitionsCatalogQuery);
+  const inscribibles = useMemo(
+    () => competicionesInscribibles(catalogo ?? [], registrations ?? []),
+    [catalogo, registrations],
+  );
 
   return (
     <section className="surface-card p-5">
@@ -65,7 +91,9 @@ export function OfficialRegistrationsSection({
           <h2 className="text-display text-xl font-bold">{t("registrations.title")}</h2>
           <p className="mt-1 text-sm text-muted-foreground">{t("registrations.subtitle")}</p>
         </div>
-        {canManage && (
+        {/* Solo si hay alguna con inscripciones abiertas en la que el equipo
+            aún no esté: si no, el botón llevaba a un formulario sin salida. */}
+        {canManage && inscribibles.length > 0 && (
           <Button
             onClick={() => setEditing({})}
             className="min-h-11 bg-primary text-primary-foreground uppercase tracking-widest font-bold hover:opacity-90"
@@ -94,6 +122,7 @@ export function OfficialRegistrationsSection({
         <RegistrationDialog
           teamId={teamId}
           initial={editing}
+          inscribibles={inscribibles}
           onClose={() => setEditing(null)}
         />
       )}
@@ -171,10 +200,13 @@ function RegistrationRow({
 function RegistrationDialog({
   teamId,
   initial,
+  inscribibles,
   onClose,
 }: {
   teamId: string;
   initial: Partial<TeamRegistration>;
+  /** Las que se ofrecen al inscribir; al editar valen todas. */
+  inscribibles: OfficialCompetition[];
   onClose: () => void;
 }) {
   const { t } = useTranslation();
@@ -182,7 +214,8 @@ function RegistrationDialog({
   const qc = useQueryClient();
   const isEdit = !!initial.id;
 
-  const { data: competitions } = useQuery(competitionsCatalogQuery);
+  const { data: catalogo } = useQuery(competitionsCatalogQuery);
+  const competitions = isEdit ? catalogo : inscribibles;
   const { data: categories } = useQuery(categoriesCatalogQuery);
   const { data: divisions } = useQuery(divisionsCatalogQuery);
 
