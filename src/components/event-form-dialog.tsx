@@ -72,6 +72,46 @@ const emptyValues = (): EventFormValues => ({
   formato_entreno: null,
 });
 
+/**
+ * Un partido o un entreno es un solo partido: dura hora y media salvo que se
+ * diga otra cosa. Al poner el inicio, el fin se pone solo; si ya se había
+ * cambiado la duración, se conserva al mover el inicio. El fin nunca queda
+ * antes del inicio (lo comprueba también el servidor).
+ */
+const DURACION_MIN = 90;
+const conDuracion = (tipo: EventType) => tipo === "partido" || tipo === "entrenamiento";
+
+/** «2026-10-10T11:30» + minutos, en hora local y con el mismo formato. */
+function sumarMinutos(local: string, minutos: number) {
+  const d = new Date(local);
+  if (Number.isNaN(d.getTime())) return "";
+  d.setMinutes(d.getMinutes() + minutos);
+  const dos = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${dos(d.getMonth() + 1)}-${dos(d.getDate())}T${dos(d.getHours())}:${dos(d.getMinutes())}`;
+}
+
+/** Minutos entre inicio y fin, o null si falta alguno o el fin no va después. */
+function minutosEntre(inicio: string, fin: string) {
+  if (!inicio || !fin) return null;
+  const m = (new Date(fin).getTime() - new Date(inicio).getTime()) / 60_000;
+  return Number.isFinite(m) && m > 0 ? Math.round(m) : null;
+}
+
+/** «1 h 30 min», «2 h», «45 min». */
+function duracionTexto(min: number) {
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return [h && `${h} h`, m && `${m} min`].filter(Boolean).join(" ");
+}
+
+/** Con inicio y sin fin, en un partido o entreno: el fin de hora y media. */
+function conFinPorDefecto(v: EventFormValues): EventFormValues {
+  if (conDuracion(v.tipo) && v.fecha_inicio && !v.fecha_fin) {
+    return { ...v, fecha_fin: sumarMinutos(v.fecha_inicio, DURACION_MIN) };
+  }
+  return v;
+}
+
 export function EventFormDialog({
   open,
   onOpenChange,
@@ -86,11 +126,13 @@ export function EventFormDialog({
   const { t } = useTranslation();
   const { user } = useSession();
   const qc = useQueryClient();
-  const [values, setValues] = useState<EventFormValues>({ ...emptyValues(), ...initial });
+  const [values, setValues] = useState<EventFormValues>(() =>
+    conFinPorDefecto({ ...emptyValues(), ...initial }),
+  );
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (open) setValues({ ...emptyValues(), ...initial });
+    if (open) setValues(conFinPorDefecto({ ...emptyValues(), ...initial }));
   }, [open, initial]);
 
   const { data: competitions } = useQuery({
@@ -170,6 +212,9 @@ export function EventFormDialog({
       if (!user) throw new Error("No user");
       if (!values.titulo.trim()) throw new Error(t("auth.required"));
       if (!values.fecha_inicio) throw new Error(t("auth.required"));
+      if (values.fecha_fin && new Date(values.fecha_fin) < new Date(values.fecha_inicio)) {
+        throw new Error(t("events.finAntesInicio"));
+      }
       const puntos = leerPuntosPista(values.puntos_pista);
       if (puntos === undefined) throw new Error(t("events.puntosPistaError"));
       const payload = {
@@ -249,7 +294,9 @@ export function EventFormDialog({
             <Label>{t("events.tipo")}</Label>
             <Select
               value={values.tipo}
-              onValueChange={(v) => setValues((s) => ({ ...s, tipo: v as EventType }))}
+              onValueChange={(v) =>
+                setValues((s) => conFinPorDefecto({ ...s, tipo: v as EventType }))
+              }
             >
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -274,7 +321,16 @@ export function EventFormDialog({
               <Input
                 type="datetime-local"
                 value={values.fecha_inicio}
-                onChange={(e) => setValues((s) => ({ ...s, fecha_inicio: e.target.value }))}
+                onChange={(e) => {
+                  const inicio = e.target.value;
+                  setValues((s) => {
+                    if (!conDuracion(s.tipo) || !inicio) return { ...s, fecha_inicio: inicio };
+                    // Se mueve el fin con el inicio, conservando la duración
+                    // que hubiera (hora y media si no había ninguna).
+                    const dura = minutosEntre(s.fecha_inicio, s.fecha_fin) ?? DURACION_MIN;
+                    return { ...s, fecha_inicio: inicio, fecha_fin: sumarMinutos(inicio, dura) };
+                  });
+                }}
                 required
               />
             </div>
@@ -283,8 +339,16 @@ export function EventFormDialog({
               <Input
                 type="datetime-local"
                 value={values.fecha_fin}
+                min={values.fecha_inicio || undefined}
                 onChange={(e) => setValues((s) => ({ ...s, fecha_fin: e.target.value }))}
               />
+              {minutosEntre(values.fecha_inicio, values.fecha_fin) != null && (
+                <p className="mt-1.5 text-xxs text-muted-foreground">
+                  {t("events.duracion", {
+                    duracion: duracionTexto(minutosEntre(values.fecha_inicio, values.fecha_fin)!),
+                  })}
+                </p>
+              )}
             </div>
           </div>
           <div>

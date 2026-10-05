@@ -404,6 +404,8 @@
     "tipo": "Type",
     "fechaInicio": "Start date & time",
     "fechaFin": "End date & time",
+    "duracion": "Lasts {{duracion}}",
+    "finAntesInicio": "The end time can't be before the start time.",
     "ubicacion": "Location",
     "rival": "Opponent",
     "esLocal": "We play at home",
