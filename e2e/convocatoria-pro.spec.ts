@@ -309,3 +309,55 @@ test.describe("Convocatoria PRO", () => {
     await expect(page.getByRole("button", { name: /sugerir parejas/i })).toHaveCount(0);
   });
 });
+
+test("PRO avisa cuando una pareja juega del mismo lado", async ({ page, request }) => {
+  const e = await montar(request);
+  for (const [s, posicion] of [
+    [e.ivan, "reves"],
+    [e.cocap, "Revés"],
+    [e.sara, "derecha"],
+    [e.noa, "reves"],
+  ] as const) {
+    const res = await request.patch(`${API_URL}/profiles/me/`, {
+      headers: bearer(s),
+      data: { posicion },
+    });
+    expect(res.ok(), await res.text()).toBe(true);
+  }
+  const pro = await request.post(`${API_URL}/teams/${e.teamId}/pro/`, {
+    headers: bearer(e.capitana),
+    data: { activo: true },
+  });
+  expect(pro.ok(), await pro.text()).toBe(true);
+  const resp = (await (
+    await request.get(`${API_URL}/event-responses/?event_id=${e.eventId}`, {
+      headers: bearer(e.capitana),
+    })
+  ).json()) as { id: string; user_id: string }[];
+  for (const [s, pista] of [
+    [e.sara, 1],
+    [e.noa, 1],
+    [e.ivan, 2],
+    [e.cocap, 2],
+  ] as const) {
+    const r = resp.find((x) => x.user_id === s.userId)!;
+    const res = await request.patch(`${API_URL}/event-responses/${r.id}/`, {
+      headers: bearer(e.capitana),
+      data: { padel_pista: pista },
+    });
+    expect(res.ok(), await res.text()).toBe(true);
+  }
+
+  await loginAs(page, e.capitana);
+  await page.goto(`/eventos/${e.eventId}`);
+  await expect(page.locator('[data-pista-pro="2"]')).toContainText(/los dos de revés/i, {
+    timeout: 20_000,
+  });
+  await expect(page.locator('[data-pista-pro="1"]')).toContainText(/lados que encajan/i);
+  await expect(
+    page
+      .getByRole("tabpanel")
+      .getByText(/pista 2 · revés/i)
+      .first(),
+  ).toBeVisible();
+});

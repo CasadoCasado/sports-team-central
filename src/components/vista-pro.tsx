@@ -636,6 +636,7 @@ function ListaApuntados({ ctx, apuntados }: { ctx: Ctx; apuntados: Respuesta[] }
                       {r.padel_pista != null
                         ? `${t("callups.pista")} ${r.padel_pista}`
                         : t("quimica.sinPista")}
+                      {j?.lado && ` · ${t(`lado.${j.lado}`)}`}
                     </span>
                   </span>
                   {j && (
@@ -866,6 +867,14 @@ function TarjetaPista({
                     {t("pro.contraEllos", { g: vs.ganados, p: vs.perdidos, rival: rival ?? "" })}
                   </Tag>
                 )}
+                {par.encaje === "mismo_lado" && (
+                  <Tag tono="aviso">
+                    {t("pro.mismoLado", {
+                      lado: t(`lado.${ctx.pro.jugadores[a!]?.lado ?? "reves"}`).toLowerCase(),
+                    })}
+                  </Tag>
+                )}
+                {par.encaje === "encajan" && <Tag tono="ok">{t("pro.ladosEncajan")}</Tag>}
                 {!n && <Tag tono="aviso">{t("pro.primeraVez")}</Tag>}
               </div>
             </>
@@ -1035,6 +1044,7 @@ function FichaJugador({
           <h3 className="truncate text-lg font-bold">{ctx.nombre(u)}</h3>
           <p className="text-xs text-[var(--pro-muted)]">
             {j?.nivel ? t("pro.nivel", { nivel: j.nivel }) : t("pro.sinNivel")}
+            {` · ${j?.lado ? t(`lado.${j.lado}`) : t("pro.sinLado")}`}
           </p>
         </div>
       </div>

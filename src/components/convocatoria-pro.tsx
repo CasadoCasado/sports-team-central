@@ -295,6 +295,13 @@ function BarraPro({
                                 : t("pro.nuncaJuntos")}
                             </Chip>
                           )}
+                          {par?.encaje === "mismo_lado" && (
+                            <Chip>
+                              {t("pro.mismoLado", {
+                                lado: t(`lado.${pro?.jugadores[a]?.lado ?? "reves"}`).toLowerCase(),
+                              })}
+                            </Chip>
+                          )}
                           {b && mutua(a, b) && <Chip tono="ok">{t("pro.quimicaMutua")}</Chip>}
                           {vs && (
                             <Chip tono="ok">

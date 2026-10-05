@@ -9,6 +9,9 @@ export type ParejaPro = {
   ganados: number;
   perdidos: number;
   prob: number;
+  /** Derecha con revés (o alguien que juega en los dos) encajan; dos del
+   * mismo lado, no. Null si falta el lado de alguno. */
+  encaje: "encajan" | "mismo_lado" | null;
 };
 
 export type JugadorPro = {
@@ -19,6 +22,7 @@ export type JugadorPro = {
   /** Jornadas del equipo desde la última que jugó; null si nunca. */
   sin_jugar: number | null;
   nivel: string | null;
+  lado: "reves" | "derecha" | "ambos" | null;
 };
 
 export type PropuestaPro = {
