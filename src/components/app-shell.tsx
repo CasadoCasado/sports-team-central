@@ -1,6 +1,7 @@
 import { type PointerEvent as ReactPointerEvent, type ReactNode, useRef, useState } from "react";
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { RemoveScroll } from "react-remove-scroll";
 import { useIsAdmin } from "@/hooks/use-is-admin";
 import { UNDER_MAINTENANCE } from "@/lib/feature-flags";
 import { GuidedTour, useGuidedTour } from "@/components/guided-tour";
@@ -100,9 +101,12 @@ export function AppShell({ children }: { children: ReactNode }) {
     setAbierta(false);
     setEncima(false);
   }
-  useEffect(() => () => {
-    if (temporizador.current) clearTimeout(temporizador.current);
-  }, []);
+  useEffect(
+    () => () => {
+      if (temporizador.current) clearTimeout(temporizador.current);
+    },
+    [],
+  );
   /** Solo cuenta desde `lg`: en móvil la barra es el cajón de siempre. */
   const plegada = !fijada && !abierta && !encima;
 
@@ -135,16 +139,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("keydown", alPulsar);
   }, [abierta]);
 
-  useEffect(() => {
-    if (typeof document === "undefined") return;
-    document.body.style.overflow = mobileOpen ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [mobileOpen]);
-
   const isAdmin = useIsAdmin();
-
 
   const groups: { label: string; items: NavItem[] }[] = [
     {
@@ -227,175 +222,210 @@ export function AppShell({ children }: { children: ReactNode }) {
           PRO se notaba. Se abre por encima, sin mover la página, y se puede
           fijar abierta. Es `fixed` también en escritorio; el hueco que ocupa
           en la fila lo guarda el separador de debajo. */}
-      <aside
-        id="main-sidebar"
-        className={cn(
-          "fixed inset-y-0 left-0 z-40 flex w-[17rem] max-w-[85vw] shrink-0 flex-col overscroll-contain bg-[color:var(--color-ink)] pb-[env(safe-area-inset-bottom)] text-[color:var(--color-ink-foreground)] transition-[transform,width] duration-200 will-change-transform lg:max-w-none lg:translate-x-0 lg:pb-0",
-          mobileOpen ? "translate-x-0" : "-translate-x-full",
-          plegada ? "lg:w-[4.5rem]" : "lg:w-64",
-          !fijada && !plegada && "lg:shadow-2xl",
-        )}
-        aria-label="Navegación principal"
-        aria-hidden={undefined}
-        onPointerEnter={alEntrar}
-        onPointerLeave={alSalir}
-      >
-        <div className={cn("flex h-16 items-center gap-3 px-6", plegada && "lg:justify-center lg:px-0")}>
-          <img
-            src={LOGO_URL}
-            alt="TeamUp"
-            className="size-9 shrink-0 object-contain"
-            decoding="async"
-            width={36}
-            height={36}
-          />
+      {/* Con el cajón abierto en el móvil, la página de detrás no se mueve.
+          Un `overflow: hidden` en el <body> no basta: Safari lo ignora con el
+          dedo, la página seguía bajando, la barra del navegador se escondía y
+          el cajón —fijo— se quedaba corto, subido y con un hueco en blanco
+          debajo. Es el mismo bloqueo que usan los diálogos de Radix: frena el
+          dedo y la rueda fuera del cajón y deja desplazar su menú. */}
+      <RemoveScroll enabled={mobileOpen} allowPinchZoom>
+        <aside
+          id="main-sidebar"
+          className={cn(
+            "fixed inset-y-0 left-0 z-40 flex w-[17rem] max-w-[85vw] shrink-0 flex-col overscroll-contain bg-[color:var(--color-ink)] pb-[env(safe-area-inset-bottom)] text-[color:var(--color-ink-foreground)] transition-[transform,width] duration-200 will-change-transform lg:max-w-none lg:translate-x-0 lg:pb-0",
+            mobileOpen ? "translate-x-0" : "-translate-x-full",
+            plegada ? "lg:w-[4.5rem]" : "lg:w-64",
+            !fijada && !plegada && "lg:shadow-2xl",
+          )}
+          aria-label="Navegación principal"
+          aria-hidden={undefined}
+          onPointerEnter={alEntrar}
+          onPointerLeave={alSalir}
+        >
+          <div
+            className={cn(
+              "flex h-16 items-center gap-3 px-6",
+              plegada && "lg:justify-center lg:px-0",
+            )}
+          >
+            <img
+              src={LOGO_URL}
+              alt="TeamUp"
+              className="size-9 shrink-0 object-contain"
+              decoding="async"
+              width={36}
+              height={36}
+            />
 
-          <div className={cn("flex flex-col leading-none", plegada && "lg:hidden")}>
-            <span className="text-display text-base font-bold uppercase tracking-[0.14em]">
-              {t("app.name")}
-            </span>
-            <span className="mt-1 text-3xs font-semibold uppercase tracking-[0.28em] text-[color:var(--color-ink-muted)]">
-              Sports Management
-            </span>
+            <div className={cn("flex flex-col leading-none", plegada && "lg:hidden")}>
+              <span className="text-display text-base font-bold uppercase tracking-[0.14em]">
+                {t("app.name")}
+              </span>
+              <span className="mt-1 text-3xs font-semibold uppercase tracking-[0.28em] text-[color:var(--color-ink-muted)]">
+                Sports Management
+              </span>
+            </div>
           </div>
-        </div>
 
-        {/* Abrir, fijar o plegar: solo en escritorio. */}
-        <div className={cn("hidden px-3 lg:flex", plegada ? "justify-center" : "justify-between gap-1")}>
-          {plegada ? (
-            <button
-              type="button"
-              onClick={() => setAbierta(true)}
-              aria-label={t("nav.abrirBarra")}
-              title={t("nav.abrirBarra")}
-              aria-expanded={false}
-              aria-controls="main-sidebar"
-              className="inline-flex size-10 items-center justify-center rounded-lg text-[color:var(--color-ink-muted)] hover:bg-white/[0.06] hover:text-white"
-            >
-              <PanelLeftOpen className="size-4" aria-hidden="true" />
-            </button>
-          ) : (
-            <>
+          {/* Abrir, fijar o plegar: solo en escritorio. */}
+          <div
+            className={cn(
+              "hidden px-3 lg:flex",
+              plegada ? "justify-center" : "justify-between gap-1",
+            )}
+          >
+            {plegada ? (
               <button
                 type="button"
-                onClick={() => fijar(!fijada)}
-                aria-pressed={fijada}
-                title={fijada ? t("nav.soltarBarra") : t("nav.fijarBarra")}
-                className="inline-flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-2xs font-bold uppercase tracking-widest text-[color:var(--color-ink-muted)] hover:bg-white/[0.06] hover:text-white"
+                onClick={() => setAbierta(true)}
+                aria-label={t("nav.abrirBarra")}
+                title={t("nav.abrirBarra")}
+                aria-expanded={false}
+                aria-controls="main-sidebar"
+                className="inline-flex size-10 items-center justify-center rounded-lg text-[color:var(--color-ink-muted)] hover:bg-white/[0.06] hover:text-white"
               >
-                {fijada ? (
-                  <PinOff className="size-3.5" aria-hidden="true" />
-                ) : (
-                  <Pin className="size-3.5" aria-hidden="true" />
-                )}
-                {fijada ? t("nav.soltarBarra") : t("nav.fijarBarra")}
+                <PanelLeftOpen className="size-4" aria-hidden="true" />
               </button>
-              {!fijada && (
+            ) : (
+              <>
                 <button
                   type="button"
-                  onClick={plegar}
-                  aria-label={t("nav.cerrarBarra")}
-                  title={t("nav.cerrarBarra")}
-                  className="inline-flex size-9 items-center justify-center rounded-lg text-[color:var(--color-ink-muted)] hover:bg-white/[0.06] hover:text-white"
+                  onClick={() => fijar(!fijada)}
+                  aria-pressed={fijada}
+                  title={fijada ? t("nav.soltarBarra") : t("nav.fijarBarra")}
+                  className="inline-flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-2xs font-bold uppercase tracking-widest text-[color:var(--color-ink-muted)] hover:bg-white/[0.06] hover:text-white"
                 >
-                  <PanelLeftClose className="size-4" aria-hidden="true" />
+                  {fijada ? (
+                    <PinOff className="size-3.5" aria-hidden="true" />
+                  ) : (
+                    <Pin className="size-3.5" aria-hidden="true" />
+                  )}
+                  {fijada ? t("nav.soltarBarra") : t("nav.fijarBarra")}
                 </button>
-              )}
-            </>
-          )}
-        </div>
-
-        <nav
-          className={cn(
-            "scrollbar-none flex-1 space-y-5 overflow-y-auto overscroll-contain px-3 py-3",
-            plegada && "lg:space-y-2 lg:overflow-x-visible lg:px-2",
-          )}
-        >
-          {groups.map((group, gi) => (
-            <div key={group.label}>
-              <div
-                className={cn(
-                  "px-3 pb-1.5 text-2xs font-bold uppercase tracking-[0.22em] text-[color:var(--color-ink-muted)]",
-                  plegada && "lg:sr-only",
+                {!fijada && (
+                  <button
+                    type="button"
+                    onClick={plegar}
+                    aria-label={t("nav.cerrarBarra")}
+                    title={t("nav.cerrarBarra")}
+                    className="inline-flex size-9 items-center justify-center rounded-lg text-[color:var(--color-ink-muted)] hover:bg-white/[0.06] hover:text-white"
+                  >
+                    <PanelLeftClose className="size-4" aria-hidden="true" />
+                  </button>
                 )}
-              >
-                {group.label}
-              </div>
-              {plegada && gi > 0 && (
-                <div aria-hidden="true" className="mx-3 mb-2 hidden h-px bg-white/10 lg:block" />
-              )}
-              <div className="space-y-0.5">
-                {groups.length > 0 && group.items.map((item) => {
-                  const active = pathname === item.to || pathname.startsWith(item.to + "/");
-                  const Icon = item.icon;
-                  return (
-                    <Link
-                      key={item.to}
-                      to={item.to}
-                      onClick={() => setMobileOpen(false)}
-                      title={plegada ? item.label : undefined}
-                      className={cn(
-                        "group relative flex min-h-11 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all",
-                        plegada && "lg:justify-center lg:px-0",
-
-                        active
-                          ? "bg-white/[0.06] text-white"
-                          : "text-[color:var(--color-ink-muted)] hover:bg-white/[0.04] hover:text-white",
-                      )}
-                    >
-                      {active && (
-                        <span className="absolute inset-y-1.5 left-0 w-0.5 rounded-r-full bg-primary" aria-hidden="true" />
-                      )}
-                      <Icon className={cn("size-4 shrink-0 transition-colors", active ? "text-primary" : "text-[color:var(--color-ink-muted)] group-hover:text-white")} />
-                      {/* Plegada, el nombre sigue ahí para los lectores de
-                          pantalla; a la vista lo da el `title`. */}
-                      <span className={cn("truncate", plegada && "lg:sr-only")}>{item.label}</span>
-                      {UNDER_MAINTENANCE[item.to] && (
-                        <span
-                          className={cn(
-                            "ml-auto flex shrink-0 items-center",
-                            plegada && "lg:absolute lg:right-2 lg:top-2",
-                          )}
-                          title={t("maintenance.badge")}
-                        >
-                          <span
-                            aria-hidden="true"
-                            className="size-1.5 rounded-full"
-                            style={{ backgroundColor: "var(--color-evt-torneo)" }}
-                          />
-                          <span className="sr-only">{t("maintenance.badge")}</span>
-                        </span>
-                      )}
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </nav>
-
-        <div className="border-t border-white/5 p-3">
-          <Link
-            to="/perfil"
-            title={plegada ? `${profile?.nombre ?? ""} ${profile?.apellidos ?? ""}`.trim() : undefined}
-            className={cn(
-              "flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-white/[0.05]",
-              plegada && "lg:justify-center",
+              </>
             )}
-            onClick={() => setMobileOpen(false)}
+          </div>
+
+          <nav
+            className={cn(
+              "scrollbar-none flex-1 space-y-5 overflow-y-auto overscroll-contain px-3 py-3",
+              plegada && "lg:space-y-2 lg:overflow-x-visible lg:px-2",
+            )}
           >
-            <div className="flex size-9 items-center justify-center rounded-full bg-primary/15 text-xs font-bold text-primary ring-1 ring-primary/30">
-              {initials}
-            </div>
-            <div className={cn("min-w-0 flex-1", plegada && "lg:sr-only")}>
-              <p className="truncate text-xs font-semibold text-white">
-                {profile?.nombre} {profile?.apellidos}
-              </p>
-              <p className="truncate text-2xs text-[color:var(--color-ink-muted)]">{profile?.email}</p>
-            </div>
-          </Link>
-        </div>
-      </aside>
+            {groups.map((group, gi) => (
+              <div key={group.label}>
+                <div
+                  className={cn(
+                    "px-3 pb-1.5 text-2xs font-bold uppercase tracking-[0.22em] text-[color:var(--color-ink-muted)]",
+                    plegada && "lg:sr-only",
+                  )}
+                >
+                  {group.label}
+                </div>
+                {plegada && gi > 0 && (
+                  <div aria-hidden="true" className="mx-3 mb-2 hidden h-px bg-white/10 lg:block" />
+                )}
+                <div className="space-y-0.5">
+                  {groups.length > 0 &&
+                    group.items.map((item) => {
+                      const active = pathname === item.to || pathname.startsWith(item.to + "/");
+                      const Icon = item.icon;
+                      return (
+                        <Link
+                          key={item.to}
+                          to={item.to}
+                          onClick={() => setMobileOpen(false)}
+                          title={plegada ? item.label : undefined}
+                          className={cn(
+                            "group relative flex min-h-11 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all",
+                            plegada && "lg:justify-center lg:px-0",
+
+                            active
+                              ? "bg-white/[0.06] text-white"
+                              : "text-[color:var(--color-ink-muted)] hover:bg-white/[0.04] hover:text-white",
+                          )}
+                        >
+                          {active && (
+                            <span
+                              className="absolute inset-y-1.5 left-0 w-0.5 rounded-r-full bg-primary"
+                              aria-hidden="true"
+                            />
+                          )}
+                          <Icon
+                            className={cn(
+                              "size-4 shrink-0 transition-colors",
+                              active
+                                ? "text-primary"
+                                : "text-[color:var(--color-ink-muted)] group-hover:text-white",
+                            )}
+                          />
+                          {/* Plegada, el nombre sigue ahí para los lectores de
+                          pantalla; a la vista lo da el `title`. */}
+                          <span className={cn("truncate", plegada && "lg:sr-only")}>
+                            {item.label}
+                          </span>
+                          {UNDER_MAINTENANCE[item.to] && (
+                            <span
+                              className={cn(
+                                "ml-auto flex shrink-0 items-center",
+                                plegada && "lg:absolute lg:right-2 lg:top-2",
+                              )}
+                              title={t("maintenance.badge")}
+                            >
+                              <span
+                                aria-hidden="true"
+                                className="size-1.5 rounded-full"
+                                style={{ backgroundColor: "var(--color-evt-torneo)" }}
+                              />
+                              <span className="sr-only">{t("maintenance.badge")}</span>
+                            </span>
+                          )}
+                        </Link>
+                      );
+                    })}
+                </div>
+              </div>
+            ))}
+          </nav>
+
+          <div className="border-t border-white/5 p-3">
+            <Link
+              to="/perfil"
+              title={
+                plegada ? `${profile?.nombre ?? ""} ${profile?.apellidos ?? ""}`.trim() : undefined
+              }
+              className={cn(
+                "flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-white/[0.05]",
+                plegada && "lg:justify-center",
+              )}
+              onClick={() => setMobileOpen(false)}
+            >
+              <div className="flex size-9 items-center justify-center rounded-full bg-primary/15 text-xs font-bold text-primary ring-1 ring-primary/30">
+                {initials}
+              </div>
+              <div className={cn("min-w-0 flex-1", plegada && "lg:sr-only")}>
+                <p className="truncate text-xs font-semibold text-white">
+                  {profile?.nombre} {profile?.apellidos}
+                </p>
+                <p className="truncate text-2xs text-[color:var(--color-ink-muted)]">
+                  {profile?.email}
+                </p>
+              </div>
+            </Link>
+          </div>
+        </aside>
+      </RemoveScroll>
 
       {mobileOpen && (
         <button
@@ -439,7 +469,11 @@ export function AppShell({ children }: { children: ReactNode }) {
               aria-expanded={mobileOpen}
               aria-controls="main-sidebar"
             >
-              {mobileOpen ? <X className="size-4" aria-hidden="true" /> : <Menu className="size-4" aria-hidden="true" />}
+              {mobileOpen ? (
+                <X className="size-4" aria-hidden="true" />
+              ) : (
+                <Menu className="size-4" aria-hidden="true" />
+              )}
             </button>
             {/* Con el cajón cerrado, el logo solo estaba dentro de él. */}
             <Link to="/inicio" className="flex items-center gap-2 lg:hidden">
@@ -464,7 +498,10 @@ export function AppShell({ children }: { children: ReactNode }) {
             >
               <Bell className="size-4" aria-hidden="true" />
               {(unreadCount ?? 0) > 0 && (
-                <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-primary text-2xs font-bold text-primary-foreground shadow-[var(--shadow-brand)]" aria-hidden="true">
+                <span
+                  className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-primary text-2xs font-bold text-primary-foreground shadow-[var(--shadow-brand)]"
+                  aria-hidden="true"
+                >
                   {unreadCount! > 9 ? "9+" : unreadCount}
                 </span>
               )}
@@ -482,11 +519,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         <main className="flex-1 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:p-6 xl:p-8">
           <div className="animate-fade-in-up">{children}</div>
         </main>
-
       </div>
       {tour.ready && <GuidedTour open={tour.open} onFinish={tour.finish} />}
     </div>
   );
 }
-
-
