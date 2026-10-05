@@ -313,6 +313,26 @@
     touch-action: manipulation;
   }
 
+  /* Las casillas de fecha y hora en el iPhone.
+   *
+   * Safari les da un ancho propio que ignora el `w-full`: se salían por la
+   * derecha del formulario y, dentro de un diálogo, dejaban arrastrarlo de
+   * lado. Vacías, además, salían más altas que el resto, y con valor, con el
+   * texto centrado. Sin la apariencia nativa se comportan como cualquier otra
+   * casilla; el selector de fecha del sistema sigue saliendo al tocarlas. */
+  input[type="date"],
+  input[type="datetime-local"],
+  input[type="time"] {
+    -webkit-appearance: none;
+    appearance: none;
+    min-width: 0;
+    max-width: 100%;
+  }
+  input::-webkit-date-and-time-value {
+    text-align: left;
+    min-height: 1.5em;
+  }
+
   /* Sin zoom al tocar una casilla en el iPhone.
    *
    * Safari amplía la página al enfocar un campo con letra de menos de 16 px y

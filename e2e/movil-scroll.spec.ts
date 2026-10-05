@@ -100,9 +100,16 @@ test("en el móvil la modal es la pantalla entera y no se arrastra", async ({ pa
       );
     })
     .toEqual([0, 0, vista.width, vista.height]);
-  await page.screenshot({
-    path: "/tmp/claude-1000/-home-mdc-proyectos-teamup/cf351afe-4f9d-4793-9a37-7a8548c59a72/scratchpad/modal.png",
+  // Solo se desplaza arriba y abajo, y nada se sale por la derecha (en el
+  // iPhone, las casillas de fecha lo hacían y dejaban arrastrarla de lado).
+  expect(await modal.evaluate((el) => getComputedStyle(el).overflowX)).toBe("hidden");
+  const fuera = await modal.evaluate((el) => {
+    const borde = el.getBoundingClientRect().right;
+    return [...el.querySelectorAll("input, button, textarea")].filter(
+      (c) => c.getBoundingClientRect().right > borde + 1,
+    ).length;
   });
+  expect(fuera).toBe(0);
   await page.getByRole("button", { name: /close/i }).click();
   await expect(modal).toHaveCount(0);
 
@@ -120,9 +127,6 @@ test("en el móvil la modal es la pantalla entera y no se arrastra", async ({ pa
   await page.mouse.move(vista.width / 2, arriba + 250, { steps: 10 });
   expect(Math.round((await hoja.boundingBox())!.y)).toBe(Math.round(arriba));
   await page.mouse.up();
-  await page.screenshot({
-    path: "/tmp/claude-1000/-home-mdc-proyectos-teamup/cf351afe-4f9d-4793-9a37-7a8548c59a72/scratchpad/hoja.png",
-  });
 });
 
 test("la ventana solo sube y baja: ni pellizco ni arrastre de lado", async ({ page, request }) => {
