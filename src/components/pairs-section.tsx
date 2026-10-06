@@ -187,6 +187,7 @@ function HistoryItem({ item }: { item: PairHistoryItem }) {
       <Link
         to="/eventos/$id"
         params={{ id: item.event_id }}
+        search={{ desde: "estadisticas" }}
         className="flex items-center gap-3 rounded-md border border-border bg-background px-3 py-2 hover:bg-card"
       >
         <div className="min-w-0 flex-1">

@@ -44,6 +44,11 @@ import { LigaCompeticion, ligaQuery } from "@/components/liga-competicion";
 // El guion bajo de `competiciones_` deja esta pantalla fuera de la lista de
 // competiciones: es una página entera, no algo que se pinte dentro de ella.
 export const Route = createFileRoute("/_authenticated/competiciones_/$id")({
+  // `?evento=` cuando se llega desde un entreno de la competición: «Volver»
+  // regresa a él y no a la lista de competiciones.
+  validateSearch: (search: Record<string, unknown>): { evento?: string } => ({
+    evento: typeof search.evento === "string" && search.evento ? search.evento : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Competición | TeamUp" },
@@ -131,6 +136,7 @@ function CompetitionDetail() {
   const { t, i18n } = useTranslation();
   const locale = i18n.language.startsWith("en") ? enUS : esLocale;
   const { id } = Route.useParams();
+  const { evento } = Route.useSearch();
   const { isManager } = useActiveTeam();
   const qc = useQueryClient();
 
@@ -186,12 +192,22 @@ function CompetitionDetail() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
-      <Link
-        to="/competiciones"
-        className="-ml-2 inline-flex min-h-11 items-center gap-2 rounded-md px-2 text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="size-3.5 shrink-0" /> {t("standings.back")}
-      </Link>
+      {evento ? (
+        <Link
+          to="/eventos/$id"
+          params={{ id: evento }}
+          className="-ml-2 inline-flex min-h-11 items-center gap-2 rounded-md px-2 text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="size-3.5 shrink-0" /> {t("events.volverAlEntreno")}
+        </Link>
+      ) : (
+        <Link
+          to="/competiciones"
+          className="-ml-2 inline-flex min-h-11 items-center gap-2 rounded-md px-2 text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="size-3.5 shrink-0" /> {t("standings.back")}
+        </Link>
+      )}
 
       <div className="surface-card p-4 sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
@@ -411,6 +427,7 @@ function CompetitionDetail() {
                   key={e.id}
                   to="/eventos/$id"
                   params={{ id: e.id }}
+                  search={{ desde: "competicion", comp: id }}
                   className="flex items-center gap-4 p-4 hover:bg-card"
                 >
                   <div className="flex size-10 items-center justify-center rounded-md bg-info/10 text-info ring-1 ring-info/30">

@@ -465,7 +465,10 @@
     "puntosPista": "Points per court",
     "puntosPistaHint": "What each court is worth in the score, in order. For example «3, 3, 2, 2, 2». Empty: 1 point per court.",
     "puntosPistaError": "Points per court must be numbers from 1 to 10, separated by commas.",
-    "puntosPistaHintComp": "Empty: whatever its competition says. Fill it only if this match is worth something different."
+    "puntosPistaHintComp": "Empty: whatever its competition says. Fill it only if this match is worth something different.",
+    "volverA": "Back to {{sitio}}",
+    "volverACompeticion": "Back to the competition",
+    "volverAlEntreno": "Back to the session"
   },
   "competitions": {
     "title": "Competitions",

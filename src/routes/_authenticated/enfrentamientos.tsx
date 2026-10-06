@@ -228,6 +228,7 @@ function Matches() {
                   <Link
                     to="/eventos/$id"
                     params={{ id: e.id }}
+                    search={{ desde: "enfrentamientos" }}
                     className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4"
                   >
                     <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-danger/10 text-danger ring-1 ring-danger/30">
@@ -293,7 +294,7 @@ function Matches() {
                         <Link
                           to="/eventos/$id"
                           params={{ id: e.id }}
-                          search={{ pestana: "pistas" }}
+                          search={{ pestana: "pistas", desde: "enfrentamientos" }}
                         >
                           <LayoutGrid className="size-3" aria-hidden="true" />
                           <span className="ml-1">{t("callups.padelAssign")}</span>
@@ -351,6 +352,7 @@ function Matches() {
                 key={e.id}
                 to="/eventos/$id"
                 params={{ id: e.id }}
+                search={{ desde: "enfrentamientos" }}
                 className="flex items-center gap-4 p-4 opacity-70 hover:bg-card hover:opacity-100"
               >
                 <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-card ring-1 ring-border">

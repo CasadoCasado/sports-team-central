@@ -465,7 +465,10 @@
     "puntosPista": "Puntos por pista",
     "puntosPistaHint": "Lo que vale cada pista en el marcador, en orden. Por ejemplo «3, 3, 2, 2, 2». Vacío: 1 punto cada pista.",
     "puntosPistaError": "Los puntos por pista tienen que ser números del 1 al 10, separados por comas.",
-    "puntosPistaHintComp": "Vacío: lo que diga su competición. Pon algo solo si este partido vale distinto."
+    "puntosPistaHintComp": "Vacío: lo que diga su competición. Pon algo solo si este partido vale distinto.",
+    "volverA": "Volver a {{sitio}}",
+    "volverACompeticion": "Volver a la competición",
+    "volverAlEntreno": "Volver al entreno"
   },
   "competitions": {
     "title": "Competiciones",
