@@ -125,3 +125,45 @@ test("en el ordenador no hay barra fija: Confirmar sigue en el tablero", async (
   });
   await expect(page.locator("[data-barra-confirmar]")).toBeHidden();
 });
+
+test("desde Enfrentamientos, en el teléfono «Asignar pistas» abre la ficha en Pistas", async ({
+  page,
+  request,
+}) => {
+  const { session: capitana, team } = await seedCaptainWithTeam(request, "conv-enfr");
+  const res = await request.post(`${API_URL}/events/`, {
+    headers: bearer(capitana),
+    data: {
+      team_id: team.id,
+      tipo: "partido",
+      titulo: "Jornada 7",
+      rival: "Club Náutico",
+      fecha_inicio: new Date(Date.now() + 3 * 86_400_000).toISOString(),
+      requiere_convocatoria: true,
+      padel_num_pistas: 2,
+    },
+  });
+  const { id: eventId } = (await res.json()) as { id: string };
+  await request.post(`${API_URL}/event-responses/respond/`, {
+    headers: bearer(capitana),
+    data: { event_id: eventId, status: "confirmado" },
+  });
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await loginAs(page, capitana);
+  await page.goto("/enfrentamientos");
+  await page.getByRole("link", { name: /asignación de pistas/i }).click();
+  await expect(page).toHaveURL(new RegExp(`/eventos/${eventId}\\?pestana=pistas`));
+  await expect(page.getByRole("tab", { name: /pistas/i })).toHaveAttribute(
+    "aria-selected",
+    "true",
+    { timeout: 20_000 },
+  );
+
+  // En el ordenador, como siempre: se despliega ahí mismo.
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/enfrentamientos");
+  await page.getByRole("button", { name: /asignación de pistas/i }).click();
+  await expect(page.getByRole("button", { name: /^confirmar convocatoria$/i })).toBeVisible();
+  await expect(page).toHaveURL(/\/enfrentamientos/);
+});

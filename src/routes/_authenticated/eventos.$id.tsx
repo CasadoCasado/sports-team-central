@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
@@ -93,8 +93,13 @@ export const Route = createFileRoute("/_authenticated/eventos/$id")({
   // `?vista=resultado` es como se llega desde Resultados: solo el partido y su
   // marcador, sin convocatoria, química ni reparto de pistas, que son de
   // antes del partido y tienen su sitio en Convocatorias y Enfrentamientos.
-  validateSearch: (search: Record<string, unknown>): { vista?: "resultado" } => ({
+  // `?pestana=pistas` es como se llega desde «Asignar pistas» de
+  // Enfrentamientos en el teléfono: la convocatoria, abierta en Pistas.
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { vista?: "resultado"; pestana?: "pistas" } => ({
     vista: search.vista === "resultado" ? "resultado" : undefined,
+    pestana: search.pestana === "pistas" ? "pistas" : undefined,
   }),
   component: EventDetail,
 });
@@ -103,7 +108,8 @@ function EventDetail() {
   const { t, i18n } = useTranslation();
   const locale = i18n.language.startsWith("en") ? enUS : esLocale;
   const { id } = Route.useParams();
-  const soloResultado = Route.useSearch().vista === "resultado";
+  const busqueda = Route.useSearch();
+  const soloResultado = busqueda.vista === "resultado";
   const { user } = useSession();
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -333,7 +339,12 @@ function EventDetail() {
       </article>
 
       {!soloResultado && (event.requiere_convocatoria || event.tipo === "entrenamiento") && (
-        <CallupSection event={event} isManager={!!isManager} userId={user?.id ?? null} />
+        <CallupSection
+          event={event}
+          isManager={!!isManager}
+          userId={user?.id ?? null}
+          pestanaInicial={busqueda.pestana}
+        />
       )}
 
       {/* Un entrenamiento dentro de una competición cierra con el orden de
@@ -442,6 +453,7 @@ function CallupSection({
   event,
   isManager,
   userId,
+  pestanaInicial,
 }: {
   event: {
     id: string;
@@ -457,6 +469,8 @@ function CallupSection({
   };
   isManager: boolean;
   userId: string | null;
+  /** En el teléfono, la pestaña con la que se abre (y se baja hasta ella). */
+  pestanaInicial?: "pistas";
 }) {
   const { t } = useTranslation();
   const qc = useQueryClient();
@@ -494,7 +508,8 @@ function CallupSection({
   const [miRespuestaAbierta, setMiRespuestaAbierta] = useState(false);
   const [quimicaAbierta, setQuimicaAbierta] = useState(false);
   // En el móvil, la gestión reparte en pestañas: Apuntados, Pistas y PRO.
-  const [pestana, setPestana] = useState<VistaMovil>("apuntados");
+  const [pestana, setPestana] = useState<VistaMovil>(pestanaInicial ?? "apuntados");
+  const seccion = useRef<HTMLDivElement>(null);
   // Todo lo de la convocatoria nueva es del teléfono: en el ordenador y en
   // la tableta se ve como siempre.
   const esTelefono = useEsTelefono();
@@ -661,6 +676,19 @@ function CallupSection({
   // La convocatoria en pestañas: solo en el móvil, para la gestión, mientras
   // se reparte (cerrada o jugada ya no hay nada que repartir).
   const movil = esTelefono && isManager && hayQuimica && !jugado && !confirmada && !!team;
+  // Llegando a una pestaña concreta, se baja hasta la convocatoria una vez.
+  const yaBajado = useRef(false);
+  useEffect(() => {
+    if (!movil || !pestanaInicial || yaBajado.current) return;
+    yaBajado.current = true;
+    // Un momento después: lo de arriba (la cabecera del partido) aún se está
+    // pintando y movería la convocatoria de sitio.
+    const t = window.setTimeout(
+      () => seccion.current?.scrollIntoView({ block: "start", behavior: "smooth" }),
+      350,
+    );
+    return () => window.clearTimeout(t);
+  }, [movil, pestanaInicial]);
   const { data: proMovil } = useTableroPro(eventId, movil && !!team?.es_pro);
   const plazas = (event.padel_num_pistas ?? 0) * 2;
   const yaEnPista = signedUp.filter((r) => r.status !== "rechazado" && r.padel_pista != null).length;
@@ -681,7 +709,7 @@ function CallupSection({
   };
 
   return (
-    <div className="surface-card overflow-clip">
+    <div ref={seccion} className="surface-card scroll-mt-20 overflow-clip">
       <div
         className={cn(
           "flex flex-wrap items-center justify-between gap-3 p-5",
