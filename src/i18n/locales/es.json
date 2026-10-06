@@ -661,6 +661,26 @@
     },
     "barra": {
       "progreso": "{{n}} de {{total}} en pista"
+    },
+    "movil": {
+      "apuntados": "Apuntados",
+      "pistas": "Pistas",
+      "pistaCorta": "P{{n}}",
+      "quiereCon": "Quiere jugar con {{name}}",
+      "ponerEn": "Ponerlo en",
+      "aqui": "Aquí",
+      "llena": "Llena",
+      "con": "con {{name}}",
+      "libre": "Libre",
+      "quitarPista": "Quitar de la pista",
+      "convocar": "Convocar",
+      "desconvocar": "Desconvocar"
+    },
+    "banquillo": {
+      "toca_one": "Banquillo · {{count}} sin pista · toca a uno",
+      "toca_other": "Banquillo · {{count}} sin pista · toca a uno",
+      "ahoraPista": "Ahora toca la pista para {{name}}",
+      "ponerAqui": "{{name}} aquí"
     }
   },
   "common": {
@@ -1364,7 +1384,9 @@
     "sinElegir": "Sin elegir: {{nombres}}",
     "leyendaQuimica": "Química (doble: mutua)",
     "cargando": "Preparando el tablero PRO…",
-    "cargandoPropuestas": "Buscando las mejores parejas…"
+    "cargandoPropuestas": "Buscando las mejores parejas…",
+    "verFichaDe": "Ficha de",
+    "verMatriz": "Ver matriz de parejas"
   },
   "invitados": {
     "anadir": "Añadir invitado",

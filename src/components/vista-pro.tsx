@@ -21,7 +21,8 @@ import { createPortal } from "react-dom";
 import { useMutation } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Check, Clock, Copy, GripVertical, Plus, Sparkles, X } from "lucide-react";
+import { Check, Clock, Copy, Grid3x3, GripVertical, Plus, Sparkles, X } from "lucide-react";
+import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -62,6 +63,8 @@ export function VistaPro({
   pro,
   onChanged,
   confirmarEnBarra,
+  vista,
+  banquilloEn,
 }: {
   event: Evento;
   responses: Respuesta[];
@@ -70,6 +73,14 @@ export function VistaPro({
   onChanged: () => void;
   /** En el móvil, «Confirmar» va en la barra fija de abajo y no aquí. */
   confirmarEnBarra?: boolean;
+  /**
+   * En el móvil, una sola parte: «pistas» (las pistas, y los que no tienen
+   * pista en el banquillo de abajo) o «pro» (rival, química, ficha y matriz).
+   * Sin nada, todo junto, como en el ordenador.
+   */
+  vista?: "pistas" | "pro";
+  /** Dónde va el banquillo en la vista «pistas»: dentro de la barra fija. */
+  banquilloEn?: HTMLElement | null;
 }) {
   const { t, i18n } = useTranslation();
   const cerrada = event.convocatoria_confirmada;
@@ -95,10 +106,15 @@ export function VistaPro({
   const mutua = (a: string, b: string) => eligio.get(a) === b && eligio.get(b) === a;
 
   // El jugador elegido: el de la ficha, y el que se coloca al tocar un hueco.
-  const [sel, setSel] = useState<string | null>(
-    () => apuntados.find((r) => r.padel_pista != null)?.user_id ?? apuntados[0]?.user_id ?? null,
+  // En las pistas del móvil no hay nadie elegido hasta que se toca a alguien:
+  // tocar una pista con alguien elegido lo mueve allí.
+  const [sel, setSel] = useState<string | null>(() =>
+    vista === "pistas"
+      ? null
+      : (apuntados.find((r) => r.padel_pista != null)?.user_id ?? apuntados[0]?.user_id ?? null),
   );
-  const elegido = sel && porUsuario.has(sel) ? sel : (apuntados[0]?.user_id ?? null);
+  const elegido =
+    sel && porUsuario.has(sel) ? sel : vista === "pistas" ? null : (apuntados[0]?.user_id ?? null);
 
   // --- mover --------------------------------------------------------------
   const [moviendo, setMoviendo] = useState(false);
@@ -128,6 +144,8 @@ export function VistaPro({
       return;
     }
     void poner([[u, pista]]);
+    // En el móvil, colocado ya no queda elegido: el siguiente toque es otro.
+    if (vista === "pistas") setSel(null);
   }
 
   // --- arrastrar ------------------------------------------------------------
@@ -165,7 +183,10 @@ export function VistaPro({
         const el = document
           .elementFromPoint(e.clientX, e.clientY)
           ?.closest<HTMLElement>("[data-drop-pro]");
-        const nuevo = el && raiz.current?.contains(el) ? (el.dataset.dropPro ?? null) : null;
+        const nuevo =
+          el && (raiz.current?.contains(el) || banquilloEn?.contains(el))
+            ? (el.dataset.dropPro ?? null)
+            : null;
         destino.current = nuevo;
         setSobre(nuevo);
       },
@@ -259,6 +280,145 @@ export function VistaPro({
     sobre,
     arrastrando: fantasma?.u ?? null,
   };
+
+  const libres = apuntados.filter((r) => r.padel_pista == null).map((r) => r.user_id);
+  const [matrizAbierta, setMatrizAbierta] = useState(false);
+  const fantasmaEl =
+    fantasma &&
+    createPortal(
+      <div
+        aria-hidden="true"
+        className="pro-ui pointer-events-none fixed z-[60] inline-flex items-center gap-2 rounded-full border border-[var(--pro-acc)] py-1 pl-1 pr-3 text-sm font-semibold shadow-xl"
+        style={{
+          left: fantasma.x,
+          top: fantasma.y,
+          transform: "translate(-50%, -60%) rotate(-3deg) scale(1.06)",
+        }}
+      >
+        <Avatar texto={iniciales(fantasma.u)} />
+        {pila(fantasma.u)}
+      </div>,
+      document.body,
+    );
+
+  if (vista === "pistas") {
+    return (
+      <div ref={raiz} className="pro-ui space-y-3 rounded-2xl border border-[var(--pro-line)] p-3">
+        {numPistas === 0 && (
+          <p className="text-sm text-[var(--pro-muted)]">{t("events.padelPistasHint")}</p>
+        )}
+        {pistas.map((n) => (
+          <TarjetaPista
+            key={n}
+            ctx={ctx}
+            num={n}
+            dentro={enPista(n).map((r) => r.user_id)}
+            rival={event.rival ?? null}
+            onColocar={() => colocar(elegido, n)}
+            compacta
+          />
+        ))}
+        {banquilloEn &&
+          createPortal(
+            <div className="pro-ui space-y-1.5 px-4 pt-2.5" style={{ background: "transparent" }}>
+              <p className={etiqueta}>
+                {libres.length === 0
+                  ? t("quimica.todosConPista")
+                  : elegido && libres.includes(elegido)
+                    ? t("callups.banquillo.ahoraPista", { name: pila(elegido) })
+                    : t("callups.banquillo.toca", { count: libres.length })}
+              </p>
+              <SinPista ctx={ctx} libres={libres} compacto />
+            </div>,
+            banquilloEn,
+          )}
+        {fantasmaEl}
+      </div>
+    );
+  }
+
+  if (vista === "pro") {
+    return (
+      <div ref={raiz} className="pro-ui overflow-clip rounded-2xl border border-[var(--pro-line)]">
+        {pro.rival && <FranjaRival pro={pro} pila={pila} />}
+        <div className="space-y-4 p-3">
+          <PanelQuimica ctx={ctx} jugadores={apuntados.map((r) => r.user_id)} />
+          {/* A quién se mira: una tira que se desliza, no la lista entera. */}
+          <div className="space-y-1.5">
+            <p className={etiqueta}>{t("pro.verFichaDe")}</p>
+            <div className="-mx-3 flex gap-1.5 overflow-x-auto px-3 pb-1">
+              {apuntados.map((r) => (
+                <button
+                  key={r.user_id}
+                  type="button"
+                  onClick={() => setSel(r.user_id)}
+                  aria-pressed={elegido === r.user_id}
+                  className={cn(
+                    "inline-flex min-h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border py-1 pl-1 pr-3 text-xs font-semibold",
+                    elegido === r.user_id
+                      ? "border-[var(--pro-acc)] bg-[var(--pro-sel)]"
+                      : "border-[var(--pro-line)] bg-[var(--pro-surface-2)]",
+                  )}
+                >
+                  <Avatar texto={iniciales(r.user_id)} />
+                  {pila(r.user_id)}
+                  {r.padel_pista != null && (
+                    <span className="text-[var(--pro-muted)]">· P{r.padel_pista}</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+          {elegido && (
+            <FichaJugador
+              ctx={ctx}
+              u={elegido}
+              pista={porUsuario.get(elegido)?.padel_pista ?? null}
+              otros={apuntados.map((r) => r.user_id).filter((x) => x !== elegido)}
+              jornadas={pro.jornadas}
+              rival={pro.rival?.nombre ?? null}
+              onQuitar={() => void poner([[elegido, null]])}
+              onJuntar={(otro) => juntar(elegido, otro)}
+            />
+          )}
+          <button
+            type="button"
+            onClick={() => setMatrizAbierta(true)}
+            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-[var(--pro-line-2)] bg-[var(--pro-surface)] text-xs font-extrabold uppercase tracking-widest"
+          >
+            <Grid3x3 className="size-4" aria-hidden="true" />
+            {t("pro.verMatriz")}
+          </button>
+        </div>
+        <Drawer open={matrizAbierta} onOpenChange={setMatrizAbierta} shouldScaleBackground={false}>
+          <DrawerContent className="pro-ui h-[92dvh] max-h-[92dvh] rounded-t-2xl px-0 pb-[env(safe-area-inset-bottom)]">
+            <div className="flex items-center justify-between gap-2 px-4 pt-3">
+              <DrawerTitle className="text-base font-bold">{t("pro.tabMatriz")}</DrawerTitle>
+              <button
+                type="button"
+                onClick={() => setMatrizAbierta(false)}
+                aria-label={t("common.close")}
+                className="flex size-9 items-center justify-center rounded-md"
+              >
+                <X className="size-5" aria-hidden="true" />
+              </button>
+            </div>
+            <DrawerDescription className="sr-only">{t("pro.tabMatriz")}</DrawerDescription>
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <Matriz
+                ctx={ctx}
+                jugadores={apuntados.map((r) => r.user_id)}
+                onJuntar={(a, b) => {
+                  juntar(a, b);
+                  setMatrizAbierta(false);
+                }}
+              />
+            </div>
+          </DrawerContent>
+        </Drawer>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -369,22 +529,7 @@ export function VistaPro({
         </TabsContent>
       </Tabs>
 
-      {fantasma &&
-        createPortal(
-          <div
-            aria-hidden="true"
-            className="pro-ui pointer-events-none fixed z-[60] inline-flex items-center gap-2 rounded-full border border-[var(--pro-acc)] py-1 pl-1 pr-3 text-sm font-semibold shadow-xl"
-            style={{
-              left: fantasma.x,
-              top: fantasma.y,
-              transform: "translate(-50%, -60%) rotate(-3deg) scale(1.06)",
-            }}
-          >
-            <Avatar texto={iniciales(fantasma.u)} />
-            {pila(fantasma.u)}
-          </div>,
-          document.body,
-        )}
+      {fantasmaEl}
     </div>
   );
 }
@@ -696,12 +841,15 @@ function TarjetaPista({
   dentro,
   rival,
   onColocar,
+  compacta,
 }: {
   ctx: Ctx;
   num: number;
   dentro: string[];
   rival: string | null;
   onColocar: () => void;
+  /** En el móvil: la pista dibujada pequeña al lado del texto, no encima. */
+  compacta?: boolean;
 }) {
   const { t } = useTranslation();
   const [a, b] = dentro;
@@ -794,8 +942,13 @@ function TarjetaPista({
             : "border-[var(--pro-line)] bg-[var(--pro-surface)]",
       )}
     >
-      <div className="flex flex-col gap-3 @xl:flex-row @xl:items-center">
-        <div className="shrink-0 space-y-1.5 @xl:w-[300px]">
+      <div
+        className={cn(
+          "flex gap-3",
+          compacta ? "flex-row items-center" : "flex-col @xl:flex-row @xl:items-center",
+        )}
+      >
+        <div className={cn("shrink-0 space-y-1.5", compacta ? "w-[46%]" : "@xl:w-[300px]")}>
           <span className={etiqueta}>
             {t("callups.pista")} {num}
           </span>
@@ -818,7 +971,9 @@ function TarjetaPista({
 
         <div className="min-w-0 flex-1 space-y-2">
           <div className="flex items-baseline justify-between gap-2">
-            <h3 className="truncate text-base font-bold">
+            <h3
+              className={cn("font-bold", compacta ? "text-sm leading-tight" : "truncate text-base")}
+            >
               {a && b
                 ? t("pro.parejaTitulo", { a: ctx.pila(a), b: ctx.pila(b) })
                 : a
@@ -828,7 +983,8 @@ function TarjetaPista({
             {valor != null && (
               <span
                 className={cn(
-                  "text-2xl font-extrabold",
+                  "shrink-0 font-extrabold",
+                  compacta ? "text-lg" : "text-2xl",
                   !n
                     ? "text-[var(--pro-warn)]"
                     : valor >= 60
@@ -842,12 +998,19 @@ function TarjetaPista({
           </div>
           {par && (
             <>
-              <p className="text-xs text-[var(--pro-muted)]">
-                {n
-                  ? t("pro.resumenPareja", { g: par.ganados, p: par.perdidos, count: n })
-                  : t("pro.resumenNueva", { pct: valor })}
-              </p>
-              <div className="h-2 overflow-hidden rounded-full bg-[var(--pro-track)]">
+              {!compacta && (
+                <p className="text-xs text-[var(--pro-muted)]">
+                  {n
+                    ? t("pro.resumenPareja", { g: par.ganados, p: par.perdidos, count: n })
+                    : t("pro.resumenNueva", { pct: valor })}
+                </p>
+              )}
+              <div
+                className={cn(
+                  "h-2 overflow-hidden rounded-full bg-[var(--pro-track)]",
+                  compacta && "hidden",
+                )}
+              >
                 <div
                   className={cn(
                     "h-full rounded-full",
@@ -885,7 +1048,7 @@ function TarjetaPista({
               </div>
             </>
           )}
-          {!par && !ctx.cerrada && (
+          {!par && !ctx.cerrada && !compacta && (
             <p className="text-xs text-[var(--pro-muted)]">{t("pro.huecoAyuda")}</p>
           )}
         </div>
@@ -911,20 +1074,31 @@ function Tag({ tono, children }: { tono?: "ok" | "acc" | "aviso"; children: Reac
   );
 }
 
-function SinPista({ ctx, libres }: { ctx: Ctx; libres: string[] }) {
+function SinPista({
+  ctx,
+  libres,
+  compacto,
+}: {
+  ctx: Ctx;
+  libres: string[];
+  /** En el banquillo del móvil: una tira que se desliza, sin marco. */
+  compacto?: boolean;
+}) {
   const { t } = useTranslation();
   return (
     <div
       data-drop-pro="pool"
       className={cn(
-        "flex flex-wrap items-center gap-2 rounded-2xl border-2 border-dashed p-3 transition-colors",
+        compacto
+          ? "-mx-4 flex min-h-11 items-center gap-2 overflow-x-auto px-4 pb-1.5 [&>button]:shrink-0 [&>button]:whitespace-nowrap"
+          : "flex flex-wrap items-center gap-2 rounded-2xl border-2 border-dashed p-3 transition-colors",
         ctx.sobre === "pool"
           ? "border-[var(--pro-acc)] bg-[var(--pro-sel)]"
-          : "border-[var(--pro-line-2)]",
+          : !compacto && "border-[var(--pro-line-2)]",
       )}
     >
-      <span className={etiqueta}>{t("quimica.sinPista")}</span>
-      {libres.length === 0 && (
+      {!compacto && <span className={etiqueta}>{t("quimica.sinPista")}</span>}
+      {libres.length === 0 && !compacto && (
         <span className="text-xs text-[var(--pro-muted)]">{t("quimica.todosConPista")}</span>
       )}
       {libres.map((u) => {
@@ -952,9 +1126,12 @@ function SinPista({ ctx, libres }: { ctx: Ctx; libres: string[] }) {
             <Avatar texto={ctx.iniciales(u)} />
             {ctx.pila(u)}
             {sj >= 2 && (
-              <span className="inline-flex items-center gap-1 text-xs text-[var(--pro-warn)]">
+              <span
+                className="inline-flex items-center gap-1 text-xs text-[var(--pro-warn)]"
+                title={t("pro.sinJugar", { count: sj })}
+              >
                 <Clock className="size-3.5" aria-hidden="true" />
-                {t("pro.sinJugar", { count: sj })}
+                {compacto ? sj : t("pro.sinJugar", { count: sj })}
               </span>
             )}
           </button>

@@ -69,9 +69,24 @@ test("en el móvil, el capitán filtra por estado y confirma desde la barra fija
   await filtros.getByRole("button", { name: /todos/i }).click();
   await expect(page.getByText("Iria Souto")).toBeVisible();
 
+  // Una línea por jugador; al tocarla, la hoja para ponerlo en una pista.
+  await page.getByRole("button", { name: /iria souto/i }).click();
+  const hoja = page.getByRole("dialog");
+  await hoja.getByRole("button", { name: /^pista 1/i }).click();
+  await expect(hoja).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /iria souto/i })).toContainText("P1");
+
+  // En Pistas, el resto espera en el banquillo: se toca y luego la pista.
+  await page.getByRole("tab", { name: /pistas/i }).click();
+  const banquillo = page.locator("[data-banquillo]");
+  await banquillo.getByRole("button", { name: /brais/i }).click();
+  await page.getByRole("button", { name: /brais l\. aquí/i }).click();
+  await expect(page.getByRole("tab", { name: /pistas/i })).toContainText("2/2");
+  await page.getByRole("tab", { name: /apuntados/i }).click();
+
   // La barra fija, abajo del todo de la pantalla.
   const barra = page.locator("[data-barra-confirmar]");
-  await expect(barra).toContainText(/0 de 2 en pista/i);
+  await expect(barra).toContainText(/2 de 2 en pista/i);
   const caja = await barra.boundingBox();
   expect(caja && Math.round(caja.y + caja.height)).toBe(844);
 

@@ -368,6 +368,7 @@ export function RepartoPadel({
   members,
   onChanged,
   barraFija,
+  vistaMovil,
 }: {
   event: Parameters<typeof PadelCourtsBoard>[0]["event"];
   equipo: { id: string; nombre: string; owner_id: string; es_pro: boolean };
@@ -381,8 +382,18 @@ export function RepartoPadel({
    * hay varios repartos en la misma página.
    */
   barraFija?: boolean;
+  /**
+   * En el móvil la convocatoria va en pestañas y aquí solo se pinta lo de la
+   * pestaña abierta: «pistas» (las pistas y el banquillo abajo), «pro» (las
+   * sugerencias, el rival, la química y la matriz) o «apuntados» (nada más
+   * que la barra de confirmar: la lista la pinta la ficha).
+   */
+  vistaMovil?: VistaMovil;
 }) {
   const qc = useQueryClient();
+  // El hueco del banquillo dentro de la barra fija; los tableros pintan ahí
+  // los que aún no tienen pista.
+  const [banquillo, setBanquillo] = useState<HTMLElement | null>(null);
   const [modoPro, setModoPro] = useModoPro();
   const activo = equipo.es_pro && modoPro;
   const { data: pro } = useTableroPro(event.id, activo);
@@ -408,6 +419,87 @@ export function RepartoPadel({
         isManager
         onChanged={alCambiar}
       />
+    );
+  }
+
+  const barra = barraFija && (
+    <BarraConfirmar
+      event={event}
+      responses={responses}
+      onChanged={alCambiar}
+      onBanquillo={vistaMovil === "pistas" ? setBanquillo : undefined}
+    />
+  );
+  const barraPro = (
+    <BarraPro
+      event={event}
+      equipo={equipo}
+      puedeActivar={puedeActivar}
+      pro={pro}
+      activo={activo}
+      onActivo={setModoPro}
+      nombre={(uid) => {
+        const p = members.find((m) => m.user_id === uid)?.profile;
+        return p ? `${p.nombre} ${p.apellidos?.[0] ?? ""}.` : "?";
+      }}
+      hayReparto={responses.some((r) => r.padel_pista != null)}
+      onChanged={alCambiar}
+    />
+  );
+
+  if (vistaMovil === "apuntados") return barra || null;
+  if (vistaMovil === "pistas") {
+    return (
+      <>
+        {activo ? (
+          pro ? (
+            <VistaPro
+              event={event}
+              responses={responses}
+              members={members}
+              pro={pro}
+              onChanged={alCambiar}
+              confirmarEnBarra
+              vista="pistas"
+              banquilloEn={banquillo}
+            />
+          ) : (
+            <CargandoPro className="pro-ui rounded-2xl border border-[var(--pro-line)]" />
+          )
+        ) : (
+          <PadelCourtsBoard
+            event={event}
+            responses={responses}
+            members={members}
+            onChanged={alCambiar}
+            confirmarEnBarra
+            banquilloEn={banquillo}
+          />
+        )}
+        {barra}
+      </>
+    );
+  }
+  if (vistaMovil === "pro") {
+    return (
+      <>
+        {barraPro}
+        {activo &&
+          (pro ? (
+            <VistaPro
+              event={event}
+              responses={responses}
+              members={members}
+              pro={pro}
+              onChanged={alCambiar}
+              confirmarEnBarra
+              vista="pro"
+            />
+          ) : (
+            <CargandoPro className="pro-ui rounded-2xl border border-[var(--pro-line)]" />
+          ))}
+        {barra}
+      </>
     );
   }
 
@@ -449,10 +541,12 @@ export function RepartoPadel({
           confirmarEnBarra={barraFija}
         />
       )}
-      {barraFija && <BarraConfirmar event={event} responses={responses} onChanged={alCambiar} />}
+      {barra}
     </>
   );
 }
+
+export type VistaMovil = "apuntados" | "pistas" | "pro";
 
 /**
  * La barra fija de abajo en el móvil: cuántos hay ya en pista y «Confirmar».
@@ -464,10 +558,13 @@ function BarraConfirmar({
   event,
   responses,
   onChanged,
+  onBanquillo,
 }: {
   event: Parameters<typeof PadelCourtsBoard>[0]["event"];
   responses: Parameters<typeof PadelCourtsBoard>[0]["responses"];
   onChanged: () => void;
+  /** Si llega, la barra deja encima un hueco para el banquillo del tablero. */
+  onBanquillo?: (el: HTMLElement | null) => void;
 }) {
   const { t } = useTranslation();
   const numPistas = event.padel_num_pistas ?? 0;
@@ -493,39 +590,44 @@ function BarraConfirmar({
   return (
     <>
       {/* Lo que ocupa la barra, para que no tape el final de la página. */}
-      <div aria-hidden="true" className="h-20 md:hidden" />
+      <div aria-hidden="true" className={cn("md:hidden", onBanquillo ? "h-44" : "h-20")} />
       {montada &&
         createPortal(
-          <div
-            data-barra-confirmar
-            className="fixed inset-x-0 bottom-0 z-20 flex items-center gap-3 border-t border-border bg-background/95 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-8px_24px_-16px_rgb(0_0_0/0.35)] backdrop-blur md:hidden"
-          >
-            <div className="min-w-0 flex-1 space-y-1.5">
-              <p className="text-xs font-semibold tabular-nums text-muted-foreground">
-                {t("callups.barra.progreso", { n: enPista, total })}
-              </p>
-              <div
-                role="progressbar"
-                aria-valuemin={0}
-                aria-valuemax={total}
-                aria-valuenow={enPista}
-                aria-label={t("callups.barra.progreso", { n: enPista, total })}
-                className="h-1.5 overflow-hidden rounded-full bg-muted"
-              >
-                <div
-                  className={cn("h-full rounded-full", enPista >= total ? "bg-ok" : "bg-primary")}
-                  style={{ width: `${pct}%` }}
-                />
-              </div>
-            </div>
-            <Button
-              onClick={() => confirmarla.mutate()}
-              disabled={confirmarla.isPending}
-              className="min-h-11 shrink-0 text-2xs font-bold uppercase tracking-widest"
+          <div className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-background/95 shadow-[0_-8px_24px_-16px_rgb(0_0_0/0.35)] backdrop-blur md:hidden">
+            {onBanquillo && (
+              <div ref={onBanquillo} data-banquillo className="border-b border-border" />
+            )}
+            <div
+              data-barra-confirmar
+              className="flex items-center gap-3 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]"
             >
-              <Check className="mr-1.5 size-4" aria-hidden="true" />
-              {t("quimica.confirmarCorto")}
-            </Button>
+              <div className="min-w-0 flex-1 space-y-1.5">
+                <p className="text-xs font-semibold tabular-nums text-muted-foreground">
+                  {t("callups.barra.progreso", { n: enPista, total })}
+                </p>
+                <div
+                  role="progressbar"
+                  aria-valuemin={0}
+                  aria-valuemax={total}
+                  aria-valuenow={enPista}
+                  aria-label={t("callups.barra.progreso", { n: enPista, total })}
+                  className="h-1.5 overflow-hidden rounded-full bg-muted"
+                >
+                  <div
+                    className={cn("h-full rounded-full", enPista >= total ? "bg-ok" : "bg-primary")}
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+              </div>
+              <Button
+                onClick={() => confirmarla.mutate()}
+                disabled={confirmarla.isPending}
+                className="min-h-11 shrink-0 text-2xs font-bold uppercase tracking-widest"
+              >
+                <Check className="mr-1.5 size-4" aria-hidden="true" />
+                {t("quimica.confirmarCorto")}
+              </Button>
+            </div>
           </div>,
           document.body,
         )}

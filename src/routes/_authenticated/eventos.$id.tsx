@@ -59,7 +59,13 @@ import { cn, inicialesDe } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { InvitarAlEntreno } from "@/components/invitar-al-entreno";
 import { nombreVisible } from "@/lib/invitados";
-import { RepartoPadel } from "@/components/convocatoria-pro";
+import { RepartoPadel, useTableroPro, type VistaMovil } from "@/components/convocatoria-pro";
+import {
+  ListaCompacta,
+  PestanasConvocatoria,
+  PUNTO_ESTADO,
+} from "@/components/convocatoria-movil";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { PistasCerradas } from "@/components/pistas-cerradas";
 import { QuimicaAviso, QuimicaBoton } from "@/components/quimica";
 import { useQuimicas } from "@/hooks/use-quimica";
@@ -487,6 +493,9 @@ function CallupSection({
   // casi nunca los toca y le quitaban media pantalla en el móvil.
   const [miRespuestaAbierta, setMiRespuestaAbierta] = useState(false);
   const [quimicaAbierta, setQuimicaAbierta] = useState(false);
+  // En el móvil, la gestión reparte en pestañas: Apuntados, Pistas y PRO.
+  const [pestana, setPestana] = useState<VistaMovil>("apuntados");
+  const isMobile = useIsMobile();
   // Un entreno se cierra cuando la gestión quiere: ya nadie se apunta ni
   // cambia su respuesta (la gestión sí sigue marcando quién asistió).
   const entrenoCerrado = esEntreno && confirmada;
@@ -647,6 +656,18 @@ function CallupSection({
   const { data: quimicas } = useQuimicas([eventId], hayQuimica);
   const miQuimica = quimicas?.find((q) => q.user_id === userId)?.target_user_id ?? null;
   // Cuántos de los apuntados ya han dicho con quién (la gestión las ve todas).
+  // La convocatoria en pestañas: solo en el móvil, para la gestión, mientras
+  // se reparte (cerrada o jugada ya no hay nada que repartir).
+  const movil = isMobile && isManager && hayQuimica && !jugado && !confirmada && !!team;
+  const { data: proMovil } = useTableroPro(eventId, movil && !!team?.es_pro);
+  const plazas = (event.padel_num_pistas ?? 0) * 2;
+  const yaEnPista = signedUp.filter((r) => r.status !== "rechazado" && r.padel_pista != null).length;
+  const alCambiarReparto = () => {
+    qc.invalidateQueries({ queryKey: ["event-responses", eventId] });
+    qc.invalidateQueries({ queryKey: ["event", eventId] });
+    qc.invalidateQueries({ queryKey: ["quimicas"] });
+    qc.invalidateQueries({ queryKey: ["event-pro", eventId] });
+  };
   const quimicaDada = new Set(
     (quimicas ?? [])
       .map((q) => q.user_id)
@@ -813,6 +834,18 @@ function CallupSection({
       )}
 
       <div className="p-4 sm:p-5">
+        {movil && (
+          <PestanasConvocatoria
+            valor={pestana}
+            onCambio={setPestana}
+            apuntados={signedUp.length}
+            enPista={yaEnPista}
+            plazas={plazas}
+            conPro={!!team?.es_pro}
+          />
+        )}
+        {(!movil || pestana === "apuntados") && (
+        <>
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <h3 className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
             {t("callups.signedUpList")} ({signedUp.length})
@@ -886,6 +919,18 @@ function CallupSection({
             directamente cortado por el borde. Por debajo de `sm` cada ficha
             baja el estado a su propia línea; las dos columnas esperan a `lg`,
             porque a 640 px media columna vuelve a ser demasiado estrecha. */}
+        {movil ? (
+          <ListaCompacta
+            eventId={eventId}
+            visibles={visibles}
+            todas={signedUp}
+            members={members ?? []}
+            numPistas={event.padel_num_pistas ?? 0}
+            eligio={new Map((quimicas ?? []).map((q) => [q.user_id, q.target_user_id]))}
+            pro={proMovil}
+            onChanged={alCambiarReparto}
+          />
+        ) : (
         <div className="grid gap-2 lg:grid-cols-2">
           {visibles.map((r) => {
             const m = members?.find((x) => x.user_id === r.user_id);
@@ -1008,8 +1053,23 @@ function CallupSection({
             );
           })}
         </div>
+        )}
+        </>
+        )}
 
-        {hayQuimica && isManager && !jugado && (
+        {movil && team && (
+          <RepartoPadel
+            event={event}
+            equipo={team}
+            userId={userId}
+            responses={signedUp}
+            members={members ?? []}
+            barraFija
+            vistaMovil={pestana}
+            onChanged={alCambiarReparto}
+          />
+        )}
+        {hayQuimica && isManager && !jugado && !movil && (
           <div className="mt-6 border-t border-border pt-5">
             {team && (
               <RepartoPadel
@@ -1037,15 +1097,6 @@ function CallupSection({
 
 /** Lo que filtra la lista de apuntados: un estado, los convocados o todos. */
 type FiltroApuntados = "todos" | "convocados" | ResponseStatus;
-
-/** El punto de color de cada estado, el mismo de las etiquetas. */
-const PUNTO_ESTADO: Record<string, string> = {
-  confirmado: "bg-ok",
-  reserva: "bg-info",
-  duda: "bg-warn",
-  rechazado: "bg-danger",
-  convocado: "bg-muted-foreground",
-};
 
 function EstadoPildora({ status }: { status: ResponseStatus }) {
   const { t } = useTranslation();
