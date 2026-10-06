@@ -275,6 +275,7 @@ export function LigaCompeticion({
                     <Link
                       to="/eventos/$id"
                       params={{ id: p.id }}
+                      search={{ desde: "competicion", comp: competitionId }}
                       className="flex items-center gap-4 p-4 hover:bg-card"
                     >
                       {cuerpo}

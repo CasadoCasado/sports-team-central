@@ -79,6 +79,19 @@ import type {
 } from "@/lib/types";
 import { confirmar } from "@/components/confirm-dialog";
 
+/** Desde dónde se puede abrir la ficha de un evento, para volver allí. */
+const ORIGENES = [
+  "inicio",
+  "calendario",
+  "enfrentamientos",
+  "entrenamientos",
+  "convocatorias",
+  "resultados",
+  "estadisticas",
+  "competicion",
+] as const;
+export type Origen = (typeof ORIGENES)[number];
+
 export const Route = createFileRoute("/_authenticated/eventos/$id")({
   head: () => ({
     meta: [
@@ -95,14 +108,56 @@ export const Route = createFileRoute("/_authenticated/eventos/$id")({
   // antes del partido y tienen su sitio en Convocatorias y Enfrentamientos.
   // `?pestana=pistas` es como se llega desde «Asignar pistas» de
   // Enfrentamientos en el teléfono: la convocatoria, abierta en Pistas.
+  // `?desde=` dice de dónde se llegó, para que «Volver» lleve allí (y
+  // `comp`, la competición, si se llegó desde una).
   validateSearch: (
     search: Record<string, unknown>,
-  ): { vista?: "resultado"; pestana?: "pistas" } => ({
+  ): { vista?: "resultado"; pestana?: "pistas"; desde?: Origen; comp?: string } => ({
     vista: search.vista === "resultado" ? "resultado" : undefined,
     pestana: search.pestana === "pistas" ? "pistas" : undefined,
+    desde: ORIGENES.includes(search.desde as Origen) ? (search.desde as Origen) : undefined,
+    comp: typeof search.comp === "string" && search.comp ? search.comp : undefined,
   }),
   component: EventDetail,
 });
+
+/**
+ * A dónde lleva «Volver» y qué dice. Manda de dónde se llegó (`?desde=`);
+ * sin eso (un aviso, un enlace compartido), lo lógico para el evento: un
+ * partido a Enfrentamientos, un entreno a Entrenamientos, y si no al
+ * Calendario.
+ */
+function deVuelta(
+  busqueda: { vista?: "resultado"; desde?: Origen; comp?: string },
+  event: { tipo: string; competition_id: string | null; competition_nombre: string | null } | undefined,
+  t: (k: string, o?: Record<string, unknown>) => string,
+) {
+  const porDefecto: Origen =
+    busqueda.vista === "resultado"
+      ? "resultados"
+      : event?.tipo === "partido"
+        ? "enfrentamientos"
+        : event?.tipo === "entrenamiento"
+          ? "entrenamientos"
+          : "calendario";
+  const origen = busqueda.desde ?? porDefecto;
+  if (origen === "competicion") {
+    const comp = busqueda.comp ?? event?.competition_id;
+    if (comp) {
+      return {
+        ruta: { to: "/competiciones/$id", params: { id: comp } } as const,
+        texto: event?.competition_nombre
+          ? t("events.volverA", { sitio: event.competition_nombre })
+          : t("events.volverACompeticion"),
+      };
+    }
+  }
+  const sitio = origen === "competicion" ? porDefecto : origen;
+  return {
+    ruta: { to: `/${sitio}` as `/${Exclude<Origen, "competicion">}` },
+    texto: t("events.volverA", { sitio: t(`nav.${sitio}`) }),
+  };
+}
 
 function EventDetail() {
   const { t, i18n } = useTranslation();
@@ -144,12 +199,15 @@ function EventDetail() {
   });
   const anchoPro = !!isManager && !!equipo?.es_pro && equipo.deporte === "padel";
 
+  const volverA = deVuelta(busqueda, event, t);
+
   const del = useMutation({
     mutationFn: () => api.delete(`/events/${id}/`),
     onSuccess: async () => {
       toast.success(t("events.deleted"));
       await invalidateEventQueries(qc);
-      navigate({ to: "/calendario" });
+      // A donde se volvería; si era la ficha de su competición, también.
+      navigate(volverA.ruta);
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -188,11 +246,10 @@ function EventDetail() {
           : "max-w-5xl")}
     >
       <Link
-        to={soloResultado ? "/resultados" : "/calendario"}
+        {...volverA.ruta}
         className="-ml-2 inline-flex min-h-11 items-center gap-2 rounded-md px-2 text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground"
       >
-        <ArrowLeft className="size-3.5" />{" "}
-        {soloResultado ? t("results.backToResults") : t("events.backToCalendar")}
+        <ArrowLeft className="size-3.5" /> {volverA.texto}
       </Link>
 
       <article className="surface-raised min-w-0 overflow-hidden">

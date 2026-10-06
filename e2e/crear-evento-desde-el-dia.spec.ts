@@ -73,7 +73,7 @@ test.describe("Crear un evento desde el día del calendario", () => {
     await loginAs(page, captain);
     await page.goto("/calendario");
 
-    const enlace = page.locator(`a[href="/eventos/${event.id}"]:visible`).first();
+    const enlace = page.locator(`a[href^="/eventos/${event.id}"]:visible`).first();
     await expect(enlace).toBeVisible({ timeout: 20_000 });
     await enlace.click();
 

@@ -453,6 +453,7 @@ function MonthGrid({
                     <Link
                       to="/eventos/$id"
                       params={{ id: e.id }}
+                      search={{ desde: "calendario" }}
                       aria-label={`${e.titulo} — ${format(new Date(e.fecha_inicio), "d LLL HH:mm", { locale })}`}
                       className={cn(
                         "pointer-events-auto grid size-8 place-items-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
@@ -485,6 +486,7 @@ function MonthGrid({
                       key={e.id}
                       to="/eventos/$id"
                       params={{ id: e.id }}
+                      search={{ desde: "calendario" }}
                       className={cn(
                         // En una tableta estas pastillas son el objetivo táctil
                         // —los puntos gordos son solo para el móvil—, así que se
@@ -618,6 +620,7 @@ function WeekEventCard({ e }: { e: EventRow }) {
     <Link
       to="/eventos/$id"
       params={{ id: e.id }}
+      search={{ desde: "calendario" }}
       className={cn(
         "pointer-events-auto block rounded-md border border-border bg-card p-2 pl-2.5 transition-all hover:shadow-md",
         style.band,
@@ -738,6 +741,7 @@ function EventRowItem({
     <Link
       to="/eventos/$id"
       params={{ id: e.id }}
+      search={{ desde: "calendario" }}
       className={cn(
         "flex items-center gap-4 p-4 transition-colors hover:bg-accent/60",
         style.band,

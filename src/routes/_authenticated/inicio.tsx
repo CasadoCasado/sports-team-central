@@ -272,6 +272,7 @@ function Inicio() {
                       key={e.id}
                       to="/eventos/$id"
                       params={{ id: e.id }}
+                      search={{ desde: "inicio" }}
                       className="surface-card group flex min-w-0 items-center gap-3 p-3 transition-colors hover:border-primary/40 sm:gap-4 sm:p-4"
                     >
                       <div className={`flex size-12 shrink-0 flex-col items-center justify-center rounded-md border ${style.badge}`}>

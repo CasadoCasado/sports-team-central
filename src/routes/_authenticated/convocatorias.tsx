@@ -115,6 +115,7 @@ function MyCallups() {
         <Link
           to="/eventos/$id"
           params={{ id: e.id }}
+          search={{ desde: "convocatorias" }}
           className="flex min-w-0 items-center gap-3 rounded-md py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:gap-4"
         >
           <div

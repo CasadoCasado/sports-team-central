@@ -75,7 +75,7 @@ function Resultados() {
                 key={m.id}
                 to="/eventos/$id"
                 params={{ id: m.id }}
-                search={{ vista: "resultado" }}
+                search={{ vista: "resultado", desde: "resultados" }}
                 className="surface-card flex min-w-0 items-center gap-3 p-4 transition-colors hover:border-primary/40 sm:gap-4 sm:p-5"
               >
                 <div className={`flex min-h-14 w-14 shrink-0 flex-col items-center justify-center gap-0.5 rounded-md px-1 text-center text-xs font-bold leading-tight ${outcomeClass}`}>

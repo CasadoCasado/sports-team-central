@@ -3,7 +3,15 @@ import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
 import { es as esLocale, enUS } from "date-fns/locale";
 import { Link } from "@tanstack/react-router";
-import { Calendar as CalIcon, Clock, MapPin, ClipboardList, Trophy, ExternalLink, UserMinus } from "lucide-react";
+import {
+  Calendar as CalIcon,
+  Clock,
+  MapPin,
+  ClipboardList,
+  Trophy,
+  ExternalLink,
+  UserMinus,
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -40,7 +48,6 @@ export function CallupDetailDialog({
   withdrawing,
   alreadySignedUp,
 }: Props) {
-
   const { t, i18n } = useTranslation();
   const locale = i18n.language.startsWith("en") ? enUS : esLocale;
 
@@ -111,7 +118,10 @@ export function CallupDetailDialog({
               </Row>
             )}
             {cierre && (
-              <Row icon={<ClipboardList className="size-4" />} label={t("events.cierreConvocatoria")}>
+              <Row
+                icon={<ClipboardList className="size-4" />}
+                label={t("events.cierreConvocatoria")}
+              >
                 {format(cierre, "PPP HH:mm", { locale })}
               </Row>
             )}
@@ -129,7 +139,7 @@ export function CallupDetailDialog({
         <DialogFooter className="flex-col-reverse gap-2 sm:flex-row sm:justify-between">
           {event && (
             <Button variant="outline" asChild size="sm">
-              <Link to="/eventos/$id" params={{ id: event.id }}>
+              <Link to="/eventos/$id" params={{ id: event.id }} search={{ desde: "inicio" }}>
                 <ExternalLink className="mr-1 size-3.5" /> {t("events.detail")}
               </Link>
             </Button>
@@ -172,7 +182,6 @@ export function CallupDetailDialog({
               )}
             </div>
           )}
-
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -194,7 +203,9 @@ function Row({
         {icon}
       </div>
       <div className="min-w-0">
-        <p className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">{label}</p>
+        <p className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
+          {label}
+        </p>
         <p className="text-sm">{children}</p>
       </div>
     </div>

@@ -136,6 +136,7 @@ function Trainings() {
                 <Link
                   to="/eventos/$id"
                   params={{ id: e.id }}
+                  search={{ desde: "entrenamientos" }}
                   className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4"
                 >
                   <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-info/10 text-info ring-1 ring-info/30">
@@ -192,6 +193,7 @@ function Trainings() {
                 key={e.id}
                 to="/eventos/$id"
                 params={{ id: e.id }}
+                search={{ desde: "entrenamientos" }}
                 className="flex items-center gap-4 p-4 opacity-70 hover:bg-card hover:opacity-100"
               >
                 <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-card ring-1 ring-border">
