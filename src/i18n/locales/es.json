@@ -1392,7 +1392,8 @@
     "matrizToca": "Toca una casilla para ver la pareja.",
     "matrizSoloRivalCorto": "Contra el rival",
     "leyendaQuimicaCorta": "Química",
-    "matrizElige": "Toca una casilla: verás cómo les ha ido juntos y podrás juntarlos."
+    "matrizElige": "Toca una casilla: verás cómo les ha ido juntos y podrás juntarlos.",
+    "deslizaFicha": "Desliza la ficha para ver otro"
   },
   "invitados": {
     "anadir": "Añadir invitado",

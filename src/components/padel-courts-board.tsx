@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Check, Copy, GripVertical, Hand, Lock, Plus, Sparkles } from "lucide-react";
 
 import { nombreParaCompartir, textoAlineacion } from "@/lib/alineacion";
+import { esperarPulsacionLarga, vibrarAlCoger } from "@/lib/pulsacion-larga";
 import { api } from "@/lib/api";
 import { useQuimicas } from "@/hooks/use-quimica";
 import { cn } from "@/lib/utils";
@@ -229,8 +230,38 @@ export function PadelCourtsBoard({
   const [fantasma, setFantasma] = useState<{ r: Respuesta; x: number; y: number } | null>(null);
   const [sobre, setSobre] = useState<string | null>(null);
 
-  function alPulsar(e: ReactPointerEvent<HTMLButtonElement>, r: Respuesta) {
+  /**
+   * `largo`: en el banquillo del teléfono, con el dedo solo se coge tras
+   * mantener pulsado; antes, deslizar mueve la tira (ver `pulsacion-larga`).
+   */
+  function alPulsar(e: ReactPointerEvent<HTMLButtonElement>, r: Respuesta, largo = false) {
     if (cerrada || e.button > 0) return;
+    if (largo && e.pointerType !== "mouse") {
+      const el = e.currentTarget;
+      const { pointerId, clientX, clientY } = e;
+      esperarPulsacionLarga(
+        e,
+        () => {
+          arrastre.current = { r, x0: clientX, y0: clientY, movido: true };
+          try {
+            el.setPointerCapture(pointerId);
+          } catch {
+            // El dedo ya no está: no hay arrastre.
+            arrastre.current = null;
+            return;
+          }
+          vibrarAlCoger();
+          setFantasma({ r, x: clientX, y: clientY });
+        },
+        el.closest<HTMLElement>("[data-drop='pool']"),
+        () => {
+          // Deslizó la tira: el clic del final no es un toque.
+          acabaDeArrastrar.current = true;
+          setTimeout(() => (acabaDeArrastrar.current = false), 400);
+        },
+      );
+      return;
+    }
     arrastre.current = { r, x0: e.clientX, y0: e.clientY, movido: false };
     e.currentTarget.setPointerCapture(e.pointerId);
   }
@@ -283,7 +314,7 @@ export function PadelCourtsBoard({
         key={r.id}
         type="button"
         disabled={cerrada}
-        onPointerDown={(e) => alPulsar(e, r)}
+        onPointerDown={(e) => alPulsar(e, r, !!banquilloEn && !colocado)}
         onPointerMove={alMover}
         onPointerUp={alSoltar}
         onPointerCancel={alCancelar}
@@ -297,7 +328,7 @@ export function PadelCourtsBoard({
           cerrada ? nombre(r.user_id) : t("quimica.arrastrar", { name: nombre(r.user_id) })
         }
         className={cn(
-          "inline-flex touch-none select-none items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-default",
+          "inline-flex touch-none select-none items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition-opacity [-webkit-touch-callout:none] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-default",
           !cerrada && "cursor-grab active:cursor-grabbing",
           colocado
             ? violeta
