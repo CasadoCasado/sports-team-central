@@ -638,10 +638,30 @@
       "reabrir": "Reopen call-up",
       "cerrada": "Call-up closed: nobody can sign up or change their answer.",
       "reabierta": "Call-up reopened.",
-      "cerradaEtiqueta": "Closed"
+      "cerradaEtiqueta": "Closed",
+      "resumenConvocados_one": "{{count}} attended",
+      "resumenConvocados_other": "{{count}} attended",
+      "filtroConvocados": "★ Attended"
     },
     "ocultar": "Hide",
-    "verDetalle": "See call-up"
+    "verDetalle": "See call-up",
+    "resumenApuntados_one": "{{count}} signed up",
+    "resumenApuntados_other": "{{count}} signed up",
+    "resumenConvocados_one": "{{count}} called up",
+    "resumenConvocados_other": "{{count}} called up",
+    "filtroConvocados": "★ Called up",
+    "filtro": {
+      "titulo": "Filter sign-ups",
+      "todos": "All",
+      "confirmado": "Going",
+      "reserva": "Reserve",
+      "duda": "Maybe",
+      "rechazado": "Not going",
+      "convocado": "No answer"
+    },
+    "barra": {
+      "progreso": "{{n}} of {{total}} on court"
+    }
   },
   "common": {
     "guardando": "Saving…",
@@ -1195,7 +1215,9 @@
     "copiarTexto": "Copy text",
     "copiadas": "Courts copied",
     "compartirPareja": "{{a}} and {{b}}",
-    "compartirFaltaPareja": "{{a}} (partner missing)"
+    "compartirFaltaPareja": "{{a}} (partner missing)",
+    "resumenGestion": "{{n}} of {{total}} said who they want to play with",
+    "confirmarCorto": "Confirm"
   },
   "confirm": {
     "deleteTeamTitle": "Delete “{{name}}”?",

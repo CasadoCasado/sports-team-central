@@ -40,6 +40,8 @@ type Props = {
   members: Miembro[];
   /** Tras cada cambio, para que la pantalla vuelva a pedir lo que pinta. */
   onChanged: () => void;
+  /** En el móvil, «Confirmar» va en la barra fija de abajo y no aquí. */
+  confirmarEnBarra?: boolean;
 };
 
 /**
@@ -59,7 +61,13 @@ type Props = {
  * pulsar Intro sobre él, lo lleva a la siguiente pista con hueco (o lo
  * devuelve a «Sin pista» si ya tenía una).
  */
-export function PadelCourtsBoard({ event, responses, members, onChanged }: Props) {
+export function PadelCourtsBoard({
+  event,
+  responses,
+  members,
+  onChanged,
+  confirmarEnBarra,
+}: Props) {
   const { t, i18n } = useTranslation();
   const cerrada = event.convocatoria_confirmada;
   const numPistas = event.padel_num_pistas ?? 0;
@@ -494,7 +502,7 @@ export function PadelCourtsBoard({ event, responses, members, onChanged }: Props
           </div>
         ) : (
           numPistas > 0 && (
-            <div className="space-y-1.5">
+            <div className={cn("space-y-1.5", confirmarEnBarra && "max-md:hidden")}>
               <Button
                 onClick={() => confirmar.mutate(true)}
                 disabled={confirmar.isPending}

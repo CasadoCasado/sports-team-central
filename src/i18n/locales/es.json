@@ -638,10 +638,30 @@
       "reabrir": "Reabrir convocatoria",
       "cerrada": "Convocatoria cerrada: ya nadie se apunta ni cambia su respuesta.",
       "reabierta": "Convocatoria reabierta.",
-      "cerradaEtiqueta": "Cerrada"
+      "cerradaEtiqueta": "Cerrada",
+      "resumenConvocados_one": "{{count}} asistió",
+      "resumenConvocados_other": "{{count}} asistieron",
+      "filtroConvocados": "★ Asistieron"
     },
     "ocultar": "Ocultar",
-    "verDetalle": "Ver convocatoria"
+    "verDetalle": "Ver convocatoria",
+    "resumenApuntados_one": "{{count}} apuntado",
+    "resumenApuntados_other": "{{count}} apuntados",
+    "resumenConvocados_one": "{{count}} convocado",
+    "resumenConvocados_other": "{{count}} convocados",
+    "filtroConvocados": "★ Convocados",
+    "filtro": {
+      "titulo": "Filtrar apuntados",
+      "todos": "Todos",
+      "confirmado": "Van",
+      "reserva": "Reserva",
+      "duda": "Duda",
+      "rechazado": "No van",
+      "convocado": "Sin responder"
+    },
+    "barra": {
+      "progreso": "{{n}} de {{total}} en pista"
+    }
   },
   "common": {
     "guardando": "Guardando…",
@@ -1195,7 +1215,9 @@
     "copiarTexto": "Copiar texto",
     "copiadas": "Pistas copiadas",
     "compartirPareja": "{{a}} y {{b}}",
-    "compartirFaltaPareja": "{{a}} (falta pareja)"
+    "compartirFaltaPareja": "{{a}} (falta pareja)",
+    "resumenGestion": "{{n}} de {{total}} han dicho con quién quieren jugar",
+    "confirmarCorto": "Confirmar"
   },
   "confirm": {
     "deleteTeamTitle": "¿Borrar «{{name}}»?",

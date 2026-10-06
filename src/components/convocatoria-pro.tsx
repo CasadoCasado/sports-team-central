@@ -11,11 +11,12 @@
  * solo responde a la gestión de un equipo con PRO.
  */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Sparkles, Star } from "lucide-react";
+import { Check, Sparkles, Star } from "lucide-react";
 
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -366,6 +367,7 @@ export function RepartoPadel({
   responses,
   members,
   onChanged,
+  barraFija,
 }: {
   event: Parameters<typeof PadelCourtsBoard>[0]["event"];
   equipo: { id: string; nombre: string; owner_id: string; es_pro: boolean };
@@ -373,6 +375,12 @@ export function RepartoPadel({
   responses: Parameters<typeof PadelCourtsBoard>[0]["responses"];
   members: Miembro[];
   onChanged: () => void;
+  /**
+   * En el móvil, «Confirmar» y el progreso del reparto en una barra fija
+   * abajo, siempre a mano. Solo en la ficha del partido: en Enfrentamientos
+   * hay varios repartos en la misma página.
+   */
+  barraFija?: boolean;
 }) {
   const qc = useQueryClient();
   const [modoPro, setModoPro] = useModoPro();
@@ -427,6 +435,7 @@ export function RepartoPadel({
             members={members}
             pro={pro}
             onChanged={alCambiar}
+            confirmarEnBarra={barraFija}
           />
         ) : (
           <CargandoPro className="pro-ui rounded-2xl border border-[var(--pro-line)]" />
@@ -437,8 +446,89 @@ export function RepartoPadel({
           responses={responses}
           members={members}
           onChanged={alCambiar}
+          confirmarEnBarra={barraFija}
         />
       )}
+      {barraFija && <BarraConfirmar event={event} responses={responses} onChanged={alCambiar} />}
+    </>
+  );
+}
+
+/**
+ * La barra fija de abajo en el móvil: cuántos hay ya en pista y «Confirmar».
+ * Así no hay que bajar hasta el final del tablero para cerrar la
+ * convocatoria. En el ordenador no sale: allí cabe todo y el botón está en
+ * el tablero.
+ */
+function BarraConfirmar({
+  event,
+  responses,
+  onChanged,
+}: {
+  event: Parameters<typeof PadelCourtsBoard>[0]["event"];
+  responses: Parameters<typeof PadelCourtsBoard>[0]["responses"];
+  onChanged: () => void;
+}) {
+  const { t } = useTranslation();
+  const numPistas = event.padel_num_pistas ?? 0;
+  const total = numPistas * 2;
+  const enPista = responses.filter((r) => r.status !== "rechazado" && r.padel_pista != null).length;
+  const confirmarla = useMutation({
+    mutationFn: () => api.post(`/events/${event.id}/confirmar/`, { confirmada: true }),
+    onSuccess: () => {
+      toast.success(t("quimica.confirmada"));
+      onChanged();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  // Fuera del árbol de la página: la ficha entra con una animación que deja
+  // puesto un `transform`, y con él `fixed` se pega a la tarjeta y no a la
+  // pantalla. El portal solo existe en el navegador.
+  const [montada, setMontada] = useState(false);
+  useEffect(() => setMontada(true), []);
+
+  if (numPistas === 0) return null;
+  const pct = Math.min(100, Math.round((enPista / total) * 100));
+  return (
+    <>
+      {/* Lo que ocupa la barra, para que no tape el final de la página. */}
+      <div aria-hidden="true" className="h-20 md:hidden" />
+      {montada &&
+        createPortal(
+          <div
+            data-barra-confirmar
+            className="fixed inset-x-0 bottom-0 z-20 flex items-center gap-3 border-t border-border bg-background/95 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-8px_24px_-16px_rgb(0_0_0/0.35)] backdrop-blur md:hidden"
+          >
+            <div className="min-w-0 flex-1 space-y-1.5">
+              <p className="text-xs font-semibold tabular-nums text-muted-foreground">
+                {t("callups.barra.progreso", { n: enPista, total })}
+              </p>
+              <div
+                role="progressbar"
+                aria-valuemin={0}
+                aria-valuemax={total}
+                aria-valuenow={enPista}
+                aria-label={t("callups.barra.progreso", { n: enPista, total })}
+                className="h-1.5 overflow-hidden rounded-full bg-muted"
+              >
+                <div
+                  className={cn("h-full rounded-full", enPista >= total ? "bg-ok" : "bg-primary")}
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+            </div>
+            <Button
+              onClick={() => confirmarla.mutate()}
+              disabled={confirmarla.isPending}
+              className="min-h-11 shrink-0 text-2xs font-bold uppercase tracking-widest"
+            >
+              <Check className="mr-1.5 size-4" aria-hidden="true" />
+              {t("quimica.confirmarCorto")}
+            </Button>
+          </div>,
+          document.body,
+        )}
     </>
   );
 }

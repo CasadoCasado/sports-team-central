@@ -61,12 +61,15 @@ export function VistaPro({
   members,
   pro,
   onChanged,
+  confirmarEnBarra,
 }: {
   event: Evento;
   responses: Respuesta[];
   members: Miembro[];
   pro: TableroPro;
   onChanged: () => void;
+  /** En el móvil, «Confirmar» va en la barra fija de abajo y no aquí. */
+  confirmarEnBarra?: boolean;
 }) {
   const { t, i18n } = useTranslation();
   const cerrada = event.convocatoria_confirmada;
@@ -300,7 +303,10 @@ export function VistaPro({
                 type="button"
                 onClick={() => confirmar.mutate(true)}
                 disabled={confirmar.isPending}
-                className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-[var(--pro-blue)] px-4 text-2xs font-extrabold uppercase tracking-widest text-white"
+                className={cn(
+                  "inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-[var(--pro-blue)] px-4 text-2xs font-extrabold uppercase tracking-widest text-white",
+                  confirmarEnBarra && "max-md:hidden",
+                )}
               >
                 <Check className="size-4" aria-hidden="true" />
                 {t("quimica.confirmar")}

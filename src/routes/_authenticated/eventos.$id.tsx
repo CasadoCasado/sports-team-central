@@ -15,6 +15,7 @@ import {
   MapPin,
   Pencil,
   Settings,
+  Sparkles,
   Trash2,
   Trophy,
   Users,
@@ -480,6 +481,12 @@ function CallupSection({
   // Jugado el partido, la convocatoria ya solo se consulta: va plegada, solo
   // la cabecera; «Ver convocatoria» despliega la lista.
   const [abierta, setAbierta] = useState(!jugado);
+  // Los chips de estado filtran la lista de apuntados.
+  const [filtro, setFiltro] = useState<FiltroApuntados>("todos");
+  // La gestión ve su propia respuesta y el aviso de química en una línea:
+  // casi nunca los toca y le quitaban media pantalla en el móvil.
+  const [miRespuestaAbierta, setMiRespuestaAbierta] = useState(false);
+  const [quimicaAbierta, setQuimicaAbierta] = useState(false);
   // Un entreno se cierra cuando la gestión quiere: ya nadie se apunta ni
   // cambia su respuesta (la gestión sí sigue marcando quién asistió).
   const entrenoCerrado = esEntreno && confirmada;
@@ -543,6 +550,25 @@ function CallupSection({
   const rejected = signedUp.filter((r) => r.status === "rechazado").length;
   const doubt = signedUp.filter((r) => r.status === "duda").length;
   const reserve = signedUp.filter((r) => r.status === "reserva").length;
+  const sinResponder = signedUp.filter((r) => r.status === "convocado").length;
+  const chips: { clave: FiltroApuntados; n: number }[] = [
+    { clave: "todos", n: signedUp.length },
+    { clave: "confirmado", n: confirmed },
+    { clave: "reserva", n: reserve },
+    { clave: "duda", n: doubt },
+    { clave: "rechazado", n: rejected },
+    { clave: "convocado", n: sinResponder },
+    { clave: "convocados", n: convocados.length },
+  ];
+  // Si el filtro se queda sin nadie (cambió la respuesta del último), a todos.
+  const filtroActivo = chips.some((c) => c.clave === filtro && c.n > 0) ? filtro : "todos";
+  const visibles = signedUp.filter((r) =>
+    filtroActivo === "todos"
+      ? true
+      : filtroActivo === "convocados"
+        ? r.es_convocado
+        : r.status === filtroActivo,
+  );
 
   const signUp = useMutation({
     mutationFn: async () => {
@@ -620,6 +646,12 @@ function CallupSection({
     hayQuimica && !jugado && !!myResp && myResp.status !== "rechazado";
   const { data: quimicas } = useQuimicas([eventId], hayQuimica);
   const miQuimica = quimicas?.find((q) => q.user_id === userId)?.target_user_id ?? null;
+  // Cuántos de los apuntados ya han dicho con quién (la gestión las ve todas).
+  const quimicaDada = new Set(
+    (quimicas ?? [])
+      .map((q) => q.user_id)
+      .filter((uid) => signedUp.some((r) => r.user_id === uid && r.status !== "rechazado")),
+  ).size;
   const nombreDe = (uid: string) => {
     const p = members?.find((m) => m.user_id === uid)?.profile;
     return p ? `${p.nombre} ${p.apellidos}` : "";
@@ -640,14 +672,14 @@ function CallupSection({
           <div>
             <h2 className="text-display text-lg font-bold uppercase tracking-tight">{t("callups.title")}</h2>
             {!soloPistas && (
-            <p className="text-xxs text-muted-foreground">
-              {signedUp.length} <Users className="inline size-3" /> ·{" "}
-              <span title={t("callups.response_confirmado")}>{confirmed} ✓</span> ·{" "}
-              <span title={t("callups.response_reserva")}>{reserve} R</span> ·{" "}
-              <span title={t("callups.response_duda")}>{doubt} ?</span> ·{" "}
-              <span title={t("callups.response_rechazado")}>{rejected} ✕</span> ·{" "}
-              <span title={t(k("convocadosHint"))}>{convocados.length} ★</span>
-            </p>
+              <p className="text-xxs text-muted-foreground">
+                <Users className="mr-1 inline size-3" aria-hidden="true" />
+                {t("callups.resumenApuntados", { count: signedUp.length })}
+                {" · "}
+                <span title={t(k("convocadosHint"))}>
+                  {t(k("resumenConvocados"), { count: convocados.length })}
+                </span>
+              </p>
             )}
           </div>
         </div>
@@ -722,10 +754,39 @@ function CallupSection({
         </div>
       ) : jugado && !abierta ? null : (
       <>
-      {userId && myResp && (
-        <div className="border-b border-border p-4 sm:p-5">
-          <div className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
+      {userId && myResp && isManager && !miRespuestaAbierta && (
+        <button
+          type="button"
+          onClick={() => setMiRespuestaAbierta(true)}
+          aria-expanded={false}
+          className="flex w-full items-center justify-between gap-3 border-b border-border px-4 py-3 text-left hover:bg-card sm:px-5"
+        >
+          <span className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
             {t("callups.myStatus")}
+          </span>
+          <span className="flex items-center gap-1.5">
+            <EstadoPildora status={myResp.status} />
+            <ChevronDown className="size-4 text-muted-foreground" aria-hidden="true" />
+          </span>
+        </button>
+      )}
+      {userId && myResp && (!isManager || miRespuestaAbierta) && (
+        <div className="border-b border-border p-4 sm:p-5">
+          <div className="flex items-center justify-between gap-2">
+            <div className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
+              {t("callups.myStatus")}
+            </div>
+            {isManager && (
+              <button
+                type="button"
+                onClick={() => setMiRespuestaAbierta(false)}
+                aria-expanded
+                aria-label={t("callups.ocultar")}
+                className="flex size-8 items-center justify-center rounded-md text-muted-foreground hover:bg-card"
+              >
+                <ChevronDown className="size-4 rotate-180" aria-hidden="true" />
+              </button>
+            )}
           </div>
           {/* En pádel, la pista no se enseña hasta que se confirma la
               convocatoria: mientras, las parejas aún pueden cambiar. */}
@@ -762,7 +823,57 @@ function CallupSection({
         {signedUp.length === 0 && (
           <p className="text-xs text-muted-foreground">{t("callups.noSignedUp")}</p>
         )}
-        {puedoDarQuimica && signedUp.length > 1 && (
+        {signedUp.length > 0 && (
+          <div
+            role="group"
+            aria-label={t("callups.filtro.titulo")}
+            className="-mx-4 mb-3 flex gap-1.5 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0"
+          >
+            {chips
+              .filter((c) => c.clave === "todos" || c.n > 0)
+              .map((c) => (
+                <button
+                  key={c.clave}
+                  type="button"
+                  aria-pressed={filtroActivo === c.clave}
+                  onClick={() => setFiltro(c.clave)}
+                  className={cn(
+                    "flex min-h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3 text-xs font-semibold transition-colors",
+                    filtroActivo === c.clave
+                      ? "border-foreground bg-foreground text-background"
+                      : "border-border bg-card text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {c.clave !== "todos" && c.clave !== "convocados" && (
+                    <span
+                      aria-hidden="true"
+                      className={cn("size-2 rounded-full", PUNTO_ESTADO[c.clave])}
+                    />
+                  )}
+                  {t(c.clave === "convocados" ? k("filtroConvocados") : `callups.filtro.${c.clave}`)}
+                  <span className="tabular-nums">{c.n}</span>
+                </button>
+              ))}
+          </div>
+        )}
+        {puedoDarQuimica && signedUp.length > 1 && isManager && !quimicaAbierta && (
+          <button
+            type="button"
+            onClick={() => setQuimicaAbierta(true)}
+            aria-expanded={false}
+            className="mb-3 flex w-full items-center gap-2 rounded-md border border-evt-social/30 bg-evt-social/10 px-3 py-2 text-left text-xs font-semibold text-evt-social"
+          >
+            <Sparkles className="size-4 shrink-0" aria-hidden="true" />
+            <span className="min-w-0 flex-1">
+              {t("quimica.resumenGestion", {
+                n: quimicaDada,
+                total: signedUp.filter((r) => r.status !== "rechazado").length,
+              })}
+            </span>
+            <ChevronDown className="size-4 shrink-0" aria-hidden="true" />
+          </button>
+        )}
+        {puedoDarQuimica && signedUp.length > 1 && (!isManager || quimicaAbierta) && (
           <QuimicaAviso
             cerrada={confirmada}
             mia={miQuimica ? nombreDe(miQuimica) : null}
@@ -776,7 +887,7 @@ function CallupSection({
             baja el estado a su propia línea; las dos columnas esperan a `lg`,
             porque a 640 px media columna vuelve a ser demasiado estrecha. */}
         <div className="grid gap-2 lg:grid-cols-2">
-          {signedUp.map((r) => {
+          {visibles.map((r) => {
             const m = members?.find((x) => x.user_id === r.user_id);
             // Un invitado no es del equipo: su perfil llega con la respuesta.
             const perfil = m?.profile ?? r.profile;
@@ -907,6 +1018,7 @@ function CallupSection({
                 userId={userId}
                 responses={signedUp}
                 members={members ?? []}
+                barraFija
                 onChanged={() => {
                   qc.invalidateQueries({ queryKey: ["event-responses", eventId] });
                   qc.invalidateQueries({ queryKey: ["event", eventId] });
@@ -920,6 +1032,36 @@ function CallupSection({
       </>
       )}
     </div>
+  );
+}
+
+/** Lo que filtra la lista de apuntados: un estado, los convocados o todos. */
+type FiltroApuntados = "todos" | "convocados" | ResponseStatus;
+
+/** El punto de color de cada estado, el mismo de las etiquetas. */
+const PUNTO_ESTADO: Record<string, string> = {
+  confirmado: "bg-ok",
+  reserva: "bg-info",
+  duda: "bg-warn",
+  rechazado: "bg-danger",
+  convocado: "bg-muted-foreground",
+};
+
+function EstadoPildora({ status }: { status: ResponseStatus }) {
+  const { t } = useTranslation();
+  return (
+    <span
+      className={cn(
+        "rounded-full border px-2 py-0.5 text-2xs font-bold uppercase tracking-widest",
+        status === "confirmado" && "border-ok/40 bg-ok/15 text-ok",
+        status === "rechazado" && "border-danger/40 bg-danger/15 text-danger",
+        status === "duda" && "border-warn/40 bg-warn/15 text-warn",
+        status === "reserva" && "border-info/40 bg-info/15 text-info",
+        status === "convocado" && "border-border bg-muted text-muted-foreground",
+      )}
+    >
+      {t(`callups.response_${status}`)}
+    </span>
   );
 }
 
