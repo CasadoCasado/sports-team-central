@@ -13,6 +13,8 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as DemoRouteImport } from './routes/demo'
+import { Route as RecuperarRouteImport } from './routes/recuperar'
+import { Route as RestablecerRouteImport } from './routes/restablecer'
 import { Route as AuthenticatedAyudaRouteImport } from './routes/_authenticated/ayuda'
 import { Route as AuthenticatedCalendarioRouteImport } from './routes/_authenticated/calendario'
 import { Route as AuthenticatedCompeticionesRouteImport } from './routes/_authenticated/competiciones'
@@ -56,6 +58,16 @@ const AuthRoute = AuthRouteImport.update({
 const DemoRoute = DemoRouteImport.update({
   id: '/demo',
   path: '/demo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RecuperarRoute = RecuperarRouteImport.update({
+  id: '/recuperar',
+  path: '/recuperar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RestablecerRoute = RestablecerRouteImport.update({
+  id: '/restablecer',
+  path: '/restablecer',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAyudaRoute = AuthenticatedAyudaRouteImport.update({
@@ -198,6 +210,8 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/demo': typeof DemoRoute
+  '/recuperar': typeof RecuperarRoute
+  '/restablecer': typeof RestablecerRoute
   '/ayuda': typeof AuthenticatedAyudaRoute
   '/calendario': typeof AuthenticatedCalendarioRoute
   '/competiciones': typeof AuthenticatedCompeticionesRoute
@@ -228,6 +242,8 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/demo': typeof DemoRoute
+  '/recuperar': typeof RecuperarRoute
+  '/restablecer': typeof RestablecerRoute
   '/ayuda': typeof AuthenticatedAyudaRoute
   '/calendario': typeof AuthenticatedCalendarioRoute
   '/competiciones': typeof AuthenticatedCompeticionesRoute
@@ -260,6 +276,8 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/demo': typeof DemoRoute
+  '/recuperar': typeof RecuperarRoute
+  '/restablecer': typeof RestablecerRoute
   '/_authenticated/ayuda': typeof AuthenticatedAyudaRoute
   '/_authenticated/calendario': typeof AuthenticatedCalendarioRoute
   '/_authenticated/competiciones': typeof AuthenticatedCompeticionesRoute
@@ -292,6 +310,8 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/demo'
+    | '/recuperar'
+    | '/restablecer'
     | '/ayuda'
     | '/calendario'
     | '/competiciones'
@@ -322,6 +342,8 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/demo'
+    | '/recuperar'
+    | '/restablecer'
     | '/ayuda'
     | '/calendario'
     | '/competiciones'
@@ -353,6 +375,8 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/demo'
+    | '/recuperar'
+    | '/restablecer'
     | '/_authenticated/ayuda'
     | '/_authenticated/calendario'
     | '/_authenticated/competiciones'
@@ -385,6 +409,8 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   DemoRoute: typeof DemoRoute
+  RecuperarRoute: typeof RecuperarRoute
+  RestablecerRoute: typeof RestablecerRoute
   UnirseCodigoRoute: typeof UnirseCodigoRoute
 }
 
@@ -416,6 +442,20 @@ declare module '@tanstack/react-router' {
       path: '/demo'
       fullPath: '/demo'
       preLoaderRoute: typeof DemoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/recuperar': {
+      id: '/recuperar'
+      path: '/recuperar'
+      fullPath: '/recuperar'
+      preLoaderRoute: typeof RecuperarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/restablecer': {
+      id: '/restablecer'
+      path: '/restablecer'
+      fullPath: '/restablecer'
+      preLoaderRoute: typeof RestablecerRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/ayuda': {
@@ -672,6 +712,8 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   DemoRoute: DemoRoute,
+  RecuperarRoute: RecuperarRoute,
+  RestablecerRoute: RestablecerRoute,
   UnirseCodigoRoute: UnirseCodigoRoute,
 }
 export const routeTree = rootRouteImport

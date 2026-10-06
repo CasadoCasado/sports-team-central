@@ -1478,5 +1478,25 @@
     "contrasenaMal": "The password is not correct.",
     "confirmar": "Delete my account forever",
     "hecho": "Your account has been deleted."
+  },
+  "recuperar": {
+    "titulo": "Reset your password",
+    "explica": "Type the email you log in with and we will send you a link to choose a new password.",
+    "enviar": "Send me the link",
+    "emailMal": "Type a valid email.",
+    "errorEnvio": "It could not be sent right now. Try again in a moment.",
+    "enviado": "If there is an account with {{email}}, we just sent you a link. It expires in 2 hours.",
+    "noLlega": "Not arriving? Check your spam or promotions folder, or ask again in a couple of minutes.",
+    "volverEntrar": "Back to log in",
+    "olvidada": "Forgot your password?"
+  },
+  "restablecer": {
+    "titulo": "New password",
+    "explica": "Choose the password you will log in with from now on.",
+    "nueva": "New password",
+    "guardar": "Save and log in",
+    "hecho": "Password changed. You are in!",
+    "caducado": "This link no longer works: it expires after 2 hours and works only once. Ask for another one and use it right away.",
+    "pedirOtro": "Ask for another link"
   }
 }
