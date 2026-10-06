@@ -1460,5 +1460,23 @@
     "editar": "Editar enfrentamiento",
     "editarTitulo": "Enfrentamiento entre otros equipos",
     "sinPuntosHint": "Si aún no se ha jugado, deja los puntos vacíos: no cuenta en la clasificación hasta que guardes el resultado."
+  },
+  "borrarCuenta": {
+    "titulo": "Borrar mi cuenta",
+    "explica": "Se borra tu perfil y todo lo tuyo. Lo que es de tus equipos (partidos, resultados, mensajes) se queda, a nombre de «Usuario eliminado».",
+    "boton": "Borrar mi cuenta",
+    "confirmarTitulo": "¿Borrar tu cuenta?",
+    "noHayVuelta": "No se puede deshacer: no hay forma de recuperarla.",
+    "seBorra": "Se borra",
+    "seBorraLista": "Tu perfil y tu foto, tus respuestas a convocatorias, tu química, tus votos, tus estadísticas, tus pagos de cuotas, tus avisos y tu sitio en cada equipo.",
+    "seQueda": "Se queda en tus equipos",
+    "seQuedaLista": "Los partidos, entrenos, competiciones, encuestas, cuotas, fotos, documentos y mensajes que creaste, a nombre de «Usuario eliminado», para que el equipo no pierda su historia.",
+    "tusEquipos": "Los equipos de los que eres dueño",
+    "pasaA": "{{equipo}} pasa a {{nombre}}, que será su capitán.",
+    "seBorraEquipo": "{{equipo}} se borra entero: no queda nadie más.",
+    "contrasena": "Escribe tu contraseña para confirmar",
+    "contrasenaMal": "La contraseña no es correcta.",
+    "confirmar": "Borrar mi cuenta para siempre",
+    "hecho": "Tu cuenta se ha borrado."
   }
 }

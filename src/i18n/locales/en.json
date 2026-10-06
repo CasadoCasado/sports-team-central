@@ -1460,5 +1460,23 @@
     "editar": "Edit fixture",
     "editarTitulo": "Fixture between other teams",
     "sinPuntosHint": "If it hasn't been played yet, leave the points empty: it won't count in the table until you save the result."
+  },
+  "borrarCuenta": {
+    "titulo": "Delete my account",
+    "explica": "Your profile and everything that is yours is deleted. What belongs to your teams (matches, results, messages) stays, under «Deleted user».",
+    "boton": "Delete my account",
+    "confirmarTitulo": "Delete your account?",
+    "noHayVuelta": "This cannot be undone: there is no way to get it back.",
+    "seBorra": "What is deleted",
+    "seBorraLista": "Your profile and photo, your call-up answers, your chemistry, your votes, your stats, your fee payments, your notifications and your place in each team.",
+    "seQueda": "What stays in your teams",
+    "seQuedaLista": "The matches, sessions, competitions, polls, fees, photos, documents and messages you created, under «Deleted user», so the team keeps its history.",
+    "tusEquipos": "Teams you own",
+    "pasaA": "{{equipo}} goes to {{nombre}}, who becomes its captain.",
+    "seBorraEquipo": "{{equipo}} is deleted entirely: nobody else is left.",
+    "contrasena": "Type your password to confirm",
+    "contrasenaMal": "The password is not correct.",
+    "confirmar": "Delete my account forever",
+    "hecho": "Your account has been deleted."
   }
 }
