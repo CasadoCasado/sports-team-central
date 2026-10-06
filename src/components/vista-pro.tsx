@@ -469,7 +469,7 @@ export function VistaPro({
                 disabled={confirmar.isPending}
                 className={cn(
                   "inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-[var(--pro-blue)] px-4 text-2xs font-extrabold uppercase tracking-widest text-white",
-                  confirmarEnBarra && "max-md:hidden",
+                  confirmarEnBarra && "max-sm:hidden",
                 )}
               >
                 <Check className="size-4" aria-hidden="true" />

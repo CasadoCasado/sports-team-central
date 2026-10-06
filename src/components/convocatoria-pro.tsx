@@ -656,7 +656,7 @@ function BarraConfirmar({
         createPortal(
           <div
             ref={setBarraEl}
-            className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-background/95 shadow-[0_-8px_24px_-16px_rgb(0_0_0/0.35)] backdrop-blur md:hidden"
+            className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-background/95 shadow-[0_-8px_24px_-16px_rgb(0_0_0/0.35)] backdrop-blur sm:hidden"
           >
             {onBanquillo && (
               <div ref={onBanquillo} data-banquillo className="border-b border-border" />

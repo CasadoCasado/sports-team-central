@@ -65,7 +65,7 @@ import {
   PestanasConvocatoria,
   PUNTO_ESTADO,
 } from "@/components/convocatoria-movil";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useEsTelefono } from "@/hooks/use-mobile";
 import { PistasCerradas } from "@/components/pistas-cerradas";
 import { QuimicaAviso, QuimicaBoton } from "@/components/quimica";
 import { useQuimicas } from "@/hooks/use-quimica";
@@ -495,7 +495,9 @@ function CallupSection({
   const [quimicaAbierta, setQuimicaAbierta] = useState(false);
   // En el móvil, la gestión reparte en pestañas: Apuntados, Pistas y PRO.
   const [pestana, setPestana] = useState<VistaMovil>("apuntados");
-  const isMobile = useIsMobile();
+  // Todo lo de la convocatoria nueva es del teléfono: en el ordenador y en
+  // la tableta se ve como siempre.
+  const esTelefono = useEsTelefono();
   // Un entreno se cierra cuando la gestión quiere: ya nadie se apunta ni
   // cambia su respuesta (la gestión sí sigue marcando quién asistió).
   const entrenoCerrado = esEntreno && confirmada;
@@ -572,7 +574,7 @@ function CallupSection({
   // Si el filtro se queda sin nadie (cambió la respuesta del último), a todos.
   const filtroActivo = chips.some((c) => c.clave === filtro && c.n > 0) ? filtro : "todos";
   const visibles = signedUp.filter((r) =>
-    filtroActivo === "todos"
+    !esTelefono || filtroActivo === "todos"
       ? true
       : filtroActivo === "convocados"
         ? r.es_convocado
@@ -658,7 +660,7 @@ function CallupSection({
   // Cuántos de los apuntados ya han dicho con quién (la gestión las ve todas).
   // La convocatoria en pestañas: solo en el móvil, para la gestión, mientras
   // se reparte (cerrada o jugada ya no hay nada que repartir).
-  const movil = isMobile && isManager && hayQuimica && !jugado && !confirmada && !!team;
+  const movil = esTelefono && isManager && hayQuimica && !jugado && !confirmada && !!team;
   const { data: proMovil } = useTableroPro(eventId, movil && !!team?.es_pro);
   const plazas = (event.padel_num_pistas ?? 0) * 2;
   const yaEnPista = signedUp.filter((r) => r.status !== "rechazado" && r.padel_pista != null).length;
@@ -692,7 +694,17 @@ function CallupSection({
           </div>
           <div>
             <h2 className="text-display text-lg font-bold uppercase tracking-tight">{t("callups.title")}</h2>
-            {!soloPistas && (
+            {!soloPistas && !esTelefono && (
+              <p className="text-xxs text-muted-foreground">
+                {signedUp.length} <Users className="inline size-3" /> ·{" "}
+                <span title={t("callups.response_confirmado")}>{confirmed} ✓</span> ·{" "}
+                <span title={t("callups.response_reserva")}>{reserve} R</span> ·{" "}
+                <span title={t("callups.response_duda")}>{doubt} ?</span> ·{" "}
+                <span title={t("callups.response_rechazado")}>{rejected} ✕</span> ·{" "}
+                <span title={t(k("convocadosHint"))}>{convocados.length} ★</span>
+              </p>
+            )}
+            {!soloPistas && esTelefono && (
               <p className="text-xxs text-muted-foreground">
                 <Users className="mr-1 inline size-3" aria-hidden="true" />
                 {t("callups.resumenApuntados", { count: signedUp.length })}
@@ -775,7 +787,7 @@ function CallupSection({
         </div>
       ) : jugado && !abierta ? null : (
       <>
-      {userId && myResp && isManager && !miRespuestaAbierta && (
+      {userId && myResp && isManager && esTelefono && !miRespuestaAbierta && (
         <button
           type="button"
           onClick={() => setMiRespuestaAbierta(true)}
@@ -791,13 +803,13 @@ function CallupSection({
           </span>
         </button>
       )}
-      {userId && myResp && (!isManager || miRespuestaAbierta) && (
+      {userId && myResp && (!isManager || !esTelefono || miRespuestaAbierta) && (
         <div className="border-b border-border p-4 sm:p-5">
           <div className="flex items-center justify-between gap-2">
             <div className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
               {t("callups.myStatus")}
             </div>
-            {isManager && (
+            {isManager && esTelefono && (
               <button
                 type="button"
                 onClick={() => setMiRespuestaAbierta(false)}
@@ -856,7 +868,7 @@ function CallupSection({
         {signedUp.length === 0 && (
           <p className="text-xs text-muted-foreground">{t("callups.noSignedUp")}</p>
         )}
-        {signedUp.length > 0 && (
+        {signedUp.length > 0 && esTelefono && (
           <div
             role="group"
             aria-label={t("callups.filtro.titulo")}
@@ -889,7 +901,7 @@ function CallupSection({
               ))}
           </div>
         )}
-        {puedoDarQuimica && signedUp.length > 1 && isManager && !quimicaAbierta && (
+        {puedoDarQuimica && signedUp.length > 1 && isManager && esTelefono && !quimicaAbierta && (
           <button
             type="button"
             onClick={() => setQuimicaAbierta(true)}
@@ -906,7 +918,7 @@ function CallupSection({
             <ChevronDown className="size-4 shrink-0" aria-hidden="true" />
           </button>
         )}
-        {puedoDarQuimica && signedUp.length > 1 && (!isManager || quimicaAbierta) && (
+        {puedoDarQuimica && signedUp.length > 1 && (!isManager || !esTelefono || quimicaAbierta) && (
           <QuimicaAviso
             cerrada={confirmada}
             mia={miQuimica ? nombreDe(miQuimica) : null}

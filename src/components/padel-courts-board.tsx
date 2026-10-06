@@ -561,7 +561,7 @@ export function PadelCourtsBoard({
           </div>
         ) : (
           numPistas > 0 && (
-            <div className={cn("space-y-1.5", confirmarEnBarra && "max-md:hidden")}>
+            <div className={cn("space-y-1.5", confirmarEnBarra && "max-sm:hidden")}>
               <Button
                 onClick={() => confirmar.mutate(true)}
                 disabled={confirmar.isPending}
