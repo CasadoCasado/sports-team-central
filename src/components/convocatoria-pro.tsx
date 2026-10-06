@@ -628,15 +628,36 @@ function BarraConfirmar({
   const [montada, setMontada] = useState(false);
   useEffect(() => setMontada(true), []);
 
+  // Lo que mide la barra (con el banquillo, más), de margen al final de la
+  // página: así no tapa lo último y no queda un hueco dentro de la tarjeta.
+  // En el ordenador la barra no se ve y mide 0.
+  const [barraEl, setBarraEl] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    if (!barraEl) return;
+    const ajustar = () => {
+      document.body.style.paddingBottom = barraEl.offsetHeight ? `${barraEl.offsetHeight}px` : "";
+    };
+    ajustar();
+    const obs = new ResizeObserver(ajustar);
+    obs.observe(barraEl);
+    window.addEventListener("resize", ajustar);
+    return () => {
+      obs.disconnect();
+      window.removeEventListener("resize", ajustar);
+      document.body.style.paddingBottom = "";
+    };
+  }, [barraEl]);
+
   if (numPistas === 0) return null;
   const pct = Math.min(100, Math.round((enPista / total) * 100));
   return (
     <>
-      {/* Lo que ocupa la barra, para que no tape el final de la página. */}
-      <div aria-hidden="true" className={cn("md:hidden", onBanquillo ? "h-44" : "h-20")} />
       {montada &&
         createPortal(
-          <div className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-background/95 shadow-[0_-8px_24px_-16px_rgb(0_0_0/0.35)] backdrop-blur md:hidden">
+          <div
+            ref={setBarraEl}
+            className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-background/95 shadow-[0_-8px_24px_-16px_rgb(0_0_0/0.35)] backdrop-blur md:hidden"
+          >
             {onBanquillo && (
               <div ref={onBanquillo} data-banquillo className="border-b border-border" />
             )}
