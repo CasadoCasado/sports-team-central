@@ -408,6 +408,8 @@
     "finAntesInicio": "La hora de fin no puede ser anterior a la de inicio.",
     "ubicacion": "Ubicación",
     "rival": "Rival",
+    "jornada": "Jornada",
+    "jornadaHint": "Jornada de la liga en la que cae. Sirve para filtrar los enfrentamientos de la competición.",
     "esLocal": "Jugamos en casa",
     "competicion": "Competición",
     "sinCompeticion": "Sin competición",
@@ -1381,7 +1383,7 @@
     "metidoAMano": "entre otros equipos",
     "anadir": "Resultado de otros equipos",
     "anadirTitulo": "Resultado entre otros equipos",
-    "anadirTexto": "Un partido de la liga en el que no jugáis vosotros, para que la clasificación sea la completa. Los vuestros se suman solos.",
+    "anadirTexto": "Un partido de la liga en el que no jugáis vosotros, para que la clasificación sea la completa. Los vuestros se suman solos; su jornada se pone al editar el partido.",
     "local": "Local",
     "visitante": "Visitante",
     "fecha": "Fecha",
@@ -1394,6 +1396,15 @@
     "racha": "Últimos resultados de {{equipo}}",
     "rachaW": "Ganado a {{rival}}, {{marcador}}",
     "rachaL": "Perdido con {{rival}}, {{marcador}}",
-    "rachaD": "Empate con {{rival}}, {{marcador}}"
+    "rachaD": "Empate con {{rival}}, {{marcador}}",
+    "jornada": "Jornada",
+    "jornadaN": "Jornada {{n}}",
+    "filtroJornada": "Filtrar por jornada",
+    "todasJornadas": "Todas las jornadas",
+    "sinJornada": "Sin jornada",
+    "sinPartidosJornada": "No hay enfrentamientos en esta jornada.",
+    "editar": "Editar enfrentamiento",
+    "editarTitulo": "Enfrentamiento entre otros equipos",
+    "sinPuntosHint": "Si aún no se ha jugado, deja los puntos vacíos: no cuenta en la clasificación hasta que guardes el resultado."
   }
 }

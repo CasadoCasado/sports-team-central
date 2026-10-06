@@ -408,6 +408,8 @@
     "finAntesInicio": "The end time can't be before the start time.",
     "ubicacion": "Location",
     "rival": "Opponent",
+    "jornada": "Round",
+    "jornadaHint": "League round this match belongs to. Used to filter the competition's fixtures.",
     "esLocal": "We play at home",
     "competicion": "Competition",
     "sinCompeticion": "No competition",
@@ -1381,7 +1383,7 @@
     "metidoAMano": "between other teams",
     "anadir": "Other teams' result",
     "anadirTitulo": "Result between other teams",
-    "anadirTexto": "A league match you didn't play, so the table is the complete one. Yours are added automatically.",
+    "anadirTexto": "A league match you didn't play, so the table is the complete one. Yours are added automatically; set their round when editing the match.",
     "local": "Home",
     "visitante": "Away",
     "fecha": "Date",
@@ -1394,6 +1396,15 @@
     "racha": "{{equipo}}'s last results",
     "rachaW": "Won against {{rival}}, {{marcador}}",
     "rachaL": "Lost to {{rival}}, {{marcador}}",
-    "rachaD": "Drew with {{rival}}, {{marcador}}"
+    "rachaD": "Drew with {{rival}}, {{marcador}}",
+    "jornada": "Round",
+    "jornadaN": "Round {{n}}",
+    "filtroJornada": "Filter by round",
+    "todasJornadas": "All rounds",
+    "sinJornada": "No round",
+    "sinPartidosJornada": "No fixtures in this round.",
+    "editar": "Edit fixture",
+    "editarTitulo": "Fixture between other teams",
+    "sinPuntosHint": "If it hasn't been played yet, leave the points empty: it won't count in the table until you save the result."
   }
 }

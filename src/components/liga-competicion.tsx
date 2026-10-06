@@ -19,6 +19,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -50,9 +57,15 @@ export type PartidoDeLiga = {
   visitante: string;
   puntos_local: number | null;
   puntos_visitante: number | null;
+  /** La jornada de la liga, si se puso. */
+  jornada: number | null;
 };
 
-export type Liga = { clasificacion: FilaLiga[]; partidos: PartidoDeLiga[] };
+/** `jornadas`: las que tienen algún enfrentamiento, de menor a mayor. */
+export type Liga = { clasificacion: FilaLiga[]; partidos: PartidoDeLiga[]; jornadas: number[] };
+
+/** El filtro de los enfrentamientos: todas, una jornada o los que no tienen. */
+type FiltroJornada = "todas" | "sin" | number;
 
 export function ligaQuery(competitionId: string) {
   return {
@@ -75,7 +88,9 @@ export function LigaCompeticion({
   const { t, i18n } = useTranslation();
   const locale = i18n.language.startsWith("en") ? enUS : esLocale;
   const qc = useQueryClient();
-  const [anadiendo, setAnadiendo] = useState(false);
+  // null: cerrado; «nuevo»: añadiendo; un partido: editándolo.
+  const [editando, setEditando] = useState<PartidoDeLiga | "nuevo" | null>(null);
+  const [filtro, setFiltro] = useState<FiltroJornada>("todas");
 
   const borrar = useMutation({
     mutationFn: (id: string) => api.delete(`/partidos-liga/${id}/`),
@@ -87,6 +102,26 @@ export function LigaCompeticion({
   });
 
   const equipos = liga.clasificacion.map((f) => f.equipo);
+  const editable = puedeGestionar && !finalizada;
+
+  // Si la jornada filtrada se queda sin enfrentamientos (se borró el último),
+  // se vuelve a verlas todas.
+  const jornadas = liga.jornadas ?? [];
+  const haySinJornada = jornadas.length > 0 && liga.partidos.some((p) => p.jornada == null);
+  const filtroValido =
+    filtro === "todas" || (filtro === "sin" ? haySinJornada : jornadas.includes(filtro))
+      ? filtro
+      : "todas";
+  const partidos = liga.partidos.filter((p) =>
+    filtroValido === "todas"
+      ? true
+      : filtroValido === "sin"
+        ? p.jornada == null
+        : p.jornada === filtroValido,
+  );
+  // Al añadir, la jornada que se está mirando o, si no, la última.
+  const jornadaPorDefecto =
+    typeof filtroValido === "number" ? filtroValido : (jornadas[jornadas.length - 1] ?? null);
 
   return (
     <>
@@ -166,18 +201,44 @@ export function LigaCompeticion({
           >
             {t("liga.enfrentamientos")}
           </h2>
-          {puedeGestionar && !finalizada && (
-            <Button size="sm" variant="outline" onClick={() => setAnadiendo(true)}>
-              <Plus className="mr-1 size-4" aria-hidden="true" />
-              {t("liga.anadir")}
-            </Button>
-          )}
+          <div className="flex flex-wrap items-center gap-2">
+            {jornadas.length > 0 && (
+              <Select
+                value={String(filtroValido)}
+                onValueChange={(v) => setFiltro(v === "todas" || v === "sin" ? v : Number(v))}
+              >
+                <SelectTrigger
+                  className="h-9 w-auto min-w-[9.5rem] text-xs"
+                  aria-label={t("liga.filtroJornada")}
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todas">{t("liga.todasJornadas")}</SelectItem>
+                  {jornadas.map((j) => (
+                    <SelectItem key={j} value={String(j)}>
+                      {t("liga.jornadaN", { n: j })}
+                    </SelectItem>
+                  ))}
+                  {haySinJornada && <SelectItem value="sin">{t("liga.sinJornada")}</SelectItem>}
+                </SelectContent>
+              </Select>
+            )}
+            {editable && (
+              <Button size="sm" variant="outline" onClick={() => setEditando("nuevo")}>
+                <Plus className="mr-1 size-4" aria-hidden="true" />
+                {t("liga.anadir")}
+              </Button>
+            )}
+          </div>
         </div>
         {liga.partidos.length === 0 ? (
           <p className="p-6 text-sm text-muted-foreground">{t("liga.sinPartidos")}</p>
+        ) : partidos.length === 0 ? (
+          <p className="p-6 text-sm text-muted-foreground">{t("liga.sinPartidosJornada")}</p>
         ) : (
           <ul className="divide-y divide-border">
-            {liga.partidos.map((p) => {
+            {partidos.map((p) => {
               const jugado = p.puntos_local != null && p.puntos_visitante != null;
               const cuerpo = (
                 <>
@@ -194,13 +255,13 @@ export function LigaCompeticion({
                     </p>
                     <p className="text-xxs text-muted-foreground">
                       {[
+                        p.jornada != null && t("liga.jornadaN", { n: p.jornada }),
                         p.fecha &&
                           format(new Date(p.fecha), p.origen === "nuestro" ? "PPP HH:mm" : "PPP", {
                             locale,
                           }),
-                        p.origen === "manual"
-                          ? t("liga.metidoAMano")
-                          : !jugado && t("liga.sinResultado"),
+                        p.origen === "manual" && t("liga.metidoAMano"),
+                        !jugado && t("liga.sinResultado"),
                       ]
                         .filter(Boolean)
                         .join(" · ")}
@@ -219,9 +280,22 @@ export function LigaCompeticion({
                       {cuerpo}
                     </Link>
                   ) : (
-                    <div className="flex items-center gap-4 p-4">
-                      {cuerpo}
-                      {puedeGestionar && !finalizada && (
+                    <div className="flex items-center gap-2 pr-4">
+                      {/* La gestión lo abre para cambiarlo o guardar el
+                          resultado de un cruce que aún no se había jugado. */}
+                      {editable ? (
+                        <button
+                          type="button"
+                          onClick={() => setEditando(p)}
+                          title={t("liga.editar")}
+                          className="flex min-w-0 flex-1 items-center gap-4 p-4 text-left hover:bg-card"
+                        >
+                          {cuerpo}
+                        </button>
+                      ) : (
+                        <div className="flex min-w-0 flex-1 items-center gap-4 p-4">{cuerpo}</div>
+                      )}
+                      {editable && (
                         <Button
                           size="icon"
                           variant="ghost"
@@ -231,7 +305,9 @@ export function LigaCompeticion({
                             const ok = await confirmar({
                               title: t("liga.borrarTitulo"),
                               description: t("liga.borrarTexto", {
-                                partido: `${p.local} ${p.puntos_local} – ${p.puntos_visitante} ${p.visitante}`,
+                                partido: jugado
+                                  ? `${p.local} ${p.puntos_local} – ${p.puntos_visitante} ${p.visitante}`
+                                  : `${p.local} – ${p.visitante}`,
                               }),
                               confirmLabel: t("liga.borrar"),
                               tone: "danger",
@@ -252,44 +328,62 @@ export function LigaCompeticion({
         )}
       </section>
 
-      {anadiendo && (
-        <AnadirPartido
+      {editando && (
+        <PartidoAMano
           competitionId={competitionId}
           equipos={equipos}
-          onClose={() => setAnadiendo(false)}
+          partido={editando === "nuevo" ? null : editando}
+          jornadaPorDefecto={jornadaPorDefecto}
+          onClose={() => setEditando(null)}
         />
       )}
     </>
   );
 }
 
-function AnadirPartido({
+/**
+ * Añadir o cambiar un enfrentamiento entre otros equipos. Los puntos pueden
+ * ir vacíos: el cruce de una jornada que aún no se ha jugado, que no cuenta
+ * hasta que se guarde su resultado.
+ */
+function PartidoAMano({
   competitionId,
   equipos,
+  partido,
+  jornadaPorDefecto,
   onClose,
 }: {
   competitionId: string;
   equipos: string[];
+  /** null: uno nuevo. */
+  partido: PartidoDeLiga | null;
+  jornadaPorDefecto: number | null;
   onClose: () => void;
 }) {
   const { t } = useTranslation();
   const qc = useQueryClient();
-  const [local, setLocal] = useState("");
-  const [visitante, setVisitante] = useState("");
-  const [puntosLocal, setPuntosLocal] = useState("");
-  const [puntosVisitante, setPuntosVisitante] = useState("");
-  const [fecha, setFecha] = useState("");
+  const texto = (n: number | null | undefined) => (n == null ? "" : String(n));
+  const [local, setLocal] = useState(partido?.local ?? "");
+  const [visitante, setVisitante] = useState(partido?.visitante ?? "");
+  const [puntosLocal, setPuntosLocal] = useState(texto(partido?.puntos_local));
+  const [puntosVisitante, setPuntosVisitante] = useState(texto(partido?.puntos_visitante));
+  const [fecha, setFecha] = useState(partido?.fecha?.slice(0, 10) ?? "");
+  const [jornada, setJornada] = useState(texto(partido ? partido.jornada : jornadaPorDefecto));
 
   const guardar = useMutation({
-    mutationFn: () =>
-      api.post("/partidos-liga/", {
-        competition_id: competitionId,
+    mutationFn: () => {
+      const cuerpo = {
         local: local.trim(),
         visitante: visitante.trim(),
-        puntos_local: Number(puntosLocal),
-        puntos_visitante: Number(puntosVisitante),
+        puntos_local: puntosLocal === "" ? null : Number(puntosLocal),
+        puntos_visitante: puntosVisitante === "" ? null : Number(puntosVisitante),
         fecha: fecha || null,
-      }),
+        jornada: jornada === "" ? null : Number(jornada),
+      };
+      return partido
+        ? api.patch(`/partidos-liga/${partido.id}/`, cuerpo)
+        : api.post("/partidos-liga/", { competition_id: competitionId, ...cuerpo });
+    },
     onSuccess: async () => {
       toast.success(t("liga.guardado"));
       await qc.invalidateQueries({ queryKey: ["competition-liga", competitionId] });
@@ -298,11 +392,13 @@ function AnadirPartido({
     onError: (e: Error) => toast.error(e.message || t("common.error")),
   });
 
+  // El resultado va entero o no va: con un solo marcador no se sabe quién ganó.
+  const conResultado = puntosLocal !== "" || puntosVisitante !== "";
   const listo =
     local.trim() !== "" &&
     visitante.trim() !== "" &&
-    /^\d+$/.test(puntosLocal) &&
-    /^\d+$/.test(puntosVisitante);
+    (!conResultado || (/^\d+$/.test(puntosLocal) && /^\d+$/.test(puntosVisitante))) &&
+    (jornada === "" || Number(jornada) >= 1);
 
   const numero = (v: string, set: (v: string) => void, id: string, label: string) => (
     <div>
@@ -321,7 +417,7 @@ function AnadirPartido({
     <Dialog open onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{t("liga.anadirTitulo")}</DialogTitle>
+          <DialogTitle>{t(partido ? "liga.editarTitulo" : "liga.anadirTitulo")}</DialogTitle>
           <DialogDescription>{t("liga.anadirTexto")}</DialogDescription>
         </DialogHeader>
         <form
@@ -362,15 +458,19 @@ function AnadirPartido({
             </div>
             {numero(puntosVisitante, setPuntosVisitante, "liga-pv", t("liga.puntos"))}
           </div>
-          <div>
-            <Label htmlFor="liga-fecha">{t("liga.fecha")}</Label>
-            <Input
-              id="liga-fecha"
-              type="date"
-              value={fecha}
-              onChange={(e) => setFecha(e.target.value)}
-            />
+          <div className="grid grid-cols-[5rem_minmax(0,1fr)] items-end gap-3">
+            {numero(jornada, setJornada, "liga-jornada", t("liga.jornada"))}
+            <div>
+              <Label htmlFor="liga-fecha">{t("liga.fecha")}</Label>
+              <Input
+                id="liga-fecha"
+                type="date"
+                value={fecha}
+                onChange={(e) => setFecha(e.target.value)}
+              />
+            </div>
           </div>
+          <p className="text-xxs text-muted-foreground">{t("liga.sinPuntosHint")}</p>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>
               {t("common.cancel")}
