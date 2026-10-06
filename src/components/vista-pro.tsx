@@ -21,7 +21,8 @@ import { createPortal } from "react-dom";
 import { useMutation } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Check, Clock, Copy, GripVertical, Plus, Sparkles, X } from "lucide-react";
+import { Check, Clock, Copy, Grid3x3, GripVertical, Plus, Sparkles, X } from "lucide-react";
+import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -61,12 +62,25 @@ export function VistaPro({
   members,
   pro,
   onChanged,
+  confirmarEnBarra,
+  vista,
+  banquilloEn,
 }: {
   event: Evento;
   responses: Respuesta[];
   members: Miembro[];
   pro: TableroPro;
   onChanged: () => void;
+  /** En el móvil, «Confirmar» va en la barra fija de abajo y no aquí. */
+  confirmarEnBarra?: boolean;
+  /**
+   * En el móvil, una sola parte: «pistas» (las pistas, y los que no tienen
+   * pista en el banquillo de abajo) o «pro» (rival, química, ficha y matriz).
+   * Sin nada, todo junto, como en el ordenador.
+   */
+  vista?: "pistas" | "pro";
+  /** Dónde va el banquillo en la vista «pistas»: dentro de la barra fija. */
+  banquilloEn?: HTMLElement | null;
 }) {
   const { t, i18n } = useTranslation();
   const cerrada = event.convocatoria_confirmada;
@@ -92,10 +106,15 @@ export function VistaPro({
   const mutua = (a: string, b: string) => eligio.get(a) === b && eligio.get(b) === a;
 
   // El jugador elegido: el de la ficha, y el que se coloca al tocar un hueco.
-  const [sel, setSel] = useState<string | null>(
-    () => apuntados.find((r) => r.padel_pista != null)?.user_id ?? apuntados[0]?.user_id ?? null,
+  // En las pistas del móvil no hay nadie elegido hasta que se toca a alguien:
+  // tocar una pista con alguien elegido lo mueve allí.
+  const [sel, setSel] = useState<string | null>(() =>
+    vista === "pistas"
+      ? null
+      : (apuntados.find((r) => r.padel_pista != null)?.user_id ?? apuntados[0]?.user_id ?? null),
   );
-  const elegido = sel && porUsuario.has(sel) ? sel : (apuntados[0]?.user_id ?? null);
+  const elegido =
+    sel && porUsuario.has(sel) ? sel : vista === "pistas" ? null : (apuntados[0]?.user_id ?? null);
 
   // --- mover --------------------------------------------------------------
   const [moviendo, setMoviendo] = useState(false);
@@ -125,6 +144,8 @@ export function VistaPro({
       return;
     }
     void poner([[u, pista]]);
+    // En el móvil, colocado ya no queda elegido: el siguiente toque es otro.
+    if (vista === "pistas") setSel(null);
   }
 
   // --- arrastrar ------------------------------------------------------------
@@ -162,7 +183,10 @@ export function VistaPro({
         const el = document
           .elementFromPoint(e.clientX, e.clientY)
           ?.closest<HTMLElement>("[data-drop-pro]");
-        const nuevo = el && raiz.current?.contains(el) ? (el.dataset.dropPro ?? null) : null;
+        const nuevo =
+          el && (raiz.current?.contains(el) || banquilloEn?.contains(el))
+            ? (el.dataset.dropPro ?? null)
+            : null;
         destino.current = nuevo;
         setSobre(nuevo);
       },
@@ -257,6 +281,149 @@ export function VistaPro({
     arrastrando: fantasma?.u ?? null,
   };
 
+  const libres = apuntados.filter((r) => r.padel_pista == null).map((r) => r.user_id);
+  const [matrizAbierta, setMatrizAbierta] = useState(false);
+  const fantasmaEl =
+    fantasma &&
+    createPortal(
+      <div
+        aria-hidden="true"
+        className="pro-ui pointer-events-none fixed z-[60] inline-flex items-center gap-2 rounded-full border border-[var(--pro-acc)] py-1 pl-1 pr-3 text-sm font-semibold shadow-xl"
+        style={{
+          left: fantasma.x,
+          top: fantasma.y,
+          transform: "translate(-50%, -60%) rotate(-3deg) scale(1.06)",
+        }}
+      >
+        <Avatar texto={iniciales(fantasma.u)} />
+        {pila(fantasma.u)}
+      </div>,
+      document.body,
+    );
+
+  if (vista === "pistas") {
+    return (
+      <div ref={raiz} className="pro-ui space-y-3 rounded-2xl border border-[var(--pro-line)] p-3">
+        {numPistas === 0 && (
+          <p className="text-sm text-[var(--pro-muted)]">{t("events.padelPistasHint")}</p>
+        )}
+        {pistas.map((n) => (
+          <TarjetaPista
+            key={n}
+            ctx={ctx}
+            num={n}
+            dentro={enPista(n).map((r) => r.user_id)}
+            rival={event.rival ?? null}
+            onColocar={() => colocar(elegido, n)}
+            compacta
+          />
+        ))}
+        {banquilloEn &&
+          createPortal(
+            <div className="pro-ui space-y-1.5 px-4 pt-2.5" style={{ background: "transparent" }}>
+              <p className={etiqueta}>
+                {libres.length === 0
+                  ? t("quimica.todosConPista")
+                  : elegido && libres.includes(elegido)
+                    ? t("callups.banquillo.ahoraPista", { name: pila(elegido) })
+                    : t("callups.banquillo.toca", { count: libres.length })}
+              </p>
+              <SinPista ctx={ctx} libres={libres} compacto />
+            </div>,
+            banquilloEn,
+          )}
+        {fantasmaEl}
+      </div>
+    );
+  }
+
+  if (vista === "pro") {
+    return (
+      <div ref={raiz} className="pro-ui overflow-clip rounded-2xl border border-[var(--pro-line)]">
+        {pro.rival && <FranjaRival pro={pro} pila={pila} />}
+        <div className="space-y-4 p-3">
+          {/* A quién se mira: una tira que se desliza, no la lista entera. */}
+          <div className="space-y-1.5">
+            <p className={etiqueta}>{t("pro.verFichaDe")}</p>
+            <div className="-mx-3 flex gap-1.5 overflow-x-auto px-3 pb-3">
+              {apuntados.map((r) => (
+                <button
+                  key={r.user_id}
+                  type="button"
+                  onClick={() => setSel(r.user_id)}
+                  aria-pressed={elegido === r.user_id}
+                  className={cn(
+                    "inline-flex min-h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border py-1 pl-1 pr-3 text-xs font-semibold",
+                    elegido === r.user_id
+                      ? "border-[var(--pro-acc)] bg-[var(--pro-sel)]"
+                      : "border-[var(--pro-line)] bg-[var(--pro-surface-2)]",
+                  )}
+                >
+                  <Avatar texto={iniciales(r.user_id)} />
+                  {pila(r.user_id)}
+                  {r.padel_pista != null && (
+                    <span className="text-[var(--pro-muted)]">· P{r.padel_pista}</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+          {elegido && (
+            <FichaJugador
+              ctx={ctx}
+              u={elegido}
+              pista={porUsuario.get(elegido)?.padel_pista ?? null}
+              otros={apuntados.map((r) => r.user_id).filter((x) => x !== elegido)}
+              jornadas={pro.jornadas}
+              rival={pro.rival?.nombre ?? null}
+              onQuitar={() => void poner([[elegido, null]])}
+              onJuntar={(otro) => juntar(elegido, otro)}
+              mandar={{
+                pistas,
+                dentro: (n) => enPista(n).map((r) => r.user_id),
+                a: (n) => colocar(elegido, n),
+              }}
+            />
+          )}
+          <button
+            type="button"
+            onClick={() => setMatrizAbierta(true)}
+            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-[var(--pro-line-2)] bg-[var(--pro-surface)] text-xs font-extrabold uppercase tracking-widest"
+          >
+            <Grid3x3 className="size-4" aria-hidden="true" />
+            {t("pro.verMatriz")}
+          </button>
+        </div>
+        <Drawer open={matrizAbierta} onOpenChange={setMatrizAbierta} shouldScaleBackground={false}>
+          <DrawerContent className="pro-ui h-[92dvh] max-h-[92dvh] rounded-t-2xl px-0 pb-[env(safe-area-inset-bottom)]">
+            <div className="flex items-center justify-between gap-2 px-4 pt-3">
+              <DrawerTitle className="text-base font-bold">{t("pro.tabMatriz")}</DrawerTitle>
+              <button
+                type="button"
+                onClick={() => setMatrizAbierta(false)}
+                aria-label={t("common.close")}
+                className="flex size-9 items-center justify-center rounded-md"
+              >
+                <X className="size-5" aria-hidden="true" />
+              </button>
+            </div>
+            <DrawerDescription className="sr-only">{t("pro.tabMatriz")}</DrawerDescription>
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <MatrizCompacta
+                ctx={ctx}
+                jugadores={apuntados.map((r) => r.user_id)}
+                onJuntar={(a, b) => {
+                  juntar(a, b);
+                  setMatrizAbierta(false);
+                }}
+              />
+            </div>
+          </DrawerContent>
+        </Drawer>
+      </div>
+    );
+  }
+
   return (
     <div
       ref={raiz}
@@ -300,7 +467,10 @@ export function VistaPro({
                 type="button"
                 onClick={() => confirmar.mutate(true)}
                 disabled={confirmar.isPending}
-                className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-[var(--pro-blue)] px-4 text-2xs font-extrabold uppercase tracking-widest text-white"
+                className={cn(
+                  "inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-[var(--pro-blue)] px-4 text-2xs font-extrabold uppercase tracking-widest text-white",
+                  confirmarEnBarra && "max-sm:hidden",
+                )}
               >
                 <Check className="size-4" aria-hidden="true" />
                 {t("quimica.confirmar")}
@@ -363,22 +533,7 @@ export function VistaPro({
         </TabsContent>
       </Tabs>
 
-      {fantasma &&
-        createPortal(
-          <div
-            aria-hidden="true"
-            className="pro-ui pointer-events-none fixed z-[60] inline-flex items-center gap-2 rounded-full border border-[var(--pro-acc)] py-1 pl-1 pr-3 text-sm font-semibold shadow-xl"
-            style={{
-              left: fantasma.x,
-              top: fantasma.y,
-              transform: "translate(-50%, -60%) rotate(-3deg) scale(1.06)",
-            }}
-          >
-            <Avatar texto={iniciales(fantasma.u)} />
-            {pila(fantasma.u)}
-          </div>,
-          document.body,
-        )}
+      {fantasmaEl}
     </div>
   );
 }
@@ -690,12 +845,15 @@ function TarjetaPista({
   dentro,
   rival,
   onColocar,
+  compacta,
 }: {
   ctx: Ctx;
   num: number;
   dentro: string[];
   rival: string | null;
   onColocar: () => void;
+  /** En el móvil: la pista dibujada pequeña al lado del texto, no encima. */
+  compacta?: boolean;
 }) {
   const { t } = useTranslation();
   const [a, b] = dentro;
@@ -709,12 +867,16 @@ function TarjetaPista({
   const elegidoAqui = !!ctx.elegido && dentro.includes(ctx.elegido);
   const puedeColocar = !ctx.cerrada && !!ctx.elegido && !elegidoAqui && dentro.length < 2;
 
+  const izq = compacta ? "left-[26%]" : "left-[18%]";
+  const alto = (arriba: boolean) =>
+    compacta ? (arriba ? "top-[12%]" : "bottom-[12%]") : arriba ? "top-[14%]" : "bottom-[14%]";
   const hueco = (u: string | undefined, arriba: boolean) =>
     u ? (
       <div
         className={cn(
-          "group absolute left-[18%] -translate-x-1/2",
-          arriba ? "top-[14%]" : "bottom-[14%]",
+          "group absolute -translate-x-1/2",
+          izq,
+          alto(arriba),
           ctx.arrastrando === u && "opacity-40",
         )}
       >
@@ -761,8 +923,9 @@ function TarjetaPista({
             : t("pro.huecoLibre")
         }
         className={cn(
-          "absolute left-[18%] flex size-10 -translate-x-1/2 items-center justify-center rounded-full border-2 border-dashed text-white sm:size-11",
-          arriba ? "top-[14%]" : "bottom-[14%]",
+          "absolute flex size-10 -translate-x-1/2 items-center justify-center rounded-full border-2 border-dashed text-white sm:size-11",
+          izq,
+          alto(arriba),
           puedeColocar || ctx.sobre === String(num)
             ? "border-[#d7f24b] bg-white/10"
             : "border-white/45 text-white/60",
@@ -771,6 +934,90 @@ function TarjetaPista({
         <Plus className="size-4" aria-hidden="true" />
       </button>
     );
+
+  if (compacta) {
+    // Lo más importante primero: solo caben dos etiquetas.
+    const etiquetas: { texto: string; tono: "ok" | "aviso" | "acc" | "neutro" }[] = [];
+    if (par) {
+      if (par.encaje === "mismo_lado")
+        etiquetas.push({
+          texto: t("pro.mismoLado", {
+            lado: t(`lado.${ctx.pro.jugadores[a!]?.lado ?? "reves"}`).toLowerCase(),
+          }),
+          tono: "aviso",
+        });
+      if (ctx.mutua(a!, b!)) etiquetas.push({ texto: t("pro.quimicaMutua"), tono: "ok" });
+      else if (ctx.eligio.get(a!) === b || ctx.eligio.get(b!) === a)
+        etiquetas.push({ texto: t("pro.quimicaUnLado"), tono: "neutro" });
+      if (vs)
+        etiquetas.push({
+          texto: t("pro.contraEllos", { g: vs.ganados, p: vs.perdidos, rival: rival ?? "" }),
+          tono: "acc",
+        });
+      if (par.encaje === "encajan") etiquetas.push({ texto: t("pro.ladosEncajan"), tono: "ok" });
+      if (!n) etiquetas.push({ texto: t("pro.primeraVez"), tono: "aviso" });
+    }
+    return (
+      <section
+        aria-label={`${t("callups.pista")} ${num}`}
+        data-pista-pro={num}
+        data-drop-pro={num}
+        className={cn(
+          "relative h-36 overflow-hidden rounded-2xl bg-[var(--pro-court)] text-white shadow-[inset_0_0_0_3px_rgb(190_215_255/0.35)] transition-shadow",
+          ctx.sobre === String(num) && "ring-4 ring-[#d7f24b]",
+          elegidoAqui && "ring-2 ring-white/70",
+        )}
+      >
+        <div className="absolute inset-[5%] border-2 border-white/85" />
+        <div className="absolute inset-y-[3%] left-1/2 w-[3px] -translate-x-1/2 bg-white/80" />
+        {/* Las líneas de saque solo en nuestro campo: en el de enfrente va la
+            información de la pareja. */}
+        <div className="absolute inset-y-[5%] left-[15%] w-0.5 bg-white/85" />
+        <div className="absolute left-[15%] right-1/2 top-1/2 h-0.5 bg-white/85" />
+        {hueco(a, true)}
+        {hueco(b, false)}
+        {/* El campo de enfrente, para lo que se sabe de la pareja. */}
+        <div className="absolute inset-y-[8%] left-[53%] right-[4%] flex flex-col justify-center gap-1 rounded-lg bg-[#0b1222]/35 px-2 py-1.5">
+          <div className="flex items-baseline justify-between gap-1">
+            <span className="text-3xs font-extrabold uppercase tracking-widest text-white/75">
+              {t("callups.pista")} {num}
+            </span>
+            {valor != null && (
+              <span
+                className={cn(
+                  "text-lg font-extrabold leading-none",
+                  !n ? "text-[#ffc46b]" : valor >= 60 ? "text-[#d7f24b]" : "text-white",
+                )}
+              >
+                {n ? `${valor} %` : t("pro.nueva")}
+              </span>
+            )}
+          </div>
+          <p className="line-clamp-2 text-xs font-bold leading-tight">
+            {a && b
+              ? t("pro.parejaTitulo", { a: ctx.pila(a), b: ctx.pila(b) })
+              : a
+                ? t("pro.faltaPareja", { name: ctx.pila(a) })
+                : t("pro.pistaLibre")}
+          </p>
+          {etiquetas.slice(0, 2).map((e) => (
+            <span
+              key={e.texto}
+              className={cn(
+                "truncate rounded-full px-1.5 py-0.5 text-3xs font-bold",
+                e.tono === "ok" && "bg-[#0f7a50]/80 text-white",
+                e.tono === "aviso" && "bg-[#f5a524]/85 text-[#3a2200]",
+                e.tono === "acc" && "bg-[#d7f24b] text-[#0b1222]",
+                e.tono === "neutro" && "bg-white/20 text-white",
+              )}
+            >
+              {e.texto}
+            </span>
+          ))}
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section
@@ -788,8 +1035,13 @@ function TarjetaPista({
             : "border-[var(--pro-line)] bg-[var(--pro-surface)]",
       )}
     >
-      <div className="flex flex-col gap-3 @xl:flex-row @xl:items-center">
-        <div className="shrink-0 space-y-1.5 @xl:w-[300px]">
+      <div
+        className={cn(
+          "flex gap-3",
+          compacta ? "flex-row items-center" : "flex-col @xl:flex-row @xl:items-center",
+        )}
+      >
+        <div className={cn("shrink-0 space-y-1.5", compacta ? "w-[46%]" : "@xl:w-[300px]")}>
           <span className={etiqueta}>
             {t("callups.pista")} {num}
           </span>
@@ -812,7 +1064,9 @@ function TarjetaPista({
 
         <div className="min-w-0 flex-1 space-y-2">
           <div className="flex items-baseline justify-between gap-2">
-            <h3 className="truncate text-base font-bold">
+            <h3
+              className={cn("font-bold", compacta ? "text-sm leading-tight" : "truncate text-base")}
+            >
               {a && b
                 ? t("pro.parejaTitulo", { a: ctx.pila(a), b: ctx.pila(b) })
                 : a
@@ -822,7 +1076,8 @@ function TarjetaPista({
             {valor != null && (
               <span
                 className={cn(
-                  "text-2xl font-extrabold",
+                  "shrink-0 font-extrabold",
+                  compacta ? "text-lg" : "text-2xl",
                   !n
                     ? "text-[var(--pro-warn)]"
                     : valor >= 60
@@ -836,12 +1091,19 @@ function TarjetaPista({
           </div>
           {par && (
             <>
-              <p className="text-xs text-[var(--pro-muted)]">
-                {n
-                  ? t("pro.resumenPareja", { g: par.ganados, p: par.perdidos, count: n })
-                  : t("pro.resumenNueva", { pct: valor })}
-              </p>
-              <div className="h-2 overflow-hidden rounded-full bg-[var(--pro-track)]">
+              {!compacta && (
+                <p className="text-xs text-[var(--pro-muted)]">
+                  {n
+                    ? t("pro.resumenPareja", { g: par.ganados, p: par.perdidos, count: n })
+                    : t("pro.resumenNueva", { pct: valor })}
+                </p>
+              )}
+              <div
+                className={cn(
+                  "h-2 overflow-hidden rounded-full bg-[var(--pro-track)]",
+                  compacta && "hidden",
+                )}
+              >
                 <div
                   className={cn(
                     "h-full rounded-full",
@@ -879,7 +1141,7 @@ function TarjetaPista({
               </div>
             </>
           )}
-          {!par && !ctx.cerrada && (
+          {!par && !ctx.cerrada && !compacta && (
             <p className="text-xs text-[var(--pro-muted)]">{t("pro.huecoAyuda")}</p>
           )}
         </div>
@@ -905,20 +1167,31 @@ function Tag({ tono, children }: { tono?: "ok" | "acc" | "aviso"; children: Reac
   );
 }
 
-function SinPista({ ctx, libres }: { ctx: Ctx; libres: string[] }) {
+function SinPista({
+  ctx,
+  libres,
+  compacto,
+}: {
+  ctx: Ctx;
+  libres: string[];
+  /** En el banquillo del móvil: una tira que se desliza, sin marco. */
+  compacto?: boolean;
+}) {
   const { t } = useTranslation();
   return (
     <div
       data-drop-pro="pool"
       className={cn(
-        "flex flex-wrap items-center gap-2 rounded-2xl border-2 border-dashed p-3 transition-colors",
+        compacto
+          ? "-mx-4 flex min-h-11 items-center gap-2 overflow-x-auto px-4 pb-3 [&>button]:shrink-0 [&>button]:whitespace-nowrap"
+          : "flex flex-wrap items-center gap-2 rounded-2xl border-2 border-dashed p-3 transition-colors",
         ctx.sobre === "pool"
           ? "border-[var(--pro-acc)] bg-[var(--pro-sel)]"
-          : "border-[var(--pro-line-2)]",
+          : !compacto && "border-[var(--pro-line-2)]",
       )}
     >
-      <span className={etiqueta}>{t("quimica.sinPista")}</span>
-      {libres.length === 0 && (
+      {!compacto && <span className={etiqueta}>{t("quimica.sinPista")}</span>}
+      {libres.length === 0 && !compacto && (
         <span className="text-xs text-[var(--pro-muted)]">{t("quimica.todosConPista")}</span>
       )}
       {libres.map((u) => {
@@ -946,9 +1219,12 @@ function SinPista({ ctx, libres }: { ctx: Ctx; libres: string[] }) {
             <Avatar texto={ctx.iniciales(u)} />
             {ctx.pila(u)}
             {sj >= 2 && (
-              <span className="inline-flex items-center gap-1 text-xs text-[var(--pro-warn)]">
+              <span
+                className="inline-flex items-center gap-1 text-xs text-[var(--pro-warn)]"
+                title={t("pro.sinJugar", { count: sj })}
+              >
                 <Clock className="size-3.5" aria-hidden="true" />
-                {t("pro.sinJugar", { count: sj })}
+                {compacto ? sj : t("pro.sinJugar", { count: sj })}
               </span>
             )}
           </button>
@@ -968,6 +1244,7 @@ function FichaJugador({
   rival,
   onQuitar,
   onJuntar,
+  mandar,
 }: {
   ctx: Ctx;
   u: string;
@@ -977,6 +1254,11 @@ function FichaJugador({
   rival: string | null;
   onQuitar: () => void;
   onJuntar: (otro: string) => void;
+  /**
+   * En el móvil: las pistas para mandarle a una, con quién iría y el % de
+   * esa pareja. `dentro(n)` son los que ya están en la pista n.
+   */
+  mandar?: { pistas: number[]; dentro: (n: number) => string[]; a: (n: number) => void };
 }) {
   const { t } = useTranslation();
   const j = ctx.pro.jugadores[u];
@@ -1119,6 +1401,58 @@ function FichaJugador({
             >
               {t("pro.juntarCon", { name: ctx.pila(ideal.o), pct: pct(ideal.p.prob) })}
             </button>
+          )}
+          {mandar && mandar.pistas.length > 0 && (
+            <div className="space-y-1.5 pt-1">
+              <p className={etiqueta}>{t("pro.mandarAPista")}</p>
+              <div className="grid grid-cols-3 gap-2">
+                {mandar.pistas.map((n) => {
+                  const todos = mandar.dentro(n);
+                  const otrosAqui = todos.filter((x) => x !== u);
+                  const aqui = pista === n;
+                  const llena = otrosAqui.length >= 2;
+                  const companero = otrosAqui[0];
+                  const par = companero ? parejaPro(ctx.pro, u, companero) : undefined;
+                  const juntos = par ? par.ganados + par.perdidos : 0;
+                  return (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => mandar.a(n)}
+                      disabled={ctx.moviendo || aqui || llena}
+                      className={cn(
+                        "flex min-h-16 flex-col items-center justify-center gap-0.5 rounded-xl border px-1.5 py-2 text-center",
+                        // Donde ya está o no cabe: en gris, con quién está.
+                        aqui || llena
+                          ? "border-[var(--pro-line)] bg-[var(--pro-surface-2)] text-[var(--pro-muted)]"
+                          : "border-[var(--pro-line-2)] bg-[var(--pro-surface)]",
+                      )}
+                    >
+                      <span className="text-sm font-bold">
+                        {t("callups.pista")} {n}
+                      </span>
+                      <span className="line-clamp-2 text-3xs text-[var(--pro-muted)]">
+                        {aqui || llena
+                          ? todos.map(ctx.pila).join(" y ")
+                          : companero
+                            ? t("callups.movil.con", { name: ctx.pila(companero) })
+                            : t("callups.movil.libre")}
+                      </span>
+                      {par && !aqui && !llena && (
+                        <span
+                          className={cn(
+                            "text-sm font-extrabold",
+                            juntos ? "text-[var(--pro-acc-txt)]" : "text-[var(--pro-warn)]",
+                          )}
+                        >
+                          {juntos ? `${pct(par.prob)} %` : t("pro.nueva")}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           )}
           {pista != null && (
             <button
@@ -1395,6 +1729,214 @@ function Matriz({
           </section>
         )}
       </div>
+    </div>
+  );
+}
+
+/**
+ * La matriz en el móvil, para verla de un vistazo: medio triángulo (Ana con
+ * Luis es lo mismo que Luis con Ana), casillas pequeñas con el color y el %,
+ * y al tocar una, el detalle de la pareja abajo con el botón para juntarlos.
+ */
+function MatrizCompacta({
+  ctx,
+  jugadores,
+  onJuntar,
+}: {
+  ctx: Ctx;
+  jugadores: string[];
+  onJuntar: (a: string, b: string) => void;
+}) {
+  const { t } = useTranslation();
+  const rival = ctx.pro.rival;
+  const [soloRival, setSoloRival] = useState(false);
+  const [celda, setCelda] = useState<[string, string] | null>(null);
+
+  const record = (a: string, b: string) => {
+    if (soloRival) {
+      const v = rival?.parejas.find((p) => (p.a === a && p.b === b) || (p.a === b && p.b === a));
+      return v ? { g: v.ganados, p: v.perdidos } : { g: 0, p: 0 };
+    }
+    const p = parejaPro(ctx.pro, a, b);
+    return p ? { g: p.ganados, p: p.perdidos } : { g: 0, p: 0 };
+  };
+  const color = (v: number) =>
+    v >= 75 ? "m5" : v >= 60 ? "m4" : v >= 45 ? "m3" : v >= 35 ? "m2" : "m1";
+  const quimica = (a: string, b: string) =>
+    ctx.mutua(a, b) ? "mutua" : ctx.eligio.get(a) === b || ctx.eligio.get(b) === a ? "lado" : null;
+
+  // Filas desde el segundo jugador, columnas hasta el penúltimo.
+  const filas = jugadores.slice(1);
+  const columnas = jugadores.slice(0, -1);
+  const cols = `1.75rem repeat(${columnas.length}, minmax(0, 1fr))`;
+
+  const boton = (on: boolean) =>
+    cn(
+      "min-h-8 rounded-full px-3 text-xs font-bold",
+      on
+        ? "bg-[var(--pro-fg)] text-[var(--pro-bg)]"
+        : "border border-[var(--pro-line)] text-[var(--pro-muted)]",
+    );
+
+  const detalle =
+    celda &&
+    (() => {
+      const [a, b] = celda;
+      const r = record(a, b);
+      const n = r.g + r.p;
+      const q = quimica(a, b);
+      const par = parejaPro(ctx.pro, a, b);
+      return (
+        <div className="space-y-2 rounded-xl border border-[var(--pro-line)] bg-[var(--pro-surface)] p-3">
+          <div className="flex items-baseline justify-between gap-2">
+            <p className="font-bold">
+              {t("pro.parejaTitulo", { a: ctx.nombre(a), b: ctx.nombre(b) })}
+            </p>
+            <span className="shrink-0 text-lg font-extrabold">
+              {n ? `${Math.round((100 * r.g) / n)} %` : t("pro.nunca")}
+            </span>
+          </div>
+          <p className="text-xs text-[var(--pro-muted)]">
+            {[
+              n ? t("pro.juntos", { g: r.g, p: r.p }) : t("pro.nuncaJuntos"),
+              q === "mutua" ? t("pro.quimicaMutua") : q ? t("pro.quimicaUnLado") : null,
+              par?.encaje === "mismo_lado" &&
+                t("pro.mismoLado", {
+                  lado: t(`lado.${ctx.pro.jugadores[a]?.lado ?? "reves"}`).toLowerCase(),
+                }),
+              par?.encaje === "encajan" && t("pro.ladosEncajan"),
+            ]
+              .filter(Boolean)
+              .join(" · ")}
+          </p>
+          {!ctx.cerrada && (
+            <button
+              type="button"
+              onClick={() => onJuntar(a, b)}
+              disabled={ctx.moviendo}
+              className="min-h-10 w-full rounded-xl bg-[var(--pro-acc)] text-xs font-extrabold uppercase tracking-widest text-[var(--pro-ink)]"
+            >
+              {t("pro.juntarlos")}
+            </button>
+          )}
+        </div>
+      );
+    })();
+
+  return (
+    <div className="space-y-3 p-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-xs text-[var(--pro-muted)]">{t("pro.matrizToca")}</p>
+        {rival && (
+          <div role="group" aria-label={t("pro.matrizFiltro")} className="flex gap-1.5">
+            <button
+              type="button"
+              aria-pressed={!soloRival}
+              onClick={() => setSoloRival(false)}
+              className={boton(!soloRival)}
+            >
+              {t("pro.matrizTodos")}
+            </button>
+            <button
+              type="button"
+              aria-pressed={soloRival}
+              onClick={() => setSoloRival(true)}
+              className={boton(soloRival)}
+            >
+              {t("pro.matrizSoloRivalCorto")}
+            </button>
+          </div>
+        )}
+      </div>
+
+      <div role="grid" aria-label={t("pro.tabMatriz")} className="space-y-[3px]">
+        {filas.map((f, i) => (
+          <div key={f} role="row" className="grid gap-[3px]" style={{ gridTemplateColumns: cols }}>
+            <span
+              role="rowheader"
+              title={ctx.nombre(f)}
+              className="flex aspect-square items-center justify-center text-[9px] font-extrabold"
+            >
+              {ctx.iniciales(f)}
+            </span>
+            {columnas.map((c, j) => {
+              if (j > i) return <span key={c} aria-hidden="true" />;
+              const r = record(f, c);
+              const n = r.g + r.p;
+              const v = n ? Math.round((100 * r.g) / n) : 0;
+              const tono = color(v);
+              const q = quimica(f, c);
+              const sel = !!celda && celda[0] === f && celda[1] === c;
+              return (
+                <button
+                  key={c}
+                  type="button"
+                  role="gridcell"
+                  aria-selected={sel}
+                  onClick={() => setCelda([f, c])}
+                  aria-label={
+                    n
+                      ? t("pro.celda", { a: ctx.pila(f), b: ctx.pila(c), g: r.g, p: r.p })
+                      : t("pro.celdaNunca", { a: ctx.pila(f), b: ctx.pila(c) })
+                  }
+                  className={cn(
+                    "flex aspect-square items-center justify-center rounded-[4px] text-[9px] font-extrabold leading-none",
+                    !n && "border border-dashed border-[var(--pro-line-2)]",
+                    q === "mutua" && "ring-2 ring-[var(--pro-quim)]",
+                    q === "lado" && "ring-1 ring-[var(--pro-quim)]",
+                    sel && "outline outline-2 outline-offset-1 outline-[var(--pro-fg)]",
+                  )}
+                  style={
+                    n
+                      ? { background: `var(--pro-${tono})`, color: `var(--pro-${tono}-txt)` }
+                      : undefined
+                  }
+                >
+                  {n ? v : ""}
+                </button>
+              );
+            })}
+          </div>
+        ))}
+        {/* Las iniciales de las columnas, abajo, pegadas al triángulo. */}
+        <div className="grid gap-[3px]" style={{ gridTemplateColumns: cols }} aria-hidden="true">
+          <span />
+          {columnas.map((c) => (
+            <span key={c} className="text-center text-[9px] font-extrabold">
+              {ctx.iniciales(c)}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-[var(--pro-muted)]">
+        {(
+          [
+            ["m1", t("pro.leyendaMal")],
+            ["m3", t("pro.leyendaParejo")],
+            ["m5", t("pro.leyendaBien")],
+          ] as const
+        ).map(([k, txt]) => (
+          <span key={k} className="inline-flex items-center gap-1">
+            <span className="size-3 rounded-sm" style={{ background: `var(--pro-${k})` }} />
+            {txt}
+          </span>
+        ))}
+        <span className="inline-flex items-center gap-1">
+          <span className="size-3 rounded-sm border border-dashed border-[var(--pro-line-2)]" />
+          {t("pro.leyendaNunca")}
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <span className="size-3 rounded-sm ring-2 ring-[var(--pro-quim)]" />
+          {t("pro.leyendaQuimicaCorta")}
+        </span>
+      </div>
+
+      {detalle ?? (
+        <p className="rounded-xl border border-dashed border-[var(--pro-line-2)] p-3 text-center text-xs text-[var(--pro-muted)]">
+          {t("pro.matrizElige")}
+        </p>
+      )}
     </div>
   );
 }

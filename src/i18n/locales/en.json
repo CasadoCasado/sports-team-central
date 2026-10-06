@@ -638,10 +638,50 @@
       "reabrir": "Reopen call-up",
       "cerrada": "Call-up closed: nobody can sign up or change their answer.",
       "reabierta": "Call-up reopened.",
-      "cerradaEtiqueta": "Closed"
+      "cerradaEtiqueta": "Closed",
+      "resumenConvocados_one": "{{count}} attended",
+      "resumenConvocados_other": "{{count}} attended",
+      "filtroConvocados": "★ Attended"
     },
     "ocultar": "Hide",
-    "verDetalle": "See call-up"
+    "verDetalle": "See call-up",
+    "resumenApuntados_one": "{{count}} signed up",
+    "resumenApuntados_other": "{{count}} signed up",
+    "resumenConvocados_one": "{{count}} called up",
+    "resumenConvocados_other": "{{count}} called up",
+    "filtroConvocados": "★ Called up",
+    "filtro": {
+      "titulo": "Filter sign-ups",
+      "todos": "All",
+      "confirmado": "Going",
+      "reserva": "Reserve",
+      "duda": "Maybe",
+      "rechazado": "Not going",
+      "convocado": "No answer"
+    },
+    "barra": {
+      "progreso": "{{n}} of {{total}} on court"
+    },
+    "movil": {
+      "apuntados": "Signed up",
+      "pistas": "Courts",
+      "pistaCorta": "C{{n}}",
+      "quiereCon": "Wants to play with {{name}}",
+      "ponerEn": "Put on",
+      "aqui": "Here",
+      "llena": "Full",
+      "con": "with {{name}}",
+      "libre": "Free",
+      "quitarPista": "Take off court",
+      "convocar": "Call up",
+      "desconvocar": "Remove call-up"
+    },
+    "banquillo": {
+      "toca_one": "Bench · {{count}} without court · tap one",
+      "toca_other": "Bench · {{count}} without court · tap one",
+      "ahoraPista": "Now tap the court for {{name}}",
+      "ponerAqui": "{{name}} here"
+    }
   },
   "common": {
     "guardando": "Saving…",
@@ -1195,7 +1235,9 @@
     "copiarTexto": "Copy text",
     "copiadas": "Courts copied",
     "compartirPareja": "{{a}} and {{b}}",
-    "compartirFaltaPareja": "{{a}} (partner missing)"
+    "compartirFaltaPareja": "{{a}} (partner missing)",
+    "resumenGestion": "{{n}} of {{total}} said who they want to play with",
+    "confirmarCorto": "Confirm"
   },
   "confirm": {
     "deleteTeamTitle": "Delete “{{name}}”?",
@@ -1342,7 +1384,15 @@
     "sinElegir": "Haven't chosen: {{nombres}}",
     "leyendaQuimica": "Chemistry (thick: mutual)",
     "cargando": "Getting the PRO board ready…",
-    "cargandoPropuestas": "Finding the best pairs…"
+    "cargandoPropuestas": "Finding the best pairs…",
+    "verFichaDe": "Player card",
+    "verMatriz": "See pairs matrix",
+    "mandarAPista": "Send to court",
+    "juntarlos": "Pair them",
+    "matrizToca": "Tap a square to see the pair.",
+    "matrizSoloRivalCorto": "Vs rival",
+    "leyendaQuimicaCorta": "Chemistry",
+    "matrizElige": "Tap a square to see how they did together and pair them."
   },
   "invitados": {
     "anadir": "Add guest",

@@ -638,10 +638,50 @@
       "reabrir": "Reabrir convocatoria",
       "cerrada": "Convocatoria cerrada: ya nadie se apunta ni cambia su respuesta.",
       "reabierta": "Convocatoria reabierta.",
-      "cerradaEtiqueta": "Cerrada"
+      "cerradaEtiqueta": "Cerrada",
+      "resumenConvocados_one": "{{count}} asistió",
+      "resumenConvocados_other": "{{count}} asistieron",
+      "filtroConvocados": "★ Asistieron"
     },
     "ocultar": "Ocultar",
-    "verDetalle": "Ver convocatoria"
+    "verDetalle": "Ver convocatoria",
+    "resumenApuntados_one": "{{count}} apuntado",
+    "resumenApuntados_other": "{{count}} apuntados",
+    "resumenConvocados_one": "{{count}} convocado",
+    "resumenConvocados_other": "{{count}} convocados",
+    "filtroConvocados": "★ Convocados",
+    "filtro": {
+      "titulo": "Filtrar apuntados",
+      "todos": "Todos",
+      "confirmado": "Van",
+      "reserva": "Reserva",
+      "duda": "Duda",
+      "rechazado": "No van",
+      "convocado": "Sin responder"
+    },
+    "barra": {
+      "progreso": "{{n}} de {{total}} en pista"
+    },
+    "movil": {
+      "apuntados": "Apuntados",
+      "pistas": "Pistas",
+      "pistaCorta": "P{{n}}",
+      "quiereCon": "Quiere jugar con {{name}}",
+      "ponerEn": "Ponerlo en",
+      "aqui": "Aquí",
+      "llena": "Llena",
+      "con": "con {{name}}",
+      "libre": "Libre",
+      "quitarPista": "Quitar de la pista",
+      "convocar": "Convocar",
+      "desconvocar": "Desconvocar"
+    },
+    "banquillo": {
+      "toca_one": "Banquillo · {{count}} sin pista · toca a uno",
+      "toca_other": "Banquillo · {{count}} sin pista · toca a uno",
+      "ahoraPista": "Ahora toca la pista para {{name}}",
+      "ponerAqui": "{{name}} aquí"
+    }
   },
   "common": {
     "guardando": "Guardando…",
@@ -1195,7 +1235,9 @@
     "copiarTexto": "Copiar texto",
     "copiadas": "Pistas copiadas",
     "compartirPareja": "{{a}} y {{b}}",
-    "compartirFaltaPareja": "{{a}} (falta pareja)"
+    "compartirFaltaPareja": "{{a}} (falta pareja)",
+    "resumenGestion": "{{n}} de {{total}} han dicho con quién quieren jugar",
+    "confirmarCorto": "Confirmar"
   },
   "confirm": {
     "deleteTeamTitle": "¿Borrar «{{name}}»?",
@@ -1342,7 +1384,15 @@
     "sinElegir": "Sin elegir: {{nombres}}",
     "leyendaQuimica": "Química (doble: mutua)",
     "cargando": "Preparando el tablero PRO…",
-    "cargandoPropuestas": "Buscando las mejores parejas…"
+    "cargandoPropuestas": "Buscando las mejores parejas…",
+    "verFichaDe": "Ficha de",
+    "verMatriz": "Ver matriz de parejas",
+    "mandarAPista": "Mandar a la pista",
+    "juntarlos": "Juntarlos",
+    "matrizToca": "Toca una casilla para ver la pareja.",
+    "matrizSoloRivalCorto": "Contra el rival",
+    "leyendaQuimicaCorta": "Química",
+    "matrizElige": "Toca una casilla: verás cómo les ha ido juntos y podrás juntarlos."
   },
   "invitados": {
     "anadir": "Añadir invitado",

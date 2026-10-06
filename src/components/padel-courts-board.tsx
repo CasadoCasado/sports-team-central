@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { useMutation } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Check, Copy, GripVertical, Hand, Lock, Sparkles } from "lucide-react";
+import { Check, Copy, GripVertical, Hand, Lock, Plus, Sparkles } from "lucide-react";
 
 import { nombreParaCompartir, textoAlineacion } from "@/lib/alineacion";
 import { api } from "@/lib/api";
@@ -40,6 +40,14 @@ type Props = {
   members: Miembro[];
   /** Tras cada cambio, para que la pantalla vuelva a pedir lo que pinta. */
   onChanged: () => void;
+  /** En el móvil, «Confirmar» va en la barra fija de abajo y no aquí. */
+  confirmarEnBarra?: boolean;
+  /**
+   * En el móvil, los que no tienen pista van en un banquillo fijo abajo (este
+   * elemento, dentro de la barra de confirmar): se toca a uno y luego la
+   * pista. Arrastrar sigue funcionando.
+   */
+  banquilloEn?: HTMLElement | null;
 };
 
 /**
@@ -59,7 +67,14 @@ type Props = {
  * pulsar Intro sobre él, lo lleva a la siguiente pista con hueco (o lo
  * devuelve a «Sin pista» si ya tenía una).
  */
-export function PadelCourtsBoard({ event, responses, members, onChanged }: Props) {
+export function PadelCourtsBoard({
+  event,
+  responses,
+  members,
+  onChanged,
+  confirmarEnBarra,
+  banquilloEn,
+}: Props) {
   const { t, i18n } = useTranslation();
   const cerrada = event.convocatoria_confirmada;
   const numPistas = event.padel_num_pistas ?? 0;
@@ -68,6 +83,8 @@ export function PadelCourtsBoard({ event, responses, members, onChanged }: Props
   // Lo que se acaba de mover, hasta que el servidor lo confirme: sin esto, el
   // jugador volvería un instante a su sitio al soltarlo.
   const [pendientes, setPendientes] = useState<Record<string, number | null>>({});
+  // En el banquillo del móvil: el que se ha tocado y espera pista.
+  const [elegidoId, setElegidoId] = useState<string | null>(null);
   useEffect(() => setPendientes({}), [responses]);
 
   const apuntados = responses.filter((r) => r.status !== "rechazado");
@@ -227,7 +244,10 @@ export function PadelCourtsBoard({ event, responses, members, onChanged }: Props
     }
     setFantasma({ r: a.r, x: e.clientX, y: e.clientY });
     const el = document.elementFromPoint(e.clientX, e.clientY)?.closest<HTMLElement>("[data-drop]");
-    const nuevo = el && tablero.current?.contains(el) ? (el.dataset.drop ?? null) : null;
+    const nuevo =
+      el && (tablero.current?.contains(el) || banquilloEn?.contains(el))
+        ? (el.dataset.drop ?? null)
+        : null;
     destino.current = nuevo;
     setSobre(nuevo);
   }
@@ -267,7 +287,12 @@ export function PadelCourtsBoard({ event, responses, members, onChanged }: Props
         onPointerMove={alMover}
         onPointerUp={alSoltar}
         onPointerCancel={alCancelar}
-        onClick={() => !acabaDeArrastrar.current && tocar(r)}
+        onClick={() => {
+          if (acabaDeArrastrar.current) return;
+          if (banquilloEn && !colocado) setElegidoId((e) => (e === r.id ? null : r.id));
+          else tocar(r);
+        }}
+        aria-pressed={banquilloEn && !colocado ? elegidoId === r.id : undefined}
         aria-label={
           cerrada ? nombre(r.user_id) : t("quimica.arrastrar", { name: nombre(r.user_id) })
         }
@@ -280,6 +305,8 @@ export function PadelCourtsBoard({ event, responses, members, onChanged }: Props
               : "border-primary/40 bg-primary/10"
             : "border-border bg-card",
           fantasma?.r.id === r.id && "opacity-30",
+          banquilloEn && "min-h-9 shrink-0 whitespace-nowrap",
+          elegidoId === r.id && "border-primary bg-primary/15 ring-2 ring-primary/40",
         )}
       >
         {!cerrada && <GripVertical className="size-3 text-muted-foreground" aria-hidden="true" />}
@@ -303,6 +330,7 @@ export function PadelCourtsBoard({ event, responses, members, onChanged }: Props
   };
 
   const libres = apuntados.filter((r) => pistaDe(r) == null);
+  const elegido = libres.find((r) => r.id === elegidoId) ?? null;
   const completas = numPistas > 0 && pistas.every((n) => enPista(n).length === 2);
   const etiqueta = "text-2xs font-bold uppercase tracking-widest text-muted-foreground";
 
@@ -365,26 +393,52 @@ export function PadelCourtsBoard({ event, responses, members, onChanged }: Props
           ))}
         </div>
 
-        <h3 className={etiqueta}>
-          {t("quimica.sinPista")} ({libres.length})
-        </h3>
-        <div
-          data-drop="pool"
-          className={cn(
-            "flex min-h-14 flex-wrap gap-1.5 rounded-lg border-[1.5px] border-dashed p-2.5 transition-colors",
-            sobre === "pool" ? "border-primary bg-primary/5" : "border-border",
-          )}
-        >
-          {libres.map((r) => chip(r, false))}
-          {libres.length === 0 && (
-            <span className="text-xs text-muted-foreground">{t("quimica.todosConPista")}</span>
-          )}
-        </div>
-        {!cerrada && numPistas > 0 && (
-          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Hand className="size-3.5 shrink-0" aria-hidden="true" />
-            {t("quimica.comoArrastrar")}
-          </p>
+        {banquilloEn ? (
+          createPortal(
+            <div className="space-y-1.5 px-4 pt-2.5">
+              <p className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
+                {libres.length === 0
+                  ? t("quimica.todosConPista")
+                  : elegido
+                    ? t("callups.banquillo.ahoraPista", { name: corto(elegido.user_id) })
+                    : t("callups.banquillo.toca", { count: libres.length })}
+              </p>
+              <div
+                data-drop="pool"
+                className={cn(
+                  "-mx-4 flex min-h-10 gap-1.5 overflow-x-auto px-4 pb-3",
+                  sobre === "pool" && "bg-primary/5",
+                )}
+              >
+                {libres.map((r) => chip(r, false))}
+              </div>
+            </div>,
+            banquilloEn,
+          )
+        ) : (
+          <>
+            <h3 className={etiqueta}>
+              {t("quimica.sinPista")} ({libres.length})
+            </h3>
+            <div
+              data-drop="pool"
+              className={cn(
+                "flex min-h-14 flex-wrap gap-1.5 rounded-lg border-[1.5px] border-dashed p-2.5 transition-colors",
+                sobre === "pool" ? "border-primary bg-primary/5" : "border-border",
+              )}
+            >
+              {libres.map((r) => chip(r, false))}
+              {libres.length === 0 && (
+                <span className="text-xs text-muted-foreground">{t("quimica.todosConPista")}</span>
+              )}
+            </div>
+            {!cerrada && numPistas > 0 && (
+              <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Hand className="size-3.5 shrink-0" aria-hidden="true" />
+                {t("quimica.comoArrastrar")}
+              </p>
+            )}
+          </>
         )}
       </div>
 
@@ -445,7 +499,20 @@ export function PadelCourtsBoard({ event, responses, members, onChanged }: Props
                 </div>
                 <div className="flex min-h-8 flex-wrap items-center gap-1.5">
                   {dentro.map((r) => chip(r, true))}
-                  {dentro.length === 0 && (
+                  {elegido && dentro.length < 2 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        mover(elegido, n);
+                        setElegidoId(null);
+                      }}
+                      className="inline-flex min-h-9 items-center gap-1 rounded-full border-[1.5px] border-dashed border-primary bg-primary/5 px-3 text-xs font-bold text-primary"
+                    >
+                      <Plus className="size-3.5" aria-hidden="true" />
+                      {t("callups.banquillo.ponerAqui", { name: corto(elegido.user_id) })}
+                    </button>
+                  )}
+                  {dentro.length === 0 && !elegido && (
                     <span className="text-xs text-muted-foreground">
                       {cerrada ? t("quimica.vacia") : t("quimica.sueltaAqui")}
                     </span>
@@ -494,7 +561,7 @@ export function PadelCourtsBoard({ event, responses, members, onChanged }: Props
           </div>
         ) : (
           numPistas > 0 && (
-            <div className="space-y-1.5">
+            <div className={cn("space-y-1.5", confirmarEnBarra && "max-sm:hidden")}>
               <Button
                 onClick={() => confirmar.mutate(true)}
                 disabled={confirmar.isPending}
