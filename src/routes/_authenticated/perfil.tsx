@@ -28,6 +28,7 @@ import { restartGuidedTour } from "@/components/guided-tour";
 import { SPORTS, sportLabel } from "@/lib/sports";
 import { LADOS, ladoDe } from "@/lib/lado";
 import { ProvinciaPicker } from "@/components/ubicacion-picker";
+import { BorrarCuenta } from "@/components/borrar-cuenta";
 
 export const Route = createFileRoute("/_authenticated/perfil")({
   head: () => ({
@@ -309,6 +310,7 @@ function Perfil() {
 
       <ReminderSettings />
       <PushSettings />
+      <BorrarCuenta />
     </div>
   );
 }
