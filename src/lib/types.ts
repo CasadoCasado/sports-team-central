@@ -127,6 +127,8 @@ export type TeamEvent = {
   es_local: boolean | null;
   resultado_local: number | null;
   resultado_visitante: number | null;
+  /** La jornada de la liga, en un partido de una competición. */
+  jornada?: number | null;
   padel_num_pistas: number | null;
   /** Lo que vale cada pista en el marcador, en orden; sin lista, 1 cada una. */
   puntos_pista?: number[] | null;

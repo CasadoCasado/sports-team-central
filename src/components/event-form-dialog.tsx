@@ -45,6 +45,8 @@ export type EventFormValues = {
   rival: string;
   es_local: boolean;
   competition_id: string | null;
+  /** La jornada de la liga, en un partido de una competición; «» sin ella. */
+  jornada: string;
   registration_id: string | null;
   requiere_convocatoria: boolean;
   convocatoria_cierra_en: string;
@@ -64,6 +66,7 @@ const emptyValues = (): EventFormValues => ({
   rival: "",
   es_local: true,
   competition_id: null,
+  jornada: "",
   registration_id: null,
   requiere_convocatoria: false,
   convocatoria_cierra_en: "",
@@ -228,6 +231,10 @@ export function EventFormDialog({
         rival: values.rival.trim() || null,
         es_local: values.tipo === "partido" ? values.es_local : null,
         competition_id: values.competition_id,
+        jornada:
+          values.tipo === "partido" && values.competition_id && values.jornada
+            ? Number(values.jornada)
+            : null,
         registration_id: values.tipo === "partido" ? values.registration_id : null,
         requiere_convocatoria: values.requiere_convocatoria,
         convocatoria_cierra_en: values.convocatoria_cierra_en
@@ -431,6 +438,26 @@ export function EventFormDialog({
                   maxLength={100}
                 />
               </div>
+              {values.competition_id && (
+                <div>
+                  <Label htmlFor="jornada">{t("events.jornada")}</Label>
+                  <Input
+                    id="jornada"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    className="w-24"
+                    value={values.jornada}
+                    onChange={(e) =>
+                      setValues((s) => ({
+                        ...s,
+                        // Sin ceros delante: la jornada empieza en 1.
+                        jornada: e.target.value.replace(/\D/g, "").replace(/^0+/, "").slice(0, 3),
+                      }))
+                    }
+                  />
+                  <p className="mt-1 text-xs text-muted-foreground">{t("events.jornadaHint")}</p>
+                </div>
+              )}
               {(registrations?.length ?? 0) > 0 && (
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div>
