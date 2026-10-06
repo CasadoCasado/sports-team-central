@@ -860,7 +860,7 @@ function CallupSection({
           <div
             role="group"
             aria-label={t("callups.filtro.titulo")}
-            className="-mx-4 mb-3 flex gap-1.5 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0"
+            className="-mx-4 mb-3 flex gap-1.5 overflow-x-auto px-4 pb-2.5 sm:mx-0 sm:flex-wrap sm:px-0 sm:pb-0"
           >
             {chips
               .filter((c) => c.clave === "todos" || c.n > 0)

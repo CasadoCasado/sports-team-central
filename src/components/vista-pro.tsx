@@ -345,7 +345,7 @@ export function VistaPro({
           {/* A quién se mira: una tira que se desliza, no la lista entera. */}
           <div className="space-y-1.5">
             <p className={etiqueta}>{t("pro.verFichaDe")}</p>
-            <div className="-mx-3 flex gap-1.5 overflow-x-auto px-3 pb-1">
+            <div className="-mx-3 flex gap-1.5 overflow-x-auto px-3 pb-3">
               {apuntados.map((r) => (
                 <button
                   key={r.user_id}
@@ -867,12 +867,16 @@ function TarjetaPista({
   const elegidoAqui = !!ctx.elegido && dentro.includes(ctx.elegido);
   const puedeColocar = !ctx.cerrada && !!ctx.elegido && !elegidoAqui && dentro.length < 2;
 
+  const izq = compacta ? "left-[26%]" : "left-[18%]";
+  const alto = (arriba: boolean) =>
+    compacta ? (arriba ? "top-[12%]" : "bottom-[12%]") : arriba ? "top-[14%]" : "bottom-[14%]";
   const hueco = (u: string | undefined, arriba: boolean) =>
     u ? (
       <div
         className={cn(
-          "group absolute left-[18%] -translate-x-1/2",
-          arriba ? "top-[14%]" : "bottom-[14%]",
+          "group absolute -translate-x-1/2",
+          izq,
+          alto(arriba),
           ctx.arrastrando === u && "opacity-40",
         )}
       >
@@ -919,8 +923,9 @@ function TarjetaPista({
             : t("pro.huecoLibre")
         }
         className={cn(
-          "absolute left-[18%] flex size-10 -translate-x-1/2 items-center justify-center rounded-full border-2 border-dashed text-white sm:size-11",
-          arriba ? "top-[14%]" : "bottom-[14%]",
+          "absolute flex size-10 -translate-x-1/2 items-center justify-center rounded-full border-2 border-dashed text-white sm:size-11",
+          izq,
+          alto(arriba),
           puedeColocar || ctx.sobre === String(num)
             ? "border-[#d7f24b] bg-white/10"
             : "border-white/45 text-white/60",
@@ -929,6 +934,89 @@ function TarjetaPista({
         <Plus className="size-4" aria-hidden="true" />
       </button>
     );
+
+  if (compacta) {
+    // Lo más importante primero: solo caben dos etiquetas.
+    const etiquetas: { texto: string; tono: "ok" | "aviso" | "acc" | "neutro" }[] = [];
+    if (par) {
+      if (par.encaje === "mismo_lado")
+        etiquetas.push({
+          texto: t("pro.mismoLado", {
+            lado: t(`lado.${ctx.pro.jugadores[a!]?.lado ?? "reves"}`).toLowerCase(),
+          }),
+          tono: "aviso",
+        });
+      if (ctx.mutua(a!, b!)) etiquetas.push({ texto: t("pro.quimicaMutua"), tono: "ok" });
+      else if (ctx.eligio.get(a!) === b || ctx.eligio.get(b!) === a)
+        etiquetas.push({ texto: t("pro.quimicaUnLado"), tono: "neutro" });
+      if (vs)
+        etiquetas.push({
+          texto: t("pro.contraEllos", { g: vs.ganados, p: vs.perdidos, rival: rival ?? "" }),
+          tono: "acc",
+        });
+      if (par.encaje === "encajan") etiquetas.push({ texto: t("pro.ladosEncajan"), tono: "ok" });
+      if (!n) etiquetas.push({ texto: t("pro.primeraVez"), tono: "aviso" });
+    }
+    return (
+      <section
+        aria-label={`${t("callups.pista")} ${num}`}
+        data-pista-pro={num}
+        data-drop-pro={num}
+        className={cn(
+          "relative h-36 overflow-hidden rounded-2xl bg-[var(--pro-court)] text-white shadow-[inset_0_0_0_3px_rgb(190_215_255/0.35)] transition-shadow",
+          ctx.sobre === String(num) && "ring-4 ring-[#d7f24b]",
+          elegidoAqui && "ring-2 ring-white/70",
+        )}
+      >
+        <div className="absolute inset-[5%] border-2 border-white/85" />
+        <div className="absolute inset-y-[3%] left-1/2 w-[3px] -translate-x-1/2 bg-white/80" />
+        <div className="absolute inset-y-[5%] left-[15%] w-0.5 bg-white/85" />
+        <div className="absolute inset-y-[5%] right-[15%] w-0.5 bg-white/85" />
+        <div className="absolute left-[15%] right-1/2 top-1/2 h-0.5 bg-white/85" />
+        {hueco(a, true)}
+        {hueco(b, false)}
+        {/* El campo de enfrente, para lo que se sabe de la pareja. */}
+        <div className="absolute inset-y-[8%] left-[53%] right-[4%] flex flex-col justify-center gap-1 rounded-lg bg-[#0b1222]/35 px-2 py-1.5">
+          <div className="flex items-baseline justify-between gap-1">
+            <span className="text-3xs font-extrabold uppercase tracking-widest text-white/75">
+              {t("callups.pista")} {num}
+            </span>
+            {valor != null && (
+              <span
+                className={cn(
+                  "text-lg font-extrabold leading-none",
+                  !n ? "text-[#ffc46b]" : valor >= 60 ? "text-[#d7f24b]" : "text-white",
+                )}
+              >
+                {n ? `${valor} %` : t("pro.nueva")}
+              </span>
+            )}
+          </div>
+          <p className="line-clamp-2 text-xs font-bold leading-tight">
+            {a && b
+              ? t("pro.parejaTitulo", { a: ctx.pila(a), b: ctx.pila(b) })
+              : a
+                ? t("pro.faltaPareja", { name: ctx.pila(a) })
+                : t("pro.pistaLibre")}
+          </p>
+          {etiquetas.slice(0, 2).map((e) => (
+            <span
+              key={e.texto}
+              className={cn(
+                "truncate rounded-full px-1.5 py-0.5 text-3xs font-bold",
+                e.tono === "ok" && "bg-[#0f7a50]/80 text-white",
+                e.tono === "aviso" && "bg-[#f5a524]/85 text-[#3a2200]",
+                e.tono === "acc" && "bg-[#d7f24b] text-[#0b1222]",
+                e.tono === "neutro" && "bg-white/20 text-white",
+              )}
+            >
+              {e.texto}
+            </span>
+          ))}
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section
@@ -1094,7 +1182,7 @@ function SinPista({
       data-drop-pro="pool"
       className={cn(
         compacto
-          ? "-mx-4 flex min-h-11 items-center gap-2 overflow-x-auto px-4 pb-1.5 [&>button]:shrink-0 [&>button]:whitespace-nowrap"
+          ? "-mx-4 flex min-h-11 items-center gap-2 overflow-x-auto px-4 pb-3 [&>button]:shrink-0 [&>button]:whitespace-nowrap"
           : "flex flex-wrap items-center gap-2 rounded-2xl border-2 border-dashed p-3 transition-colors",
         ctx.sobre === "pool"
           ? "border-[var(--pro-acc)] bg-[var(--pro-sel)]"
@@ -1318,7 +1406,8 @@ function FichaJugador({
               <p className={etiqueta}>{t("pro.mandarAPista")}</p>
               <div className="grid grid-cols-3 gap-2">
                 {mandar.pistas.map((n) => {
-                  const otrosAqui = mandar.dentro(n).filter((x) => x !== u);
+                  const todos = mandar.dentro(n);
+                  const otrosAqui = todos.filter((x) => x !== u);
                   const aqui = pista === n;
                   const llena = otrosAqui.length >= 2;
                   const companero = otrosAqui[0];
@@ -1332,23 +1421,21 @@ function FichaJugador({
                       disabled={ctx.moviendo || aqui || llena}
                       className={cn(
                         "flex min-h-16 flex-col items-center justify-center gap-0.5 rounded-xl border px-1.5 py-2 text-center",
-                        aqui
-                          ? "border-[var(--pro-acc)] bg-[var(--pro-sel)]"
+                        // Donde ya está o no cabe: en gris, con quién está.
+                        aqui || llena
+                          ? "border-[var(--pro-line)] bg-[var(--pro-surface-2)] text-[var(--pro-muted)]"
                           : "border-[var(--pro-line-2)] bg-[var(--pro-surface)]",
-                        llena && !aqui && "opacity-50",
                       )}
                     >
                       <span className="text-sm font-bold">
                         {t("callups.pista")} {n}
                       </span>
-                      <span className="text-3xs text-[var(--pro-muted)]">
-                        {aqui
-                          ? t("callups.movil.aqui")
-                          : llena
-                            ? t("callups.movil.llena")
-                            : companero
-                              ? t("callups.movil.con", { name: ctx.pila(companero) })
-                              : t("callups.movil.libre")}
+                      <span className="line-clamp-2 text-3xs text-[var(--pro-muted)]">
+                        {aqui || llena
+                          ? todos.map(ctx.pila).join(" y ")
+                          : companero
+                            ? t("callups.movil.con", { name: ctx.pila(companero) })
+                            : t("callups.movil.libre")}
                       </span>
                       {par && !aqui && !llena && (
                         <span

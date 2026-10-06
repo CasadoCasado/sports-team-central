@@ -406,7 +406,7 @@ export function PadelCourtsBoard({
               <div
                 data-drop="pool"
                 className={cn(
-                  "-mx-4 flex min-h-10 gap-1.5 overflow-x-auto px-4 pb-1",
+                  "-mx-4 flex min-h-10 gap-1.5 overflow-x-auto px-4 pb-3",
                   sobre === "pool" && "bg-primary/5",
                 )}
               >

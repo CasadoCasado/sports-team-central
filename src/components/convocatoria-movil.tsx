@@ -299,28 +299,26 @@ function HojaJugador({
                       onClick={() => void cambiar({ padel_pista: n, es_convocado: true })}
                       className={cn(
                         "flex min-h-16 flex-col items-center justify-center gap-0.5 rounded-lg border px-1.5 py-2 text-center",
-                        aqui
-                          ? "border-primary bg-primary/10"
+                        // Donde ya está o no cabe: en gris, con quién está.
+                        aqui || llena
+                          ? "border-border bg-muted text-muted-foreground"
                           : conQuimica
                             ? "border-evt-social/50 bg-evt-social/10"
                             : "border-border",
-                        llena && !aqui && "opacity-50",
                       )}
                     >
                       <span className="text-sm font-bold">
                         {t("callups.pista")} {n}
                       </span>
                       <span className="line-clamp-2 text-3xs text-muted-foreground">
-                        {aqui
-                          ? t("callups.movil.aqui")
-                          : llena
-                            ? t("callups.movil.llena")
-                            : companero
-                              ? t("callups.movil.con", { name: pila(companero.user_id) }) +
-                                (par && par.ganados + par.perdidos > 0
-                                  ? ` · ${Math.round(par.prob * 100)} %`
-                                  : "")
-                              : t("callups.movil.libre")}
+                        {aqui || llena
+                          ? [...(aqui ? [r] : []), ...otros].map((o) => pila(o.user_id)).join(" y ")
+                          : companero
+                            ? t("callups.movil.con", { name: pila(companero.user_id) }) +
+                              (par && par.ganados + par.perdidos > 0
+                                ? ` · ${Math.round(par.prob * 100)} %`
+                                : "")
+                            : t("callups.movil.libre")}
                       </span>
                     </button>
                   );
