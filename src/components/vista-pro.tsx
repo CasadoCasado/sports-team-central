@@ -16,7 +16,7 @@
  * la convocatoria confirmada) las aplica el backend para los dos.
  */
 
-import { useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { createPortal } from "react-dom";
 import { useMutation } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -30,6 +30,7 @@ import { useQuimicas } from "@/hooks/use-quimica";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { parejaPro, type TableroPro } from "@/lib/pro";
 import { nombreParaCompartir, textoAlineacion } from "@/lib/alineacion";
+import { esperarPulsacionLarga, vibrarAlCoger } from "@/lib/pulsacion-larga";
 
 type Respuesta = {
   id: string;
@@ -164,11 +165,41 @@ export function VistaPro({
    * pequeñas; en las filas de la lista el dedo tiene que poder hacer scroll,
    * así que ahí solo se arrastra con ratón o lápiz.
    */
-  function arrastrable(u: string, tactil: boolean) {
+  /**
+   * `tactil`: true, el dedo arrastra al tocar; «largo», solo tras mantener
+   * pulsado (el banquillo del teléfono, que se desliza de lado; ver
+   * `pulsacion-larga`).
+   */
+  function arrastrable(u: string, tactil: boolean | "largo") {
     if (cerrada) return {};
     return {
       onPointerDown: (e: ReactPointerEvent<HTMLElement>) => {
         if (e.button > 0 || (!tactil && e.pointerType === "touch")) return;
+        if (tactil === "largo" && e.pointerType !== "mouse") {
+          const el = e.currentTarget;
+          const { pointerId, clientX, clientY } = e;
+          esperarPulsacionLarga(
+            e,
+            () => {
+              arrastre.current = { u, x0: clientX, y0: clientY, movido: true };
+              try {
+                el.setPointerCapture(pointerId);
+              } catch {
+                arrastre.current = null;
+                return;
+              }
+              vibrarAlCoger();
+              setFantasma({ u, x: clientX, y: clientY });
+            },
+            el.closest<HTMLElement>("[data-drop-pro='pool']"),
+            () => {
+              // Deslizó la tira: el clic del final no es un toque.
+              acabaDeArrastrar.current = true;
+              setTimeout(() => (acabaDeArrastrar.current = false), 400);
+            },
+          );
+          return;
+        }
         arrastre.current = { u, x0: e.clientX, y0: e.clientY, movido: false };
         e.currentTarget.setPointerCapture(e.pointerId);
       },
@@ -283,6 +314,26 @@ export function VistaPro({
 
   const libres = apuntados.filter((r) => r.padel_pista == null).map((r) => r.user_id);
   const [matrizAbierta, setMatrizAbierta] = useState(false);
+
+  // En la pestaña PRO del teléfono, deslizar el dedo de lado sobre la ficha
+  // pasa a la del jugador siguiente o anterior.
+  const toque = useRef<{ x: number; y: number } | null>(null);
+  const [entrada, setEntrada] = useState<"siguiente" | "anterior" | null>(null);
+  const tira = useRef<HTMLDivElement>(null);
+  function pasarFicha(paso: 1 | -1) {
+    const i = apuntados.findIndex((r) => r.user_id === elegido);
+    const otro = apuntados[i + paso];
+    if (!otro) return;
+    setEntrada(paso === 1 ? "siguiente" : "anterior");
+    setSel(otro.user_id);
+  }
+  // La tira de nombres acompaña: el elegido, siempre a la vista.
+  useEffect(() => {
+    if (vista !== "pro" || !elegido || !entrada) return;
+    tira.current
+      ?.querySelector<HTMLElement>(`[data-ficha="${elegido}"]`)
+      ?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+  }, [vista, elegido, entrada]);
   const fantasmaEl =
     fantasma &&
     createPortal(
@@ -344,13 +395,20 @@ export function VistaPro({
         <div className="space-y-4 p-3">
           {/* A quién se mira: una tira que se desliza, no la lista entera. */}
           <div className="space-y-1.5">
-            <p className={etiqueta}>{t("pro.verFichaDe")}</p>
-            <div className="-mx-3 flex gap-1.5 overflow-x-auto px-3 pb-3">
+            <div className="flex items-baseline justify-between gap-2">
+              <p className={etiqueta}>{t("pro.verFichaDe")}</p>
+              <p className="text-3xs text-[var(--pro-muted)]">{t("pro.deslizaFicha")}</p>
+            </div>
+            <div ref={tira} className="-mx-3 flex gap-1.5 overflow-x-auto px-3 pb-3">
               {apuntados.map((r) => (
                 <button
                   key={r.user_id}
                   type="button"
-                  onClick={() => setSel(r.user_id)}
+                  data-ficha={r.user_id}
+                  onClick={() => {
+                    setEntrada(null);
+                    setSel(r.user_id);
+                  }}
                   aria-pressed={elegido === r.user_id}
                   className={cn(
                     "inline-flex min-h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border py-1 pl-1 pr-3 text-xs font-semibold",
@@ -369,21 +427,47 @@ export function VistaPro({
             </div>
           </div>
           {elegido && (
-            <FichaJugador
-              ctx={ctx}
-              u={elegido}
-              pista={porUsuario.get(elegido)?.padel_pista ?? null}
-              otros={apuntados.map((r) => r.user_id).filter((x) => x !== elegido)}
-              jornadas={pro.jornadas}
-              rival={pro.rival?.nombre ?? null}
-              onQuitar={() => void poner([[elegido, null]])}
-              onJuntar={(otro) => juntar(elegido, otro)}
-              mandar={{
-                pistas,
-                dentro: (n) => enPista(n).map((r) => r.user_id),
-                a: (n) => colocar(elegido, n),
+            <div
+              key={elegido}
+              data-ficha-deslizable
+              onTouchStart={(e) => {
+                const p = e.touches[0];
+                toque.current = e.touches.length === 1 && p ? { x: p.clientX, y: p.clientY } : null;
               }}
-            />
+              onTouchEnd={(e) => {
+                const ini = toque.current;
+                const p = e.changedTouches[0];
+                toque.current = null;
+                if (!ini || !p) return;
+                const dx = p.clientX - ini.x;
+                const dy = p.clientY - ini.y;
+                // De lado y con decisión; si no, era subir o bajar la página.
+                if (Math.abs(dx) >= 50 && Math.abs(dx) > 1.5 * Math.abs(dy)) {
+                  pasarFicha(dx < 0 ? 1 : -1);
+                }
+              }}
+              className={cn(
+                "duration-200",
+                entrada === "siguiente" && "animate-in fade-in slide-in-from-right-8",
+                entrada === "anterior" && "animate-in fade-in slide-in-from-left-8",
+              )}
+            >
+              <FichaJugador
+                ctx={ctx}
+                u={elegido}
+                pista={porUsuario.get(elegido)?.padel_pista ?? null}
+                otros={apuntados.map((r) => r.user_id).filter((x) => x !== elegido)}
+                jornadas={pro.jornadas}
+                rival={pro.rival?.nombre ?? null}
+                onQuitar={() => void poner([[elegido, null]])}
+                onJuntar={(otro) => juntar(elegido, otro)}
+                mandar={{
+                  pistas,
+                  dentro: (n) => enPista(n).map((r) => r.user_id),
+                  a: (n) => colocar(elegido, n),
+                }}
+              />
+            </div>
           )}
           <button
             type="button"
@@ -551,7 +635,7 @@ type Ctx = {
   moviendo: boolean;
   arrastrable: (
     u: string,
-    tactil: boolean,
+    tactil: boolean | "largo",
   ) => Partial<{
     onPointerDown: (e: ReactPointerEvent<HTMLElement>) => void;
     onPointerMove: (e: ReactPointerEvent<HTMLElement>) => void;
@@ -1201,11 +1285,11 @@ function SinPista({
             key={u}
             type="button"
             onClick={ctx.tocar(() => ctx.setSel(u))}
-            {...ctx.arrastrable(u, true)}
+            {...ctx.arrastrable(u, compacto ? "largo" : true)}
             aria-pressed={ctx.elegido === u}
             aria-label={t("pro.arrastrar", { name: ctx.nombre(u) })}
             className={cn(
-              "inline-flex min-h-10 touch-none select-none items-center gap-2 rounded-full border py-1 pl-1 pr-3 text-sm font-semibold",
+              "inline-flex min-h-10 touch-none select-none items-center gap-2 rounded-full border py-1 pl-1 pr-3 text-sm font-semibold [-webkit-touch-callout:none]",
               !ctx.cerrada && "cursor-grab active:cursor-grabbing",
               ctx.arrastrando === u && "opacity-40",
               ctx.elegido === u

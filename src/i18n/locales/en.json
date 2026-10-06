@@ -1392,7 +1392,8 @@
     "matrizToca": "Tap a square to see the pair.",
     "matrizSoloRivalCorto": "Vs rival",
     "leyendaQuimicaCorta": "Chemistry",
-    "matrizElige": "Tap a square to see how they did together and pair them."
+    "matrizElige": "Tap a square to see how they did together and pair them.",
+    "deslizaFicha": "Swipe the card to see another"
   },
   "invitados": {
     "anadir": "Add guest",
