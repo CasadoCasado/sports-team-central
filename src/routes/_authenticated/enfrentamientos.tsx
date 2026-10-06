@@ -13,6 +13,7 @@ import {
   Users,
   ChevronDown,
   ChevronUp,
+  LayoutGrid,
   Lock,
   Sparkles,
 } from "lucide-react";
@@ -20,6 +21,7 @@ import { api } from "@/lib/api";
 import type { EventResponse, Team, TeamMember } from "@/lib/types";
 import { useSession } from "@/hooks/use-session";
 import { useActiveTeam } from "@/hooks/use-active-team";
+import { useEsTelefono } from "@/hooks/use-mobile";
 import { TeamPicker } from "@/components/team-picker";
 import { EmptyTeamState } from "@/components/empty-team-state";
 import { EventFormDialog } from "@/components/event-form-dialog";
@@ -69,6 +71,7 @@ function Matches() {
   const qc = useQueryClient();
   const [creating, setCreating] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const esTelefono = useEsTelefono();
   // El panel de química: se abre solo al apuntarse, y al tocar «Cambiar».
   const [panel, setPanel] = useState<{ eventId: string; recien: boolean } | null>(null);
   const now = useMemo(() => new Date().toISOString(), []);
@@ -277,7 +280,27 @@ function Matches() {
                         {t("callups.signUp")}
                       </Button>
                     )}
-                    {isPadel && isManager && (
+                    {/* En el teléfono, el reparto es el de la ficha del partido
+                        (pestañas, banquillo y barra fija), que no cabe dentro
+                        de una tarjeta: se va allí, a la pestaña Pistas. */}
+                    {isPadel && isManager && esTelefono && (
+                      <Button
+                        asChild
+                        size="sm"
+                        variant="ghost"
+                        className="uppercase text-2xs font-bold tracking-widest"
+                      >
+                        <Link
+                          to="/eventos/$id"
+                          params={{ id: e.id }}
+                          search={{ pestana: "pistas" }}
+                        >
+                          <LayoutGrid className="size-3" aria-hidden="true" />
+                          <span className="ml-1">{t("callups.padelAssign")}</span>
+                        </Link>
+                      </Button>
+                    )}
+                    {isPadel && isManager && !esTelefono && (
                       <Button
                         size="sm"
                         variant="ghost"
@@ -295,7 +318,7 @@ function Matches() {
                   </div>
                 </div>
 
-                {isPadel && isManager && isOpen && team && (
+                {isPadel && isManager && isOpen && team && !esTelefono && (
                   <div className="mt-4 rounded-md border border-border bg-card/40 p-4">
                     <RepartoPadel
                       event={e}
