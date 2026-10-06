@@ -213,6 +213,15 @@ function AuthPage() {
               {errors.password && (
                 <p className="mt-1 text-xs text-destructive">{errors.password}</p>
               )}
+              {mode === "login" && (
+                <Link
+                  to="/recuperar"
+                  search={email.trim() ? { email: email.trim() } : {}}
+                  className="mt-1 inline-flex min-h-11 items-center text-sm font-semibold text-primary hover:underline"
+                >
+                  {t("recuperar.olvidada")}
+                </Link>
+              )}
             </div>
             {mode === "signup" && (
               <div>

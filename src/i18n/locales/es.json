@@ -1478,5 +1478,25 @@
     "contrasenaMal": "La contraseña no es correcta.",
     "confirmar": "Borrar mi cuenta para siempre",
     "hecho": "Tu cuenta se ha borrado."
+  },
+  "recuperar": {
+    "titulo": "Recuperar la contraseña",
+    "explica": "Escribe el email con el que entras y te mandamos un enlace para elegir una contraseña nueva.",
+    "enviar": "Mandarme el enlace",
+    "emailMal": "Escribe un email válido.",
+    "errorEnvio": "No se ha podido mandar ahora. Prueba otra vez en un momento.",
+    "enviado": "Si hay una cuenta con {{email}}, te acabamos de mandar un enlace. Caduca en 2 horas.",
+    "noLlega": "¿No te llega? Mira en la carpeta de spam o promociones, o vuelve a pedirlo dentro de un par de minutos.",
+    "volverEntrar": "Volver a iniciar sesión",
+    "olvidada": "¿Has olvidado tu contraseña?"
+  },
+  "restablecer": {
+    "titulo": "Nueva contraseña",
+    "explica": "Elige la contraseña con la que vas a entrar a partir de ahora.",
+    "nueva": "Contraseña nueva",
+    "guardar": "Guardar y entrar",
+    "hecho": "Contraseña cambiada. ¡Ya estás dentro!",
+    "caducado": "Este enlace ya no vale: caduca a las 2 horas y sirve una sola vez. Pide otro y úsalo enseguida.",
+    "pedirOtro": "Pedir otro enlace"
   }
 }

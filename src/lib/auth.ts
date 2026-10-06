@@ -201,6 +201,23 @@ export async function signUp(input: {
   return signInWithPassword(input.email, input.password);
 }
 
+/** Pide el enlace para recuperar la contraseña (responde igual exista o no). */
+export async function requestPasswordReset(email: string) {
+  await post("/auth/password-reset/", { email });
+}
+
+/**
+ * Pone la contraseña nueva con el enlace del correo y entra con ella: el
+ * servidor devuelve una sesión nueva.
+ */
+export async function confirmPasswordReset(uid: string, token: string, password: string) {
+  const data = (await post("/auth/password-reset/confirm/", { uid, token, password })) as Tokens;
+  store({ access: data.access, refresh: data.refresh });
+  cachedUser = null;
+  emit("SIGNED_IN");
+  return data;
+}
+
 export function signOut() {
   store(null);
   cachedUser = null;
