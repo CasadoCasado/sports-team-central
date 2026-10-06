@@ -1387,7 +1387,12 @@
     "cargandoPropuestas": "Buscando las mejores parejas…",
     "verFichaDe": "Ficha de",
     "verMatriz": "Ver matriz de parejas",
-    "mandarAPista": "Mandar a la pista"
+    "mandarAPista": "Mandar a la pista",
+    "juntarlos": "Juntarlos",
+    "matrizToca": "Toca una casilla para ver la pareja.",
+    "matrizSoloRivalCorto": "Contra el rival",
+    "leyendaQuimicaCorta": "Química",
+    "matrizElige": "Toca una casilla: verás cómo les ha ido juntos y podrás juntarlos."
   },
   "invitados": {
     "anadir": "Añadir invitado",

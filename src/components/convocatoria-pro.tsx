@@ -114,6 +114,7 @@ function BarraPro({
   const { t, i18n } = useTranslation();
   const qc = useQueryClient();
   const [abierto, setAbierto] = useState(false);
+  const [propuesta, setPropuesta] = useState<PropuestaPro["id"] | null>(null);
   // Las propuestas son lo único caro de PRO: se piden al abrir el diálogo, no
   // al cargar el tablero.
   const { data: propuestas, isFetching: buscando } = useQuery({
@@ -272,76 +273,104 @@ function BarraPro({
           {propuestas && propuestas.length === 0 && (
             <p className="text-sm text-muted-foreground">{t("pro.sinPropuestas")}</p>
           )}
-          <div className="grid gap-3 md:grid-cols-3">
-            {propuestas?.map((p) => (
-              <article
-                key={p.id}
-                aria-label={t(`pro.propuesta_${p.id}`)}
-                className="flex flex-col gap-3 rounded-xl border border-border bg-card p-3"
-              >
-                <div>
-                  <h3 className="font-bold">{t(`pro.propuesta_${p.id}`)}</h3>
-                  <p className="text-xs text-muted-foreground">{t(`pro.propuesta_${p.id}Texto`)}</p>
-                </div>
-                <p className="text-sm font-bold">
-                  {t("pro.esperadas", {
-                    n: p.esperadas.toLocaleString(i18n.language, { maximumFractionDigits: 1 }),
-                    total: p.pistas.length,
-                  })}
-                </p>
-                <ol className="space-y-2">
-                  {p.pistas.map(([a, b], i) => {
-                    const par = b && pro ? parejaPro(pro, a, b) : undefined;
-                    const vs = b ? contraRival(a, b) : undefined;
-                    return (
-                      <li key={i} className="rounded-lg bg-muted/50 p-2 text-xs">
-                        <div className="flex items-baseline justify-between gap-2">
-                          <span className="font-bold">
-                            {i + 1}. {nombre(a)}
-                            {b && ` · ${nombre(b)}`}
-                          </span>
-                          {par && <span className="font-extrabold">{pct(par.prob)} %</span>}
-                        </div>
-                        <div className="mt-1 flex flex-wrap gap-1">
-                          {par && (
-                            <Chip>
-                              {par.ganados + par.perdidos
-                                ? t("pro.juntos", { g: par.ganados, p: par.perdidos })
-                                : t("pro.nuncaJuntos")}
-                            </Chip>
-                          )}
-                          {par?.encaje === "mismo_lado" && (
-                            <Chip>
-                              {t("pro.mismoLado", {
-                                lado: t(`lado.${pro?.jugadores[a]?.lado ?? "reves"}`).toLowerCase(),
-                              })}
-                            </Chip>
-                          )}
-                          {b && mutua(a, b) && <Chip tono="ok">{t("pro.quimicaMutua")}</Chip>}
-                          {vs && (
-                            <Chip tono="ok">
-                              {vs.ganados}-{vs.perdidos} {rival?.nombre}
-                            </Chip>
-                          )}
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ol>
-                <p className="text-xs text-muted-foreground">
-                  {p.descansan.length
-                    ? t("pro.descansan", { nombres: p.descansan.map(nombre).join(", ") })
-                    : t("pro.nadieDescansa")}
-                </p>
-                <Button
-                  onClick={() => usar(p)}
-                  disabled={aplicar.isPending || cerrada}
-                  className="mt-auto min-h-11 text-2xs font-bold uppercase tracking-widest"
+          {/* En el móvil, una propuesta a la vista y las tres en pestañas. */}
+          {soloSugerir && propuestas && propuestas.length > 0 && (
+            <div role="tablist" className="flex gap-1 rounded-lg bg-muted p-1">
+              {propuestas.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={(propuesta ?? propuestas[0].id) === p.id}
+                  onClick={() => setPropuesta(p.id)}
+                  className={cn(
+                    "min-h-9 flex-1 rounded-md px-1 text-xs font-bold leading-tight",
+                    (propuesta ?? propuestas[0].id) === p.id
+                      ? "bg-card text-foreground shadow-sm"
+                      : "text-muted-foreground",
+                  )}
                 >
-                  {t("pro.usar")}
-                </Button>
-              </article>
-            ))}
+                  {t(`pro.propuesta_${p.id}`)}
+                </button>
+              ))}
+            </div>
+          )}
+          <div className="grid gap-3 md:grid-cols-3">
+            {propuestas
+              ?.filter((p) => !soloSugerir || p.id === (propuesta ?? propuestas[0].id))
+              .map((p) => (
+                <article
+                  key={p.id}
+                  aria-label={t(`pro.propuesta_${p.id}`)}
+                  className="flex flex-col gap-3 rounded-xl border border-border bg-card p-3"
+                >
+                  <div>
+                    <h3 className="font-bold">{t(`pro.propuesta_${p.id}`)}</h3>
+                    <p className="text-xs text-muted-foreground">
+                      {t(`pro.propuesta_${p.id}Texto`)}
+                    </p>
+                  </div>
+                  <p className="text-sm font-bold">
+                    {t("pro.esperadas", {
+                      n: p.esperadas.toLocaleString(i18n.language, { maximumFractionDigits: 1 }),
+                      total: p.pistas.length,
+                    })}
+                  </p>
+                  <ol className="space-y-2">
+                    {p.pistas.map(([a, b], i) => {
+                      const par = b && pro ? parejaPro(pro, a, b) : undefined;
+                      const vs = b ? contraRival(a, b) : undefined;
+                      return (
+                        <li key={i} className="rounded-lg bg-muted/50 p-2 text-xs">
+                          <div className="flex items-baseline justify-between gap-2">
+                            <span className="font-bold">
+                              {i + 1}. {nombre(a)}
+                              {b && ` · ${nombre(b)}`}
+                            </span>
+                            {par && <span className="font-extrabold">{pct(par.prob)} %</span>}
+                          </div>
+                          <div className="mt-1 flex flex-wrap gap-1">
+                            {par && (
+                              <Chip>
+                                {par.ganados + par.perdidos
+                                  ? t("pro.juntos", { g: par.ganados, p: par.perdidos })
+                                  : t("pro.nuncaJuntos")}
+                              </Chip>
+                            )}
+                            {par?.encaje === "mismo_lado" && (
+                              <Chip>
+                                {t("pro.mismoLado", {
+                                  lado: t(
+                                    `lado.${pro?.jugadores[a]?.lado ?? "reves"}`,
+                                  ).toLowerCase(),
+                                })}
+                              </Chip>
+                            )}
+                            {b && mutua(a, b) && <Chip tono="ok">{t("pro.quimicaMutua")}</Chip>}
+                            {vs && (
+                              <Chip tono="ok">
+                                {vs.ganados}-{vs.perdidos} {rival?.nombre}
+                              </Chip>
+                            )}
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ol>
+                  <p className="text-xs text-muted-foreground">
+                    {p.descansan.length
+                      ? t("pro.descansan", { nombres: p.descansan.map(nombre).join(", ") })
+                      : t("pro.nadieDescansa")}
+                  </p>
+                  <Button
+                    onClick={() => usar(p)}
+                    disabled={aplicar.isPending || cerrada}
+                    className="mt-auto min-h-11 text-2xs font-bold uppercase tracking-widest"
+                  >
+                    {t("pro.usar")}
+                  </Button>
+                </article>
+              ))}
           </div>
           <p className="text-2xs text-muted-foreground">{t("pro.comoSeCalcula")}</p>
         </DialogContent>

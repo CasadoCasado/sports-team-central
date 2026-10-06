@@ -1387,7 +1387,12 @@
     "cargandoPropuestas": "Finding the best pairs…",
     "verFichaDe": "Player card",
     "verMatriz": "See pairs matrix",
-    "mandarAPista": "Send to court"
+    "mandarAPista": "Send to court",
+    "juntarlos": "Pair them",
+    "matrizToca": "Tap a square to see the pair.",
+    "matrizSoloRivalCorto": "Vs rival",
+    "leyendaQuimicaCorta": "Chemistry",
+    "matrizElige": "Tap a square to see how they did together and pair them."
   },
   "invitados": {
     "anadir": "Add guest",

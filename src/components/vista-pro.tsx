@@ -409,7 +409,7 @@ export function VistaPro({
             </div>
             <DrawerDescription className="sr-only">{t("pro.tabMatriz")}</DrawerDescription>
             <div className="min-h-0 flex-1 overflow-y-auto">
-              <Matriz
+              <MatrizCompacta
                 ctx={ctx}
                 jugadores={apuntados.map((r) => r.user_id)}
                 onJuntar={(a, b) => {
@@ -970,9 +970,6 @@ function TarjetaPista({
       >
         <div className="absolute inset-[5%] border-2 border-white/85" />
         <div className="absolute inset-y-[3%] left-1/2 w-[3px] -translate-x-1/2 bg-white/80" />
-        <div className="absolute inset-y-[5%] left-[15%] w-0.5 bg-white/85" />
-        <div className="absolute inset-y-[5%] right-[15%] w-0.5 bg-white/85" />
-        <div className="absolute left-[15%] right-1/2 top-1/2 h-0.5 bg-white/85" />
         {hueco(a, true)}
         {hueco(b, false)}
         {/* El campo de enfrente, para lo que se sabe de la pareja. */}
@@ -1728,6 +1725,214 @@ function Matriz({
           </section>
         )}
       </div>
+    </div>
+  );
+}
+
+/**
+ * La matriz en el móvil, para verla de un vistazo: medio triángulo (Ana con
+ * Luis es lo mismo que Luis con Ana), casillas pequeñas con el color y el %,
+ * y al tocar una, el detalle de la pareja abajo con el botón para juntarlos.
+ */
+function MatrizCompacta({
+  ctx,
+  jugadores,
+  onJuntar,
+}: {
+  ctx: Ctx;
+  jugadores: string[];
+  onJuntar: (a: string, b: string) => void;
+}) {
+  const { t } = useTranslation();
+  const rival = ctx.pro.rival;
+  const [soloRival, setSoloRival] = useState(false);
+  const [celda, setCelda] = useState<[string, string] | null>(null);
+
+  const record = (a: string, b: string) => {
+    if (soloRival) {
+      const v = rival?.parejas.find((p) => (p.a === a && p.b === b) || (p.a === b && p.b === a));
+      return v ? { g: v.ganados, p: v.perdidos } : { g: 0, p: 0 };
+    }
+    const p = parejaPro(ctx.pro, a, b);
+    return p ? { g: p.ganados, p: p.perdidos } : { g: 0, p: 0 };
+  };
+  const color = (v: number) =>
+    v >= 75 ? "m5" : v >= 60 ? "m4" : v >= 45 ? "m3" : v >= 35 ? "m2" : "m1";
+  const quimica = (a: string, b: string) =>
+    ctx.mutua(a, b) ? "mutua" : ctx.eligio.get(a) === b || ctx.eligio.get(b) === a ? "lado" : null;
+
+  // Filas desde el segundo jugador, columnas hasta el penúltimo.
+  const filas = jugadores.slice(1);
+  const columnas = jugadores.slice(0, -1);
+  const cols = `1.75rem repeat(${columnas.length}, minmax(0, 1fr))`;
+
+  const boton = (on: boolean) =>
+    cn(
+      "min-h-8 rounded-full px-3 text-xs font-bold",
+      on
+        ? "bg-[var(--pro-fg)] text-[var(--pro-bg)]"
+        : "border border-[var(--pro-line)] text-[var(--pro-muted)]",
+    );
+
+  const detalle =
+    celda &&
+    (() => {
+      const [a, b] = celda;
+      const r = record(a, b);
+      const n = r.g + r.p;
+      const q = quimica(a, b);
+      const par = parejaPro(ctx.pro, a, b);
+      return (
+        <div className="space-y-2 rounded-xl border border-[var(--pro-line)] bg-[var(--pro-surface)] p-3">
+          <div className="flex items-baseline justify-between gap-2">
+            <p className="font-bold">
+              {t("pro.parejaTitulo", { a: ctx.nombre(a), b: ctx.nombre(b) })}
+            </p>
+            <span className="shrink-0 text-lg font-extrabold">
+              {n ? `${Math.round((100 * r.g) / n)} %` : t("pro.nunca")}
+            </span>
+          </div>
+          <p className="text-xs text-[var(--pro-muted)]">
+            {[
+              n ? t("pro.juntos", { g: r.g, p: r.p }) : t("pro.nuncaJuntos"),
+              q === "mutua" ? t("pro.quimicaMutua") : q ? t("pro.quimicaUnLado") : null,
+              par?.encaje === "mismo_lado" &&
+                t("pro.mismoLado", {
+                  lado: t(`lado.${ctx.pro.jugadores[a]?.lado ?? "reves"}`).toLowerCase(),
+                }),
+              par?.encaje === "encajan" && t("pro.ladosEncajan"),
+            ]
+              .filter(Boolean)
+              .join(" · ")}
+          </p>
+          {!ctx.cerrada && (
+            <button
+              type="button"
+              onClick={() => onJuntar(a, b)}
+              disabled={ctx.moviendo}
+              className="min-h-10 w-full rounded-xl bg-[var(--pro-acc)] text-xs font-extrabold uppercase tracking-widest text-[var(--pro-ink)]"
+            >
+              {t("pro.juntarlos")}
+            </button>
+          )}
+        </div>
+      );
+    })();
+
+  return (
+    <div className="space-y-3 p-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-xs text-[var(--pro-muted)]">{t("pro.matrizToca")}</p>
+        {rival && (
+          <div role="group" aria-label={t("pro.matrizFiltro")} className="flex gap-1.5">
+            <button
+              type="button"
+              aria-pressed={!soloRival}
+              onClick={() => setSoloRival(false)}
+              className={boton(!soloRival)}
+            >
+              {t("pro.matrizTodos")}
+            </button>
+            <button
+              type="button"
+              aria-pressed={soloRival}
+              onClick={() => setSoloRival(true)}
+              className={boton(soloRival)}
+            >
+              {t("pro.matrizSoloRivalCorto")}
+            </button>
+          </div>
+        )}
+      </div>
+
+      <div role="grid" aria-label={t("pro.tabMatriz")} className="space-y-[3px]">
+        {filas.map((f, i) => (
+          <div key={f} role="row" className="grid gap-[3px]" style={{ gridTemplateColumns: cols }}>
+            <span
+              role="rowheader"
+              title={ctx.nombre(f)}
+              className="flex aspect-square items-center justify-center text-[9px] font-extrabold"
+            >
+              {ctx.iniciales(f)}
+            </span>
+            {columnas.map((c, j) => {
+              if (j > i) return <span key={c} aria-hidden="true" />;
+              const r = record(f, c);
+              const n = r.g + r.p;
+              const v = n ? Math.round((100 * r.g) / n) : 0;
+              const tono = color(v);
+              const q = quimica(f, c);
+              const sel = !!celda && celda[0] === f && celda[1] === c;
+              return (
+                <button
+                  key={c}
+                  type="button"
+                  role="gridcell"
+                  aria-selected={sel}
+                  onClick={() => setCelda([f, c])}
+                  aria-label={
+                    n
+                      ? t("pro.celda", { a: ctx.pila(f), b: ctx.pila(c), g: r.g, p: r.p })
+                      : t("pro.celdaNunca", { a: ctx.pila(f), b: ctx.pila(c) })
+                  }
+                  className={cn(
+                    "flex aspect-square items-center justify-center rounded-[4px] text-[9px] font-extrabold leading-none",
+                    !n && "border border-dashed border-[var(--pro-line-2)]",
+                    q === "mutua" && "ring-2 ring-[var(--pro-quim)]",
+                    q === "lado" && "ring-1 ring-[var(--pro-quim)]",
+                    sel && "outline outline-2 outline-offset-1 outline-[var(--pro-fg)]",
+                  )}
+                  style={
+                    n
+                      ? { background: `var(--pro-${tono})`, color: `var(--pro-${tono}-txt)` }
+                      : undefined
+                  }
+                >
+                  {n ? v : ""}
+                </button>
+              );
+            })}
+          </div>
+        ))}
+        {/* Las iniciales de las columnas, abajo, pegadas al triángulo. */}
+        <div className="grid gap-[3px]" style={{ gridTemplateColumns: cols }} aria-hidden="true">
+          <span />
+          {columnas.map((c) => (
+            <span key={c} className="text-center text-[9px] font-extrabold">
+              {ctx.iniciales(c)}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-[var(--pro-muted)]">
+        {(
+          [
+            ["m1", t("pro.leyendaMal")],
+            ["m3", t("pro.leyendaParejo")],
+            ["m5", t("pro.leyendaBien")],
+          ] as const
+        ).map(([k, txt]) => (
+          <span key={k} className="inline-flex items-center gap-1">
+            <span className="size-3 rounded-sm" style={{ background: `var(--pro-${k})` }} />
+            {txt}
+          </span>
+        ))}
+        <span className="inline-flex items-center gap-1">
+          <span className="size-3 rounded-sm border border-dashed border-[var(--pro-line-2)]" />
+          {t("pro.leyendaNunca")}
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <span className="size-3 rounded-sm ring-2 ring-[var(--pro-quim)]" />
+          {t("pro.leyendaQuimicaCorta")}
+        </span>
+      </div>
+
+      {detalle ?? (
+        <p className="rounded-xl border border-dashed border-[var(--pro-line-2)] p-3 text-center text-xs text-[var(--pro-muted)]">
+          {t("pro.matrizElige")}
+        </p>
+      )}
     </div>
   );
 }
