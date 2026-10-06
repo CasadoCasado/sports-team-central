@@ -970,6 +970,10 @@ function TarjetaPista({
       >
         <div className="absolute inset-[5%] border-2 border-white/85" />
         <div className="absolute inset-y-[3%] left-1/2 w-[3px] -translate-x-1/2 bg-white/80" />
+        {/* Las líneas de saque solo en nuestro campo: en el de enfrente va la
+            información de la pareja. */}
+        <div className="absolute inset-y-[5%] left-[15%] w-0.5 bg-white/85" />
+        <div className="absolute left-[15%] right-1/2 top-1/2 h-0.5 bg-white/85" />
         {hueco(a, true)}
         {hueco(b, false)}
         {/* El campo de enfrente, para lo que se sabe de la pareja. */}
