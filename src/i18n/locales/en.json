@@ -1386,7 +1386,8 @@
     "cargando": "Getting the PRO board ready…",
     "cargandoPropuestas": "Finding the best pairs…",
     "verFichaDe": "Player card",
-    "verMatriz": "See pairs matrix"
+    "verMatriz": "See pairs matrix",
+    "mandarAPista": "Send to court"
   },
   "invitados": {
     "anadir": "Add guest",

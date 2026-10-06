@@ -94,6 +94,7 @@ function BarraPro({
   nombre,
   hayReparto,
   onChanged,
+  soloSugerir,
 }: {
   event: Evento;
   equipo: { id: string; nombre: string; es_pro: boolean };
@@ -107,6 +108,8 @@ function BarraPro({
   /** Si alguien tiene ya pista: entonces «Usar esta» pregunta antes. */
   hayReparto: boolean;
   onChanged: () => void;
+  /** En la pestaña PRO del móvil: solo «Sugerir parejas», sin Normal/PRO. */
+  soloSugerir?: boolean;
 }) {
   const { t, i18n } = useTranslation();
   const qc = useQueryClient();
@@ -195,58 +198,69 @@ function BarraPro({
 
   return (
     <div className="mb-4 space-y-3">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div
-          role="group"
-          aria-label={t("pro.modo")}
-          className="inline-flex rounded-full border border-border bg-card p-1"
+      {soloSugerir ? (
+        <Button
+          onClick={() => setAbierto(true)}
+          disabled={!pro || cerrada}
+          className="min-h-11 w-full bg-[#D7F24B] text-2xs font-extrabold uppercase tracking-widest text-[#0B1222] hover:bg-[#D7F24B]/85"
         >
-          <button
-            type="button"
-            aria-pressed={!activo}
-            onClick={() => onActivo(false)}
-            className={boton(!activo)}
+          <Sparkles className="mr-1.5 size-4" aria-hidden="true" />
+          {t("pro.sugerir")}
+        </Button>
+      ) : (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div
+            role="group"
+            aria-label={t("pro.modo")}
+            className="inline-flex rounded-full border border-border bg-card p-1"
           >
-            {t("pro.normal")}
-          </button>
-          <button
-            type="button"
-            aria-pressed={activo}
-            onClick={pulsarPro}
-            disabled={cambiarPro.isPending}
-            className={boton(activo)}
-          >
-            <Star className="size-3.5" aria-hidden="true" />
-            {t("pro.pro")}
-          </button>
-        </div>
-        {activo && (
-          <div className="flex flex-wrap items-center gap-2">
-            {puedeActivar && (
+            <button
+              type="button"
+              aria-pressed={!activo}
+              onClick={() => onActivo(false)}
+              className={boton(!activo)}
+            >
+              {t("pro.normal")}
+            </button>
+            <button
+              type="button"
+              aria-pressed={activo}
+              onClick={pulsarPro}
+              disabled={cambiarPro.isPending}
+              className={boton(activo)}
+            >
+              <Star className="size-3.5" aria-hidden="true" />
+              {t("pro.pro")}
+            </button>
+          </div>
+          {activo && (
+            <div className="flex flex-wrap items-center gap-2">
+              {puedeActivar && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={quitarPro}
+                  disabled={cambiarPro.isPending}
+                  className="min-h-9 text-2xs font-bold uppercase tracking-widest text-muted-foreground"
+                >
+                  {t("pro.quitar")}
+                </Button>
+              )}
               <Button
                 size="sm"
-                variant="ghost"
-                onClick={quitarPro}
-                disabled={cambiarPro.isPending}
-                className="min-h-9 text-2xs font-bold uppercase tracking-widest text-muted-foreground"
+                variant="outline"
+                onClick={() => setAbierto(true)}
+                disabled={!pro || cerrada}
+                title={cerrada ? t("pro.sugerirCerrada") : undefined}
+                className="min-h-9 text-2xs font-bold uppercase tracking-widest"
               >
-                {t("pro.quitar")}
+                <Sparkles className="mr-1.5 size-3.5" aria-hidden="true" />
+                {t("pro.sugerir")}
               </Button>
-            )}
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => setAbierto(true)}
-              disabled={!pro || cerrada}
-              title={cerrada ? t("pro.sugerirCerrada") : undefined}
-              className="min-h-9 text-2xs font-bold uppercase tracking-widest"
-            >
-              <Sparkles className="mr-1.5 size-3.5" aria-hidden="true" />
-              {t("pro.sugerir")}
-            </Button>
-          </div>
-        )}
-      </div>
+            </div>
+          )}
+        </div>
+      )}
 
       <Dialog open={abierto} onOpenChange={setAbierto}>
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
@@ -395,7 +409,9 @@ export function RepartoPadel({
   // los que aún no tienen pista.
   const [banquillo, setBanquillo] = useState<HTMLElement | null>(null);
   const [modoPro, setModoPro] = useModoPro();
-  const activo = equipo.es_pro && modoPro;
+  // En el móvil no hay Normal/PRO: con el equipo PRO, siempre PRO (la
+  // pestaña PRO es el interruptor).
+  const activo = equipo.es_pro && (modoPro || !!vistaMovil);
   const { data: pro } = useTableroPro(event.id, activo);
   const miRol = members.find((m) => m.user_id === userId)?.role;
   const puedeActivar = !!userId && (equipo.owner_id === userId || miRol === "capitan");
@@ -428,22 +444,6 @@ export function RepartoPadel({
       responses={responses}
       onChanged={alCambiar}
       onBanquillo={vistaMovil === "pistas" ? setBanquillo : undefined}
-    />
-  );
-  const barraPro = (
-    <BarraPro
-      event={event}
-      equipo={equipo}
-      puedeActivar={puedeActivar}
-      pro={pro}
-      activo={activo}
-      onActivo={setModoPro}
-      nombre={(uid) => {
-        const p = members.find((m) => m.user_id === uid)?.profile;
-        return p ? `${p.nombre} ${p.apellidos?.[0] ?? ""}.` : "?";
-      }}
-      hayReparto={responses.some((r) => r.padel_pista != null)}
-      onChanged={alCambiar}
     />
   );
 
@@ -483,7 +483,21 @@ export function RepartoPadel({
   if (vistaMovil === "pro") {
     return (
       <>
-        {barraPro}
+        <BarraPro
+          event={event}
+          equipo={equipo}
+          puedeActivar={puedeActivar}
+          pro={pro}
+          activo
+          onActivo={setModoPro}
+          nombre={(uid) => {
+            const p = members.find((m) => m.user_id === uid)?.profile;
+            return p ? `${p.nombre} ${p.apellidos?.[0] ?? ""}.` : "?";
+          }}
+          hayReparto={responses.some((r) => r.padel_pista != null)}
+          onChanged={alCambiar}
+          soloSugerir
+        />
         {activo &&
           (pro ? (
             <VistaPro

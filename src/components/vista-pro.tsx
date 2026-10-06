@@ -342,7 +342,6 @@ export function VistaPro({
       <div ref={raiz} className="pro-ui overflow-clip rounded-2xl border border-[var(--pro-line)]">
         {pro.rival && <FranjaRival pro={pro} pila={pila} />}
         <div className="space-y-4 p-3">
-          <PanelQuimica ctx={ctx} jugadores={apuntados.map((r) => r.user_id)} />
           {/* A quién se mira: una tira que se desliza, no la lista entera. */}
           <div className="space-y-1.5">
             <p className={etiqueta}>{t("pro.verFichaDe")}</p>
@@ -379,6 +378,11 @@ export function VistaPro({
               rival={pro.rival?.nombre ?? null}
               onQuitar={() => void poner([[elegido, null]])}
               onJuntar={(otro) => juntar(elegido, otro)}
+              mandar={{
+                pistas,
+                dentro: (n) => enPista(n).map((r) => r.user_id),
+                a: (n) => colocar(elegido, n),
+              }}
             />
           )}
           <button
@@ -1151,6 +1155,7 @@ function FichaJugador({
   rival,
   onQuitar,
   onJuntar,
+  mandar,
 }: {
   ctx: Ctx;
   u: string;
@@ -1160,6 +1165,11 @@ function FichaJugador({
   rival: string | null;
   onQuitar: () => void;
   onJuntar: (otro: string) => void;
+  /**
+   * En el móvil: las pistas para mandarle a una, con quién iría y el % de
+   * esa pareja. `dentro(n)` son los que ya están en la pista n.
+   */
+  mandar?: { pistas: number[]; dentro: (n: number) => string[]; a: (n: number) => void };
 }) {
   const { t } = useTranslation();
   const j = ctx.pro.jugadores[u];
@@ -1302,6 +1312,59 @@ function FichaJugador({
             >
               {t("pro.juntarCon", { name: ctx.pila(ideal.o), pct: pct(ideal.p.prob) })}
             </button>
+          )}
+          {mandar && mandar.pistas.length > 0 && (
+            <div className="space-y-1.5 pt-1">
+              <p className={etiqueta}>{t("pro.mandarAPista")}</p>
+              <div className="grid grid-cols-3 gap-2">
+                {mandar.pistas.map((n) => {
+                  const otrosAqui = mandar.dentro(n).filter((x) => x !== u);
+                  const aqui = pista === n;
+                  const llena = otrosAqui.length >= 2;
+                  const companero = otrosAqui[0];
+                  const par = companero ? parejaPro(ctx.pro, u, companero) : undefined;
+                  const juntos = par ? par.ganados + par.perdidos : 0;
+                  return (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => mandar.a(n)}
+                      disabled={ctx.moviendo || aqui || llena}
+                      className={cn(
+                        "flex min-h-16 flex-col items-center justify-center gap-0.5 rounded-xl border px-1.5 py-2 text-center",
+                        aqui
+                          ? "border-[var(--pro-acc)] bg-[var(--pro-sel)]"
+                          : "border-[var(--pro-line-2)] bg-[var(--pro-surface)]",
+                        llena && !aqui && "opacity-50",
+                      )}
+                    >
+                      <span className="text-sm font-bold">
+                        {t("callups.pista")} {n}
+                      </span>
+                      <span className="text-3xs text-[var(--pro-muted)]">
+                        {aqui
+                          ? t("callups.movil.aqui")
+                          : llena
+                            ? t("callups.movil.llena")
+                            : companero
+                              ? t("callups.movil.con", { name: ctx.pila(companero) })
+                              : t("callups.movil.libre")}
+                      </span>
+                      {par && !aqui && !llena && (
+                        <span
+                          className={cn(
+                            "text-sm font-extrabold",
+                            juntos ? "text-[var(--pro-acc-txt)]" : "text-[var(--pro-warn)]",
+                          )}
+                        >
+                          {juntos ? `${pct(par.prob)} %` : t("pro.nueva")}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           )}
           {pista != null && (
             <button

@@ -1386,7 +1386,8 @@
     "cargando": "Preparando el tablero PRO…",
     "cargandoPropuestas": "Buscando las mejores parejas…",
     "verFichaDe": "Ficha de",
-    "verMatriz": "Ver matriz de parejas"
+    "verMatriz": "Ver matriz de parejas",
+    "mandarAPista": "Mandar a la pista"
   },
   "invitados": {
     "anadir": "Añadir invitado",

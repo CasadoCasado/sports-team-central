@@ -70,11 +70,17 @@ export function PestanasConvocatoria({
           onClick={() => onCambio(p.id)}
           className={cn(
             "flex min-h-9 flex-1 items-center justify-center gap-1.5 rounded-md text-xs font-bold transition-colors",
-            valor === p.id
-              ? "bg-card text-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground",
+            // PRO, con su amarillo y su estrella, como el botón de siempre.
+            p.id === "pro"
+              ? valor === p.id
+                ? "bg-[#D7F24B] font-extrabold uppercase tracking-widest text-[#0B1222] shadow-sm"
+                : "bg-[#D7F24B]/35 font-extrabold uppercase tracking-widest text-[#0B1222] dark:text-[#D7F24B]"
+              : valor === p.id
+                ? "bg-card text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground",
           )}
         >
+          {p.id === "pro" && <Star className="size-3.5" aria-hidden="true" />}
           {p.texto}
           {p.cuenta && <span className="tabular-nums text-primary">{p.cuenta}</span>}
         </button>
