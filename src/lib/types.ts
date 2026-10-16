@@ -489,6 +489,20 @@ export type Notification = {
   created_at: string;
 };
 
+/** Un enfrentamiento en el balance del equipo (`GET /stats/team/`). */
+export type TeamStatsMatch = {
+  event_id: string;
+  fecha: string;
+  titulo: string;
+  rival: string | null;
+  jornada: number | null;
+  resultado: "G" | "E" | "P";
+  /** Pistas o puntos, los del equipo primero: «2-1». */
+  marcador: string;
+  /** Si ganamos cada pista, por número de pista; `null` si quedó sin acabar. */
+  pistas: (boolean | null)[];
+};
+
 export type TeamStats = {
   team_id: string;
   jugados: number;
@@ -500,6 +514,8 @@ export type TeamStats = {
   diferencia_pistas: number;
   racha: number;
   racha_victorias: boolean;
+  /** Del más antiguo al más reciente. */
+  partidos: TeamStatsMatch[];
 } | null;
 
 export type PlayerStats = {

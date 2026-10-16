@@ -75,7 +75,8 @@ test("el jugador ve con quién ha jugado y el marcador de su pista", async ({ pa
   await expect(partido).toContainText("6-3 6-4");
   await expect(partido).toContainText("Ganado");
 
-  // Y la del equipo la enseña con los dos nombres.
+  // Y la del equipo, en su pestaña, la enseña con los dos nombres.
+  await page.getByRole("tab", { name: /el equipo/i }).click();
   const equipo = page.locator(".surface-card", { hasText: "Parejas del equipo" });
   await expect(equipo.getByRole("button", { name: /marta casado/i })).toContainText(/iván ruiz/i);
 });

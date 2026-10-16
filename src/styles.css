@@ -817,3 +817,59 @@
     display: none;
   }
 }
+
+/* ============================ ESTADÍSTICAS ============================
+ * Al entrar en una pestaña: el anillo de victorias se dibuja, las casillas de
+ * convocatorias y de pistas saltan en orden y los últimos resultados caen
+ * botando como pelotas. Los retrasos los pone cada elemento en línea; la
+ * pestaña se vuelve a montar al cambiar, así que todo se repite. */
+@keyframes stats-aro {
+  from {
+    stroke-dashoffset: var(--largo);
+  }
+}
+@keyframes stats-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.12);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes stats-caer {
+  0% {
+    opacity: 0;
+    transform: translateY(-40px);
+  }
+  55% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  75% {
+    transform: translateY(-9px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+.stats-aro {
+  animation: stats-aro 1.4s 0.2s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.stats-pop {
+  animation: stats-pop 0.38s both;
+}
+.stats-caer {
+  animation: stats-caer 0.65s both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .stats-aro,
+  .stats-pop,
+  .stats-caer {
+    animation: none;
+  }
+}
