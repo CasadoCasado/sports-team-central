@@ -28,3 +28,27 @@ test("al crear un evento sale la pelota mientras se guarda", async ({ page, requ
   await expect(pelota).toHaveCount(0, { timeout: 10_000 });
   await expect(page.getByText(/evento creado/i).first()).toBeVisible();
 });
+
+/**
+ * Aunque el servidor conteste al momento, al crear la pelota sale enseguida
+ * y se queda como mínimo un segundo (`DURACION_MINIMA_CREAR`).
+ */
+test("al crear un evento la pelota dura al menos un segundo", async ({ page, request }) => {
+  const { session: captain } = await seedCaptainWithTeam(request, "guardando-min");
+
+  await loginAs(page, captain);
+  await page.goto("/calendario");
+  const dia = page.getByRole("button", { name: /^crear evento el .*\b15\b/i }).first();
+  await expect(dia).toBeVisible({ timeout: 20_000 });
+  await dia.click();
+  const dialogo = page.getByRole("dialog");
+  await fillForm([[dialogo.getByRole("textbox").first(), "Entreno rápido"]]);
+  const pelota = page.locator("[data-guardando]");
+  const inicio = Date.now();
+  await dialogo.getByRole("button", { name: /^crear$/i }).click();
+
+  await expect(pelota).toBeVisible({ timeout: 300 });
+  await expect(pelota).toHaveCount(0, { timeout: 10_000 });
+  expect(Date.now() - inicio).toBeGreaterThanOrEqual(1000);
+  await expect(page.getByText(/evento creado/i).first()).toBeVisible();
+});

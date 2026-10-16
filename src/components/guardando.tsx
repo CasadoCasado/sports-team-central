@@ -5,6 +5,8 @@
  *
  * No sale si el guardado es casi instantáneo (`RETRASO`), y una vez fuera se
  * queda un mínimo (`MINIMO`): si no, en conexiones rápidas sería un parpadeo.
+ * Con `inmediato` sale sin esperar: para cuando quien guarda ya se asegura de
+ * que dure lo bastante (crear un evento, ver `DURACION_MINIMA_CREAR`).
  */
 
 import { useEffect, useRef, useState } from "react";
@@ -16,9 +18,17 @@ import { CargandoPro } from "@/components/cargando-pro";
 const RETRASO = 150;
 const MINIMO = 500;
 
-export function Guardando({ activo, texto }: { activo: boolean; texto?: string }) {
+export function Guardando({
+  activo,
+  texto,
+  inmediato = false,
+}: {
+  activo: boolean;
+  texto?: string;
+  inmediato?: boolean;
+}) {
   const { t } = useTranslation();
-  const visible = useVisibleSinParpadeo(activo);
+  const visible = useVisibleSinParpadeo(activo, inmediato ? 0 : RETRASO);
   if (!visible || typeof document === "undefined") return null;
   return createPortal(
     <div
@@ -33,7 +43,7 @@ export function Guardando({ activo, texto }: { activo: boolean; texto?: string }
   );
 }
 
-function useVisibleSinParpadeo(activo: boolean) {
+function useVisibleSinParpadeo(activo: boolean, retraso: number) {
   const [visible, setVisible] = useState(false);
   const desde = useRef(0);
 
@@ -43,14 +53,14 @@ function useVisibleSinParpadeo(activo: boolean) {
       const id = setTimeout(() => {
         desde.current = Date.now();
         setVisible(true);
-      }, RETRASO);
+      }, retraso);
       return () => clearTimeout(id);
     }
     if (!visible) return;
     const falta = Math.max(0, MINIMO - (Date.now() - desde.current));
     const id = setTimeout(() => setVisible(false), falta);
     return () => clearTimeout(id);
-  }, [activo, visible]);
+  }, [activo, visible, retraso]);
 
   return visible;
 }

@@ -115,6 +115,9 @@ function conFinPorDefecto(v: EventFormValues): EventFormValues {
   return v;
 }
 
+/** Lo menos que tarda crear un evento, en ms (ver `save`). Editar no espera. */
+const DURACION_MINIMA_CREAR = 1000;
+
 export function EventFormDialog({
   open,
   onOpenChange,
@@ -255,7 +258,12 @@ export function EventFormDialog({
         return { updated: true };
       }
       // Al crear, el servidor avisa al resto del equipo (notificación y push).
-      await api.post("/events/", payload);
+      // Y dura como mínimo `DURACION_MINIMA_CREAR`, para que la animación de
+      // la pelota se vea siempre entera; si el servidor tarda más, lo que tarde.
+      await Promise.all([
+        api.post("/events/", payload),
+        new Promise((r) => setTimeout(r, DURACION_MINIMA_CREAR)),
+      ]);
       return { updated: false };
     },
     onSuccess: async (r) => {
@@ -620,7 +628,7 @@ export function EventFormDialog({
           </DialogFooter>
         </form>
       </DialogContent>
-      <Guardando activo={save.isPending} />
+      <Guardando activo={save.isPending} inmediato={!values.id} />
     </Dialog>
   );
 }
