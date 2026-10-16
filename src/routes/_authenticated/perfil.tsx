@@ -27,6 +27,7 @@ import { FontSizeControl } from "@/components/font-size-control";
 import { restartGuidedTour } from "@/components/guided-tour";
 import { SPORTS, sportLabel } from "@/lib/sports";
 import { LADOS, ladoDe } from "@/lib/lado";
+import { MANOS, manoDe } from "@/lib/mano";
 import { ProvinciaPicker } from "@/components/ubicacion-picker";
 import { BorrarCuenta } from "@/components/borrar-cuenta";
 
@@ -77,7 +78,7 @@ function Perfil() {
       setProvincia(profile.provincia ?? null);
       setDeporte(profile.deporte ?? "");
       setPosicion(ladoDe(profile.posicion) ?? "");
-      setMano(profile.mano_dominante ?? "");
+      setMano(manoDe(profile.mano_dominante) ?? "");
       setNivel(profile.nivel ?? "");
       setDescripcion(profile.descripcion ?? "");
     }
@@ -95,7 +96,7 @@ function Perfil() {
         provincia,
         deporte: deporte || null,
         posicion: posicion || null,
-        mano_dominante: mano.trim() || null,
+        mano_dominante: mano || null,
         nivel: nivel.trim() || null,
         descripcion: descripcion.trim() || null,
       });
@@ -248,12 +249,20 @@ function Perfil() {
             </div>
             <div>
               <Label htmlFor="mano">{t("profile.manoDominante")}</Label>
-              <Input
-                id="mano"
-                value={mano}
-                onChange={(e) => setMano(e.target.value)}
-                maxLength={20}
-              />
+              {/* Dos opciones, como el lado: «Diestra», «diestro» y «right»
+                  tienen que leerse igual. */}
+              <Select value={mano} onValueChange={setMano}>
+                <SelectTrigger id="mano" className="min-h-11">
+                  <SelectValue placeholder={t("profile.manoPlaceholder")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {MANOS.map((m) => (
+                    <SelectItem key={m} value={m}>
+                      {t(`mano.${m}`)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <Label htmlFor="nivel">{t("profile.nivel")}</Label>

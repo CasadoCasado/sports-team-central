@@ -344,6 +344,7 @@
     "provinciaHint": "Así te enseñamos primero los torneos que tienes cerca.",
     "posicion": "Posición",
     "manoDominante": "Mano dominante",
+    "manoPlaceholder": "¿Con qué mano juegas?",
     "nivel": "Nivel",
     "descripcion": "Descripción",
     "fechaNacimiento": "Fecha de nacimiento",
@@ -1244,6 +1245,10 @@
     "reves": "Revés",
     "derecha": "Derecha",
     "ambos": "Los dos"
+  },
+  "mano": {
+    "diestro": "Diestro",
+    "zurdo": "Zurdo"
   },
   "quimica": {
     "nombre": "Química",
