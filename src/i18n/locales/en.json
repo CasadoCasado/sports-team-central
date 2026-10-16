@@ -928,6 +928,20 @@
       "verEntera": "See it all in Members",
       "nochesN_one": "{{count}} night",
       "nochesN_other": "{{count}} nights"
+    },
+    "equipo": {
+      "escudoAria": "{{nombre}} crest",
+      "miembros_one": "{{count}} member",
+      "miembros_other": "{{count}} members",
+      "proximo": "Next",
+      "hoy": "Today",
+      "manana": "Tomorrow",
+      "enDias_one": "In {{count}} day",
+      "enDias_other": "In {{count}} days",
+      "enCasa": "Home",
+      "fuera": "Away",
+      "vs": "VS",
+      "verConvocatoria": "See the call-up"
     }
   },
   "results": {

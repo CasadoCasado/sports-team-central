@@ -19,8 +19,12 @@ type Disponibles = {
   partidos: boolean;
   entrenos: boolean;
   competiciones: string[];
-  /** Si hay partidos jugados que no son de ninguna competición. */
+  /** Lo que ofrece Estadísticas: las competiciones con algún partido con
+   * resultado, si hay partidos con resultado sin competición y si hay algún
+   * entreno ya empezado. */
+  competiciones_partidos: string[];
   sin_competicion: boolean;
+  hay_entrenos: boolean;
 };
 
 /**

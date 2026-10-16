@@ -169,6 +169,20 @@ async function sembrar(request: APIRequestContext, prefijo: string) {
     pistas: [{ pareja: [ivan, marta], ganada: false }],
   });
   await reyDePista(request, marta, team.id, [ivan, pablo], [marta, sara]);
+  // Lo que queda por jugar de la liga: sale cara a cara en la banda del equipo.
+  const proximo = await request.post(`${API_URL}/events/`, {
+    headers: bearer(marta),
+    data: {
+      team_id: team.id,
+      tipo: "partido",
+      titulo: "Jornada 3",
+      rival: "Club Raqueta",
+      es_local: true,
+      competition_id: ligaId,
+      fecha_inicio: new Date(Date.now() + 3 * 86_400_000).toISOString(),
+    },
+  });
+  expect(proximo.ok(), await proximo.text()).toBe(true);
   return ivan;
 }
 
@@ -218,8 +232,22 @@ test("cada competición, los partidos sueltos y los entrenos van aparte", async 
   await expect(filas.last()).toContainText(/marta casado/i);
   await expect(filas.last()).toContainText(/iván ruiz/i);
   await expect(filas.last()).toContainText("0%");
+  // A la derecha, el próximo de la liga, cara a cara y con su convocatoria.
+  await expect(panel.getByText("Club Raqueta")).toBeVisible();
+  await expect(panel.getByText(/en 3 días/i)).toBeVisible();
+  await expect(panel.getByRole("link", { name: /ver la convocatoria/i })).toHaveAttribute(
+    "href",
+    /\/eventos\/.+desde=estadisticas/,
+  );
   await page.waitForTimeout(1800);
   await page.screenshot({ path: "test-results/estadisticas-equipo.png", fullPage: true });
+
+  // Sin competición no queda nada por jugar: el escudo del equipo.
+  await ambitos.getByRole("button", { name: "Sin competición" }).click();
+  await expect(panel.getByRole("img", { name: /escudo de equipo stats-ambitos/i })).toBeVisible();
+  await expect(panel.getByText(/4 miembros/i)).toBeVisible();
+  await page.waitForTimeout(1800);
+  await page.screenshot({ path: "test-results/estadisticas-escudo.png", fullPage: true });
 
   // Entrenos: la clasificación y las parejas del rey de pista, reyes primero.
   await ambitos.getByRole("button", { name: "Entrenos" }).click();

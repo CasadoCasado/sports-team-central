@@ -928,6 +928,20 @@
       "verEntera": "Verla entera en Miembros",
       "nochesN_one": "{{count}} noche",
       "nochesN_other": "{{count}} noches"
+    },
+    "equipo": {
+      "escudoAria": "Escudo de {{nombre}}",
+      "miembros_one": "{{count}} miembro",
+      "miembros_other": "{{count}} miembros",
+      "proximo": "Próximo",
+      "hoy": "Hoy",
+      "manana": "Mañana",
+      "enDias_one": "En {{count}} día",
+      "enDias_other": "En {{count}} días",
+      "enCasa": "En casa",
+      "fuera": "Fuera",
+      "vs": "VS",
+      "verConvocatoria": "Ver la convocatoria"
     }
   },
   "results": {

@@ -873,3 +873,70 @@
     animation: none;
   }
 }
+
+/* La banda del equipo: el escudo cae y le pasa un brillo de vez en cuando;
+ * en el cara a cara, cada equipo entra por su lado. */
+@keyframes stats-escudo {
+  0% {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.85) rotate(-6deg);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(4px) scale(1.03) rotate(1deg);
+  }
+  100% {
+    transform: none;
+  }
+}
+@keyframes stats-brillo {
+  0%,
+  60% {
+    transform: translateX(-120%) skewX(-18deg);
+  }
+  100% {
+    transform: translateX(260%) skewX(-18deg);
+  }
+}
+@keyframes stats-entra-izq {
+  from {
+    opacity: 0;
+    transform: translateX(-36px);
+  }
+}
+@keyframes stats-entra-der {
+  from {
+    opacity: 0;
+    transform: translateX(36px);
+  }
+}
+.stats-escudo {
+  animation: stats-escudo 0.8s 0.3s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+.stats-brillo-escudo {
+  clip-path: polygon(50% 2%, 94% 15%, 94% 49%, 50% 97%, 6% 49%, 6% 15%);
+}
+.stats-brillo-escudo > span {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.45), transparent);
+  animation: stats-brillo 4s 1.2s ease-in-out infinite;
+}
+.stats-entra-izq {
+  animation: stats-entra-izq 0.65s 0.3s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+.stats-entra-der {
+  animation: stats-entra-der 0.65s 0.3s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .stats-escudo,
+  .stats-entra-izq,
+  .stats-entra-der {
+    animation: none;
+  }
+  .stats-brillo-escudo {
+    display: none;
+  }
+}
