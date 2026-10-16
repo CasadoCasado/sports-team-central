@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { api } from "@/lib/api";
 import type { EventResponse, PlayerCard, TeamStats, TeamStatsMatch } from "@/lib/types";
 import { ladoDe } from "@/lib/lado";
+import { manoDe } from "@/lib/mano";
 import { useSession } from "@/hooks/use-session";
 import { useActiveTeam } from "@/hooks/use-active-team";
 import { TeamPicker } from "@/components/team-picker";
@@ -201,9 +202,10 @@ function LoMio({ teamId }: { teamId: string }) {
     ? [ultimo.pareja.nombre, ultimo.pareja.apellidos].filter(Boolean).join(" ")
     : null;
   const lado = ladoDe(ficha?.perfil.posicion);
+  const mano = manoDe(ficha?.perfil.mano_dominante);
   const datos = [
     lado && t(`lado.${lado}`),
-    ficha?.perfil.mano_dominante,
+    mano && t(`mano.${mano}`),
     ficha?.perfil.nivel && `${t("ficha.nivel")} ${ficha.perfil.nivel}`,
   ].filter(Boolean);
 

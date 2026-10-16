@@ -96,7 +96,7 @@ test("pulsar a un compañero en Miembros abre su ficha", async ({ page, request 
   const ficha = page.getByRole("dialog");
   await expect(ficha.getByRole("heading", { name: /marta casado/i })).toBeVisible();
   await expect(ficha).toContainText("Revés");
-  await expect(ficha).toContainText("Diestra");
+  await expect(ficha).toContainText("Diestro");
   await expect(ficha).toContainText("4,5");
   await expect(ficha.getByRole("img", { name: "50 % de victorias" })).toBeVisible();
   await expect(ficha).toContainText("Pista 1");

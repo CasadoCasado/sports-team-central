@@ -344,6 +344,7 @@
     "provinciaHint": "So we show you the tournaments near you first.",
     "posicion": "Position",
     "manoDominante": "Dominant hand",
+    "manoPlaceholder": "Which hand do you play with?",
     "nivel": "Level",
     "descripcion": "Bio",
     "fechaNacimiento": "Birth date",
@@ -1244,6 +1245,10 @@
     "reves": "Backhand",
     "derecha": "Forehand",
     "ambos": "Both"
+  },
+  "mano": {
+    "diestro": "Right-handed",
+    "zurdo": "Left-handed"
   },
   "quimica": {
     "nombre": "Chemistry",

@@ -6,6 +6,7 @@ import * as TabsPrimitive from "@radix-ui/react-tabs";
 
 import { api } from "@/lib/api";
 import { ladoDe, type Lado } from "@/lib/lado";
+import { manoDe } from "@/lib/mano";
 import type { PlayerCard, PlayerCardMatch, PlayerCardPair, Profile, TeamMember } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Picture } from "@/components/picture";
@@ -85,10 +86,11 @@ function Ficha({
   const nombre = [perfil?.nombre, perfil?.apellidos].filter(Boolean).join(" ") || "—";
   const iniciales = ((perfil?.nombre?.[0] ?? "") + (perfil?.apellidos?.[0] ?? "")).toUpperCase();
   const lado = ladoDe(perfil?.posicion);
+  const mano = manoDe(ficha?.perfil.mano_dominante);
   const desde = new Intl.DateTimeFormat(i18n.language, { month: "short", year: "numeric" });
   const datos = [
     lado && { l: t("ficha.lado"), v: t(`lado.${lado}`) },
-    ficha?.perfil.mano_dominante && { l: t("ficha.mano"), v: ficha.perfil.mano_dominante },
+    mano && { l: t("ficha.mano"), v: t(`mano.${mano}`) },
     ficha?.perfil.nivel && { l: t("ficha.nivel"), v: ficha.perfil.nivel },
     { l: t("ficha.desde"), v: desde.format(new Date(member.joined_at)) },
   ].filter(Boolean) as { l: string; v: string }[];
