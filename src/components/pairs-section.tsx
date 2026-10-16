@@ -28,18 +28,30 @@ export function PairsSection({
   teamId,
   mine = false,
   currentUserId,
+  ambito,
+  competitionId,
 }: {
   teamId: string;
   mine?: boolean;
   currentUserId?: string;
+  /** Solo las de partidos o solo las de entrenos (rey de pista); sin él, todo. */
+  ambito?: "partidos" | "entrenos";
+  /** Con `ambito="partidos"`: los de una competición, o `ninguna`. */
+  competitionId?: string;
 }) {
   const { t } = useTranslation();
   const [todas, setTodas] = useState(false);
 
   const { data: pairs } = useQuery({
-    queryKey: ["pair-stats", teamId, mine],
+    queryKey: ["pair-stats", teamId, mine, ambito ?? null, competitionId ?? null],
+    // Llegan ya ordenadas: primero la que más gana.
     queryFn: () =>
-      api.get<PairStats[]>("/stats/pairs/", { team_id: teamId, ...(mine ? { me: 1 } : {}) }),
+      api.get<PairStats[]>("/stats/pairs/", {
+        team_id: teamId,
+        ...(mine ? { me: 1 } : {}),
+        ...(ambito ? { ambito } : {}),
+        ...(competitionId ? { competition_id: competitionId } : {}),
+      }),
   });
 
   const lista = pairs ?? [];

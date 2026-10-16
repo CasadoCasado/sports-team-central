@@ -15,7 +15,13 @@ export type OpcionVista = {
   competition?: Competition;
 };
 
-type Disponibles = { partidos: boolean; entrenos: boolean; competiciones: string[] };
+type Disponibles = {
+  partidos: boolean;
+  entrenos: boolean;
+  competiciones: string[];
+  /** Si hay partidos jugados que no son de ninguna competición. */
+  sin_competicion: boolean;
+};
 
 /**
  * Las clasificaciones que se pueden elegir: solo las que ya tienen algún
@@ -48,5 +54,11 @@ export function useVistasClasificacion(teamId: string | null) {
     if (d?.competiciones.includes(c.id)) opciones.push({ vista: `c:${c.id}`, competition: c });
   }
 
-  return { opciones, isLoading: disponibles.isLoading || competitions.isLoading };
+  return {
+    opciones,
+    // Estadísticas monta sus propias opciones con lo mismo.
+    disponibles: d,
+    competitions: competitions.data,
+    isLoading: disponibles.isLoading || competitions.isLoading,
+  };
 }

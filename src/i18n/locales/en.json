@@ -901,7 +901,34 @@
     },
     "shortG": "W",
     "shortE": "D",
-    "shortP": "L"
+    "shortP": "L",
+    "scopes": {
+      "label": "What to show",
+      "none": "No competition",
+      "trainings": "Trainings"
+    },
+    "trainings": {
+      "nota": "score",
+      "notaMedia": "average score",
+      "puesto": "place",
+      "de": "of {{count}}",
+      "noches": "nights",
+      "media": "team average",
+      "dentro": "You're in the running for the training podium.",
+      "falta_one": "{{count}} more night to reach the podium.",
+      "falta_other": "{{count}} more nights to reach the podium.",
+      "nada": "You haven't played any training with results yet.",
+      "nadaEquipo": "No trainings with results yet.",
+      "cuantos_one": "{{count}} training with results",
+      "cuantos_other": "{{count}} trainings with results",
+      "jugadores": "players",
+      "clasificados": "can reach the podium",
+      "minimo": "nights for the podium",
+      "tabla": "Training standings",
+      "verEntera": "See it all in Members",
+      "nochesN_one": "{{count}} night",
+      "nochesN_other": "{{count}} nights"
+    }
   },
   "results": {
     "confirmTitle": "Confirm results",

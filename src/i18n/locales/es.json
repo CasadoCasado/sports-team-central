@@ -901,7 +901,34 @@
     },
     "shortG": "G",
     "shortE": "E",
-    "shortP": "P"
+    "shortP": "P",
+    "scopes": {
+      "label": "Qué ver",
+      "none": "Sin competición",
+      "trainings": "Entrenos"
+    },
+    "trainings": {
+      "nota": "nota",
+      "notaMedia": "nota media",
+      "puesto": "puesto",
+      "de": "de {{count}}",
+      "noches": "noches",
+      "media": "media del equipo",
+      "dentro": "Entras en el podio de los entrenos.",
+      "falta_one": "Te falta {{count}} noche para poder entrar en el podio.",
+      "falta_other": "Te faltan {{count}} noches para poder entrar en el podio.",
+      "nada": "Aún no has jugado ningún entreno con resultados.",
+      "nadaEquipo": "Aún no hay entrenos con resultados.",
+      "cuantos_one": "{{count}} entreno con resultados",
+      "cuantos_other": "{{count}} entrenos con resultados",
+      "jugadores": "jugadores",
+      "clasificados": "pueden subir al podio",
+      "minimo": "noches para el podio",
+      "tabla": "Clasificación de los entrenos",
+      "verEntera": "Verla entera en Miembros",
+      "nochesN_one": "{{count}} noche",
+      "nochesN_other": "{{count}} noches"
+    }
   },
   "results": {
     "confirmTitle": "Confirmar resultados",
