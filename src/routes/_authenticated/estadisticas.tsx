@@ -20,6 +20,7 @@ import { TeamPicker } from "@/components/team-picker";
 import { EmptyTeamState } from "@/components/empty-team-state";
 import { PairsSection } from "@/components/pairs-section";
 import { PistaConPelota } from "@/components/cargando-pro";
+import { LadoEquipo } from "@/components/lado-equipo";
 
 export const Route = createFileRoute("/_authenticated/estadisticas")({
   head: () => ({
@@ -122,16 +123,17 @@ function Estadisticas() {
 }
 
 /**
- * Lo que se puede mirar: cada competición de partidos con algo jugado, los
- * partidos sin competición si los hay y, al final, los entrenos. Las
- * competiciones de entrenos no salen solas: van dentro de «Entrenos».
+ * Lo que se puede mirar: cada competición con algún partido con resultado,
+ * los partidos sin competición si los hay y, al final, los entrenos en cuanto
+ * haya alguno empezado. Los entrenos de una competición no salen con ella:
+ * van dentro de «Entrenos».
  */
 function useAmbitos(teamId: string | null) {
   const { t } = useTranslation();
   const { disponibles, competitions, isLoading } = useVistasClasificacion(teamId);
   const opciones: OpcionAmbito[] = [];
   for (const c of competitions ?? []) {
-    if (!c.formato && disponibles?.competiciones.includes(c.id)) {
+    if (disponibles?.competiciones_partidos?.includes(c.id)) {
       opciones.push({
         clave: `c:${c.id}`,
         nombre: c.nombre,
@@ -148,7 +150,7 @@ function useAmbitos(teamId: string | null) {
       icono: <CalendarDays aria-hidden="true" />,
     });
   }
-  if (disponibles?.entrenos) {
+  if (disponibles?.entrenos || disponibles?.hay_entrenos) {
     opciones.push({
       clave: "entrenos",
       nombre: t("stats.scopes.trainings"),
@@ -339,7 +341,7 @@ function Banda({
 }) {
   return (
     <section
-      className={`animate-fade-in-up grid grid-cols-[auto_minmax(0,1fr)] items-center gap-5 rounded-2xl bg-ink p-5 text-ink-foreground sm:gap-8 sm:p-7 ${pista ? "lg:grid-cols-[auto_minmax(0,1fr)_minmax(0,300px)]" : ""}`}
+      className={`animate-fade-in-up grid grid-cols-[auto_minmax(0,1fr)] items-center gap-5 rounded-2xl bg-ink p-5 text-ink-foreground sm:gap-8 sm:p-7 ${pista ? "lg:grid-cols-[auto_minmax(0,1fr)_minmax(0,340px)]" : ""}`}
     >
       {anillo}
       <div className="min-w-0 space-y-3">
@@ -538,6 +540,7 @@ const BOLA: Record<TeamStatsMatch["resultado"], string> = {
 
 function ElEquipo({ teamId, competitionId }: { teamId: string; competitionId?: string }) {
   const { t } = useTranslation();
+  const { active } = useActiveTeam();
 
   const { data: stats } = useQuery({
     queryKey: ["team-stats", teamId, competitionId ?? null],
@@ -558,6 +561,7 @@ function ElEquipo({ teamId, competitionId }: { teamId: string; competitionId?: s
     <div className="space-y-4">
       <Banda
         anillo={<AnilloStats pct={stats ? stats.win_pct : null} />}
+        pista={active && <LadoEquipo team={active.team} competitionId={competitionId} />}
         pie={
           ultimos.length > 0 && (
             <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
