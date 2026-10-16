@@ -15,6 +15,7 @@ import { MembersRanking, VistaSelector } from "@/components/members-ranking";
 import { useVistasClasificacion, type Vista } from "@/hooks/use-vistas-clasificacion";
 import { TeamPicker } from "@/components/team-picker";
 import { TeamInviteLink } from "@/components/team-invite-link";
+import { FichaJugador } from "@/components/ficha-jugador";
 import { useActiveTeam } from "@/hooks/use-active-team";
 
 export const Route = createFileRoute("/_authenticated/miembros")({
@@ -75,6 +76,8 @@ function Miembros() {
   });
 
   const [inviteOpen, setInviteOpen] = useState(false);
+  // De quién se mira la ficha; `null` con la hoja cerrada.
+  const [ficha, setFicha] = useState<TeamMember | null>(null);
   const [searchBy, setSearchBy] = useState<"nombre" | "email">("nombre");
   const [query, setQuery] = useState("");
   const [inviteRole, setInviteRole] = useState<
@@ -421,6 +424,16 @@ function Miembros() {
           canManage={canManageRoles}
           onChangeRole={changeRole}
           onRemove={removeMember}
+          onOpen={setFicha}
+        />
+      )}
+
+      {selectedTeamId && (
+        <FichaJugador
+          teamId={selectedTeamId}
+          teamName={selectedTeam?.nombre}
+          member={ficha}
+          onClose={() => setFicha(null)}
         />
       )}
     </div>
