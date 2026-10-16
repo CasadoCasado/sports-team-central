@@ -155,6 +155,8 @@ export type EventResponse = {
   event_tipo: EventType;
   event_fecha_inicio: string;
   event_titulo: string;
+  /** La competición del evento, si es de alguna. */
+  event_competition_id: string | null;
 };
 
 /**
@@ -330,6 +332,12 @@ export type CompetitionStandings = {
   /** Solo llega lleno cuando la competición está finalizada. */
   podium: CompetitionStanding[];
 };
+
+/** La clasificación de todos los entrenos del equipo (`GET /stats/trainings/`). */
+export type TrainingStandings = Pick<
+  CompetitionStandings,
+  "entrenamientos" | "media" | "minimo_podio" | "standings"
+>;
 
 /** El recuento de un jugador en una noche que no es de rey de pista. */
 export type TrainingScore = {
