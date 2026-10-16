@@ -514,6 +514,56 @@ export type PlayerStats = {
   ultimo_partido: string | null;
 };
 
+/** Un partido en la ficha de un jugador (`GET /stats/player-card/`). */
+export type PlayerCardMatch = {
+  event_id: string;
+  fecha: string;
+  titulo: string;
+  rival: string | null;
+  competicion: string | null;
+  pista: number | null;
+  pareja: Profile | null;
+  /** Con los juegos del equipo primero: «6-4 3-6 7-5». Vacío sin marcador. */
+  sets: string;
+  ganado: boolean | null;
+};
+
+/** Una pareja en la ficha de un jugador: quién está al otro lado. */
+export type PlayerCardPair = {
+  jugador: Profile;
+  partidos: number;
+  ganados: number;
+  perdidos: number;
+  win_pct: number | null;
+  ultimo: string | null;
+  /** Ganado o perdido, del partido más antiguo al más reciente. */
+  historial: boolean[];
+};
+
+/** La ficha que sale al pulsar a alguien en Miembros. */
+export type PlayerCard = {
+  user_id: string;
+  team_id: string;
+  perfil: Profile & { nivel: string | null; mano_dominante: string | null };
+  role: TeamRole;
+  es_dueno: boolean;
+  joined_at: string;
+  convocado: number;
+  disputados: number;
+  victorias: number;
+  derrotas: number;
+  /** `null` mientras no haya jugado. */
+  win_pct: number | null;
+  sets_ganados: number;
+  sets_perdidos: number;
+  /** Los últimos partidos, del más reciente al más antiguo. */
+  racha: boolean[];
+  /** En qué número de pista ha jugado; el lado de cada partido no se guarda. */
+  pistas: { pista: number; partidos: number; ganados: number }[];
+  parejas: PlayerCardPair[];
+  partidos: PlayerCardMatch[];
+};
+
 /** Una línea del historial de una pareja: un enfrentamiento o una noche de rey de pista. */
 export type PairHistoryItem =
   | {

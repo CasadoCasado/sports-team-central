@@ -285,6 +285,8 @@ type Props = {
   canManage: boolean;
   onChangeRole: (memberId: string, role: TeamRole) => void;
   onRemove: (memberId: string) => void;
+  /** Abre la ficha de alguien: se pulsa su nombre en cualquier parte. */
+  onOpen: (member: TeamMember) => void;
 };
 
 /**
@@ -307,6 +309,7 @@ export function MembersRanking({
   canManage,
   onChangeRole,
   onRemove,
+  onOpen,
 }: Props) {
   const { t } = useTranslation();
   async function quitar(f: Fila) {
@@ -408,13 +411,19 @@ export function MembersRanking({
           medida={balance.medida}
           minimo={balance.minimo}
           provisional={provisional}
+          onOpen={onOpen}
           pendiente={
             provisional
-              ? t(balance.medida === "pct" ? "members.podiumPending" : "members.podiumPendingNights", {
-                  min: balance.minimo,
-                  name: masJugados.member.profile?.nombre ?? masJugados.nombre,
-                  count: masJugados.jugados,
-                })
+              ? t(
+                  balance.medida === "pct"
+                    ? "members.podiumPending"
+                    : "members.podiumPendingNights",
+                  {
+                    min: balance.minimo,
+                    name: masJugados.member.profile?.nombre ?? masJugados.nombre,
+                    count: masJugados.jugados,
+                  },
+                )
               : null
           }
         />
@@ -430,8 +439,14 @@ export function MembersRanking({
               key={f.member.id}
               className="inline-flex items-center gap-2 rounded-full border border-border bg-card py-1 pl-1 pr-1.5 text-sm"
             >
-              <Avatar fila={f} className="size-6 text-3xs" />
-              {f.nombre}
+              <button
+                type="button"
+                onClick={() => onOpen(f.member)}
+                className="inline-flex cursor-pointer items-center gap-2 rounded-full hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <Avatar fila={f} className="size-6 text-3xs" />
+                {f.nombre}
+              </button>
               <span
                 className={cn(
                   "text-3xs font-bold uppercase tracking-widest",
@@ -447,7 +462,7 @@ export function MembersRanking({
       )}
 
       {sinResultados ? (
-        <Plantilla filas={jugadores} currentUserId={currentUserId} menu={menu} />
+        <Plantilla filas={jugadores} currentUserId={currentUserId} menu={menu} onOpen={onOpen} />
       ) : (
         <Tabla
           filas={ordenar(jugadores, orden, balance.medida)}
@@ -458,6 +473,7 @@ export function MembersRanking({
           canManage={canManage}
           menu={menu}
           podio={top}
+          onOpen={onOpen}
         />
       )}
     </div>
@@ -506,12 +522,14 @@ function Podio({
   minimo,
   provisional,
   pendiente,
+  onOpen,
 }: {
   top: Fila[];
   medida: Medida;
   minimo: number;
   provisional: boolean;
   pendiente: string | null;
+  onOpen: (member: TeamMember) => void;
 }) {
   const { t } = useTranslation();
   // Cuándo empieza cada puesto (s): el 3.º, luego el 2.º y, con un respiro, el 1.º.
@@ -537,8 +555,11 @@ function Podio({
         {puestos.map(({ fila, n, alto, empieza, color }) => (
           <li key={n} className="flex min-w-0 flex-col items-center gap-1.5 text-center">
             {fila ? (
-              <div
-                className="podio-asomar flex min-w-0 max-w-full flex-col items-center gap-1.5"
+              <button
+                type="button"
+                onClick={() => onOpen(fila.member)}
+                aria-label={t("ficha.open", { name: fila.nombre })}
+                className="podio-asomar flex min-w-0 max-w-full cursor-pointer flex-col items-center gap-1.5 rounded-xl p-1 transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 style={{ animationDelay: `${empieza + 0.35}s` }}
               >
                 <Avatar
@@ -561,7 +582,7 @@ function Podio({
                     count: fila.jugados,
                   })}
                 </span>
-              </div>
+              </button>
             ) : (
               <span className="text-xs text-muted-foreground">{t("members.podiumFree")}</span>
             )}
@@ -667,6 +688,7 @@ function Tabla({
   canManage,
   menu,
   podio,
+  onOpen,
 }: {
   filas: Fila[];
   medida: Medida;
@@ -676,6 +698,7 @@ function Tabla({
   canManage: boolean;
   menu: (f: Fila) => React.ReactNode;
   podio: Fila[];
+  onOpen: (member: TeamMember) => void;
 }) {
   const { t, i18n } = useTranslation();
   const valor = useValor();
@@ -736,10 +759,14 @@ function Tabla({
                   {i + 1}
                 </td>
                 <td className="px-2 py-2.5">
-                  <div className="flex min-w-0 items-center gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => onOpen(f.member)}
+                    className="group flex min-w-0 cursor-pointer items-center gap-2.5 rounded-md text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
                     <Avatar fila={f} className="size-8 text-2xs" />
                     <div className="min-w-0">
-                      <p className="font-semibold leading-tight break-words">
+                      <p className="font-semibold leading-tight break-words group-hover:text-primary group-hover:underline">
                         {f.member.role === "capitan" && (
                           <Crown
                             className="mr-1 inline size-3.5 -translate-y-px text-evt-torneo"
@@ -755,7 +782,7 @@ function Tabla({
                         </p>
                       )}
                     </div>
-                  </div>
+                  </button>
                 </td>
                 <td className="px-2 py-2.5 text-right">{f.jugados || "—"}</td>
                 {esPct && (
@@ -805,10 +832,12 @@ function Plantilla({
   filas,
   currentUserId,
   menu,
+  onOpen,
 }: {
   filas: Fila[];
   currentUserId: string | undefined;
   menu: (f: Fila) => React.ReactNode;
+  onOpen: (member: TeamMember) => void;
 }) {
   const { t, i18n } = useTranslation();
   const desde = new Intl.DateTimeFormat(i18n.language, { month: "short", year: "numeric" });
@@ -823,31 +852,37 @@ function Plantilla({
       <ul className="divide-y divide-border">
         {filas.map((f) => (
           <li key={f.member.id} className="flex items-center gap-3 px-4 py-3">
-            <Avatar fila={f} className="size-9 text-xs" />
-            <div className="min-w-0 flex-1">
-              <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-semibold break-words">
-                {f.nombre}
-                {f.dueno && (
-                  <span className="rounded-full border border-border bg-muted px-1.5 py-0.5 text-3xs font-bold uppercase tracking-widest text-muted-foreground">
-                    {t("members.owner")}
-                  </span>
-                )}
-                {f.member.user_id === currentUserId && (
-                  <span className="rounded-full bg-foreground px-1.5 py-0.5 text-3xs font-bold uppercase tracking-widest text-background">
-                    {t("members.you")}
-                  </span>
-                )}
-                <EtiquetaLado lado={f.lado} />
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {f.member.role !== "jugador" && (
-                  <span className={cn("font-semibold", COLOR_ROL[f.member.role])}>
-                    {t(`roles.${f.member.role}`)} ·{" "}
-                  </span>
-                )}
-                {t("members.since", { date: desde.format(new Date(f.member.joined_at)) })}
-              </p>
-            </div>
+            <button
+              type="button"
+              onClick={() => onOpen(f.member)}
+              className="group flex min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-md text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <Avatar fila={f} className="size-9 text-xs" />
+              <div className="min-w-0 flex-1">
+                <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-semibold break-words">
+                  {f.nombre}
+                  {f.dueno && (
+                    <span className="rounded-full border border-border bg-muted px-1.5 py-0.5 text-3xs font-bold uppercase tracking-widest text-muted-foreground">
+                      {t("members.owner")}
+                    </span>
+                  )}
+                  {f.member.user_id === currentUserId && (
+                    <span className="rounded-full bg-foreground px-1.5 py-0.5 text-3xs font-bold uppercase tracking-widest text-background">
+                      {t("members.you")}
+                    </span>
+                  )}
+                  <EtiquetaLado lado={f.lado} />
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {f.member.role !== "jugador" && (
+                    <span className={cn("font-semibold", COLOR_ROL[f.member.role])}>
+                      {t(`roles.${f.member.role}`)} ·{" "}
+                    </span>
+                  )}
+                  {t("members.since", { date: desde.format(new Date(f.member.joined_at)) })}
+                </p>
+              </div>
+            </button>
             {menu(f)}
           </li>
         ))}
