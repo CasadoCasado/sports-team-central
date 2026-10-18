@@ -676,9 +676,7 @@
       "llena": "Llena",
       "con": "con {{name}}",
       "libre": "Libre",
-      "quitarPista": "Quitar de la pista",
-      "convocar": "Convocar",
-      "desconvocar": "Desconvocar"
+      "quitarPista": "Quitar de la pista"
     },
     "banquillo": {
       "toca_one": "Banquillo · {{count}} sin pista · toca a uno",

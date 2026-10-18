@@ -92,12 +92,8 @@ test("en un partido jugado no se toca la convocatoria", async ({ page, request }
   await expect(page.getByRole("button", { name: /guardar resultados/i })).toBeVisible();
 });
 
-test("el ★ dice para qué sirve", async ({ page, request }) => {
+test("en pádel no hay casilla: convocado es estar en pista", async ({ page, request }) => {
   const { session: capitana, team } = await seedCaptainWithTeam(request, "estrella");
-  await seedPlayerInTeam(request, "estrella-sara", team.id, capitana, {
-    nombre: "Sara",
-    apellidos: "Lago",
-  });
   const ev = await request.post(`${API_URL}/events/`, {
     headers: bearer(capitana),
     data: {
@@ -107,21 +103,35 @@ test("el ★ dice para qué sirve", async ({ page, request }) => {
       rival: "Club Náutico",
       fecha_inicio: new Date(Date.now() + 86_400_000).toISOString(),
       requiere_convocatoria: true,
+      padel_num_pistas: 2,
     },
   });
   const { id } = (await ev.json()) as { id: string };
-  await request.post(`${API_URL}/event-responses/respond/`, {
+  const resp = await request.post(`${API_URL}/event-responses/respond/`, {
     headers: bearer(capitana),
     data: { event_id: id, status: "confirmado" },
   });
+  const { id: respId } = (await resp.json()) as { id: string };
 
   await loginAs(page, capitana);
   await page.goto(`/eventos/${id}`);
-  const casilla = page.getByRole("checkbox", { name: /convocar a marta casado/i });
-  await expect(casilla).toBeVisible({ timeout: 20_000 });
-  await expect(page.getByTitle(/convocar a marta casado: entra en el partido/i)).toBeVisible();
-  // Además se lee al lado, y al pasar el ratón sale la explicación enseguida.
-  await expect(page.getByText(/^convocar$/i).first()).toBeVisible();
-  await page.getByTitle(/convocar a marta casado: entra en el partido/i).hover();
-  await expect(page.getByRole("tooltip")).toContainText(/entra en el partido/i);
+  await expect(page.getByText(/marta casado/i).first()).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByRole("checkbox", { name: /convocar a/i })).toHaveCount(0);
+
+  // En pista queda convocada; sacarla de la pista la desconvoca.
+  const poner = (pista: number | null) =>
+    request.patch(`${API_URL}/event-responses/${respId}/`, {
+      headers: bearer(capitana),
+      data: { padel_pista: pista },
+    });
+  await poner(1);
+  await page.reload();
+  await expect(page.getByText(/★ pista 1/i)).toBeVisible({ timeout: 20_000 });
+  await poner(null);
+  const sinPista = await request.get(`${API_URL}/event-responses/`, {
+    headers: bearer(capitana),
+    params: { event_id: id },
+  });
+  const [r] = (await sinPista.json()) as { es_convocado: boolean }[];
+  expect(r.es_convocado).toBe(false);
 });

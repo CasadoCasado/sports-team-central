@@ -1096,8 +1096,10 @@ function CallupSection({
                     />
                   )}
                   {/* ★ = convocado: el que entra en el partido, no solo
-                      apuntado. Jugado el partido ya no se cambia. */}
-                  {isManager && !jugado && (
+                      apuntado. Jugado el partido ya no se cambia. En pádel
+                      no hay casilla: convocado es estar en pista, y se
+                      convoca y desconvoca desde el reparto de pistas. */}
+                  {isManager && !jugado && !hayQuimica && (
                     <TooltipProvider delayDuration={150}>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -1143,6 +1145,11 @@ function CallupSection({
                       className="text-2xs font-bold uppercase tracking-widest text-primary"
                     >
                       ★
+                    </span>
+                  )}
+                  {hayQuimica && !jugado && r.es_convocado && r.padel_pista != null && (
+                    <span className="text-2xs font-bold uppercase tracking-widest text-primary">
+                      ★ {t("callups.pista")} {r.padel_pista}
                     </span>
                   )}
                 </div>

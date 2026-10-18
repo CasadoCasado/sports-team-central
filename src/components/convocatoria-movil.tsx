@@ -161,11 +161,6 @@ export function ListaCompacta({
                   <span className="shrink-0 rounded-md bg-primary/10 px-2 py-1 text-2xs font-extrabold text-primary">
                     {t("callups.movil.pistaCorta", { n: r.padel_pista })}
                   </span>
-                ) : r.es_convocado ? (
-                  <Star
-                    className="size-4 shrink-0 fill-primary text-primary"
-                    aria-label={t("callups.convocadoCorto")}
-                  />
                 ) : (
                   <span className="shrink-0 rounded-md border border-dashed border-border px-2 py-1 text-2xs font-bold text-muted-foreground">
                     —
@@ -327,33 +322,17 @@ function HojaJugador({
             </div>
           )}
 
-          <div className="flex gap-2">
-            {r.padel_pista != null && (
-              <Button
-                variant="outline"
-                disabled={guardando}
-                onClick={() => void cambiar({ padel_pista: null })}
-                className="flex-1"
-              >
-                {t("callups.movil.quitarPista")}
-              </Button>
-            )}
+          {/* Convocado es estar en pista: sacarlo de la pista lo desconvoca. */}
+          {r.padel_pista != null && (
             <Button
-              variant={r.es_convocado ? "outline" : "default"}
+              variant="outline"
               disabled={guardando}
-              onClick={() =>
-                void cambiar(
-                  r.es_convocado
-                    ? { es_convocado: false, padel_pista: null }
-                    : { es_convocado: true },
-                )
-              }
-              className="flex-1"
+              onClick={() => void cambiar({ padel_pista: null })}
+              className="w-full"
             >
-              <Star className="mr-1.5 size-4" aria-hidden="true" />
-              {r.es_convocado ? t("callups.movil.desconvocar") : t("callups.movil.convocar")}
+              {t("callups.movil.quitarPista")}
             </Button>
-          </div>
+          )}
         </div>
       </DrawerContent>
     </Drawer>

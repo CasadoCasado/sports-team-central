@@ -676,9 +676,7 @@
       "llena": "Full",
       "con": "with {{name}}",
       "libre": "Free",
-      "quitarPista": "Take off court",
-      "convocar": "Call up",
-      "desconvocar": "Remove call-up"
+      "quitarPista": "Take off court"
     },
     "banquillo": {
       "toca_one": "Bench · {{count}} without court · tap one",
