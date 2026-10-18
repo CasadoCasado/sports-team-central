@@ -221,15 +221,17 @@ function Matches() {
             const count = resps.length;
             const isOpen = expanded === e.id;
             return (
-              <div key={e.id} className="p-4">
+              <div key={e.id} className="@container p-4">
                 {/* Los botones, bajo el enfrentamiento mientras no quepan al
-                    lado: en una sola fila el título se quedaba en un tercio. */}
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+                    lado: en una sola fila el título se quedaba en un tercio,
+                    o en nada. Lo decide el ancho de la tarjeta, no el de la
+                    pantalla (con el menú abierto o en tableta es menos). */}
+                <div className="flex flex-col gap-3 @3xl:flex-row @3xl:items-center @3xl:gap-4">
                   <Link
                     to="/eventos/$id"
                     params={{ id: e.id }}
                     search={{ desde: "enfrentamientos" }}
-                    className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4"
+                    className="flex min-w-0 flex-1 items-center gap-3 @3xl:min-w-64 @3xl:gap-4"
                   >
                     <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-danger/10 text-danger ring-1 ring-danger/30">
                       <Swords className="size-5" />
@@ -253,7 +255,7 @@ function Matches() {
                       </div>
                     </div>
                   </Link>
-                  <div className="flex shrink-0 flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2 @3xl:max-w-[55%] @3xl:justify-end">
                     {isPadel && myResp && myResp.status !== "rechazado" && (
                       <LineaQuimica
                         confirmada={e.convocatoria_confirmada}
@@ -268,7 +270,7 @@ function Matches() {
                         size="sm"
                         variant="outline"
                         onClick={() => withdraw.mutate(myResp.id)}
-                        className="flex-1 uppercase text-2xs font-bold tracking-widest sm:flex-none"
+                        className="flex-1 uppercase text-2xs font-bold tracking-widest @3xl:flex-none"
                       >
                         <Check className="mr-1 size-3" /> {t("callups.withdraw")}
                       </Button>
@@ -276,7 +278,7 @@ function Matches() {
                       <Button
                         size="sm"
                         onClick={() => signUp.mutate(e.id)}
-                        className="flex-1 bg-primary text-primary-foreground uppercase text-2xs font-bold tracking-widest hover:opacity-90 sm:flex-none"
+                        className="flex-1 bg-primary text-primary-foreground uppercase text-2xs font-bold tracking-widest hover:opacity-90 @3xl:flex-none"
                       >
                         {t("callups.signUp")}
                       </Button>
