@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 
 import { useSession } from "@/hooks/use-session";
 import { api } from "@/lib/api";
@@ -59,6 +59,28 @@ export function setActiveTeamId(id: string) {
   listeners.forEach((fn) => fn());
 }
 
+function aPertenencias(filas: TeamMember[]): ActiveTeamMembership[] {
+  return filas
+    .filter((m) => m.team)
+    .map((m) => ({ team_id: m.team_id, role: m.role, team: m.team }));
+}
+
+async function misPertenencias(qc: QueryClient, userId: string | undefined) {
+  return aPertenencias(await pedirMisEquipos(qc, userId));
+}
+
+/**
+ * Trae los equipos de quien acaba de entrar antes de ir a la app y los deja
+ * donde los buscan Inicio (`my-teams`) y el equipo activo: así Inicio aparece
+ * ya con su equipo, sin volver a pedirlos. Es una sola petición. Ver
+ * «Preparando tu equipo…» en `routes/auth.tsx`.
+ */
+export async function prepararEquipos(qc: QueryClient, userId: string) {
+  const filas = await pedirMisEquipos(qc, userId);
+  qc.setQueryData(["my-teams", userId], filas);
+  qc.setQueryData(["active-team-memberships", userId], aPertenencias(filas));
+}
+
 export function useActiveTeam() {
   const { user } = useSession();
   const qc = useQueryClient();
@@ -66,12 +88,7 @@ export function useActiveTeam() {
   const query = useQuery({
     queryKey: ["active-team-memberships", user?.id],
     enabled: !!user,
-    queryFn: async (): Promise<ActiveTeamMembership[]> => {
-      const rows = await pedirMisEquipos(qc, user?.id);
-      return rows
-        .filter((m) => m.team)
-        .map((m) => ({ team_id: m.team_id, role: m.role, team: m.team }));
-    },
+    queryFn: () => misPertenencias(qc, user?.id),
   });
 
   const activeId = useSyncExternalStore(suscribir, leer, () => null);

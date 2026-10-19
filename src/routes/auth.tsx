@@ -1,19 +1,28 @@
 import { LOGO_URL } from "@/lib/brand";
 import { createFileRoute, Link, redirect, useHydrated, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { toast } from "sonner";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ApiError } from "@/lib/api";
-import { hasSession, signInWithPassword, signUp } from "@/lib/auth";
+import {
+  estaEntrando,
+  fetchUser,
+  hasSession,
+  marcarEntrando,
+  signInWithPassword,
+  signUp,
+} from "@/lib/auth";
 import { getJoinPreview, joinTeamByCode } from "@/lib/join-team";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LangToggle } from "@/components/lang-toggle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Guardando } from "@/components/guardando";
 import { Turnstile } from "@/components/turnstile";
+import { prepararEquipos } from "@/hooks/use-active-team";
 import { turnstileActivo } from "@/lib/turnstile";
 
 const authSearchSchema = z.object({
@@ -44,7 +53,10 @@ export const Route = createFileRoute("/auth")({
   validateSearch: authSearchSchema,
   beforeLoad: ({ search }) => {
     if (typeof window === "undefined") return;
-    if (hasSession()) {
+    // Mientras el formulario está entrando, navega él cuando acaba (ver
+    // `marcarEntrando`); si no, al abrirse la sesión el router saltaba a
+    // Inicio en el acto, sin animación y con la página aún vacía.
+    if (hasSession() && !estaEntrando()) {
       // Con sesión, el enlace se acepta desde su propia página.
       if (search.unirse) {
         throw redirect({ to: "/unirse/$codigo", params: { codigo: search.unirse } });
@@ -67,7 +79,14 @@ function AuthPage() {
     queryFn: () => getJoinPreview(unirse!),
     retry: false,
   });
-  const [loading, setLoading] = useState(false);
+  // Mientras se entra, la pelota en la pista a pantalla completa (`Guardando`)
+  // con lo que se está haciendo: entrar, preparar el equipo o crear la cuenta.
+  // Sin ella, el botón se quedaba gris y parecía que la app no hacía nada,
+  // sobre todo con el servidor de la demo recién despertado.
+  const [fase, setFase] = useState<"entrando" | "preparando" | "creando" | null>(null);
+  const loading = fase !== null;
+  const lento = useTardando(fase);
+  const qc = useQueryClient();
 
   const [nombre, setNombre] = useState("");
   const [apellidos, setApellidos] = useState("");
@@ -115,7 +134,8 @@ function AuthPage() {
       return;
     }
 
-    setLoading(true);
+    setFase(mode === "signup" ? "creando" : "entrando");
+    marcarEntrando(true);
     try {
       if (mode === "signup") {
         await signUp({ email, password, nombre, apellidos, turnstile: reto });
@@ -123,17 +143,26 @@ function AuthPage() {
         await signInWithPassword(email, password);
       }
       if (unirse && (await joinAfterAuth(unirse))) return;
+      if (mode === "login") {
+        // Con la sesión abierta, sus equipos, para que Inicio aparezca ya
+        // con ellos. Si algo falla aquí, Inicio los pedirá por su cuenta.
+        setFase("preparando");
+        const yo = await fetchUser(true);
+        if (yo) await prepararEquipos(qc, yo.id).catch(() => {});
+      }
       toast.success(mode === "signup" ? t("auth.signupSuccess") : t("auth.loginSuccess"));
       // El alta deja la sesión iniciada, así que se va derecho al onboarding.
+      // La animación sigue hasta que esta pantalla desaparece.
+      marcarEntrando(false);
       navigate({ to: mode === "signup" ? "/onboarding" : "/inicio", replace: true });
     } catch (err) {
+      marcarEntrando(false);
+      setFase(null);
       toast.error(err instanceof Error ? err.message : t("common.error"));
       if (mode === "signup" && turnstileActivo) {
         setReto(null);
         setRetoVez((n) => n + 1);
       }
-    } finally {
-      setLoading(false);
     }
   }
 
@@ -145,6 +174,7 @@ function AuthPage() {
     try {
       const team = await joinTeamByCode(codigo);
       toast.success(t("joinLink.joined", { team: team.nombre }));
+      marcarEntrando(false);
       navigate({ to: "/mi-equipo", replace: true });
       return true;
     } catch (err) {
@@ -274,6 +304,11 @@ function AuthPage() {
             )}
 
             {mode === "signup" && <Turnstile key={retoVez} onRespuesta={setReto} />}
+            <Guardando
+              activo={loading}
+              inmediato
+              texto={lento ? t("auth.fase.tardando") : fase ? t(`auth.fase.${fase}`) : undefined}
+            />
 
             <Button
               type="submit"
@@ -298,4 +333,21 @@ function AuthPage() {
       </div>
     </div>
   );
+}
+
+/**
+ * Si una fase lleva más de unos segundos: el servidor estaba dormido. Cuenta
+ * desde cada cambio de fase, para que el aviso no se arrastre a la siguiente.
+ */
+function useTardando(fase: string | null, tras = 6_000) {
+  const [lento, setLento] = useState(false);
+  useEffect(() => {
+    if (!fase) return;
+    const id = setTimeout(() => setLento(true), tras);
+    return () => {
+      clearTimeout(id);
+      setLento(false);
+    };
+  }, [fase, tras]);
+  return lento;
 }
