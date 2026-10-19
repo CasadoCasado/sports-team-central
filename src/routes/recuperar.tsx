@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useHydrated } from "@tanstack/react-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
@@ -31,6 +31,8 @@ function Recuperar() {
   const [email, setEmail] = useState(search.email ?? "");
   const [enviado, setEnviado] = useState(false);
   const [enviando, setEnviando] = useState(false);
+  // Hasta hidratar ni se escribe ni se envía (ver restablecer.tsx).
+  const hidratado = useHydrated();
   const [error, setError] = useState<string | null>(null);
 
   async function enviar(e: React.FormEvent) {
@@ -78,6 +80,7 @@ function Recuperar() {
               }}
               autoComplete="email"
               maxLength={255}
+              disabled={!hidratado}
               aria-invalid={error ? true : undefined}
               aria-describedby={error ? "email-error" : undefined}
             />
@@ -89,7 +92,7 @@ function Recuperar() {
           </div>
           <Button
             type="submit"
-            disabled={enviando}
+            disabled={enviando || !hidratado}
             className="w-full bg-primary text-primary-foreground uppercase tracking-widest font-bold hover:opacity-90"
           >
             {t("recuperar.enviar")}

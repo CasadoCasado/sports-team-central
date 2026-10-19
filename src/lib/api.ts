@@ -10,6 +10,7 @@
  */
 
 import { API_URL, getAccessToken, refreshAccessToken, signOut } from "./auth";
+import i18n from "@/i18n";
 
 export class ApiError extends Error {
   constructor(
@@ -26,6 +27,7 @@ export class ApiError extends Error {
 async function errorMessage(res: Response): Promise<[string, unknown]> {
   try {
     const body = await res.json();
+    if (body?.codigo === "demasiados_intentos") return [i18n.t("common.tooManyAttempts"), body];
     if (typeof body?.detail === "string") return [body.detail, body];
     const first = Object.entries(body ?? {})[0];
     if (first) {

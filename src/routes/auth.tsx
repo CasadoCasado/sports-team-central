@@ -1,5 +1,5 @@
 import { LOGO_URL } from "@/lib/brand";
-import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect, useHydrated, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
@@ -13,6 +13,8 @@ import { LangToggle } from "@/components/lang-toggle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Turnstile } from "@/components/turnstile";
+import { turnstileActivo } from "@/lib/turnstile";
 
 const authSearchSchema = z.object({
   mode: z.enum(["login", "signup"]).optional(),
@@ -24,9 +26,17 @@ export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
       { title: "Iniciar sesión o crear cuenta | TeamUp" },
-      { name: "description", content: "Accede a TeamUp para gestionar tu equipo: convocatorias, entrenamientos, resultados y comunicación." },
+      {
+        name: "description",
+        content:
+          "Accede a TeamUp para gestionar tu equipo: convocatorias, entrenamientos, resultados y comunicación.",
+      },
       { property: "og:title", content: "Iniciar sesión o crear cuenta | TeamUp" },
-      { property: "og:description", content: "Accede a TeamUp para gestionar tu equipo: convocatorias, entrenamientos, resultados y comunicación." },
+      {
+        property: "og:description",
+        content:
+          "Accede a TeamUp para gestionar tu equipo: convocatorias, entrenamientos, resultados y comunicación.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -65,6 +75,13 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
+  // Turnstile: la respuesta del reto, y una llave para pedir otro cuando el
+  // registro falla (cada respuesta vale una sola vez).
+  const [reto, setReto] = useState<string | null>(null);
+  const [retoVez, setRetoVez] = useState(0);
+  // Hasta hidratar ni se escribe ni se envía: lo escrito antes no llegaba al
+  // estado y el envío era el del navegador (ver restablecer.tsx).
+  const hidratado = useHydrated();
 
   const schema =
     mode === "signup"
@@ -101,7 +118,7 @@ function AuthPage() {
     setLoading(true);
     try {
       if (mode === "signup") {
-        await signUp({ email, password, nombre, apellidos });
+        await signUp({ email, password, nombre, apellidos, turnstile: reto });
       } else {
         await signInWithPassword(email, password);
       }
@@ -111,6 +128,10 @@ function AuthPage() {
       navigate({ to: mode === "signup" ? "/onboarding" : "/inicio", replace: true });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("common.error"));
+      if (mode === "signup" && turnstileActivo) {
+        setReto(null);
+        setRetoVez((n) => n + 1);
+      }
     } finally {
       setLoading(false);
     }
@@ -138,7 +159,13 @@ function AuthPage() {
       <div className="flex flex-1 flex-col items-center justify-center px-4 py-10 sm:px-6 sm:py-12">
         <div className="w-full max-w-md">
           <Link to="/" className="mb-8 flex items-center gap-3">
-            <img src={LOGO_URL} alt="TeamUp" className="size-8 object-contain" width={32} height={32} />
+            <img
+              src={LOGO_URL}
+              alt="TeamUp"
+              className="size-8 object-contain"
+              width={32}
+              height={32}
+            />
             <span className="text-display text-lg font-extrabold uppercase tracking-tight">
               {t("app.name")}
             </span>
@@ -169,16 +196,20 @@ function AuthPage() {
                   <Label htmlFor="nombre">{t("auth.nombre")}</Label>
                   <Input
                     id="nombre"
+                    disabled={!hidratado}
                     value={nombre}
                     onChange={(e) => setNombre(e.target.value)}
                     maxLength={80}
                   />
-                  {errors.nombre && <p className="mt-1 text-xs text-destructive">{errors.nombre}</p>}
+                  {errors.nombre && (
+                    <p className="mt-1 text-xs text-destructive">{errors.nombre}</p>
+                  )}
                 </div>
                 <div>
                   <Label htmlFor="apellidos">{t("auth.apellidos")}</Label>
                   <Input
                     id="apellidos"
+                    disabled={!hidratado}
                     value={apellidos}
                     onChange={(e) => setApellidos(e.target.value)}
                     maxLength={120}
@@ -193,6 +224,7 @@ function AuthPage() {
               <Label htmlFor="email">{t("auth.email")}</Label>
               <Input
                 id="email"
+                disabled={!hidratado}
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -205,6 +237,7 @@ function AuthPage() {
               <Label htmlFor="password">{t("auth.password")}</Label>
               <Input
                 id="password"
+                disabled={!hidratado}
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -228,6 +261,7 @@ function AuthPage() {
                 <Label htmlFor="confirm">{t("auth.confirmPassword")}</Label>
                 <Input
                   id="confirm"
+                  disabled={!hidratado}
                   type="password"
                   value={confirm}
                   onChange={(e) => setConfirm(e.target.value)}
@@ -239,9 +273,11 @@ function AuthPage() {
               </div>
             )}
 
+            {mode === "signup" && <Turnstile key={retoVez} onRespuesta={setReto} />}
+
             <Button
               type="submit"
-              disabled={loading}
+              disabled={loading || !hidratado || (mode === "signup" && turnstileActivo && !reto)}
               className="w-full bg-primary text-primary-foreground uppercase tracking-widest font-bold hover:opacity-90"
             >
               {mode === "signup" ? t("auth.signup") : t("auth.login")}

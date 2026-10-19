@@ -56,7 +56,8 @@
     "required": "Required field",
     "loginSuccess": "Signed in",
     "signupSuccess": "Account created. Check your email if needed.",
-    "logoutSuccess": "Signed out"
+    "logoutSuccess": "Signed out",
+    "turnstileFailed": "We could not verify you are not a robot. Please try again."
   },
   "onboarding": {
     "title": "How do you want to start?",
@@ -711,7 +712,8 @@
     "language": "Language",
     "optional": "Optional",
     "all": "All",
-    "noTeamSelected": "Pick or create a team to start"
+    "noTeamSelected": "Pick or create a team to start",
+    "tooManyAttempts": "Too many attempts. Wait a little and try again."
   },
   "chat": {
     "title": "Communications",
