@@ -4,14 +4,22 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { es as esLocale, enUS } from "date-fns/locale";
-import { ClipboardList, MapPin, Shield } from "lucide-react";
+import { useState } from "react";
+import { ChevronDown, ClipboardList, MapPin, Shield } from "lucide-react";
 import { api } from "@/lib/api";
 import { useSession } from "@/hooks/use-session";
-import { useActiveTeam } from "@/hooks/use-active-team";
+import { useActiveTeam, type ActiveTeamMembership } from "@/hooks/use-active-team";
 import { Picture } from "@/components/picture";
 import { eventTypeStyles, type EventType } from "@/lib/events";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import type { EventResponse, ResponseStatus, TeamEvent } from "@/lib/types";
 
 export const Route = createFileRoute("/_authenticated/convocatorias")({
@@ -46,6 +54,18 @@ function MyCallups() {
   // uno se agrupan por equipo.
   const { memberships } = useActiveTeam();
   const teamIds = memberships.map((m) => m.team_id);
+
+  // Con varios equipos se puede mirar uno solo. Es un filtro de esta
+  // pantalla y no cambia el equipo elegido del resto de la app (por eso no es
+  // el `TeamPicker`); se recuerda en la sesión para que al volver de un
+  // evento siga puesto.
+  const [filtro, setFiltroState] = useState<string | null>(leerFiltro);
+  const setFiltro = (id: string | null) => {
+    setFiltroState(id);
+    guardarFiltro(id);
+  };
+  const equipoFiltrado =
+    memberships.length > 1 ? (memberships.find((m) => m.team_id === filtro) ?? null) : null;
 
   // All upcoming partido/entrenamiento events for my teams (that require callup)
   const { data: events } = useQuery({
@@ -102,7 +122,9 @@ function MyCallups() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const list = events ?? [];
+  const list = equipoFiltrado
+    ? (events ?? []).filter((e) => e.team_id === equipoFiltrado.team_id)
+    : (events ?? []);
 
   const renderEvento = (e: TeamEvent) => {
     const style = eventTypeStyles[e.tipo as EventType];
@@ -164,7 +186,7 @@ function MyCallups() {
   // Con varios equipos, cada uno en su bloque. Van primero los que tienen la
   // convocatoria más cercana, y dentro de cada uno, por fecha.
   const grupos =
-    memberships.length > 1
+    memberships.length > 1 && !equipoFiltrado
       ? memberships
           .map((m) => ({ ...m, eventos: list.filter((e) => e.team_id === m.team_id) }))
           .filter((g) => g.eventos.length > 0)
@@ -178,6 +200,11 @@ function MyCallups() {
           {t("nav.convocatorias")}
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">{t("callups.subtitle")}</p>
+        {memberships.length > 1 && (
+          <div className="mt-3">
+            <FiltroEquipo memberships={memberships} elegido={equipoFiltrado} onElegir={setFiltro} />
+          </div>
+        )}
       </div>
 
       {list.length === 0 ? (
@@ -185,7 +212,9 @@ function MyCallups() {
           <div className="flex size-14 items-center justify-center rounded-full bg-primary/10 text-primary">
             <ClipboardList className="size-7" />
           </div>
-          <p className="text-sm text-muted-foreground">{t("callups.empty")}</p>
+          <p className="text-sm text-muted-foreground">
+            {t(equipoFiltrado ? "callups.emptyTeam" : "callups.empty")}
+          </p>
         </div>
       ) : grupos ? (
         <div className="space-y-6">
@@ -216,6 +245,80 @@ function MyCallups() {
         </ul>
       )}
     </div>
+  );
+}
+
+const FILTRO_KEY = "vestuario:convocatorias-equipo";
+
+function leerFiltro(): string | null {
+  try {
+    return sessionStorage.getItem(FILTRO_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function guardarFiltro(id: string | null) {
+  try {
+    if (id) sessionStorage.setItem(FILTRO_KEY, id);
+    else sessionStorage.removeItem(FILTRO_KEY);
+  } catch {
+    // Sin almacenamiento el filtro dura lo que dure la pantalla.
+  }
+}
+
+/** Como el `TeamPicker`, pero con «Todos los equipos» delante. */
+function FiltroEquipo({
+  memberships,
+  elegido,
+  onElegir,
+}: {
+  memberships: ActiveTeamMembership[];
+  elegido: ActiveTeamMembership | null;
+  onElegir: (id: string | null) => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger className="inline-flex min-h-9 min-w-0 max-w-full items-center gap-2 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-bold uppercase tracking-widest transition-colors hover:border-primary/40">
+        {elegido ? (
+          <Picture
+            url={elegido.team.logo_url}
+            alt=""
+            className="size-5 shrink-0 rounded-sm"
+            fallback={<Shield className="size-3.5 text-primary" />}
+          />
+        ) : (
+          <Shield className="size-4 shrink-0 text-primary" aria-hidden="true" />
+        )}
+        <span className="min-w-0 truncate">
+          {elegido ? elegido.team.nombre : t("callups.allTeams")}
+        </span>
+        <ChevronDown className="size-3.5 shrink-0 opacity-60" />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-56">
+        <DropdownMenuItem onClick={() => onElegir(null)}>
+          <div className="flex w-full items-center gap-2">
+            <Shield className="size-4 text-primary" aria-hidden="true" />
+            <span className="flex-1 truncate">{t("callups.allTeams")}</span>
+          </div>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        {memberships.map((m) => (
+          <DropdownMenuItem key={m.team_id} onClick={() => onElegir(m.team_id)}>
+            <div className="flex w-full items-center gap-2">
+              <Picture
+                url={m.team.logo_url}
+                alt=""
+                className="size-5 rounded-sm"
+                fallback={<Shield className="size-4 text-primary" />}
+              />
+              <span className="flex-1 truncate">{m.team.nombre}</span>
+            </div>
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 

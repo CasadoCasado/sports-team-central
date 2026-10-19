@@ -4,8 +4,8 @@ import { API_URL, bearer, loginAs, seedCaptainWithTeam, type Session } from "./s
 
 /**
  * Convocatorias enseña las de todos tus equipos a la vez. Con más de uno, cada
- * equipo va en su bloque; con uno solo, una lista sin más, y sin selector de
- * equipo, que solo sale cuando hay entre qué elegir.
+ * equipo va en su bloque y hay un selector para mirar uno solo; con uno solo,
+ * una lista sin más, y sin selector, que solo sale cuando hay entre qué elegir.
  */
 
 async function convocatoria(
@@ -56,6 +56,24 @@ test.describe("Convocatorias de varios equipos", () => {
     const cajaA = await bloqueA.boundingBox();
     const cajaB = await bloqueB.boundingBox();
     expect(cajaB!.y).toBeLessThan(cajaA!.y);
+
+    // Elegir un equipo deja solo sus convocatorias, sin bloques.
+    await page.getByRole("button", { name: /todos los equipos/i }).click();
+    await page.getByRole("menuitem", { name: b.nombre }).click();
+    await expect(page.getByText("Otro de B")).toBeVisible();
+    await expect(page.getByText("Entreno de A")).toHaveCount(0);
+    await expect(page.getByRole("region", { name: b.nombre })).toHaveCount(0);
+
+    // Y se mantiene al volver de un evento.
+    await page.getByText("Otro de B").click();
+    await page.goBack();
+    await expect(page.getByText("Otro de B")).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByText("Entreno de A")).toHaveCount(0);
+
+    // «Todos los equipos» vuelve a enseñarlas todas.
+    await page.getByRole("button", { name: b.nombre }).click();
+    await page.getByRole("menuitem", { name: /todos los equipos/i }).click();
+    await expect(page.getByText("Entreno de A")).toBeVisible();
   });
 
   test("con un equipo, una lista sin bloques", async ({ page, request }) => {
@@ -67,5 +85,6 @@ test.describe("Convocatorias de varios equipos", () => {
 
     await expect(page.getByText("Entreno único")).toBeVisible({ timeout: 20_000 });
     await expect(page.getByRole("region", { name: team.nombre })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: /todos los equipos/i })).toHaveCount(0);
   });
 });

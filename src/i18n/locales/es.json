@@ -606,6 +606,8 @@
     "playerRemoved": "Jugador retirado",
     "closesAt": "Cierra el {{date}}",
     "subtitle": "Partidos y entrenamientos próximos de tus equipos.",
+    "allTeams": "Todos los equipos",
+    "emptyTeam": "Este equipo no tiene convocatorias pendientes",
     "signUp": "Apuntarme",
     "signedUp": "Apuntado",
     "withdraw": "Desapuntarme",

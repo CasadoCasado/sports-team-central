@@ -606,6 +606,8 @@
     "playerRemoved": "Player removed",
     "closesAt": "Closes on {{date}}",
     "subtitle": "Upcoming matches and trainings from your teams.",
+    "allTeams": "All teams",
+    "emptyTeam": "This team has no pending call-ups",
     "signUp": "Sign me up",
     "signedUp": "Signed up",
     "withdraw": "Withdraw",
