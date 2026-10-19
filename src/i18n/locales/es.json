@@ -57,7 +57,13 @@
     "loginSuccess": "Sesión iniciada",
     "signupSuccess": "Cuenta creada. Revisa tu correo si es necesario.",
     "logoutSuccess": "Sesión cerrada",
-    "turnstileFailed": "No hemos podido comprobar que no eres un robot. Vuelve a intentarlo."
+    "turnstileFailed": "No hemos podido comprobar que no eres un robot. Vuelve a intentarlo.",
+    "fase": {
+      "entrando": "Entrando…",
+      "preparando": "Preparando tu equipo…",
+      "creando": "Creando tu cuenta…",
+      "tardando": "Está tardando un poco más de lo normal…"
+    }
   },
   "onboarding": {
     "title": "¿Cómo quieres empezar?",

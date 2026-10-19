@@ -187,6 +187,26 @@ export function refreshAccessToken(): Promise<string | null> {
   return refreshing;
 }
 
+/**
+ * True desde que se pulsa «Iniciar sesión» o «Crear cuenta» en `/auth` hasta
+ * que el formulario navega o falla. Al abrirse la sesión, `__root.tsx` hace
+ * `router.invalidate()` y el `beforeLoad` de `/auth` redirigía a Inicio en el
+ * acto: sin la animación de «Preparando tu equipo…» y con la página vacía.
+ *
+ * Vive aquí y no en `routes/auth.tsx` porque el router parte esa ruta en dos
+ * módulos (configuración y componente) y una variable de allí quedaba
+ * duplicada: el formulario cambiaba una y `beforeLoad` leía la otra.
+ */
+let entrando = false;
+
+export function marcarEntrando(valor: boolean) {
+  entrando = valor;
+}
+
+export function estaEntrando() {
+  return entrando;
+}
+
 export async function signInWithPassword(email: string, password: string) {
   const data = (await post("/auth/login/", { email, password })) as Tokens;
   store({ access: data.access, refresh: data.refresh });

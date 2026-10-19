@@ -57,7 +57,13 @@
     "loginSuccess": "Signed in",
     "signupSuccess": "Account created. Check your email if needed.",
     "logoutSuccess": "Signed out",
-    "turnstileFailed": "We could not verify you are not a robot. Please try again."
+    "turnstileFailed": "We could not verify you are not a robot. Please try again.",
+    "fase": {
+      "entrando": "Signing you in…",
+      "preparando": "Getting your team ready…",
+      "creando": "Creating your account…",
+      "tardando": "This is taking a bit longer than usual…"
+    }
   },
   "onboarding": {
     "title": "How do you want to start?",
