@@ -1,0 +1,45 @@
+# Integración continua del frontend, en cada subida y pull request:
+# formato, lint, tipos, la compilación de Cloudflare y vulnerabilidades
+# conocidas en las librerías que llegan al navegador.
+#
+# El e2e (Playwright) necesita el backend, que vive en un repositorio
+# privado: lo pasa cada noche la CI de ese repositorio, con este `main`.
+
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  comprobar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci
+      - name: Formato
+        run: npx prettier --check .
+      - name: Lint
+        run: npx eslint .
+      - name: Tipos
+        run: npx tsc --noEmit -p .
+      - name: Compilación
+        env:
+          # La URL real de la API se pone en Cloudflare; aquí solo se
+          # comprueba que compila.
+          TEAMUP_ALLOW_NO_API_URL: "1"
+        run: npm run build
+      - name: Vulnerabilidades
+        run: npm audit --omit=dev --audit-level=high

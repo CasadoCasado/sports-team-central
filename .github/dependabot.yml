@@ -1,0 +1,28 @@
+# Dependabot: un pull request por librería con versión nueva, los lunes. Las
+# de seguridad llegan en cuanto se publican (Settings → Code security →
+# Dependabot security updates).
+#
+# `cooldown`: no propone una versión hasta que lleva una semana publicada; es
+# la misma idea que `minimumReleaseAge` en bunfig.toml.
+
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 5
+    groups:
+      menores:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 7
