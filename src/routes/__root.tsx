@@ -13,7 +13,7 @@ import { Toaster } from "sonner";
 import { ConfirmHost } from "@/components/confirm-dialog";
 
 import appCss from "../styles.css?url";
-import { reportLovableError } from "../lib/lovable-error-reporting";
+import { iniciarErrores, reportarError } from "@/lib/errores";
 import { onAuthStateChange } from "@/lib/auth";
 import i18n from "@/i18n";
 import { registerServiceWorker } from "@/lib/register-sw";
@@ -62,7 +62,7 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
   console.error(error);
   const router = useRouter();
   useEffect(() => {
-    reportLovableError(error, { boundary: "tanstack_root_error_component" });
+    reportarError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
 
   return (
@@ -174,6 +174,7 @@ function RootComponent() {
   }, []);
 
   useEffect(() => fijarPantalla(), []);
+  useEffect(() => iniciarErrores(), []);
 
   useEffect(() => {
     const saved = localStorage.getItem("i18nextLng");
