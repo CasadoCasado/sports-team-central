@@ -6,6 +6,7 @@ import {
   useRouter,
   HeadContent,
   Scripts,
+  type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 import { Toaster } from "sonner";
@@ -57,7 +58,7 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+function ErrorComponent({ error, reset }: ErrorComponentProps) {
   console.error(error);
   const router = useRouter();
   useEffect(() => {
@@ -182,8 +183,8 @@ function RootComponent() {
           ? "en"
           : "es"
         : navigator.language.startsWith("en")
-        ? "en"
-        : "es";
+          ? "en"
+          : "es";
     if (detected !== i18n.language) i18n.changeLanguage(detected);
     const persist = (lng: string) => localStorage.setItem("i18nextLng", lng);
     i18n.on("languageChanged", persist);
