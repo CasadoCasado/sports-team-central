@@ -3,7 +3,7 @@ import { join } from "node:path";
 
 import { test, expect } from "@playwright/test";
 
-import { API_URL, PASSWORD, seedCaptainWithTeam } from "./session";
+import { API_URL, loginAs, PASSWORD, seedCaptainWithTeam } from "./session";
 
 /**
  * Recuperar la contraseña: «¿Has olvidado tu contraseña?», el enlace del
@@ -86,4 +86,31 @@ test("quien olvida la contraseña la cambia con el enlace del correo y entra", a
   await page.getByLabel(/confirmar contraseña|repite/i).fill("Otra-Distinta-88");
   await page.getByRole("button", { name: /guardar y entrar/i }).click();
   await expect(page.getByRole("alert")).toContainText(/ya no vale/i);
+});
+
+test("al cambiar la contraseña, la sesión abierta en otro sitio se cierra", async ({
+  page,
+  request,
+}) => {
+  const { session } = await seedCaptainWithTeam(request, "recuperar-cierra");
+  await loginAs(page, session);
+  await page.goto("/inicio");
+  await expect(page).toHaveURL(/\/inicio/);
+
+  // Desde otro sitio (el móvil, por ejemplo) se cambia la contraseña.
+  await request.post(`${API_URL}/auth/password-reset/`, { data: { email: session.email } });
+  let enlace: string | null = null;
+  await expect(async () => {
+    enlace = enlaceDe(session.email);
+    expect(enlace).not.toBeNull();
+  }).toPass({ timeout: 10_000 });
+  const params = new URL(enlace!).searchParams;
+  const cambio = await request.post(`${API_URL}/auth/password-reset/confirm/`, {
+    data: { uid: params.get("uid"), token: params.get("token"), password: "Pala-de-carbono-77" },
+  });
+  expect(cambio.ok()).toBe(true);
+
+  // Aquí la sesión de antes ya no vale, ni renovándola: de vuelta a entrar.
+  await page.reload();
+  await expect(page).toHaveURL(/\/auth/, { timeout: 20_000 });
 });
