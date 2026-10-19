@@ -26,10 +26,7 @@ function diaDelMesActual(dia: number) {
 }
 
 test.describe("Crear un evento desde el día del calendario", () => {
-  test("la gestión toca un día y el formulario llega con esa fecha", async ({
-    page,
-    request,
-  }) => {
+  test("la gestión toca un día y el formulario llega con esa fecha", async ({ page, request }) => {
     const { session: captain } = await seedCaptainWithTeam(request, "dia-cap");
     await loginAs(page, captain);
 
@@ -53,10 +50,7 @@ test.describe("Crear un evento desde el día del calendario", () => {
     await expect(inicio).toHaveValue(new RegExp(`^${esperado}T\\d{2}:\\d{2}$`));
   });
 
-  test("tocar un evento sigue llevando a su detalle, no a crear", async ({
-    page,
-    request,
-  }) => {
+  test("tocar un evento sigue llevando a su detalle, no a crear", async ({ page, request }) => {
     const { session: captain, team } = await seedCaptainWithTeam(request, "dia-ev");
     const manana = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
     const res = await request.post(`${API_URL}/events/`, {

@@ -14,9 +14,13 @@ export function LangToggle() {
       aria-label="Toggle language"
       suppressHydrationWarning
     >
-      <span className={lang === "es" ? "text-primary" : ""} suppressHydrationWarning>ES</span>
+      <span className={lang === "es" ? "text-primary" : ""} suppressHydrationWarning>
+        ES
+      </span>
       <span className="opacity-40">/</span>
-      <span className={lang === "en" ? "text-primary" : ""} suppressHydrationWarning>EN</span>
+      <span className={lang === "en" ? "text-primary" : ""} suppressHydrationWarning>
+        EN
+      </span>
     </button>
   );
 }

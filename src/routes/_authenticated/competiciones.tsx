@@ -75,7 +75,7 @@ function getCompetitionStatus(
     end.setHours(23, 59, 59, 999);
   }
   if (!start && !end && c.tipo === "liga" && c.temporada) {
-    const m = c.temporada.match(/^(\d{4})\s*[/\-]\s*(\d{2,4})$/);
+    const m = c.temporada.match(/^(\d{4})\s*[/-]\s*(\d{2,4})$/);
     if (m) {
       const y1 = Number(m[1]);
       const y2Raw = Number(m[2]);
@@ -102,9 +102,17 @@ export const Route = createFileRoute("/_authenticated/competiciones")({
   head: () => ({
     meta: [
       { title: "Competiciones | TeamUp" },
-      { name: "description", content: "Torneos, copas y amistosos de tu equipo con fechas de inicio, fin y estado actual." },
+      {
+        name: "description",
+        content:
+          "Torneos, copas y amistosos de tu equipo con fechas de inicio, fin y estado actual.",
+      },
       { property: "og:title", content: "Competiciones | TeamUp" },
-      { property: "og:description", content: "Torneos, copas y amistosos de tu equipo con fechas de inicio, fin y estado actual." },
+      {
+        property: "og:description",
+        content:
+          "Torneos, copas y amistosos de tu equipo con fechas de inicio, fin y estado actual.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -136,7 +144,9 @@ function CompetitionsPage() {
           <h1 className="text-display text-2xl font-black tracking-tight sm:text-3xl">
             {t("nav.competiciones")}
           </h1>
-          <div className="mt-1 flex"><TeamPicker /></div>
+          <div className="mt-1 flex">
+            <TeamPicker />
+          </div>
         </div>
         {isManager && (
           <Button
@@ -173,13 +183,8 @@ function CompetitionsPage() {
 
       <OfficialRegistrationsSection teamId={active.team_id} canManage={isManager} />
 
-
       {editing && active && (
-        <CompDialog
-          teamId={active.team_id}
-          initial={editing}
-          onClose={() => setEditing(null)}
-        />
+        <CompDialog teamId={active.team_id} initial={editing} onClose={() => setEditing(null)} />
       )}
     </div>
   );
@@ -248,12 +253,24 @@ function CompCard({
         </div>
         {canManage && (
           <div className="flex shrink-0 gap-1">
-            <button onClick={onEdit} className="inline-flex size-9 items-center justify-center rounded-md border border-border hover:bg-card" aria-label={t("common.edit")}>
+            <button
+              onClick={onEdit}
+              className="inline-flex size-9 items-center justify-center rounded-md border border-border hover:bg-card"
+              aria-label={t("common.edit")}
+            >
               <Pencil className="size-3.5" />
             </button>
             <button
               onClick={async () => {
-                if (await confirmar({ title: t("confirm.deleteCompetitionTitle"), description: t("confirm.noUndo"), confirmLabel: t("confirm.delete"), tone: "danger" })) del.mutate();
+                if (
+                  await confirmar({
+                    title: t("confirm.deleteCompetitionTitle"),
+                    description: t("confirm.noUndo"),
+                    confirmLabel: t("confirm.delete"),
+                    tone: "danger",
+                  })
+                )
+                  del.mutate();
               }}
               className="inline-flex size-9 items-center justify-center rounded-md border border-border text-destructive hover:bg-card"
               aria-label={t("common.delete")}
@@ -281,9 +298,7 @@ function CompCard({
           )}
         </div>
       )}
-      {c.descripcion && (
-        <p className="mt-3 text-sm text-muted-foreground">{c.descripcion}</p>
-      )}
+      {c.descripcion && <p className="mt-3 text-sm text-muted-foreground">{c.descripcion}</p>}
       <Link
         to="/competiciones/$id"
         params={{ id: c.id }}
@@ -351,7 +366,7 @@ function CompDialog({
         team_id: teamId,
         nombre: nombre.trim(),
         tipo,
-        temporada: isLiga ? (temporada.trim() || null) : null,
+        temporada: isLiga ? temporada.trim() || null : null,
         fecha_inicio: !isLiga && fechaInicio ? fechaInicio : null,
         fecha_fin: !isLiga && fechaFin ? fechaFin : null,
         descripcion: descripcion.trim() || null,
@@ -394,15 +409,24 @@ function CompDialog({
         >
           <div>
             <Label>{t("competitions.nombre")}</Label>
-            <Input value={nombre} onChange={(e) => setNombre(e.target.value)} required maxLength={100} />
+            <Input
+              value={nombre}
+              onChange={(e) => setNombre(e.target.value)}
+              required
+              maxLength={100}
+            />
           </div>
           <div>
             <Label>{t("competitions.tipo")}</Label>
             <Select value={tipo} onValueChange={(v) => setTipo(v as CompType)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 {(["liga", "copa", "torneo", "amistoso"] as CompType[]).map((tp) => (
-                  <SelectItem key={tp} value={tp}>{t(`competitions.types.${tp}`)}</SelectItem>
+                  <SelectItem key={tp} value={tp}>
+                    {t(`competitions.types.${tp}`)}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -410,17 +434,31 @@ function CompDialog({
           {isLiga ? (
             <div>
               <Label>{t("competitions.temporada")}</Label>
-              <Input value={temporada} onChange={(e) => setTemporada(e.target.value)} placeholder="2025/26" maxLength={20} />
+              <Input
+                value={temporada}
+                onChange={(e) => setTemporada(e.target.value)}
+                placeholder="2025/26"
+                maxLength={20}
+              />
             </div>
           ) : (
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
                 <Label>{t("competitions.fechaInicio")}</Label>
-                <Input type="date" value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} />
+                <Input
+                  type="date"
+                  value={fechaInicio}
+                  onChange={(e) => setFechaInicio(e.target.value)}
+                />
               </div>
               <div>
                 <Label>{t("competitions.fechaFin")}</Label>
-                <Input type="date" value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} min={fechaInicio || undefined} />
+                <Input
+                  type="date"
+                  value={fechaFin}
+                  onChange={(e) => setFechaFin(e.target.value)}
+                  min={fechaInicio || undefined}
+                />
               </div>
             </div>
           )}
@@ -480,7 +518,9 @@ function CompDialog({
               onChange={(e) => setPuntosPista(e.target.value)}
               placeholder="3, 3, 2, 2, 2"
             />
-            <p className="mt-1.5 text-xxs text-muted-foreground">{t("competitions.puntosPistaHint")}</p>
+            <p className="mt-1.5 text-xxs text-muted-foreground">
+              {t("competitions.puntosPistaHint")}
+            </p>
           </div>
 
           <div>
@@ -489,28 +529,41 @@ function CompDialog({
               value={formato ?? "none"}
               onValueChange={(v) => setFormato(v === "none" ? null : (v as TrainingFormat))}
             >
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">{t("competitions.formatos.ninguno")}</SelectItem>
                 {FORMATOS.map((f) => (
-                  <SelectItem key={f} value={f}>{t(`competitions.formatos.${f}`)}</SelectItem>
+                  <SelectItem key={f} value={f}>
+                    {t(`competitions.formatos.${f}`)}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
             <p className="mt-1.5 text-xxs text-muted-foreground">
               {t(`competitions.formatoDesc.${formato ?? "ninguno"}`)}
             </p>
-            <p className="mt-1 text-xxs text-muted-foreground">
-              {t("competitions.formatoHint")}
-            </p>
+            <p className="mt-1 text-xxs text-muted-foreground">{t("competitions.formatoHint")}</p>
           </div>
           <div>
             <Label>{t("competitions.descripcion")}</Label>
-            <Textarea value={descripcion} onChange={(e) => setDescripcion(e.target.value)} rows={3} maxLength={500} />
+            <Textarea
+              value={descripcion}
+              onChange={(e) => setDescripcion(e.target.value)}
+              rows={3}
+              maxLength={500}
+            />
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>{t("common.cancel")}</Button>
-            <Button type="submit" disabled={saving} className="bg-primary text-primary-foreground uppercase tracking-widest font-bold hover:opacity-90">
+            <Button type="button" variant="outline" onClick={onClose}>
+              {t("common.cancel")}
+            </Button>
+            <Button
+              type="submit"
+              disabled={saving}
+              className="bg-primary text-primary-foreground uppercase tracking-widest font-bold hover:opacity-90"
+            >
               {isEdit ? t("common.save") : t("common.create")}
             </Button>
           </DialogFooter>

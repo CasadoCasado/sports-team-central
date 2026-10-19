@@ -85,13 +85,12 @@
   --gradient-brand: linear-gradient(120deg, var(--color-primary) 0%, var(--color-accent) 100%);
 }
 
-
 :root {
   --radius: 0.75rem;
 
   /* TeamUp — Blue / Emerald / Carbon */
-  --background: oklch(0.984 0.003 247);        /* #F8FAFC */
-  --foreground: oklch(0.279 0.041 260);        /* #1F2937 carbon */
+  --background: oklch(0.984 0.003 247); /* #F8FAFC */
+  --foreground: oklch(0.279 0.041 260); /* #1F2937 carbon */
 
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.279 0.041 260);
@@ -121,17 +120,17 @@
   --ring: oklch(0.546 0.215 263);
 
   /* Signature dark surfaces (sidebar / hero bands) */
-  --ink: oklch(0.279 0.041 260);               /* carbon #1F2937 */
+  --ink: oklch(0.279 0.041 260); /* carbon #1F2937 */
   --ink-foreground: oklch(0.98 0.003 247);
   --ink-muted: oklch(0.72 0.02 258);
   --cream: oklch(0.984 0.003 247);
 
   /* Event type colors */
-  --evt-entreno: oklch(0.696 0.149 162);       /* emerald */
-  --evt-partido: oklch(0.546 0.215 263);       /* electric blue */
-  --evt-torneo: oklch(0.75 0.16 70);           /* amber */
-  --evt-social: oklch(0.62 0.18 300);          /* violet */
-  --evt-reunion: oklch(0.62 0.11 220);         /* steel blue */
+  --evt-entreno: oklch(0.696 0.149 162); /* emerald */
+  --evt-partido: oklch(0.546 0.215 263); /* electric blue */
+  --evt-torneo: oklch(0.75 0.16 70); /* amber */
+  --evt-social: oklch(0.62 0.18 300); /* violet */
+  --evt-reunion: oklch(0.62 0.11 220); /* steel blue */
 
   --chart-1: var(--evt-partido);
   --chart-2: var(--evt-entreno);
@@ -146,15 +145,17 @@
      —contacto, cercana y ambiente—, como la luz de verdad, y un filo de luz
      arriba, por dentro, que les da volumen. Va aparte de `--sombra-card`, que
      también usan botones y chips, para no hacerlos pesados. */
-  --sombra-tarjeta: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 1px 2px rgba(31, 41, 55, 0.07),
+  --sombra-tarjeta:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 1px 2px rgba(31, 41, 55, 0.07),
     0 4px 8px -2px rgba(31, 41, 55, 0.08), 0 16px 32px -12px rgba(31, 41, 55, 0.2);
-  --sombra-tarjeta-hover: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 1px 2px rgba(31, 41, 55, 0.07),
+  --sombra-tarjeta-hover:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 1px 2px rgba(31, 41, 55, 0.07),
     0 6px 12px -2px rgba(31, 41, 55, 0.1), 0 22px 40px -14px rgba(31, 41, 55, 0.26);
   --borde-tarjeta: oklch(0.93 0.007 247);
 
   --ok: oklch(0.55 0.13 162);
   --warn: oklch(0.57 0.14 66);
-  --danger: oklch(0.55 0.20 25);
+  --danger: oklch(0.55 0.2 25);
   --info: oklch(0.55 0.14 240);
 
   /* Que los controles del sistema —barras de scroll, el calendario de un
@@ -184,10 +185,10 @@
   --popover: oklch(0.243 0.022 262);
   --popover-foreground: oklch(0.955 0.006 247);
 
-  --primary: oklch(0.60 0.196 263);
+  --primary: oklch(0.6 0.196 263);
   --primary-foreground: oklch(0.99 0 0);
 
-  --secondary: oklch(0.30 0.025 260);
+  --secondary: oklch(0.3 0.025 260);
   --secondary-foreground: oklch(0.96 0.005 247);
 
   --muted: oklch(0.262 0.021 262);
@@ -201,29 +202,31 @@
 
   --border: oklch(0.315 0.02 260);
   --input: oklch(0.34 0.02 260);
-  --ring: oklch(0.60 0.196 263);
+  --ring: oklch(0.6 0.196 263);
 
   --ink: oklch(0.272 0.028 262);
   --ink-foreground: oklch(0.97 0.004 247);
-  --ink-muted: oklch(0.70 0.022 258);
+  --ink-muted: oklch(0.7 0.022 258);
   --cream: oklch(0.176 0.021 262);
 
   --evt-entreno: oklch(0.76 0.148 162);
   --evt-partido: oklch(0.66 0.19 263);
-  --evt-torneo: oklch(0.80 0.15 70);
-  --evt-social: oklch(0.70 0.17 300);
-  --evt-reunion: oklch(0.70 0.11 220);
+  --evt-torneo: oklch(0.8 0.15 70);
+  --evt-social: oklch(0.7 0.17 300);
+  --evt-reunion: oklch(0.7 0.11 220);
 
-  --sombra-card: 0 1px 2px rgba(0, 0, 0, 0.40), 0 4px 12px rgba(0, 0, 0, 0.32);
+  --sombra-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.32);
   --sombra-elev: 0 8px 28px -8px rgba(0, 0, 0, 0.62), 0 2px 6px rgba(0, 0, 0, 0.42);
 
-  --sombra-tarjeta: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 1px 2px rgba(0, 0, 0, 0.5),
+  --sombra-tarjeta:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 1px 2px rgba(0, 0, 0, 0.5),
     0 6px 12px -2px rgba(0, 0, 0, 0.4), 0 20px 36px -12px rgba(0, 0, 0, 0.6);
-  --sombra-tarjeta-hover: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 1px 2px rgba(0, 0, 0, 0.5),
+  --sombra-tarjeta-hover:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 1px 2px rgba(0, 0, 0, 0.5),
     0 8px 16px -2px rgba(0, 0, 0, 0.45), 0 26px 44px -14px rgba(0, 0, 0, 0.7);
-  --borde-tarjeta: oklch(0.30 0.02 260);
+  --borde-tarjeta: oklch(0.3 0.02 260);
 
-  --ok: oklch(0.80 0.14 162);
+  --ok: oklch(0.8 0.14 162);
   --warn: oklch(0.83 0.14 76);
   --danger: oklch(0.72 0.17 22);
   --info: oklch(0.76 0.12 236);
@@ -381,8 +384,11 @@
     inset: 0;
     pointer-events: none;
     z-index: 0;
-    background-image:
-      radial-gradient(circle at 1px 1px, color-mix(in oklab, var(--color-foreground) 4%, transparent) 1px, transparent 0);
+    background-image: radial-gradient(
+      circle at 1px 1px,
+      color-mix(in oklab, var(--color-foreground) 4%, transparent) 1px,
+      transparent 0
+    );
     background-size: 22px 22px;
     opacity: 0.35;
     mix-blend-mode: multiply;
@@ -538,7 +544,10 @@
   background-color: var(--color-primary);
   color: var(--color-primary-foreground);
   box-shadow: var(--shadow-brand);
-  transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.2s ease,
+    filter 0.2s ease;
 }
 @utility btn-primary-brand {
   &:hover {
@@ -551,7 +560,9 @@
 }
 
 @utility hover-lift {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 @utility hover-lift {
   &:hover {
@@ -577,8 +588,14 @@
 }
 
 @keyframes fade-in-up {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 @utility animate-fade-in-up {
   animation: fade-in-up 0.35s ease-out both;
@@ -758,7 +775,11 @@
  * arriba, salta el confeti. Los retrasos los pone cada elemento en línea.
  * Plata y bronce acompañan al ámbar del primero. */
 .podio-oro {
-  background: linear-gradient(180deg, var(--evt-torneo), color-mix(in oklab, var(--evt-torneo) 72%, black));
+  background: linear-gradient(
+    180deg,
+    var(--evt-torneo),
+    color-mix(in oklab, var(--evt-torneo) 72%, black)
+  );
 }
 .podio-plata {
   background: linear-gradient(180deg, oklch(0.72 0.02 255), oklch(0.58 0.02 255));

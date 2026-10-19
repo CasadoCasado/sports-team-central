@@ -60,11 +60,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { InvitarAlEntreno } from "@/components/invitar-al-entreno";
 import { nombreVisible } from "@/lib/invitados";
 import { RepartoPadel, useTableroPro, type VistaMovil } from "@/components/convocatoria-pro";
-import {
-  ListaCompacta,
-  PestanasConvocatoria,
-  PUNTO_ESTADO,
-} from "@/components/convocatoria-movil";
+import { ListaCompacta, PestanasConvocatoria, PUNTO_ESTADO } from "@/components/convocatoria-movil";
 import { useEsTelefono } from "@/hooks/use-mobile";
 import { PistasCerradas } from "@/components/pistas-cerradas";
 import { QuimicaAviso, QuimicaBoton } from "@/components/quimica";
@@ -96,9 +92,15 @@ export const Route = createFileRoute("/_authenticated/eventos/$id")({
   head: () => ({
     meta: [
       { title: "Detalle del evento | TeamUp" },
-      { name: "description", content: "Información del evento, asistentes, convocados y resultados por pista." },
+      {
+        name: "description",
+        content: "Información del evento, asistentes, convocados y resultados por pista.",
+      },
       { property: "og:title", content: "Detalle del evento | TeamUp" },
-      { property: "og:description", content: "Información del evento, asistentes, convocados y resultados por pista." },
+      {
+        property: "og:description",
+        content: "Información del evento, asistentes, convocados y resultados por pista.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -129,7 +131,8 @@ export const Route = createFileRoute("/_authenticated/eventos/$id")({
  */
 function deVuelta(
   busqueda: { vista?: "resultado"; desde?: Origen; comp?: string },
-  event: { tipo: string; competition_id: string | null; competition_nombre: string | null } | undefined,
+  event:
+    { tipo: string; competition_id: string | null; competition_nombre: string | null } | undefined,
   t: (k: string, o?: Record<string, unknown>) => string,
 ) {
   const porDefecto: Origen =
@@ -187,7 +190,8 @@ function EventDetail() {
     },
   });
 
-  const isManager = membership && ["capitan", "co_capitan", "entrenador", "delegado"].includes(membership.role);
+  const isManager =
+    membership && ["capitan", "co_capitan", "entrenador", "delegado"].includes(membership.role);
 
   // Con PRO, el reparto de pistas necesita más ancho que el resto de la
   // ficha: la página se abre de 1024 a 1280. Misma clave que en Convocatorias,
@@ -212,7 +216,8 @@ function EventDetail() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  if (isLoading) return <div className="p-8 text-sm text-muted-foreground">{t("common.loading")}</div>;
+  if (isLoading)
+    return <div className="p-8 text-sm text-muted-foreground">{t("common.loading")}</div>;
   if (!event) return <div className="p-8 text-sm text-muted-foreground">404</div>;
 
   const style = eventTypeStyles[event.tipo as EventType];
@@ -228,7 +233,8 @@ function EventDetail() {
   const jugado = event.resultado_local != null && event.resultado_visitante != null;
   // `resultado_local` es del local, no nuestro: si jugamos fuera, el nuestro
   // es el de visitante.
-  const nuestroTanteo = event.es_local === false ? event.resultado_visitante : event.resultado_local;
+  const nuestroTanteo =
+    event.es_local === false ? event.resultado_visitante : event.resultado_local;
   const suTanteo = event.es_local === false ? event.resultado_local : event.resultado_visitante;
   const resultado =
     !jugado || nuestroTanteo == null || suTanteo == null
@@ -241,9 +247,12 @@ function EventDetail() {
 
   return (
     <div
-      className={cn("mx-auto space-y-6", anchoPro && !soloResultado && !(event.tipo === "partido" && event.finalizado)
+      className={cn(
+        "mx-auto space-y-6",
+        anchoPro && !soloResultado && !(event.tipo === "partido" && event.finalizado)
           ? "max-w-7xl"
-          : "max-w-5xl")}
+          : "max-w-5xl",
+      )}
     >
       <Link
         {...volverA.ruta}
@@ -283,7 +292,15 @@ function EventDetail() {
                 <DropdownMenuItem
                   className="min-h-11 gap-2.5 text-destructive focus:text-destructive"
                   onClick={async () => {
-                    if (await confirmar({ title: t("confirm.deleteEventTitle"), description: t("confirm.noUndo"), confirmLabel: t("confirm.delete"), tone: "danger" })) del.mutate();
+                    if (
+                      await confirmar({
+                        title: t("confirm.deleteEventTitle"),
+                        description: t("confirm.noUndo"),
+                        confirmLabel: t("confirm.delete"),
+                        tone: "danger",
+                      })
+                    )
+                      del.mutate();
                   }}
                 >
                   <Trash2 className="size-4" aria-hidden="true" />
@@ -407,17 +424,18 @@ function EventDetail() {
       {/* Un entrenamiento dentro de una competición cierra con el orden de
           sus pistas; sin competición no hay nada que contar, así que solo se
           le enseña el aviso a quien puede arreglarlo. */}
-      {event.tipo === "entrenamiento" && (event.competition_id || event.formato_entreno || isManager) && (
-        <TrainingResultsSection
-          eventId={event.id}
-          teamId={event.team_id}
-          competitionId={event.competition_id}
-          formatoEntreno={event.formato_entreno}
-          competitionNombre={event.competition_nombre}
-          startISO={event.fecha_inicio}
-          isManager={!!isManager}
-        />
-      )}
+      {event.tipo === "entrenamiento" &&
+        (event.competition_id || event.formato_entreno || isManager) && (
+          <TrainingResultsSection
+            eventId={event.id}
+            teamId={event.team_id}
+            competitionId={event.competition_id}
+            formatoEntreno={event.formato_entreno}
+            competitionNombre={event.competition_nombre}
+            startISO={event.fecha_inicio}
+            isManager={!!isManager}
+          />
+        )}
 
       {event.tipo === "partido" && (
         <MatchResultsSection
@@ -504,7 +522,6 @@ function Dato({ icon, children }: { icon: React.ReactNode; children: React.React
     </span>
   );
 }
-
 
 function CallupSection({
   event,
@@ -725,8 +742,7 @@ function CallupSection({
 
   // Puedo dar química si estoy apuntado y no he dicho «No puedo». Para la
   // gestión llega la de todos; aquí solo interesa la mía.
-  const puedoDarQuimica =
-    hayQuimica && !jugado && !!myResp && myResp.status !== "rechazado";
+  const puedoDarQuimica = hayQuimica && !jugado && !!myResp && myResp.status !== "rechazado";
   const { data: quimicas } = useQuimicas([eventId], hayQuimica);
   const miQuimica = quimicas?.find((q) => q.user_id === userId)?.target_user_id ?? null;
   // Cuántos de los apuntados ya han dicho con quién (la gestión las ve todas).
@@ -748,7 +764,9 @@ function CallupSection({
   }, [movil, pestanaInicial]);
   const { data: proMovil } = useTableroPro(eventId, movil && !!team?.es_pro);
   const plazas = (event.padel_num_pistas ?? 0) * 2;
-  const yaEnPista = signedUp.filter((r) => r.status !== "rechazado" && r.padel_pista != null).length;
+  const yaEnPista = signedUp.filter(
+    (r) => r.status !== "rechazado" && r.padel_pista != null,
+  ).length;
   const alCambiarReparto = () => {
     qc.invalidateQueries({ queryKey: ["event-responses", eventId] });
     qc.invalidateQueries({ queryKey: ["event", eventId] });
@@ -778,7 +796,9 @@ function CallupSection({
             <ClipboardList className="size-5" />
           </div>
           <div>
-            <h2 className="text-display text-lg font-bold uppercase tracking-tight">{t("callups.title")}</h2>
+            <h2 className="text-display text-lg font-bold uppercase tracking-tight">
+              {t("callups.title")}
+            </h2>
             {!soloPistas && !esTelefono && (
               <p className="text-xxs text-muted-foreground">
                 {signedUp.length} <Users className="inline size-3" /> ·{" "}
@@ -871,311 +891,321 @@ function CallupSection({
           />
         </div>
       ) : jugado && !abierta ? null : (
-      <>
-      {userId && myResp && isManager && esTelefono && !miRespuestaAbierta && (
-        <button
-          type="button"
-          onClick={() => setMiRespuestaAbierta(true)}
-          aria-expanded={false}
-          className="flex w-full items-center justify-between gap-3 border-b border-border px-4 py-3 text-left hover:bg-card sm:px-5"
-        >
-          <span className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
-            {t("callups.myStatus")}
-          </span>
-          <span className="flex items-center gap-1.5">
-            <EstadoPildora status={myResp.status} />
-            <ChevronDown className="size-4 text-muted-foreground" aria-hidden="true" />
-          </span>
-        </button>
-      )}
-      {userId && myResp && (!isManager || !esTelefono || miRespuestaAbierta) && (
-        <div className="border-b border-border p-4 sm:p-5">
-          <div className="flex items-center justify-between gap-2">
-            <div className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
-              {t("callups.myStatus")}
-            </div>
-            {isManager && esTelefono && (
-              <button
-                type="button"
-                onClick={() => setMiRespuestaAbierta(false)}
-                aria-expanded
-                aria-label={t("callups.ocultar")}
-                className="flex size-8 items-center justify-center rounded-md text-muted-foreground hover:bg-card"
-              >
-                <ChevronDown className="size-4 rotate-180" aria-hidden="true" />
-              </button>
-            )}
-          </div>
-          {/* En pádel, la pista no se enseña hasta que se confirma la
-              convocatoria: mientras, las parejas aún pueden cambiar. */}
-          {hayQuimica && !confirmada ? (
-            <p className="mt-1 text-xxs font-bold uppercase tracking-widest text-warn">
-              {t("quimica.pendiente")}
-            </p>
-          ) : hayQuimica && !myResp.es_convocado ? (
-            <p className="mt-1 text-xxs font-bold uppercase tracking-widest text-muted-foreground">
-              {t("quimica.noConvocado")}
-            </p>
-          ) : (
-            myResp.es_convocado && (
-              <p className="mt-1 text-xxs font-bold uppercase tracking-widest text-primary">
-                ★ {t(k("youAreCalled"))}
-                {myResp.padel_pista ? ` · ${t("callups.pista")} ${myResp.padel_pista}` : ""}
-              </p>
-            )
-          )}
-          {!jugado && !(entrenoCerrado && !isManager) && !(partidoCerrado && !isManager) && (
-            <PlayerResponseForm response={myResp} eventId={eventId} userId={userId} />
-          )}
-        </div>
-      )}
-
-      <div className="p-4 sm:p-5">
-        {movil && (
-          <PestanasConvocatoria
-            valor={pestana}
-            onCambio={setPestana}
-            apuntados={signedUp.length}
-            enPista={yaEnPista}
-            plazas={plazas}
-            conPro={!!team?.es_pro}
-          />
-        )}
-        {(!movil || pestana === "apuntados") && (
         <>
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <h3 className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
-            {t("callups.signedUpList")} ({signedUp.length})
-          </h3>
-          {/* Invitados: de momento solo en los entrenos. */}
-          {isManager && event.tipo === "entrenamiento" && <InvitarAlEntreno eventId={eventId} />}
-        </div>
-        {signedUp.length === 0 && (
-          <p className="text-xs text-muted-foreground">{t("callups.noSignedUp")}</p>
-        )}
-        {signedUp.length > 0 && esTelefono && (
-          <div
-            role="group"
-            aria-label={t("callups.filtro.titulo")}
-            className="-mx-4 mb-3 flex gap-1.5 overflow-x-auto px-4 pb-2.5 sm:mx-0 sm:flex-wrap sm:px-0 sm:pb-0"
-          >
-            {chips
-              .filter((c) => c.clave === "todos" || c.n > 0)
-              .map((c) => (
-                <button
-                  key={c.clave}
-                  type="button"
-                  aria-pressed={filtroActivo === c.clave}
-                  onClick={() => setFiltro(c.clave)}
-                  className={cn(
-                    "flex min-h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3 text-xs font-semibold transition-colors",
-                    filtroActivo === c.clave
-                      ? "border-foreground bg-foreground text-background"
-                      : "border-border bg-card text-muted-foreground hover:text-foreground",
+          {userId && myResp && isManager && esTelefono && !miRespuestaAbierta && (
+            <button
+              type="button"
+              onClick={() => setMiRespuestaAbierta(true)}
+              aria-expanded={false}
+              className="flex w-full items-center justify-between gap-3 border-b border-border px-4 py-3 text-left hover:bg-card sm:px-5"
+            >
+              <span className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
+                {t("callups.myStatus")}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <EstadoPildora status={myResp.status} />
+                <ChevronDown className="size-4 text-muted-foreground" aria-hidden="true" />
+              </span>
+            </button>
+          )}
+          {userId && myResp && (!isManager || !esTelefono || miRespuestaAbierta) && (
+            <div className="border-b border-border p-4 sm:p-5">
+              <div className="flex items-center justify-between gap-2">
+                <div className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
+                  {t("callups.myStatus")}
+                </div>
+                {isManager && esTelefono && (
+                  <button
+                    type="button"
+                    onClick={() => setMiRespuestaAbierta(false)}
+                    aria-expanded
+                    aria-label={t("callups.ocultar")}
+                    className="flex size-8 items-center justify-center rounded-md text-muted-foreground hover:bg-card"
+                  >
+                    <ChevronDown className="size-4 rotate-180" aria-hidden="true" />
+                  </button>
+                )}
+              </div>
+              {/* En pádel, la pista no se enseña hasta que se confirma la
+              convocatoria: mientras, las parejas aún pueden cambiar. */}
+              {hayQuimica && !confirmada ? (
+                <p className="mt-1 text-xxs font-bold uppercase tracking-widest text-warn">
+                  {t("quimica.pendiente")}
+                </p>
+              ) : hayQuimica && !myResp.es_convocado ? (
+                <p className="mt-1 text-xxs font-bold uppercase tracking-widest text-muted-foreground">
+                  {t("quimica.noConvocado")}
+                </p>
+              ) : (
+                myResp.es_convocado && (
+                  <p className="mt-1 text-xxs font-bold uppercase tracking-widest text-primary">
+                    ★ {t(k("youAreCalled"))}
+                    {myResp.padel_pista ? ` · ${t("callups.pista")} ${myResp.padel_pista}` : ""}
+                  </p>
+                )
+              )}
+              {!jugado && !(entrenoCerrado && !isManager) && !(partidoCerrado && !isManager) && (
+                <PlayerResponseForm response={myResp} eventId={eventId} userId={userId} />
+              )}
+            </div>
+          )}
+
+          <div className="p-4 sm:p-5">
+            {movil && (
+              <PestanasConvocatoria
+                valor={pestana}
+                onCambio={setPestana}
+                apuntados={signedUp.length}
+                enPista={yaEnPista}
+                plazas={plazas}
+                conPro={!!team?.es_pro}
+              />
+            )}
+            {(!movil || pestana === "apuntados") && (
+              <>
+                <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                  <h3 className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
+                    {t("callups.signedUpList")} ({signedUp.length})
+                  </h3>
+                  {/* Invitados: de momento solo en los entrenos. */}
+                  {isManager && event.tipo === "entrenamiento" && (
+                    <InvitarAlEntreno eventId={eventId} />
                   )}
-                >
-                  {c.clave !== "todos" && c.clave !== "convocados" && (
-                    <span
-                      aria-hidden="true"
-                      className={cn("size-2 rounded-full", PUNTO_ESTADO[c.clave])}
+                </div>
+                {signedUp.length === 0 && (
+                  <p className="text-xs text-muted-foreground">{t("callups.noSignedUp")}</p>
+                )}
+                {signedUp.length > 0 && esTelefono && (
+                  <div
+                    role="group"
+                    aria-label={t("callups.filtro.titulo")}
+                    className="-mx-4 mb-3 flex gap-1.5 overflow-x-auto px-4 pb-2.5 sm:mx-0 sm:flex-wrap sm:px-0 sm:pb-0"
+                  >
+                    {chips
+                      .filter((c) => c.clave === "todos" || c.n > 0)
+                      .map((c) => (
+                        <button
+                          key={c.clave}
+                          type="button"
+                          aria-pressed={filtroActivo === c.clave}
+                          onClick={() => setFiltro(c.clave)}
+                          className={cn(
+                            "flex min-h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3 text-xs font-semibold transition-colors",
+                            filtroActivo === c.clave
+                              ? "border-foreground bg-foreground text-background"
+                              : "border-border bg-card text-muted-foreground hover:text-foreground",
+                          )}
+                        >
+                          {c.clave !== "todos" && c.clave !== "convocados" && (
+                            <span
+                              aria-hidden="true"
+                              className={cn("size-2 rounded-full", PUNTO_ESTADO[c.clave])}
+                            />
+                          )}
+                          {t(
+                            c.clave === "convocados"
+                              ? k("filtroConvocados")
+                              : `callups.filtro.${c.clave}`,
+                          )}
+                          <span className="tabular-nums">{c.n}</span>
+                        </button>
+                      ))}
+                  </div>
+                )}
+                {puedoDarQuimica &&
+                  signedUp.length > 1 &&
+                  isManager &&
+                  esTelefono &&
+                  !quimicaAbierta && (
+                    <button
+                      type="button"
+                      onClick={() => setQuimicaAbierta(true)}
+                      aria-expanded={false}
+                      className="mb-3 flex w-full items-center gap-2 rounded-md border border-evt-social/30 bg-evt-social/10 px-3 py-2 text-left text-xs font-semibold text-evt-social"
+                    >
+                      <Sparkles className="size-4 shrink-0" aria-hidden="true" />
+                      <span className="min-w-0 flex-1">
+                        {t("quimica.resumenGestion", {
+                          n: quimicaDada,
+                          total: signedUp.filter((r) => r.status !== "rechazado").length,
+                        })}
+                      </span>
+                      <ChevronDown className="size-4 shrink-0" aria-hidden="true" />
+                    </button>
+                  )}
+                {puedoDarQuimica &&
+                  signedUp.length > 1 &&
+                  (!isManager || !esTelefono || quimicaAbierta) && (
+                    <QuimicaAviso
+                      cerrada={confirmada}
+                      mia={miQuimica ? nombreDe(miQuimica) : null}
+                      className="mb-3 rounded-md border"
                     />
                   )}
-                  {t(c.clave === "convocados" ? k("filtroConvocados") : `callups.filtro.${c.clave}`)}
-                  <span className="tabular-nums">{c.n}</span>
-                </button>
-              ))}
-          </div>
-        )}
-        {puedoDarQuimica && signedUp.length > 1 && isManager && esTelefono && !quimicaAbierta && (
-          <button
-            type="button"
-            onClick={() => setQuimicaAbierta(true)}
-            aria-expanded={false}
-            className="mb-3 flex w-full items-center gap-2 rounded-md border border-evt-social/30 bg-evt-social/10 px-3 py-2 text-left text-xs font-semibold text-evt-social"
-          >
-            <Sparkles className="size-4 shrink-0" aria-hidden="true" />
-            <span className="min-w-0 flex-1">
-              {t("quimica.resumenGestion", {
-                n: quimicaDada,
-                total: signedUp.filter((r) => r.status !== "rechazado").length,
-              })}
-            </span>
-            <ChevronDown className="size-4 shrink-0" aria-hidden="true" />
-          </button>
-        )}
-        {puedoDarQuimica && signedUp.length > 1 && (!isManager || !esTelefono || quimicaAbierta) && (
-          <QuimicaAviso
-            cerrada={confirmada}
-            mia={miQuimica ? nombreDe(miQuimica) : null}
-            className="mb-3 rounded-md border"
-          />
-        )}
-        {/* Nombre y estado no caben en la misma línea de un móvil: la etiqueta
+                {/* Nombre y estado no caben en la misma línea de un móvil: la etiqueta
             «Confirmado» mide sus buenos noventa píxeles y dejaba el nombre en
             «Alejandro Rod…» o, dentro de una tarjeta con `overflow-hidden`,
             directamente cortado por el borde. Por debajo de `sm` cada ficha
             baja el estado a su propia línea; las dos columnas esperan a `lg`,
             porque a 640 px media columna vuelve a ser demasiado estrecha. */}
-        {movil ? (
-          <ListaCompacta
-            eventId={eventId}
-            visibles={visibles}
-            todas={signedUp}
-            members={members ?? []}
-            numPistas={event.padel_num_pistas ?? 0}
-            eligio={new Map((quimicas ?? []).map((q) => [q.user_id, q.target_user_id]))}
-            pro={proMovil}
-            onChanged={alCambiarReparto}
-          />
-        ) : (
-        <div className="grid gap-2 lg:grid-cols-2">
-          {visibles.map((r) => {
-            const m = members?.find((x) => x.user_id === r.user_id);
-            // Un invitado no es del equipo: su perfil llega con la respuesta.
-            const perfil = m?.profile ?? r.profile;
-            const invitado = !!r.profile?.es_invitado;
-            const status = r.status as ResponseStatus;
-            return (
-              <div
-                key={r.id}
-                className={cn(
-                  "grid grid-cols-[2.25rem_minmax(0,1fr)] items-center gap-x-3 gap-y-2 rounded-md border p-3 sm:flex",
-                  r.es_convocado ? "border-primary/40 bg-primary/5" : "border-border",
-                )}
-              >
-                <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-card text-xs font-bold ring-1 ring-border">
-                  {(perfil?.nombre?.[0] ?? "") + (invitado ? "" : (perfil?.apellidos?.[0] ?? "")) || "?"}
-                </div>
-                <div className="min-w-0 sm:flex-1">
-                  <p className="text-sm font-medium break-words">{nombreVisible(perfil)}</p>
-                  {invitado ? (
-                    <p className="flex items-center gap-2">
-                      <span className="rounded-full border border-evt-social/40 bg-evt-social/10 px-2 py-0.5 text-3xs font-bold uppercase tracking-widest text-evt-social">
-                        {t("invitados.etiqueta")}
-                      </span>
-                      {isManager && (
-                        <button
-                          type="button"
-                          onClick={() => void quitarInvitado(r.id, nombreVisible(perfil))}
-                          className="text-3xs font-bold uppercase tracking-widest text-muted-foreground underline-offset-2 hover:text-danger hover:underline"
+                {movil ? (
+                  <ListaCompacta
+                    eventId={eventId}
+                    visibles={visibles}
+                    todas={signedUp}
+                    members={members ?? []}
+                    numPistas={event.padel_num_pistas ?? 0}
+                    eligio={new Map((quimicas ?? []).map((q) => [q.user_id, q.target_user_id]))}
+                    pro={proMovil}
+                    onChanged={alCambiarReparto}
+                  />
+                ) : (
+                  <div className="grid gap-2 lg:grid-cols-2">
+                    {visibles.map((r) => {
+                      const m = members?.find((x) => x.user_id === r.user_id);
+                      // Un invitado no es del equipo: su perfil llega con la respuesta.
+                      const perfil = m?.profile ?? r.profile;
+                      const invitado = !!r.profile?.es_invitado;
+                      const status = r.status as ResponseStatus;
+                      return (
+                        <div
+                          key={r.id}
+                          className={cn(
+                            "grid grid-cols-[2.25rem_minmax(0,1fr)] items-center gap-x-3 gap-y-2 rounded-md border p-3 sm:flex",
+                            r.es_convocado ? "border-primary/40 bg-primary/5" : "border-border",
+                          )}
                         >
-                          {t("invitados.quitar")}
-                        </button>
-                      )}
-                    </p>
-                  ) : (
-                    <p className="text-2xs uppercase tracking-widest text-muted-foreground">
-                      {m?.role}
-                    </p>
-                  )}
-                </div>
-                <div className="col-span-2 flex shrink-0 items-center justify-between gap-2 sm:col-auto sm:justify-end">
-                  <span
-                    className={cn(
-                      "rounded-full border px-2 py-0.5 text-2xs font-bold uppercase tracking-widest",
-                      status === "confirmado" && "border-ok/40 bg-ok/15 text-ok",
-                      status === "rechazado" && "border-danger/40 bg-danger/15 text-danger",
-                      status === "duda" && "border-warn/40 bg-warn/15 text-warn",
-                      status === "reserva" && "border-info/40 bg-info/15 text-info",
-                      status === "convocado" && "border-border bg-muted text-muted-foreground",
-                    )}
-                    title={t(`callups.statusHint_${status}`)}
-                  >
-                    {t(`callups.response_${status}`)}
-                  </span>
-                  {puedoDarQuimica && r.user_id !== userId && status !== "rechazado" && (
-                    <QuimicaBoton
-                      eventId={eventId}
-                      candidato={{
-                        user_id: r.user_id,
-                        nombre: nombreDe(r.user_id),
-                        rol: m?.role ? t(`roles.${m.role}`) : "",
-                      }}
-                      mia={miQuimica}
-                      cerrada={confirmada}
-                    />
-                  )}
-                  {/* ★ = convocado: el que entra en el partido, no solo
+                          <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-card text-xs font-bold ring-1 ring-border">
+                            {(perfil?.nombre?.[0] ?? "") +
+                              (invitado ? "" : (perfil?.apellidos?.[0] ?? "")) || "?"}
+                          </div>
+                          <div className="min-w-0 sm:flex-1">
+                            <p className="text-sm font-medium break-words">
+                              {nombreVisible(perfil)}
+                            </p>
+                            {invitado ? (
+                              <p className="flex items-center gap-2">
+                                <span className="rounded-full border border-evt-social/40 bg-evt-social/10 px-2 py-0.5 text-3xs font-bold uppercase tracking-widest text-evt-social">
+                                  {t("invitados.etiqueta")}
+                                </span>
+                                {isManager && (
+                                  <button
+                                    type="button"
+                                    onClick={() => void quitarInvitado(r.id, nombreVisible(perfil))}
+                                    className="text-3xs font-bold uppercase tracking-widest text-muted-foreground underline-offset-2 hover:text-danger hover:underline"
+                                  >
+                                    {t("invitados.quitar")}
+                                  </button>
+                                )}
+                              </p>
+                            ) : (
+                              <p className="text-2xs uppercase tracking-widest text-muted-foreground">
+                                {m?.role}
+                              </p>
+                            )}
+                          </div>
+                          <div className="col-span-2 flex shrink-0 items-center justify-between gap-2 sm:col-auto sm:justify-end">
+                            <span
+                              className={cn(
+                                "rounded-full border px-2 py-0.5 text-2xs font-bold uppercase tracking-widest",
+                                status === "confirmado" && "border-ok/40 bg-ok/15 text-ok",
+                                status === "rechazado" &&
+                                  "border-danger/40 bg-danger/15 text-danger",
+                                status === "duda" && "border-warn/40 bg-warn/15 text-warn",
+                                status === "reserva" && "border-info/40 bg-info/15 text-info",
+                                status === "convocado" &&
+                                  "border-border bg-muted text-muted-foreground",
+                              )}
+                              title={t(`callups.statusHint_${status}`)}
+                            >
+                              {t(`callups.response_${status}`)}
+                            </span>
+                            {puedoDarQuimica && r.user_id !== userId && status !== "rechazado" && (
+                              <QuimicaBoton
+                                eventId={eventId}
+                                candidato={{
+                                  user_id: r.user_id,
+                                  nombre: nombreDe(r.user_id),
+                                  rol: m?.role ? t(`roles.${m.role}`) : "",
+                                }}
+                                mia={miQuimica}
+                                cerrada={confirmada}
+                              />
+                            )}
+                            {/* ★ = convocado: el que entra en el partido, no solo
                       apuntado. Jugado el partido ya no se cambia. En pádel
                       no hay casilla: convocado es estar en pista, y se
                       convoca y desconvoca desde el reparto de pistas. */}
-                  {isManager && !jugado && !hayQuimica && (
-                    <TooltipProvider delayDuration={150}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <label
-                          title={
-                            r.es_convocado
-                              ? t(k("desconvocarHint"), { name: nombreVisible(perfil) })
-                              : t(k("convocarHint"), { name: nombreVisible(perfil) })
-                          }
-                          className={cn(
-                            "flex min-h-9 cursor-pointer items-center gap-1.5 rounded-md border px-2 text-2xs font-bold uppercase tracking-widest",
-                            r.es_convocado
-                              ? "border-primary/40 bg-primary/10 text-primary"
-                              : "border-border text-muted-foreground",
-                          )}
-                        >
-                          <input
-                            type="checkbox"
-                            className="size-4"
-                            checked={r.es_convocado}
-                            aria-label={t(k("convocarA"), { name: nombreVisible(perfil) })}
-                            onChange={(e) =>
-                              toggleConvocado.mutate({ id: r.id, value: e.target.checked })
-                            }
-                          />
-                          <span aria-hidden="true">★</span>
-                          <span className="hidden sm:inline" aria-hidden="true">
-                            {r.es_convocado ? t(k("convocadoCorto")) : t(k("convocarCorto"))}
-                          </span>
-                        </label>
-                      </TooltipTrigger>
-                      <TooltipContent className="max-w-64 text-xs">
-                        {r.es_convocado
-                          ? t(k("desconvocarHint"), { name: nombreVisible(perfil) })
-                          : t(k("convocarHint"), { name: nombreVisible(perfil) })}
-                      </TooltipContent>
-                    </Tooltip>
-                    </TooltipProvider>
-                  )}
-                  {jugado && r.es_convocado && (
-                    <span
-                      title={t("callups.convocadoHint")}
-                      className="text-2xs font-bold uppercase tracking-widest text-primary"
-                    >
-                      ★
-                    </span>
-                  )}
-                  {hayQuimica && !jugado && r.es_convocado && r.padel_pista != null && (
-                    <span className="text-2xs font-bold uppercase tracking-widest text-primary">
-                      ★ {t("callups.pista")} {r.padel_pista}
-                    </span>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-        )}
-        </>
-        )}
+                            {isManager && !jugado && !hayQuimica && (
+                              <TooltipProvider delayDuration={150}>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <label
+                                      title={
+                                        r.es_convocado
+                                          ? t(k("desconvocarHint"), { name: nombreVisible(perfil) })
+                                          : t(k("convocarHint"), { name: nombreVisible(perfil) })
+                                      }
+                                      className={cn(
+                                        "flex min-h-9 cursor-pointer items-center gap-1.5 rounded-md border px-2 text-2xs font-bold uppercase tracking-widest",
+                                        r.es_convocado
+                                          ? "border-primary/40 bg-primary/10 text-primary"
+                                          : "border-border text-muted-foreground",
+                                      )}
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        className="size-4"
+                                        checked={r.es_convocado}
+                                        aria-label={t(k("convocarA"), {
+                                          name: nombreVisible(perfil),
+                                        })}
+                                        onChange={(e) =>
+                                          toggleConvocado.mutate({
+                                            id: r.id,
+                                            value: e.target.checked,
+                                          })
+                                        }
+                                      />
+                                      <span aria-hidden="true">★</span>
+                                      <span className="hidden sm:inline" aria-hidden="true">
+                                        {r.es_convocado
+                                          ? t(k("convocadoCorto"))
+                                          : t(k("convocarCorto"))}
+                                      </span>
+                                    </label>
+                                  </TooltipTrigger>
+                                  <TooltipContent className="max-w-64 text-xs">
+                                    {r.es_convocado
+                                      ? t(k("desconvocarHint"), { name: nombreVisible(perfil) })
+                                      : t(k("convocarHint"), { name: nombreVisible(perfil) })}
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            )}
+                            {jugado && r.es_convocado && (
+                              <span
+                                title={t("callups.convocadoHint")}
+                                className="text-2xs font-bold uppercase tracking-widest text-primary"
+                              >
+                                ★
+                              </span>
+                            )}
+                            {hayQuimica && !jugado && r.es_convocado && r.padel_pista != null && (
+                              <span className="text-2xs font-bold uppercase tracking-widest text-primary">
+                                ★ {t("callups.pista")} {r.padel_pista}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
+            )}
 
-        {movil && team && (
-          <RepartoPadel
-            event={event}
-            equipo={team}
-            userId={userId}
-            responses={signedUp}
-            members={members ?? []}
-            barraFija
-            vistaMovil={pestana}
-            onChanged={alCambiarReparto}
-          />
-        )}
-        {hayQuimica && isManager && !jugado && !movil && (
-          <div className="mt-6 border-t border-border pt-5">
-            {team && (
+            {movil && team && (
               <RepartoPadel
                 event={event}
                 equipo={team}
@@ -1183,17 +1213,31 @@ function CallupSection({
                 responses={signedUp}
                 members={members ?? []}
                 barraFija
-                onChanged={() => {
-                  qc.invalidateQueries({ queryKey: ["event-responses", eventId] });
-                  qc.invalidateQueries({ queryKey: ["event", eventId] });
-                  qc.invalidateQueries({ queryKey: ["quimicas"] });
-                }}
+                vistaMovil={pestana}
+                onChanged={alCambiarReparto}
               />
             )}
+            {hayQuimica && isManager && !jugado && !movil && (
+              <div className="mt-6 border-t border-border pt-5">
+                {team && (
+                  <RepartoPadel
+                    event={event}
+                    equipo={team}
+                    userId={userId}
+                    responses={signedUp}
+                    members={members ?? []}
+                    barraFija
+                    onChanged={() => {
+                      qc.invalidateQueries({ queryKey: ["event-responses", eventId] });
+                      qc.invalidateQueries({ queryKey: ["event", eventId] });
+                      qc.invalidateQueries({ queryKey: ["quimicas"] });
+                    }}
+                  />
+                )}
+              </div>
+            )}
           </div>
-        )}
-      </div>
-      </>
+        </>
       )}
     </div>
   );
@@ -1280,10 +1324,7 @@ function PlayerResponseForm({
             placeholder={t("callups.notasPlaceholder")}
             maxLength={300}
           />
-          <Button
-            variant="outline"
-            onClick={() => respond.mutate(response.status)}
-          >
+          <Button variant="outline" onClick={() => respond.mutate(response.status)}>
             {t("common.save")}
           </Button>
         </div>
@@ -1473,7 +1514,6 @@ function MatchResultsSection({
     save.mutate();
   };
 
-
   if (!hasStarted) {
     return (
       <div className="surface-card p-5 text-xs text-muted-foreground">
@@ -1605,7 +1645,9 @@ function MatchResultsSection({
                   <div className="mb-1 text-2xs font-bold uppercase tracking-widest text-muted-foreground">
                     {t("results.local")}
                   </div>
-                  <div className="mb-1 max-w-40 truncate text-xs">{quienes("local", row.pista)}</div>
+                  <div className="mb-1 max-w-40 truncate text-xs">
+                    {quienes("local", row.pista)}
+                  </div>
                   <Num
                     value={row.set1_local}
                     onChange={(v) => updateCell(idx, "set1_local", v)}
@@ -1617,7 +1659,9 @@ function MatchResultsSection({
                   <div className="mb-1 text-2xs font-bold uppercase tracking-widest text-muted-foreground">
                     {t("results.visitante")}
                   </div>
-                  <div className="mb-1 max-w-40 truncate text-xs">{quienes("visitante", row.pista)}</div>
+                  <div className="mb-1 max-w-40 truncate text-xs">
+                    {quienes("visitante", row.pista)}
+                  </div>
                   <Num
                     value={row.set1_visitante}
                     onChange={(v) => updateCell(idx, "set1_visitante", v)}
@@ -1662,9 +1706,7 @@ function MatchResultsSection({
 
               <ul className="space-y-2">
                 {rows.map((row, idx) => {
-                  const sets = setsOf(row).filter(
-                    (s) => s.local != null || s.visitante != null,
-                  );
+                  const sets = setsOf(row).filter((s) => s.local != null || s.visitante != null);
                   return (
                     <li
                       key={row.pista}
@@ -1698,8 +1740,6 @@ function MatchResultsSection({
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-
-
       </div>
     </div>
   );
@@ -1781,9 +1821,7 @@ function CourtBadge({ winner, teamSide }: { winner: 1 | 2 | null; teamSide: numb
     <span
       className={cn(
         "inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-2xs font-bold uppercase tracking-widest",
-        won
-          ? "border-ok/40 bg-ok/10 text-ok"
-          : "border-danger/40 bg-danger/10 text-danger",
+        won ? "border-ok/40 bg-ok/10 text-ok" : "border-danger/40 bg-danger/10 text-danger",
       )}
     >
       {won ? <Trophy className="size-3" /> : <XCircle className="size-3" />}
@@ -1813,8 +1851,8 @@ function OutcomeBadge({
     outcome === "victoria"
       ? "border-ok/40 bg-ok/10 text-ok"
       : outcome === "derrota"
-      ? "border-danger/40 bg-danger/10 text-danger"
-      : "border-warn/40 bg-warn/10 text-warn";
+        ? "border-danger/40 bg-danger/10 text-danger"
+        : "border-warn/40 bg-warn/10 text-warn";
   return (
     <span
       className={cn(

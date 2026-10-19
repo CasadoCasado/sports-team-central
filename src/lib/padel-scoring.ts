@@ -46,8 +46,10 @@ export function simpleCourtWinner(a: number | null, b: number | null): 1 | 2 | n
   return a > b ? 1 : 2;
 }
 
-export type CourtValidationError =
-  | { pista: number; code: "set1" | "set2" | "set3Required" | "set3NotAllowed" };
+export type CourtValidationError = {
+  pista: number;
+  code: "set1" | "set2" | "set3Required" | "set3NotAllowed";
+};
 
 /** Valida una pista de pádel; devuelve null si está vacía o es correcta. */
 export function validatePadelCourt(pista: number, sets: SetPair[]): CourtValidationError | null {

@@ -96,7 +96,6 @@ export function TeamDiscovery({
     return (teams ?? []).filter((tm) => regByTeam.has(tm.id));
   }, [teams, competitionId, regByTeam]);
 
-
   const { data: pendingReqs } = useQuery({
     queryKey: ["my-join-requests", user?.id],
     enabled: !!user && abierto,
@@ -143,7 +142,9 @@ export function TeamDiscovery({
           />
         </div>
         <Select value={sport} onValueChange={setSport}>
-          <SelectTrigger aria-label={t("team.allSports")}><SelectValue /></SelectTrigger>
+          <SelectTrigger aria-label={t("team.allSports")}>
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">{t("team.allSports")}</SelectItem>
             {SPORTS.map((s) => (
@@ -167,7 +168,9 @@ export function TeamDiscovery({
               setCategoryId("all");
             }}
           >
-            <SelectTrigger aria-label={t("registrations.competition")}><SelectValue /></SelectTrigger>
+            <SelectTrigger aria-label={t("registrations.competition")}>
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{t("registrations.allCompetitions")}</SelectItem>
               {competitions?.map((c) => (
@@ -184,7 +187,9 @@ export function TeamDiscovery({
               {t("registrations.category")}
             </p>
             <Select value={categoryId} onValueChange={setCategoryId}>
-              <SelectTrigger aria-label={t("registrations.category")}><SelectValue /></SelectTrigger>
+              <SelectTrigger aria-label={t("registrations.category")}>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">{t("registrations.allCategories")}</SelectItem>
                 {categories.map((c) => (
@@ -242,7 +247,9 @@ export function TeamDiscovery({
                     <span className="rounded border border-border px-1.5 py-0.5 text-muted-foreground">
                       {reg.division_nombre}
                     </span>
-                    <span className={`rounded border px-1.5 py-0.5 ${statusBadgeClass(reg.status)}`}>
+                    <span
+                      className={`rounded border px-1.5 py-0.5 ${statusBadgeClass(reg.status)}`}
+                    >
                       {t(`registrations.status.${reg.status}`)}
                     </span>
                   </div>
@@ -263,7 +270,6 @@ export function TeamDiscovery({
             </div>
           );
         })}
-
       </div>
     </>
   );

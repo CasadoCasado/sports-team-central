@@ -29,9 +29,17 @@ export const Route = createFileRoute("/_authenticated/inicio")({
   head: () => ({
     meta: [
       { title: "Inicio | TeamUp" },
-      { name: "description", content: "Resumen de tu equipo: próximos eventos, convocatorias pendientes y avisos importantes." },
+      {
+        name: "description",
+        content:
+          "Resumen de tu equipo: próximos eventos, convocatorias pendientes y avisos importantes.",
+      },
       { property: "og:title", content: "Inicio | TeamUp" },
-      { property: "og:description", content: "Resumen de tu equipo: próximos eventos, convocatorias pendientes y avisos importantes." },
+      {
+        property: "og:description",
+        content:
+          "Resumen de tu equipo: próximos eventos, convocatorias pendientes y avisos importantes.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -105,9 +113,7 @@ function Inicio() {
     queryFn: () => pedirMisEquipos(qc, user?.id),
   });
 
-  const teamIds = (teams ?? [])
-    .map((t) => t.team_id)
-    .filter(Boolean) as string[];
+  const teamIds = (teams ?? []).map((t) => t.team_id).filter(Boolean) as string[];
 
   const { data: pendingInvites } = useQuery({
     queryKey: ["my-invitations-count", user?.id],
@@ -236,12 +242,31 @@ function Inicio() {
         </div>
       </div>
 
-
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        <StatCard icon={<Shield />} label={t("nav.miEquipo")} value={teams?.length ?? 0} to="/mi-equipo" />
-        <StatCard icon={<Bell />} label={t("notifications.title")} value={(pendingInvites ?? 0) + (unreadNotifs ?? 0)} to="/notificaciones" />
-        <StatCard icon={<ClipboardList />} label={t("dashboard.pendingCallups")} value={myPending?.length ?? 0} to="/convocatorias" />
-        <StatCard icon={<Calendar />} label={t("dashboard.upcomingEvents")} value={upcoming?.length ?? 0} to="/calendario" />
+        <StatCard
+          icon={<Shield />}
+          label={t("nav.miEquipo")}
+          value={teams?.length ?? 0}
+          to="/mi-equipo"
+        />
+        <StatCard
+          icon={<Bell />}
+          label={t("notifications.title")}
+          value={(pendingInvites ?? 0) + (unreadNotifs ?? 0)}
+          to="/notificaciones"
+        />
+        <StatCard
+          icon={<ClipboardList />}
+          label={t("dashboard.pendingCallups")}
+          value={myPending?.length ?? 0}
+          to="/convocatorias"
+        />
+        <StatCard
+          icon={<Calendar />}
+          label={t("dashboard.upcomingEvents")}
+          value={upcoming?.length ?? 0}
+          to="/calendario"
+        />
       </div>
 
       {hasTeam && (
@@ -275,7 +300,9 @@ function Inicio() {
                       search={{ desde: "inicio" }}
                       className="surface-card group flex min-w-0 items-center gap-3 p-3 transition-colors hover:border-primary/40 sm:gap-4 sm:p-4"
                     >
-                      <div className={`flex size-12 shrink-0 flex-col items-center justify-center rounded-md border ${style.badge}`}>
+                      <div
+                        className={`flex size-12 shrink-0 flex-col items-center justify-center rounded-md border ${style.badge}`}
+                      >
                         <span className="text-xs font-bold">
                           {new Date(e.fecha_inicio).toLocaleDateString([], { day: "numeric" })}
                         </span>
@@ -295,7 +322,10 @@ function Inicio() {
                         <div className="mt-1 flex flex-wrap items-center gap-3 text-xxs text-muted-foreground">
                           <span className="inline-flex shrink-0 items-center gap-1">
                             <Clock className="size-3" />
-                            {new Date(e.fecha_inicio).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                            {new Date(e.fecha_inicio).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
                           </span>
                           {e.ubicacion && (
                             <span className="inline-flex min-w-0 max-w-full items-center gap-1">
@@ -346,7 +376,10 @@ function Inicio() {
                         <div className="min-w-0 flex-1">
                           <p className="line-clamp-2 text-sm font-bold break-words">{e!.titulo}</p>
                           <p className="text-xxs text-muted-foreground">
-                            {new Date(e!.fecha_inicio).toLocaleString([], { dateStyle: "short", timeStyle: "short" })}
+                            {new Date(e!.fecha_inicio).toLocaleString([], {
+                              dateStyle: "short",
+                              timeStyle: "short",
+                            })}
                           </p>
                         </div>
                         <span className="shrink-0 rounded-full border border-warn/40 bg-warn/10 px-2 py-0.5 text-3xs font-bold uppercase tracking-widest text-warn">
@@ -357,7 +390,6 @@ function Inicio() {
                   ))}
                 </ul>
               )}
-
             </div>
 
             <div>
@@ -367,9 +399,17 @@ function Inicio() {
               {/* Una sola columna en los móviles más estrechos: a dos, «Comuni-
                   caciones» no cabe de una pieza y se parte por la mitad. */}
               <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2">
-                <QuickLink to="/comunicaciones" icon={<MessagesSquare />} label={t("nav.comunicaciones")} />
+                <QuickLink
+                  to="/comunicaciones"
+                  icon={<MessagesSquare />}
+                  label={t("nav.comunicaciones")}
+                />
                 <QuickLink to="/estadisticas" icon={<Trophy />} label={t("nav.estadisticas")} />
-                <QuickLink to="/entrenamientos" icon={<Calendar />} label={t("nav.entrenamientos")} />
+                <QuickLink
+                  to="/entrenamientos"
+                  icon={<Calendar />}
+                  label={t("nav.entrenamientos")}
+                />
                 <QuickLink to="/encuestas" icon={<Vote />} label={t("nav.encuestas")} />
               </div>
             </div>
@@ -421,7 +461,6 @@ function Inicio() {
         withdrawing={withdraw.isPending}
         alreadySignedUp={alreadySignedUp}
       />
-
     </div>
   );
 }
@@ -443,7 +482,10 @@ function StatCard({
       className="surface-card group flex min-h-24 flex-col gap-3 p-5 transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
       <div className="flex items-center justify-between">
-        <div className="flex size-8 items-center justify-center rounded-md bg-primary/10 text-primary [&>svg]:size-4" aria-hidden="true">
+        <div
+          className="flex size-8 items-center justify-center rounded-md bg-primary/10 text-primary [&>svg]:size-4"
+          aria-hidden="true"
+        >
           {icon}
         </div>
       </div>
@@ -457,18 +499,21 @@ function StatCard({
   );
 }
 
-
 function QuickLink({ to, icon, label }: { to: string; icon: React.ReactNode; label: string }) {
   return (
     <Link
       to={to}
       className="surface-card flex min-h-14 min-w-0 items-center gap-3 p-3 transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:p-4"
     >
-      <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary [&>svg]:size-4" aria-hidden="true">
+      <div
+        className="flex size-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary [&>svg]:size-4"
+        aria-hidden="true"
+      >
         {icon}
       </div>
-      <span className="min-w-0 text-xs font-bold leading-tight break-words sm:text-sm">{label}</span>
+      <span className="min-w-0 text-xs font-bold leading-tight break-words sm:text-sm">
+        {label}
+      </span>
     </Link>
-
   );
 }

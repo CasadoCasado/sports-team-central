@@ -46,9 +46,7 @@ test.describe("Permisos por rol en rutas privadas", () => {
     });
     // Cada día del mes es además un botón de crear, así que la casilla entera
     // sirve para abrir el formulario con esa fecha.
-    await expect(
-      page.getByRole("button", { name: /^Crear evento el /i }).first(),
-    ).toBeVisible();
+    await expect(page.getByRole("button", { name: /^Crear evento el /i }).first()).toBeVisible();
 
     await loginAs(page, player);
     await page.goto("/calendario");

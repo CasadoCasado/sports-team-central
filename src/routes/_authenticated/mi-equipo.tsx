@@ -4,7 +4,17 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Guardando } from "@/components/guardando";
-import { LogOut, MapPin, Pencil, Plus, Search, Settings, Shield, Trash2, Upload } from "lucide-react";
+import {
+  LogOut,
+  MapPin,
+  Pencil,
+  Plus,
+  Search,
+  Settings,
+  Shield,
+  Trash2,
+  Upload,
+} from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import {
   DropdownMenu,
@@ -47,9 +57,17 @@ export const Route = createFileRoute("/_authenticated/mi-equipo")({
   head: () => ({
     meta: [
       { title: "Mi equipo | TeamUp" },
-      { name: "description", content: "Crea o gestiona tu equipo, controla inscripciones y solicitudes de nuevos jugadores." },
+      {
+        name: "description",
+        content:
+          "Crea o gestiona tu equipo, controla inscripciones y solicitudes de nuevos jugadores.",
+      },
       { property: "og:title", content: "Mi equipo | TeamUp" },
-      { property: "og:description", content: "Crea o gestiona tu equipo, controla inscripciones y solicitudes de nuevos jugadores." },
+      {
+        property: "og:description",
+        content:
+          "Crea o gestiona tu equipo, controla inscripciones y solicitudes de nuevos jugadores.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -158,16 +176,16 @@ function MiEquipo() {
                   onChange={(e) => setLogoFile(e.target.files?.[0] ?? null)}
                 />
               </label>
-              {logoFile && (
-                <span className="text-xs text-muted-foreground">{logoFile.name}</span>
-              )}
+              {logoFile && <span className="text-xs text-muted-foreground">{logoFile.name}</span>}
             </div>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
               <Label>{t("team.deporte")}</Label>
               <Select value={deporte} onValueChange={setDeporte}>
-                <SelectTrigger><SelectValue placeholder={t("team.selectSport")} /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue placeholder={t("team.selectSport")} />
+                </SelectTrigger>
                 <SelectContent>
                   {SPORTS.map((s) => (
                     <SelectItem key={s.value} value={s.value} disabled={s.value !== "padel"}>
@@ -184,7 +202,12 @@ function MiEquipo() {
             </div>
             <div>
               <Label htmlFor="ciudad">{t("team.ciudad")}</Label>
-              <Input id="ciudad" value={ciudad} onChange={(e) => setCiudad(e.target.value)} maxLength={100} />
+              <Input
+                id="ciudad"
+                value={ciudad}
+                onChange={(e) => setCiudad(e.target.value)}
+                maxLength={100}
+              />
             </div>
           </div>
           <div>
@@ -247,7 +270,9 @@ function MiEquipo() {
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-display text-2xl font-black tracking-tight sm:text-3xl">{t("nav.miEquipo")}</h1>
+        <h1 className="text-display text-2xl font-black tracking-tight sm:text-3xl">
+          {t("nav.miEquipo")}
+        </h1>
 
         {/* Crear y buscar, a la vista y con su nombre. Estuvieron dentro de una
             rueda, pero la tarjeta de cada equipo tiene la suya para sus
@@ -312,8 +337,6 @@ function MiEquipo() {
     </div>
   );
 }
-
-
 
 function TeamCard({
   team,
@@ -500,7 +523,9 @@ function TeamCard({
               className="size-[58px] rounded-2xl bg-white/10 text-white ring-white/20 sm:size-[72px]"
               fallback={
                 iniciales ? (
-                  <span className="text-display text-xl font-extrabold sm:text-2xl">{iniciales}</span>
+                  <span className="text-display text-xl font-extrabold sm:text-2xl">
+                    {iniciales}
+                  </span>
                 ) : (
                   <Shield className="size-7 sm:size-8" />
                 )
@@ -613,9 +638,7 @@ function TeamCard({
               onClick={toggleInscripciones}
               disabled={togglingIns}
               aria-label={
-                inscripcionesAbiertas
-                  ? t("team.cerrarInscripciones")
-                  : t("team.abrirInscripciones")
+                inscripcionesAbiertas ? t("team.cerrarInscripciones") : t("team.abrirInscripciones")
               }
               className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-card px-5 text-2xs font-bold uppercase tracking-[0.12em] transition-colors hover:bg-muted disabled:opacity-60 sm:min-h-10 sm:flex-none"
             >
@@ -651,4 +674,3 @@ function TeamCard({
     </article>
   );
 }
-

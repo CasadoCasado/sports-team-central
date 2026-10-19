@@ -15,9 +15,17 @@ export const Route = createFileRoute("/_authenticated/notificaciones")({
   head: () => ({
     meta: [
       { title: "Notificaciones | TeamUp" },
-      { name: "description", content: "Todos los avisos de tu equipo: convocatorias, mensajes, encuestas y recordatorios." },
+      {
+        name: "description",
+        content:
+          "Todos los avisos de tu equipo: convocatorias, mensajes, encuestas y recordatorios.",
+      },
       { property: "og:title", content: "Notificaciones | TeamUp" },
-      { property: "og:description", content: "Todos los avisos de tu equipo: convocatorias, mensajes, encuestas y recordatorios." },
+      {
+        property: "og:description",
+        content:
+          "Todos los avisos de tu equipo: convocatorias, mensajes, encuestas y recordatorios.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -44,8 +52,6 @@ function Notificaciones() {
     }, 60_000);
     return () => clearInterval(id);
   }, [user, qc]);
-
-
 
   const { data: invitations } = useQuery({
     queryKey: ["invitations", user?.id],
@@ -153,7 +159,6 @@ function Notificaciones() {
     if (ok) toast.success(t("notifications.allRead", { count }));
   }
 
-
   async function deleteSelected() {
     if (selected.length === 0) return;
     setBusy(true);
@@ -172,10 +177,11 @@ function Notificaciones() {
     qc.invalidateQueries({ queryKey: ["shell-unread"] });
   }
 
-
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <h1 className="text-display text-2xl font-black tracking-tight sm:text-3xl">{t("notifications.title")}</h1>
+      <h1 className="text-display text-2xl font-black tracking-tight sm:text-3xl">
+        {t("notifications.title")}
+      </h1>
 
       {(joinRequests?.length ?? 0) > 0 && (
         <div className="space-y-3">
@@ -194,7 +200,10 @@ function Notificaciones() {
                   <div className="min-w-0 flex-1">
                     <p className="text-sm">
                       {t("notifications.joinRequestBody", {
-                        user: `${requester?.nombre ?? ""} ${requester?.apellidos ?? ""}`.trim() || requester?.email || "?",
+                        user:
+                          `${requester?.nombre ?? ""} ${requester?.apellidos ?? ""}`.trim() ||
+                          requester?.email ||
+                          "?",
                         team: team?.nombre ?? "",
                       })}
                     </p>
@@ -223,7 +232,6 @@ function Notificaciones() {
           })}
         </div>
       )}
-
 
       {(invitations?.length ?? 0) > 0 && (
         <div className="space-y-3">
@@ -255,11 +263,7 @@ function Notificaciones() {
                         <Check className="mr-1 size-3.5" />
                         {t("notifications.accept")}
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => respond(inv.id, false)}
-                      >
+                      <Button size="sm" variant="outline" onClick={() => respond(inv.id, false)}>
                         <X className="mr-1 size-3.5" />
                         {t("notifications.reject")}
                       </Button>
@@ -284,7 +288,6 @@ function Notificaciones() {
               )}
             </h2>
             <div className="flex flex-wrap items-center gap-2">
-
               {readIds.length > 0 && (
                 <Button size="sm" variant="outline" onClick={toggleSelectAllRead}>
                   {selected.length === readIds.length
@@ -371,62 +374,62 @@ function Notificaciones() {
               {t("notifications.noResults")}
             </div>
           ) : (
-          <div className="surface-card divide-y divide-border">
-            {visible.map((n) => (
-              /* La casilla y el icono a la izquierda, el aviso ocupando el
+            <div className="surface-card divide-y divide-border">
+              {visible.map((n) => (
+                /* La casilla y el icono a la izquierda, el aviso ocupando el
                  resto y «marcar leída» debajo mientras no quepa al lado: en
                  una sola fila el texto se quedaba en setenta y cinco píxeles.
                  La casilla va dentro de un <label> para que se pueda marcar
                  tocando un cuadrado de dedo y no los dieciséis píxeles del
                  recuadro. */
-              <div
-                key={n.id}
-                className={cn(
-                  "grid grid-cols-[auto_auto_minmax(0,1fr)] items-start gap-x-3 gap-y-2 p-4 sm:flex sm:gap-4",
-                  !n.read && "bg-primary/5",
-                )}
-              >
-                <label
-                  htmlFor={`notif-${n.id}`}
-                  className="flex size-8 shrink-0 cursor-pointer items-center justify-center"
-                >
-                  <Checkbox
-                    id={`notif-${n.id}`}
-                    checked={selected.includes(n.id)}
-                    disabled={!n.read}
-                    onCheckedChange={() => toggleSelect(n.id)}
-                    aria-label={
-                      n.read
-                        ? t("notifications.selectOne", { title: n.titulo })
-                        : t("notifications.onlyReadDeletable")
-                    }
-                  />
-                </label>
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-card text-primary ring-1 ring-border">
-                  <Bell className="size-4" />
-                </div>
-                <div className="min-w-0 sm:flex-1">
-                  <p className="text-sm font-bold break-words">{n.titulo}</p>
-                  {n.cuerpo && (
-                    <p className="mt-0.5 text-xs text-muted-foreground break-words">{n.cuerpo}</p>
+                <div
+                  key={n.id}
+                  className={cn(
+                    "grid grid-cols-[auto_auto_minmax(0,1fr)] items-start gap-x-3 gap-y-2 p-4 sm:flex sm:gap-4",
+                    !n.read && "bg-primary/5",
                   )}
-                  <p className="mt-1 text-2xs uppercase tracking-widest text-muted-foreground">
-                    {new Date(n.created_at).toLocaleString()}
-                  </p>
-                </div>
-                {!n.read && (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="col-span-3 justify-self-start sm:col-auto"
-                    onClick={() => markRead([n.id])}
+                >
+                  <label
+                    htmlFor={`notif-${n.id}`}
+                    className="flex size-8 shrink-0 cursor-pointer items-center justify-center"
                   >
-                    {t("notifications.markRead")}
-                  </Button>
-                )}
-              </div>
-            ))}
-          </div>
+                    <Checkbox
+                      id={`notif-${n.id}`}
+                      checked={selected.includes(n.id)}
+                      disabled={!n.read}
+                      onCheckedChange={() => toggleSelect(n.id)}
+                      aria-label={
+                        n.read
+                          ? t("notifications.selectOne", { title: n.titulo })
+                          : t("notifications.onlyReadDeletable")
+                      }
+                    />
+                  </label>
+                  <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-card text-primary ring-1 ring-border">
+                    <Bell className="size-4" />
+                  </div>
+                  <div className="min-w-0 sm:flex-1">
+                    <p className="text-sm font-bold break-words">{n.titulo}</p>
+                    {n.cuerpo && (
+                      <p className="mt-0.5 text-xs text-muted-foreground break-words">{n.cuerpo}</p>
+                    )}
+                    <p className="mt-1 text-2xs uppercase tracking-widest text-muted-foreground">
+                      {new Date(n.created_at).toLocaleString()}
+                    </p>
+                  </div>
+                  {!n.read && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="col-span-3 justify-self-start sm:col-auto"
+                      onClick={() => markRead([n.id])}
+                    >
+                      {t("notifications.markRead")}
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
           )}
         </div>
       ) : (
