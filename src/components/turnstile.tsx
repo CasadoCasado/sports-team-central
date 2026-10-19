@@ -73,5 +73,7 @@ export function Turnstile({ onRespuesta }: { onRespuesta: (respuesta: string | n
   }, [i18n.language]);
 
   if (!SITE_KEY) return null;
-  return <div ref={caja} className="flex min-h-[65px] justify-center" />;
+  // 72 px: lo que ocupa el reto ya pintado; con menos, el botón de debajo da
+  // un salto al aparecer.
+  return <div ref={caja} className="flex min-h-[72px] justify-center" />;
 }
