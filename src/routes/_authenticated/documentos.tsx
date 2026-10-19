@@ -17,9 +17,15 @@ export const Route = createFileRoute("/_authenticated/documentos")({
   head: () => ({
     meta: [
       { title: "Documentos | TeamUp" },
-      { name: "description", content: "Comparte y consulta los documentos importantes del equipo en un solo lugar." },
+      {
+        name: "description",
+        content: "Comparte y consulta los documentos importantes del equipo en un solo lugar.",
+      },
       { property: "og:title", content: "Documentos | TeamUp" },
-      { property: "og:description", content: "Comparte y consulta los documentos importantes del equipo en un solo lugar." },
+      {
+        property: "og:description",
+        content: "Comparte y consulta los documentos importantes del equipo en un solo lugar.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -28,6 +34,18 @@ export const Route = createFileRoute("/_authenticated/documentos")({
 });
 
 type Doc = TeamDocument;
+
+/** Lo que admite el servidor (`EXTENSIONES_PERMITIDAS`), para el selector. */
+const TIPOS_ADMITIDOS =
+  ".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.odt,.ods,.odp,.txt,.csv";
+
+/** Los errores de subida viajan como códigos; aquí se ponen en su idioma. */
+function errorDeSubida(e: unknown, t: (key: string) => string) {
+  const mensaje = e instanceof Error ? e.message : "";
+  if (mensaje.includes("document_type_not_allowed")) return t("documents.errType");
+  if (mensaje.includes("document_too_large")) return t("documents.errSize");
+  return mensaje || t("common.error");
+}
 
 function formatBytes(n: number | null) {
   if (!n) return "";
@@ -65,7 +83,7 @@ function Documentos() {
       toast.success(t("documents.uploaded"));
       qc.invalidateQueries({ queryKey: ["docs"] });
     },
-    onError: (e) => toast.error(e instanceof Error ? e.message : t("common.error")),
+    onError: (e) => toast.error(errorDeSubida(e, t)),
   });
 
   const remove = useMutation({
@@ -77,12 +95,18 @@ function Documentos() {
     },
   });
 
-  function download(d: Doc) {
-    if (!d.url) {
-      toast.error(t("common.error"));
-      return;
+  // Cada descarga pide un enlace nuevo: los documentos no tienen dirección
+  // fija y el enlace caduca a los 5 minutos. Llega con «descargar» en las
+  // cabeceras, así que el navegador lo guarda y la pantalla se queda donde
+  // está; abrirlo en otra pestaña después de esperar a la API lo bloquearía
+  // el navegador como ventana emergente.
+  async function download(d: Doc) {
+    try {
+      const { url } = await api.get<{ url: string }>(`/documents/${d.id}/enlace/`);
+      window.location.assign(url);
+    } catch {
+      toast.error(t("documents.downloadError"));
     }
-    window.open(d.url, "_blank");
   }
 
   if (!active) {
@@ -107,6 +131,7 @@ function Documentos() {
             <input
               ref={fileRef}
               type="file"
+              accept={TIPOS_ADMITIDOS}
               className="hidden"
               onChange={(e) => {
                 const f = e.target.files?.[0];
@@ -144,7 +169,10 @@ function Documentos() {
             /* El nombre del fichero ocupa toda la línea y los botones caen a
                la derecha de la siguiente: un «Acta de la reunión de junio.pdf»
                compartiendo fila con descargar y borrar se quedaba en la mitad. */
-            <div key={d.id} className="grid grid-cols-[2.5rem_minmax(0,1fr)] items-center gap-x-3 gap-y-2 p-4 sm:flex sm:gap-4">
+            <div
+              key={d.id}
+              className="grid grid-cols-[2.5rem_minmax(0,1fr)] items-center gap-x-3 gap-y-2 p-4 sm:flex sm:gap-4"
+            >
               <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
                 <FileText className="size-5" />
               </div>
@@ -165,7 +193,15 @@ function Documentos() {
                 {(isManager || d.uploader_id === user?.id) && (
                   <button
                     onClick={async () => {
-                      if (await confirmar({ title: t("confirm.deleteDocumentTitle"), description: t("confirm.noUndo"), confirmLabel: t("confirm.delete"), tone: "danger" })) remove.mutate(d);
+                      if (
+                        await confirmar({
+                          title: t("confirm.deleteDocumentTitle"),
+                          description: t("confirm.noUndo"),
+                          confirmLabel: t("confirm.delete"),
+                          tone: "danger",
+                        })
+                      )
+                        remove.mutate(d);
                     }}
                     className="inline-flex size-10 items-center justify-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive sm:size-9"
                     aria-label={t("common.delete")}

@@ -12,14 +12,21 @@ import { Button } from "@/components/ui/button";
 import { MaintenanceNotice } from "@/components/maintenance-notice";
 import { FEATURES } from "@/lib/feature-flags";
 import { confirmar } from "@/components/confirm-dialog";
+import { traducirErrorDeImagen } from "@/lib/images";
 
 export const Route = createFileRoute("/_authenticated/galeria")({
   head: () => ({
     meta: [
       { title: "Galería | TeamUp" },
-      { name: "description", content: "Fotos y recuerdos compartidos por los miembros del equipo." },
+      {
+        name: "description",
+        content: "Fotos y recuerdos compartidos por los miembros del equipo.",
+      },
       { property: "og:title", content: "Galería | TeamUp" },
-      { property: "og:description", content: "Fotos y recuerdos compartidos por los miembros del equipo." },
+      {
+        property: "og:description",
+        content: "Fotos y recuerdos compartidos por los miembros del equipo.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -58,7 +65,12 @@ function Galeria() {
       toast.success(t("gallery.uploaded"));
       qc.invalidateQueries({ queryKey: ["gallery"] });
     },
-    onError: (e) => toast.error(e instanceof Error ? e.message : t("common.error")),
+    onError: (e) => {
+      // Como en escudos y avatares, pero la foto admite hasta 10 MB.
+      const mensaje = e instanceof Error ? e.message : "";
+      if (mensaje.includes("image_too_large")) toast.error(t("gallery.errSize"));
+      else toast.error(traducirErrorDeImagen(mensaje, t));
+    },
   });
 
   const remove = useMutation({
@@ -129,7 +141,10 @@ function Galeria() {
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
           {items?.map((it) => (
-            <div key={it.id} className="group relative overflow-hidden rounded-md border border-border bg-card aspect-square">
+            <div
+              key={it.id}
+              className="group relative overflow-hidden rounded-md border border-border bg-card aspect-square"
+            >
               {it.url ? (
                 <img
                   src={it.url}
@@ -143,7 +158,15 @@ function Galeria() {
               {(it.uploader_id === user?.id || isManager) && (
                 <button
                   onClick={async () => {
-                    if (await confirmar({ title: t("confirm.deletePhotoTitle"), description: t("confirm.noUndo"), confirmLabel: t("confirm.delete"), tone: "danger" })) remove.mutate(it);
+                    if (
+                      await confirmar({
+                        title: t("confirm.deletePhotoTitle"),
+                        description: t("confirm.noUndo"),
+                        confirmLabel: t("confirm.delete"),
+                        tone: "danger",
+                      })
+                    )
+                      remove.mutate(it);
                   }}
                   className="absolute right-2 top-2 rounded-md bg-black/70 p-1.5 opacity-0 transition group-hover:opacity-100"
                   aria-label={t("common.delete")}
