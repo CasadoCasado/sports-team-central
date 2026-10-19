@@ -133,6 +133,12 @@ export async function loginAs(page: Page, session: Session) {
     await page.goto("/inicio");
     await expect(page).not.toHaveURL(/\/auth/, { timeout: 5_000 });
   }).toPass({ timeout: 45_000 });
+  // El ratón, en medio de la página. En la CI el navegador lo tiene en la
+  // esquina (0, 0), encima del menú lateral, y con el ratón encima ese menú
+  // se despliega por encima del contenido: tapaba lo que el test iba a pulsar
+  // (el selector de equipo, la tarjeta del equipo…) y el test fallaba.
+  const ventana = page.viewportSize() ?? { width: 1280, height: 720 };
+  await page.mouse.move(ventana.width / 2, ventana.height / 2);
 }
 
 /** Una capitana con equipo propio, lista para usar. */
