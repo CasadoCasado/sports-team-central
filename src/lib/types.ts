@@ -441,11 +441,12 @@ export type Poll = {
   created_at: string;
 };
 
+/** Sin `url`: los documentos son privados y se descargan con el enlace que da
+ * `GET /documents/{id}/enlace/`, que caduca a los 5 minutos. */
 export type TeamDocument = {
   id: string;
   team_id: string;
   uploader_id: string;
-  url: string | null;
   filename: string;
   category: string | null;
   size_bytes: number | null;

@@ -242,7 +242,8 @@
     "uploaded": "Foto subida",
     "deleted": "Foto eliminada",
     "empty": "Aún no hay fotos. ¡Sube la primera!",
-    "emptyPaused": "Aún no hay fotos. La subida se abrirá en cuanto esté listo el almacenamiento."
+    "emptyPaused": "Aún no hay fotos. La subida se abrirá en cuanto esté listo el almacenamiento.",
+    "errSize": "La foto no puede pasar de 10 MB."
   },
   "documents": {
     "subtitle": "Archivos y documentos del equipo.",
@@ -250,7 +251,10 @@
     "uploaded": "Documento subido",
     "deleted": "Documento eliminado",
     "download": "Descargar",
-    "empty": "Aún no hay documentos"
+    "empty": "Aún no hay documentos",
+    "errType": "Ese tipo de archivo no se admite. Sube un PDF, una imagen, un documento de Office u OpenDocument, o un texto.",
+    "errSize": "El documento no puede pasar de 20 MB.",
+    "downloadError": "No se ha podido descargar. Vuelve a intentarlo."
   },
   "maintenance": {
     "badge": "En obras",

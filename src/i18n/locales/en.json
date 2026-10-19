@@ -242,7 +242,8 @@
     "uploaded": "Photo uploaded",
     "deleted": "Photo deleted",
     "empty": "No photos yet. Upload the first one!",
-    "emptyPaused": "No photos yet. Uploading will open once storage is ready."
+    "emptyPaused": "No photos yet. Uploading will open once storage is ready.",
+    "errSize": "The photo cannot be larger than 10 MB."
   },
   "documents": {
     "subtitle": "Team files and documents.",
@@ -250,7 +251,10 @@
     "uploaded": "Document uploaded",
     "deleted": "Document deleted",
     "download": "Download",
-    "empty": "No documents yet"
+    "empty": "No documents yet",
+    "errType": "That file type is not allowed. Upload a PDF, an image, an Office or OpenDocument file, or plain text.",
+    "errSize": "The document cannot be larger than 20 MB.",
+    "downloadError": "It could not be downloaded. Please try again."
   },
   "maintenance": {
     "badge": "Under construction",
