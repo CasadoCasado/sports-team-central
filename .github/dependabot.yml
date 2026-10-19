@@ -15,6 +15,15 @@ updates:
     cooldown:
       default-days: 7
     open-pull-requests-limit: 5
+    ignore:
+      # zod 4 mete ~76 KB comprimidos más en la carga inicial y solo valida
+      # tres formularios (probado el 19-10-2026). Se queda en la 3.
+      - dependency-name: zod
+        update-types: [version-update:semver-major]
+      # typescript-eslint aún no admite TypeScript 7 (eslint ni arranca).
+      # Quitar esto cuando lo soporte.
+      - dependency-name: typescript
+        update-types: [version-update:semver-major]
     groups:
       menores:
         update-types: [minor, patch]

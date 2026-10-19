@@ -20,6 +20,13 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
+      // Las reglas del React Compiler que trajo eslint-plugin-react-hooks 7.
+      // Señalan cosas mejorables (estado que se fija dentro de un efecto,
+      // `Date.now()` al pintar), no fallos: avisan sin parar la CI mientras
+      // se van corrigiendo.
+      "react-hooks/set-state-in-effect": "warn",
+      "react-hooks/purity": "warn",
+      "react-hooks/refs": "warn",
       "no-restricted-imports": [
         "error",
         {
@@ -35,6 +42,14 @@ export default tseslint.config(
       "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
       "@typescript-eslint/no-unused-vars": "off",
     },
+  },
+  {
+    // Las páginas de TanStack Router exportan `Route` y dejan sus componentes
+    // sin exportar; la recarga en caliente de esos componentes la hace el
+    // plugin del router, que los separa en su propio módulo. La regla, desde
+    // eslint-plugin-react-refresh 0.5, avisaba de todas.
+    files: ["src/routes/**/*.tsx"],
+    rules: { "react-refresh/only-export-components": "off" },
   },
   eslintPluginPrettier,
 );
