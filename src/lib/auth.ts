@@ -9,6 +9,8 @@
  * las rutas autenticadas, así que el servidor nunca los necesita.
  */
 
+import i18n from "@/i18n";
+
 const STORAGE_KEY = "teamup:auth";
 
 export type Tokens = { access: string; refresh: string };
@@ -138,6 +140,9 @@ export class AuthError extends Error {
 function messageFrom(status: number, body: unknown): string {
   if (body && typeof body === "object") {
     const record = body as Record<string, unknown>;
+    // Los que trae el backend como códigos, para decirlos en su idioma.
+    if (record.codigo === "demasiados_intentos") return i18n.t("common.tooManyAttempts");
+    if (Array.isArray(record.turnstile)) return i18n.t("auth.turnstileFailed");
     if (typeof record.detail === "string") return record.detail;
     const first = Object.entries(record)[0];
     if (first) {
@@ -195,6 +200,8 @@ export async function signUp(input: {
   password: string;
   nombre: string;
   apellidos: string;
+  /** La respuesta del reto de Turnstile, si está activo. */
+  turnstile?: string | null;
 }) {
   await post("/auth/register/", input);
   // El alta no devuelve tokens: se entra con las mismas credenciales.

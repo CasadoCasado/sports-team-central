@@ -56,7 +56,8 @@
     "required": "Campo obligatorio",
     "loginSuccess": "Sesión iniciada",
     "signupSuccess": "Cuenta creada. Revisa tu correo si es necesario.",
-    "logoutSuccess": "Sesión cerrada"
+    "logoutSuccess": "Sesión cerrada",
+    "turnstileFailed": "No hemos podido comprobar que no eres un robot. Vuelve a intentarlo."
   },
   "onboarding": {
     "title": "¿Cómo quieres empezar?",
@@ -711,7 +712,8 @@
     "language": "Idioma",
     "optional": "Opcional",
     "all": "Todos",
-    "noTeamSelected": "Selecciona o crea un equipo para empezar"
+    "noTeamSelected": "Selecciona o crea un equipo para empezar",
+    "tooManyAttempts": "Demasiados intentos. Espera un poco y vuelve a probar."
   },
   "chat": {
     "title": "Comunicaciones",
