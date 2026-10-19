@@ -36,5 +36,13 @@ export default tseslint.config(
       "@typescript-eslint/no-unused-vars": "off",
     },
   },
+  {
+    // Las páginas de TanStack Router exportan `Route` y dejan sus componentes
+    // sin exportar; la recarga en caliente de esos componentes la hace el
+    // plugin del router, que los separa en su propio módulo. La regla, desde
+    // eslint-plugin-react-refresh 0.5, avisaba de todas.
+    files: ["src/routes/**/*.tsx"],
+    rules: { "react-refresh/only-export-components": "off" },
+  },
   eslintPluginPrettier,
 );
