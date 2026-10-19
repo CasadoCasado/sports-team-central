@@ -1,4 +1,4 @@
-/* TeamHub push service worker */
+/* TeamUp: notificaciones push (lo importa sw.js) */
 self.addEventListener("install", (event) => {
   self.skipWaiting();
 });
@@ -12,10 +12,10 @@ self.addEventListener("push", (event) => {
   try {
     payload = event.data ? event.data.json() : {};
   } catch {
-    payload = { title: "TeamHub", body: event.data ? event.data.text() : "" };
+    payload = { title: "TeamUp", body: event.data ? event.data.text() : "" };
   }
 
-  const title = payload.title || "TeamHub";
+  const title = payload.title || "TeamUp";
   const options = {
     body: payload.body || "",
     icon: "/icon-512.png",
