@@ -42,15 +42,25 @@ function Notificaciones() {
   const [statusFilter, setStatusFilter] = useState<"all" | "unread" | "read">("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
 
-  // Sin Realtime, la bandeja se recarga al volver a la pestaña y cada minuto;
-  // la suscripción a `postgres_changes` la ponía Supabase.
+  // Sin Realtime, la bandeja se recarga cada minuto mientras se mira, y al
+  // volver a la pestaña; con la pestaña oculta no pregunta.
   useEffect(() => {
     if (!user) return;
-    const id = setInterval(() => {
+    const recargar = () => {
       qc.invalidateQueries({ queryKey: ["notifications", user.id] });
       qc.invalidateQueries({ queryKey: ["shell-unread", user.id] });
+    };
+    const id = setInterval(() => {
+      if (document.visibilityState === "visible") recargar();
     }, 60_000);
-    return () => clearInterval(id);
+    const alVolver = () => {
+      if (document.visibilityState === "visible") recargar();
+    };
+    document.addEventListener("visibilitychange", alVolver);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener("visibilitychange", alVolver);
+    };
   }, [user, qc]);
 
   const { data: invitations } = useQuery({

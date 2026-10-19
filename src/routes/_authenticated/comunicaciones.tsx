@@ -691,6 +691,21 @@ function ManageMembersDialog({ channel, teamId }: { channel: Channel; teamId: st
   );
 }
 
+/** Cada cuánto trae el chat la conversación entera (borrados y ediciones). */
+const COMPLETA_CADA = 120_000;
+
+/**
+ * Cada cuánto pregunta el chat abierto si hay mensajes nuevos, según cuánto
+ * hace del último: rápido mientras hay conversación, y espaciándose cuando
+ * no. Con la pestaña oculta no pregunta (React Query para el intervalo), y al
+ * volver a ella pregunta en el momento.
+ */
+function ritmoDelChat(desdeLaUltimaNovedad: number): number {
+  if (desdeLaUltimaNovedad < 60_000) return 5_000;
+  if (desdeLaUltimaNovedad < 5 * 60_000) return 15_000;
+  return 30_000;
+}
+
 function ChannelView({ channel, isManager }: { channel: Channel; isManager: boolean }) {
   const { t } = useTranslation();
   const { user } = useSession();
@@ -699,18 +714,46 @@ function ChannelView({ channel, isManager }: { channel: Channel; isManager: bool
 
   const messagesKey = useMemo(() => ["chat-messages", channel.id] as const, [channel.id]);
 
+  // Sin Realtime, el chat abierto pregunta al servidor, pero solo por lo
+  // nuevo: los mensajes posteriores al último que ya tiene. Cada 2 minutos (y
+  // al abrirlo) trae la conversación entera, que es como se entera de lo
+  // borrado y lo editado. Ver `ritmoDelChat`.
+  const ultimaNovedad = useRef(0);
+  const ultimaCompleta = useRef(0);
   const { data: messages } = useQuery({
     queryKey: messagesKey,
-    // Cada mensaje trae el perfil de su autor, así que ya no hace falta la
-    // segunda consulta a `profiles`.
-    queryFn: () =>
-      api.get<ChatMessage[]>("/chat-messages/", {
+    queryFn: async () => {
+      const actuales = qc.getQueryData<ChatMessage[]>(messagesKey);
+      const ultimo = actuales?.at(-1);
+      if (!actuales || !ultimo || Date.now() - ultimaCompleta.current > COMPLETA_CADA) {
+        // Los 200 más recientes, del más nuevo al más viejo, y se les da la
+        // vuelta. En orden ascendente con límite salían los 200 más antiguos:
+        // a partir del mensaje 201 los nuevos ya no se veían.
+        const recientes = await api.get<ChatMessage[]>("/chat-messages/", {
+          channel_id: channel.id,
+          order: "-created_at",
+          limit: 200,
+        });
+        ultimaCompleta.current = Date.now();
+        // Al abrir el canal, a ritmo rápido.
+        if (!actuales) ultimaNovedad.current = Date.now();
+        return recientes.reverse();
+      }
+      const nuevos = await api.get<ChatMessage[]>("/chat-messages/", {
         channel_id: channel.id,
+        created_at__gt: ultimo.created_at,
         order: "created_at",
         limit: 200,
-      }),
-    // Sin Realtime, el chat se refresca cada pocos segundos mientras está abierto.
-    refetchInterval: 5_000,
+      });
+      const vistos = new Set(actuales.map((m) => m.id));
+      const deVerdad = nuevos.filter((m) => !vistos.has(m.id));
+      if (deVerdad.length === 0) return actuales;
+      ultimaNovedad.current = Date.now();
+      return [...actuales, ...deVerdad];
+    },
+    refetchInterval: () => ritmoDelChat(Date.now() - ultimaNovedad.current),
+    // Al volver a la pestaña, se pregunta en el momento.
+    refetchOnWindowFocus: true,
   });
 
   // El perfil del autor viene con cada mensaje; antes hacía falta pedirlos
@@ -749,6 +792,8 @@ function ChannelView({ channel, isManager }: { channel: Channel; isManager: bool
         contenido: content,
       });
       setText("");
+      // Se ha movido la conversación: vuelve al ritmo rápido.
+      ultimaNovedad.current = Date.now();
       qc.invalidateQueries({ queryKey: messagesKey });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("common.error"));
@@ -773,7 +818,8 @@ function ChannelView({ channel, isManager }: { channel: Channel; isManager: bool
       toast.error(err instanceof Error ? err.message : t("common.error"));
       return;
     }
-    qc.invalidateQueries({ queryKey: messagesKey });
+    // Se quita aquí: pedir solo lo nuevo no se entera de lo borrado.
+    qc.setQueryData<ChatMessage[]>(messagesKey, (actuales) => actuales?.filter((m) => m.id !== id));
   }
 
   async function removeChannel() {

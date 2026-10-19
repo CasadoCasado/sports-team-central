@@ -34,15 +34,23 @@ test.describe("Varios equipos a la vez", () => {
 
     await loginAs(page, yo);
     await page.goto("/entrenamientos");
-    await expect(page.getByText("Entreno solo de A")).toBeVisible({ timeout: 20_000 });
-    await expect(page.getByText("Entreno solo de B")).toHaveCount(0);
+    const selector = page.getByRole("button", { name: /^equipo mt-[ab]$/i }).first();
+    await expect(selector).toBeVisible({ timeout: 20_000 });
 
-    await page.locator(`button:has-text("${A.nombre}")`).first().click();
-    await page.getByRole("menuitem", { name: /mt-b/i }).click();
+    // Sale primero el equipo al que se entró antes, que es A… salvo que el
+    // reloj de la máquina retroceda entre las dos altas (en WSL pasa): se mira
+    // cuál es y se cambia al otro.
+    const empiezaEnA = /mt-a/i.test((await selector.textContent()) ?? "");
+    const [antes, despues] = empiezaEnA ? ["A", "B"] : ["B", "A"];
+    await expect(page.getByText(`Entreno solo de ${antes}`)).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByText(`Entreno solo de ${despues}`)).toHaveCount(0);
+
+    await selector.click();
+    await page.getByRole("menuitem", { name: new RegExp(`mt-${despues}`, "i") }).click();
 
     // Lo que importa: la página, no solo el rótulo del selector.
-    await expect(page.getByText("Entreno solo de B")).toBeVisible();
-    await expect(page.getByText("Entreno solo de A")).toHaveCount(0);
+    await expect(page.getByText(`Entreno solo de ${despues}`)).toBeVisible();
+    await expect(page.getByText(`Entreno solo de ${antes}`)).toHaveCount(0);
   });
 
   test("se puede ser capitán de uno y jugador de otro a la vez", async ({ request }) => {
