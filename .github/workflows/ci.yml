@@ -23,8 +23,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: "24"
           cache: npm
@@ -41,5 +41,13 @@ jobs:
           # comprueba que compila.
           TEAMUP_ALLOW_NO_API_URL: "1"
         run: npm run build
+      - name: El service worker llega al despliegue
+        # Cloudflare sirve .output/public. Si sw.js falta, o no precarga la
+        # app, no hay app instalable ni notificaciones push (ver vite.config.ts).
+        run: |
+          test -f .output/public/sw.js || { echo "::error::Falta .output/public/sw.js"; exit 1; }
+          n=$(grep -o 'url:"' .output/public/sw.js | wc -l)
+          echo "sw.js precarga $n ficheros"
+          [ "$n" -gt 50 ] || { echo "::error::sw.js solo precarga $n ficheros"; exit 1; }
       - name: Vulnerabilidades
         run: npm audit --omit=dev --audit-level=high
