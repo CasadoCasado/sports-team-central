@@ -1,6 +1,7 @@
 import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
+import { CABECERA_NONCE, conCabeceras, nuevoNonce } from "./lib/cabeceras";
 import { renderErrorPage } from "./lib/error-page";
 
 type ServerEntry = {
@@ -44,18 +45,41 @@ function isH3SwallowedErrorBody(body: string): boolean {
   }
 }
 
+const ENTORNO = {
+  apiUrl: import.meta.env.VITE_API_URL as string | undefined,
+  sentryDsn: import.meta.env.VITE_SENTRY_DSN as string | undefined,
+  produccion: import.meta.env.PROD,
+};
+
+/**
+ * Las páginas se piden con GET: solo ahí hace falta nonce. Se le pasa al
+ * router en una cabecera de la petición, puesta aquí siempre (`set`, no
+ * `append`), así que la que pudiera mandar el navegador no cuenta.
+ */
+function conNonce(request: Request): [Request, string | null] {
+  if (request.method !== "GET") return [request, null];
+  const nonce = nuevoNonce();
+  const headers = new Headers(request.headers);
+  headers.set(CABECERA_NONCE, nonce);
+  // Desde la URL y no copiando `request`: en desarrollo es de otra clase que
+  // el `Request` de aquí y no se deja copiar. Un GET no lleva cuerpo.
+  return [new Request(request.url, { method: "GET", headers, signal: request.signal }), nonce];
+}
+
 export default {
-  async fetch(request: Request, env: unknown, ctx: unknown) {
+  async fetch(original: Request, env: unknown, ctx: unknown) {
+    const [request, nonce] = conNonce(original);
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
-      return await normalizeCatastrophicSsrResponse(response);
+      return conCabeceras(await normalizeCatastrophicSsrResponse(response), nonce, ENTORNO);
     } catch (error) {
       console.error(error);
-      return new Response(renderErrorPage(), {
+      const response = new Response(renderErrorPage(), {
         status: 500,
         headers: { "content-type": "text/html; charset=utf-8" },
       });
+      return conCabeceras(response, nonce, ENTORNO);
     }
   },
 };

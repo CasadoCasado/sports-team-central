@@ -77,7 +77,10 @@ test("alguien sin cuenta abre el enlace, se registra y entra directamente", asyn
   await page.locator("#email").fill(uniqueEmail("alta-nueva"));
   await page.locator("#password").fill(PASSWORD);
   await page.locator("#confirm").fill(PASSWORD);
-  await page.locator("form button[type=submit]").click();
+  // Con Turnstile (en la web compilada), el botón espera a que pase el reto.
+  const crear = page.locator("form button[type=submit]");
+  await expect(crear).toBeEnabled({ timeout: 20_000 });
+  await crear.click();
 
   // Sin pasar por el onboarding: derecho a su equipo.
   await estaEnSuEquipo(page, "Equipo alta", { tutorial: true });

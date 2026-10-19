@@ -5,6 +5,7 @@ import {
   createRootRouteWithContext,
   useRouter,
   HeadContent,
+  ScriptOnce,
   Scripts,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
@@ -28,6 +29,8 @@ import { TEMA_KEY, useTheme } from "@/hooks/use-theme";
  * guardado cada persona. Decidirlo al hidratar significa pintar primero en
  * claro y corregir después —el fogonazo blanco de toda la vida—, y en una app
  * que se abre de noche eso se nota.
+ *
+ * Con `ScriptOnce`, que le pone el nonce de la CSP y se borra al ejecutarse.
  *
  * Todo dentro de un try: en una ventana privada `localStorage` puede lanzar, y
  * quedarse sin app por no poder leer una preferencia de color sería absurdo.
@@ -154,7 +157,7 @@ function RootShell({ children }: { children: ReactNode }) {
     <html lang="es" suppressHydrationWarning>
       <head>
         <HeadContent />
-        <script dangerouslySetInnerHTML={{ __html: SCRIPT_TEMA }} />
+        <ScriptOnce>{SCRIPT_TEMA}</ScriptOnce>
       </head>
       <body>
         {children}
