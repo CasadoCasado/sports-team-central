@@ -50,7 +50,9 @@ function Ayuda() {
           <div className="flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
             <LifeBuoy className="size-5" />
           </div>
-          <h1 className="text-display text-2xl font-black tracking-tight sm:text-3xl">{t("help.title")}</h1>
+          <h1 className="text-display text-2xl font-black tracking-tight sm:text-3xl">
+            {t("help.title")}
+          </h1>
         </div>
         <p className="max-w-2xl text-sm text-muted-foreground">{t("help.intro")}</p>
         <nav className="flex flex-wrap gap-2" aria-label={t("help.title")}>

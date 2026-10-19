@@ -77,7 +77,10 @@ export function TeamJoinRequests({
                     <p className="text-sm font-bold break-words">
                       {p?.nombre} {p?.apellidos}
                     </p>
-                    <p className="truncate text-xs text-muted-foreground" title={p?.email ?? undefined}>
+                    <p
+                      className="truncate text-xs text-muted-foreground"
+                      title={p?.email ?? undefined}
+                    >
                       {p?.email}
                     </p>
                     {req.mensaje && (

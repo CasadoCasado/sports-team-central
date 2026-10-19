@@ -41,11 +41,7 @@ export function ThemeToggle() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-44">
         {OPCIONES.map(({ valor, icono: Op, clave }) => (
-          <DropdownMenuItem
-            key={valor}
-            className="min-h-11 gap-2.5"
-            onClick={() => setTema(valor)}
-          >
+          <DropdownMenuItem key={valor} className="min-h-11 gap-2.5" onClick={() => setTema(valor)}>
             <Op
               className={cn("size-4", tema === valor ? "text-primary" : "text-muted-foreground")}
               aria-hidden="true"

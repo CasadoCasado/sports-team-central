@@ -30,9 +30,15 @@ export const Route = createFileRoute("/_authenticated/encuestas")({
   head: () => ({
     meta: [
       { title: "Encuestas | TeamUp" },
-      { name: "description", content: "Vota en las encuestas del equipo y consulta los resultados en tiempo real." },
+      {
+        name: "description",
+        content: "Vota en las encuestas del equipo y consulta los resultados en tiempo real.",
+      },
       { property: "og:title", content: "Encuestas | TeamUp" },
-      { property: "og:description", content: "Vota en las encuestas del equipo y consulta los resultados en tiempo real." },
+      {
+        property: "og:description",
+        content: "Vota en las encuestas del equipo y consulta los resultados en tiempo real.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -59,8 +65,7 @@ function Encuestas() {
   const { data: polls } = useQuery({
     queryKey: ["polls", teamId],
     enabled: !!teamId,
-    queryFn: () =>
-      api.get<Poll[]>("/polls/", { team_id: teamId!, order: "-created_at" }),
+    queryFn: () => api.get<Poll[]>("/polls/", { team_id: teamId!, order: "-created_at" }),
   });
 
   const pollIds = useMemo(() => (polls ?? []).map((p) => p.id), [polls]);
@@ -153,7 +158,6 @@ function Encuestas() {
         ))}
       </div>
 
-
       {filtered.length === 0 ? (
         <div className="surface-card flex flex-col items-center gap-3 p-12 text-center">
           <div className="flex size-14 items-center justify-center rounded-full bg-primary/10 text-primary">
@@ -164,12 +168,7 @@ function Encuestas() {
       ) : (
         <div className="space-y-4">
           {filtered.map((p) => (
-            <PollCard
-              key={p.id}
-              poll={p}
-              isManager={isManager}
-              hasVoted={votedSet.has(p.id)}
-            />
+            <PollCard key={p.id} poll={p} isManager={isManager} hasVoted={votedSet.has(p.id)} />
           ))}
         </div>
       )}
@@ -193,10 +192,7 @@ function PollCard({
   // Las opciones y sus recuentos llegan con la encuesta.
   const options = poll.options;
 
-  const totals = useMemo(
-    () => new Map(options.map((o) => [o.id, o.vote_count])),
-    [options],
-  );
+  const totals = useMemo(() => new Map(options.map((o) => [o.id, o.vote_count])), [options]);
   const totalVotes = options.reduce((sum, o) => sum + o.vote_count, 0);
   const uniqueVoters = poll.voter_count;
   const myVotes = useMemo(() => new Set(poll.my_votes), [poll.my_votes]);
@@ -289,12 +285,22 @@ function PollCard({
         {isManager && (
           <div className="flex flex-wrap items-center gap-2">
             {canCloseManually && (
-              <Button variant="outline" size="sm" className="min-h-11 sm:min-h-9" onClick={toggleClose}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="min-h-11 sm:min-h-9"
+                onClick={toggleClose}
+              >
                 {poll.closed ? t("polls.reopen") : t("polls.close")}
               </Button>
             )}
             {!canCloseManually && poll.closed && (
-              <Button variant="outline" size="sm" className="min-h-11 sm:min-h-9" onClick={toggleClose}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="min-h-11 sm:min-h-9"
+                onClick={toggleClose}
+              >
                 {t("polls.reopen")}
               </Button>
             )}
@@ -308,7 +314,6 @@ function PollCard({
             </Button>
           </div>
         )}
-
       </header>
 
       <div className="space-y-2">
@@ -331,7 +336,6 @@ function PollCard({
                 isClosed && "cursor-not-allowed opacity-80",
               )}
             >
-
               <div
                 className={cn(
                   "absolute inset-y-0 left-0 transition-all",
@@ -431,11 +435,23 @@ function NewPollDialog({ teamId }: { teamId: string }) {
         <form onSubmit={submit} className="space-y-4">
           <div>
             <Label htmlFor="p-q">{t("polls.question")}</Label>
-            <Input id="p-q" value={pregunta} onChange={(e) => setPregunta(e.target.value)} maxLength={200} required />
+            <Input
+              id="p-q"
+              value={pregunta}
+              onChange={(e) => setPregunta(e.target.value)}
+              maxLength={200}
+              required
+            />
           </div>
           <div>
             <Label htmlFor="p-d">{t("polls.description")}</Label>
-            <Textarea id="p-d" value={descripcion} onChange={(e) => setDescripcion(e.target.value)} maxLength={500} rows={2} />
+            <Textarea
+              id="p-d"
+              value={descripcion}
+              onChange={(e) => setDescripcion(e.target.value)}
+              maxLength={500}
+              rows={2}
+            />
           </div>
           <div>
             <Label>{t("polls.options")}</Label>
@@ -444,7 +460,9 @@ function NewPollDialog({ teamId }: { teamId: string }) {
                 <div key={i} className="flex gap-2">
                   <Input
                     value={o}
-                    onChange={(e) => setOpts((prev) => prev.map((v, j) => (j === i ? e.target.value : v)))}
+                    onChange={(e) =>
+                      setOpts((prev) => prev.map((v, j) => (j === i ? e.target.value : v)))
+                    }
                     placeholder={t("polls.optionPlaceholder", { n: i + 1 })}
                     maxLength={120}
                   />
@@ -458,7 +476,6 @@ function NewPollDialog({ teamId }: { teamId: string }) {
                       <X className="size-4" aria-hidden="true" />
                     </button>
                   )}
-
                 </div>
               ))}
             </div>
@@ -485,7 +502,12 @@ function NewPollDialog({ teamId }: { teamId: string }) {
           </div>
           <div>
             <Label htmlFor="p-c">{t("polls.closesAt")}</Label>
-            <Input id="p-c" type="datetime-local" value={closesAt} onChange={(e) => setClosesAt(e.target.value)} />
+            <Input
+              id="p-c"
+              type="datetime-local"
+              value={closesAt}
+              onChange={(e) => setClosesAt(e.target.value)}
+            />
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>

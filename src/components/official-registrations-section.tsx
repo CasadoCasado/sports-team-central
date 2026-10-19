@@ -115,12 +115,7 @@ export function OfficialRegistrationsSection({
           <p className="text-sm text-muted-foreground">{t("registrations.empty")}</p>
         )}
         {registrations?.map((r) => (
-          <RegistrationRow
-            key={r.id}
-            r={r}
-            canManage={canManage}
-            onEdit={() => setEditing(r)}
-          />
+          <RegistrationRow key={r.id} r={r} canManage={canManage} onEdit={() => setEditing(r)} />
         ))}
       </div>
 
@@ -190,7 +185,15 @@ function RegistrationRow({
           </button>
           <button
             onClick={async () => {
-              if (await confirmar({ title: t("confirm.deleteRegistrationTitle"), description: t("confirm.noUndo"), confirmLabel: t("confirm.delete"), tone: "danger" })) del.mutate();
+              if (
+                await confirmar({
+                  title: t("confirm.deleteRegistrationTitle"),
+                  description: t("confirm.noUndo"),
+                  confirmLabel: t("confirm.delete"),
+                  tone: "danger",
+                })
+              )
+                del.mutate();
             }}
             className="inline-flex size-9 items-center justify-center rounded-md border border-border text-destructive hover:bg-muted"
             aria-label={t("common.delete")}

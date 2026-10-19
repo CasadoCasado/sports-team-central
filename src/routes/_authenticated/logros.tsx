@@ -51,8 +51,7 @@ function Logros() {
   const { data: participations } = useQuery({
     queryKey: ["achievements-participations", teamId],
     enabled: !!teamId,
-    queryFn: () =>
-      api.get<ParticipationRow[]>("/match-participations/", { team_id: teamId! }),
+    queryFn: () => api.get<ParticipationRow[]>("/match-participations/", { team_id: teamId! }),
   });
 
   const { data: roster } = useQuery({
@@ -65,9 +64,7 @@ function Logros() {
       });
       return rows.map((m) => ({
         userId: m.user_id,
-        name:
-          [m.profile?.nombre, m.profile?.apellidos].filter(Boolean).join(" ").trim() ||
-          "—",
+        name: [m.profile?.nombre, m.profile?.apellidos].filter(Boolean).join(" ").trim() || "—",
         avatar: m.profile?.avatar_url ?? null,
       }));
     },
@@ -112,7 +109,7 @@ function Logros() {
   const leaderboard = (roster ?? [])
     .map((r) => ({ ...r, tally: tallies.get(r.userId) }))
     .filter((r) => r.tally && r.tally.played > 0)
-    .sort((a, b) => (b.tally!.wins - a.tally!.wins) || (b.tally!.played - a.tally!.played))
+    .sort((a, b) => b.tally!.wins - a.tally!.wins || b.tally!.played - a.tally!.played)
     .slice(0, 10);
 
   return (
@@ -121,9 +118,17 @@ function Logros() {
       <TeamPicker />
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label={t("achievements.unlocked")} value={`${unlockedCount}/${badges.length}`} icon={Medal} />
+        <StatCard
+          label={t("achievements.unlocked")}
+          value={`${unlockedCount}/${badges.length}`}
+          icon={Medal}
+        />
         <StatCard label={t("achievements.wins")} value={String(mine?.wins ?? 0)} icon={Trophy} />
-        <StatCard label={t("achievements.bestStreak")} value={String(mine?.bestStreak ?? 0)} icon={Flame} />
+        <StatCard
+          label={t("achievements.bestStreak")}
+          value={String(mine?.bestStreak ?? 0)}
+          icon={Flame}
+        />
       </div>
 
       <section className="surface-card p-5">
@@ -162,7 +167,10 @@ function Logros() {
                 <div className="mt-3">
                   <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
                     <div
-                      className={cn("h-full rounded-full", unlocked ? "bg-primary" : "bg-muted-foreground/40")}
+                      className={cn(
+                        "h-full rounded-full",
+                        unlocked ? "bg-primary" : "bg-muted-foreground/40",
+                      )}
                       style={{ width: `${pct}%` }}
                     />
                   </div>

@@ -12,9 +12,15 @@ export const Route = createFileRoute("/_authenticated/resultados")({
   head: () => ({
     meta: [
       { title: "Resultados | TeamUp" },
-      { name: "description", content: "Registra y consulta los resultados por pista de cada enfrentamiento de pádel." },
+      {
+        name: "description",
+        content: "Registra y consulta los resultados por pista de cada enfrentamiento de pádel.",
+      },
       { property: "og:title", content: "Resultados | TeamUp" },
-      { property: "og:description", content: "Registra y consulta los resultados por pista de cada enfrentamiento de pádel." },
+      {
+        property: "og:description",
+        content: "Registra y consulta los resultados por pista de cada enfrentamiento de pádel.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -44,7 +50,9 @@ function Resultados() {
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-display text-2xl font-black tracking-tight sm:text-3xl">{t("nav.resultados")}</h1>
+        <h1 className="text-display text-2xl font-black tracking-tight sm:text-3xl">
+          {t("nav.resultados")}
+        </h1>
         <TeamPicker />
       </div>
 
@@ -59,16 +67,15 @@ function Resultados() {
             const played = m.resultado_local != null && m.resultado_visitante != null;
             const own = m.es_local ? m.resultado_local : m.resultado_visitante;
             const opp = m.es_local ? m.resultado_visitante : m.resultado_local;
-            const outcome = played
-              ? own! > opp! ? "W" : own === opp ? "D" : "L"
-              : null;
-            const outcomeClass = outcome === "W"
-              ? "bg-ok/15 text-ok border border-ok/40"
-              : outcome === "D"
-              ? "bg-warn/20 text-warn border border-warn/40"
-              : outcome === "L"
-              ? "bg-danger/15 text-danger border border-danger/40"
-              : "bg-muted text-muted-foreground border border-border";
+            const outcome = played ? (own! > opp! ? "W" : own === opp ? "D" : "L") : null;
+            const outcomeClass =
+              outcome === "W"
+                ? "bg-ok/15 text-ok border border-ok/40"
+                : outcome === "D"
+                  ? "bg-warn/20 text-warn border border-warn/40"
+                  : outcome === "L"
+                    ? "bg-danger/15 text-danger border border-danger/40"
+                    : "bg-muted text-muted-foreground border border-border";
             const comp = m.competition_nombre ? { nombre: m.competition_nombre } : null;
             return (
               <Link
@@ -78,14 +85,24 @@ function Resultados() {
                 search={{ vista: "resultado", desde: "resultados" }}
                 className="surface-card flex min-w-0 items-center gap-3 p-4 transition-colors hover:border-primary/40 sm:gap-4 sm:p-5"
               >
-                <div className={`flex min-h-14 w-14 shrink-0 flex-col items-center justify-center gap-0.5 rounded-md px-1 text-center text-xs font-bold leading-tight ${outcomeClass}`}>
+                <div
+                  className={`flex min-h-14 w-14 shrink-0 flex-col items-center justify-center gap-0.5 rounded-md px-1 text-center text-xs font-bold leading-tight ${outcomeClass}`}
+                >
                   {played ? (
                     <>
-                      {outcome === "W" ? <Trophy className="size-4" /> : outcome === "L" ? <XCircle className="size-4" /> : null}
-                      <span>{own}-{opp}</span>
+                      {outcome === "W" ? (
+                        <Trophy className="size-4" />
+                      ) : outcome === "L" ? (
+                        <XCircle className="size-4" />
+                      ) : null}
+                      <span>
+                        {own}-{opp}
+                      </span>
                     </>
                   ) : (
-                    <span className="text-3xs uppercase leading-tight break-words">{t("results.notPlayed")}</span>
+                    <span className="text-3xs uppercase leading-tight break-words">
+                      {t("results.notPlayed")}
+                    </span>
                   )}
                 </div>
 
@@ -94,7 +111,9 @@ function Resultados() {
                       jugó contra quién, así que aquí se parte en dos líneas en
                       vez de acabar en puntos suspensivos. */}
                   <p className="text-display text-base font-bold break-words sm:text-lg">
-                    {m.es_local ? active.team.nombre : m.rival || "—"} <span className="text-muted-foreground">vs</span> {m.es_local ? m.rival || "—" : active.team.nombre}
+                    {m.es_local ? active.team.nombre : m.rival || "—"}{" "}
+                    <span className="text-muted-foreground">vs</span>{" "}
+                    {m.es_local ? m.rival || "—" : active.team.nombre}
                   </p>
                   <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                     <span className="inline-flex items-center gap-1">

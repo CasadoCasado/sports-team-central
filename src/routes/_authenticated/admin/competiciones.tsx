@@ -175,9 +175,7 @@ function AdminCompetitionsPage() {
         ))}
       </div>
 
-      {editing && (
-        <CompetitionDialog initial={editing} onClose={() => setEditing(null)} />
-      )}
+      {editing && <CompetitionDialog initial={editing} onClose={() => setEditing(null)} />}
     </div>
   );
 }
@@ -199,7 +197,15 @@ function DeleteButton({ table, id }: { table: CatalogKind | "official-competitio
   return (
     <button
       onClick={async () => {
-        if (await confirmar({ title: t("confirm.deleteItemTitle"), description: t("confirm.noUndo"), confirmLabel: t("confirm.delete"), tone: "danger" })) del.mutate();
+        if (
+          await confirmar({
+            title: t("confirm.deleteItemTitle"),
+            description: t("confirm.noUndo"),
+            confirmLabel: t("confirm.delete"),
+            tone: "danger",
+          })
+        )
+          del.mutate();
       }}
       aria-label={t("common.delete")}
       className="inline-flex size-9 shrink-0 items-center justify-center rounded-md border border-border text-destructive hover:bg-muted"
@@ -358,7 +364,12 @@ function CompetitionDialog({
           <div className="grid gap-3 sm:grid-cols-3">
             <div className="min-w-0">
               <Label>{t("adminComps.code")}</Label>
-              <Input value={code} onChange={(e) => setCode(e.target.value)} maxLength={20} required />
+              <Input
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                maxLength={20}
+                required
+              />
             </div>
             <div className="sm:col-span-2">
               <Label>{t("adminComps.name")}</Label>

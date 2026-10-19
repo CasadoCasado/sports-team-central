@@ -42,9 +42,17 @@ export const Route = createFileRoute("/_authenticated/calendario")({
   head: () => ({
     meta: [
       { title: "Calendario | TeamUp" },
-      { name: "description", content: "Consulta entrenamientos, enfrentamientos y torneos del equipo en vista semanal o mensual." },
+      {
+        name: "description",
+        content:
+          "Consulta entrenamientos, enfrentamientos y torneos del equipo en vista semanal o mensual.",
+      },
       { property: "og:title", content: "Calendario | TeamUp" },
-      { property: "og:description", content: "Consulta entrenamientos, enfrentamientos y torneos del equipo en vista semanal o mensual." },
+      {
+        property: "og:description",
+        content:
+          "Consulta entrenamientos, enfrentamientos y torneos del equipo en vista semanal o mensual.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -63,7 +71,6 @@ type EventRow = {
   requiere_convocatoria?: boolean;
   resultado_local?: number | null;
   resultado_visitante?: number | null;
-
 };
 
 type View = "month" | "week" | "list";
@@ -117,7 +124,6 @@ function buildDayMap(events: EventRow[], gridStart: Date, gridEnd: Date) {
   return m;
 }
 
-
 function Calendario() {
   const { t, i18n } = useTranslation();
   const locale = i18n.language.startsWith("en") ? enUS : esLocale;
@@ -152,13 +158,7 @@ function Calendario() {
   }, [cursor, view]);
 
   const { data: events } = useQuery({
-    queryKey: [
-      "events",
-      active?.team_id,
-      view,
-      range.start.toISOString(),
-      range.end.toISOString(),
-    ],
+    queryKey: ["events", active?.team_id, view, range.start.toISOString(), range.end.toISOString()],
     enabled: !!active,
     // `overlaps_*` recoge también los eventos que empezaron antes de la
     // ventana y todavía duran, como un torneo de varios días.
@@ -169,7 +169,6 @@ function Calendario() {
         overlaps_end: range.end.toISOString(),
         order: "fecha_inicio",
       }),
-
   });
 
   if (!active) return <EmptyTeamState />;
@@ -325,7 +324,6 @@ function ViewSwitcher({
           {it.label}
         </button>
       ))}
-
     </div>
   );
 }
@@ -474,13 +472,11 @@ function MonthGrid({
                 )}
               </ul>
 
-
               {/* Tablet & desktop: full chips */}
               <div className="pointer-events-none relative z-10 hidden space-y-1 sm:block">
                 {dayEvents.slice(0, 3).map((e) => {
                   const style = eventTypeStyles[e.tipo];
-                  const isStart =
-                    format(new Date(e.fecha_inicio), "yyyy-MM-dd") === key;
+                  const isStart = format(new Date(e.fecha_inicio), "yyyy-MM-dd") === key;
                   return (
                     <Link
                       key={e.id}
@@ -496,9 +492,7 @@ function MonthGrid({
                         isPast(e) && cn(pastClass, "hover:opacity-80"),
                       )}
                     >
-                      <span
-                        className={cn("size-1.5 shrink-0 rounded-full", style.dot)}
-                      />
+                      <span className={cn("size-1.5 shrink-0 rounded-full", style.dot)} />
                       {isStart ? (
                         <span className="shrink-0 tabular-nums opacity-70">
                           {format(new Date(e.fecha_inicio), "HH:mm")}
@@ -517,7 +511,6 @@ function MonthGrid({
                   </div>
                 )}
               </div>
-
             </div>
           );
         })}
@@ -544,11 +537,7 @@ function WeekView({
   const start = startOfWeek(cursor, { weekStartsOn: 1 });
   const days = eachDayOfInterval({ start, end: addDays(start, 6) });
 
-  const byDay = useMemo(
-    () => buildDayMap(events, days[0], days[days.length - 1]),
-    [events, days],
-  );
-
+  const byDay = useMemo(() => buildDayMap(events, days[0], days[days.length - 1]), [events, days]);
 
   return (
     <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-7">
@@ -591,16 +580,12 @@ function WeekView({
                 </div>
               </div>
               {list.length > 0 && (
-                <span className="pill bg-muted text-muted-foreground">
-                  {list.length}
-                </span>
+                <span className="pill bg-muted text-muted-foreground">{list.length}</span>
               )}
             </div>
             <div className="pointer-events-none relative z-10 space-y-2">
               {list.length === 0 ? (
-                <p className="text-xxs text-muted-foreground">
-                  {t("events.noEventsDay")}
-                </p>
+                <p className="text-xxs text-muted-foreground">{t("events.noEventsDay")}</p>
               ) : (
                 list.map((e) => <WeekEventCard key={e.id} e={e} />)
               )}
@@ -630,9 +615,7 @@ function WeekEventCard({ e }: { e: EventRow }) {
       <div className="flex flex-wrap items-center gap-x-1.5 text-2xs font-bold uppercase tracking-widest text-muted-foreground">
         <Clock className="size-3 shrink-0" />
         <span className="tabular-nums">{format(start, "HH:mm")}</span>
-        {end && (
-          <span className="tabular-nums opacity-70">— {format(end, "HH:mm")}</span>
-        )}
+        {end && <span className="tabular-nums opacity-70">— {format(end, "HH:mm")}</span>}
       </div>
       <div className="mt-0.5 flex min-w-0 items-start gap-1.5">
         <span className={cn("mt-1.5 size-1.5 shrink-0 rounded-full", style.dot)} />
@@ -651,9 +634,7 @@ function WeekEventCard({ e }: { e: EventRow }) {
         </div>
       )}
       {e.rival && (
-        <div className="mt-0.5 truncate text-xxs text-muted-foreground">
-          vs {e.rival}
-        </div>
+        <div className="mt-0.5 truncate text-xxs text-muted-foreground">vs {e.rival}</div>
       )}
     </Link>
   );
@@ -696,9 +677,7 @@ function EventList({ teamId }: { teamId: string }) {
       </Section>
       <Section title={t("events.past")}>
         {past?.length ? (
-          past.map((e) => (
-            <EventRowItem key={e.id} e={e} locale={locale} past />
-          ))
+          past.map((e) => <EventRowItem key={e.id} e={e} locale={locale} past />)
         ) : (
           <p className="p-6 text-sm text-muted-foreground">{t("events.empty")}</p>
         )}
@@ -707,13 +686,7 @@ function EventList({ teamId }: { teamId: string }) {
   );
 }
 
-function Section({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="surface-card overflow-hidden">
       <div className="border-b border-border px-5 py-3 text-2xs font-bold uppercase tracking-widest text-muted-foreground">
@@ -742,10 +715,7 @@ function EventRowItem({
       to="/eventos/$id"
       params={{ id: e.id }}
       search={{ desde: "calendario" }}
-      className={cn(
-        "flex items-center gap-4 p-4 transition-colors hover:bg-accent/60",
-        style.band,
-      )}
+      className={cn("flex items-center gap-4 p-4 transition-colors hover:bg-accent/60", style.band)}
     >
       <div
         className={cn(
@@ -756,32 +726,25 @@ function EventRowItem({
         <div className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
           {format(date, "MMM", { locale })}
         </div>
-        <div className="text-display text-xl font-black leading-none">
-          {format(date, "d")}
-        </div>
+        <div className="text-display text-xl font-black leading-none">{format(date, "d")}</div>
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
-          <span
-            className={cn(
-              "pill border",
-              style.badge,
-            )}
-          >
+          <span className={cn("pill border", style.badge)}>
             <span className={cn("size-1.5 rounded-full", style.dot)} />
-            {(
-              {
-                entrenamiento: "Entreno",
-                partido: "Match",
-                reunion: "Meeting",
-                otro: "Other",
-              } as Record<EventType, string>
-            )[e.tipo]}
+            {
+              (
+                {
+                  entrenamiento: "Entreno",
+                  partido: "Match",
+                  reunion: "Meeting",
+                  otro: "Other",
+                } as Record<EventType, string>
+              )[e.tipo]
+            }
           </span>
           <p className="truncate text-sm font-semibold">{e.titulo}</p>
-          {e.requiere_convocatoria && !past && (
-            <ClipboardList className="size-3.5 text-primary" />
-          )}
+          {e.requiere_convocatoria && !past && <ClipboardList className="size-3.5 text-primary" />}
         </div>
         <div className="mt-1 flex flex-wrap items-center gap-3 text-xxs text-muted-foreground">
           <span className="inline-flex items-center gap-1 tabular-nums">

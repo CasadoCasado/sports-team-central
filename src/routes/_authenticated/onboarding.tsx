@@ -12,9 +12,15 @@ export const Route = createFileRoute("/_authenticated/onboarding")({
   head: () => ({
     meta: [
       { title: "Configura tu cuenta | TeamUp" },
-      { name: "description", content: "Completa tu perfil y elige si buscas equipo o quieres crear el tuyo en TeamUp." },
+      {
+        name: "description",
+        content: "Completa tu perfil y elige si buscas equipo o quieres crear el tuyo en TeamUp.",
+      },
       { property: "og:title", content: "Configura tu cuenta | TeamUp" },
-      { property: "og:description", content: "Completa tu perfil y elige si buscas equipo o quieres crear el tuyo en TeamUp." },
+      {
+        property: "og:description",
+        content: "Completa tu perfil y elige si buscas equipo o quieres crear el tuyo en TeamUp.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -118,9 +124,7 @@ function RoleCard({
       onClick={onClick}
       className={cn(
         "surface-card group relative flex flex-col gap-4 p-8 text-left transition-all",
-        selected
-          ? "border-primary bg-primary/5 ring-2 ring-primary"
-          : "hover:border-primary/40",
+        selected ? "border-primary bg-primary/5 ring-2 ring-primary" : "hover:border-primary/40",
       )}
     >
       <div

@@ -33,7 +33,6 @@ const FORMATOS: TrainingFormat[] = ["rey_pista", "partidos", "americano"];
 import { teamRegistrationsQuery } from "@/lib/official-competitions";
 import { Guardando } from "@/components/guardando";
 
-
 export type EventFormValues = {
   id?: string;
   tipo: EventType;
@@ -145,10 +144,10 @@ export function EventFormDialog({
     queryKey: ["competitions", teamId],
     enabled: !!teamId && open,
     queryFn: () =>
-      api.get<{ id: string; nombre: string; formato: TrainingFormat | null }[]>(
-        "/competitions/",
-        { team_id: teamId, order: "-created_at" },
-      ),
+      api.get<{ id: string; nombre: string; formato: TrainingFormat | null }[]>("/competitions/", {
+        team_id: teamId,
+        order: "-created_at",
+      }),
   });
 
   // Dentro de una competición manda su formato, así que el selector propio
@@ -210,9 +209,6 @@ export function EventFormDialog({
     setRegistrationError(null);
   }, [values.registration_id, officialCompetitionId, open]);
 
-
-
-
   const save = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error("No user");
@@ -249,9 +245,7 @@ export function EventFormDialog({
             : null,
         puntos_pista: isPadel && values.tipo === "partido" ? puntos : null,
         formato_entreno:
-          values.tipo === "entrenamiento" && !values.competition_id
-            ? values.formato_entreno
-            : null,
+          values.tipo === "entrenamiento" && !values.competition_id ? values.formato_entreno : null,
       };
       if (values.id) {
         await api.patch(`/events/${values.id}/`, payload);
@@ -287,7 +281,6 @@ export function EventFormDialog({
       }
     },
 
-
     onSettled: () => setSaving(false),
   });
 
@@ -313,11 +306,17 @@ export function EventFormDialog({
                 setValues((s) => conFinPorDefecto({ ...s, tipo: v as EventType }))
               }
             >
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
-                {(["entrenamiento", "partido", "torneo", "reunion", "otro"] as EventType[]).map((tp) => (
-                  <SelectItem key={tp} value={tp}>{t(`events.types.${tp}`)}</SelectItem>
-                ))}
+                {(["entrenamiento", "partido", "torneo", "reunion", "otro"] as EventType[]).map(
+                  (tp) => (
+                    <SelectItem key={tp} value={tp}>
+                      {t(`events.types.${tp}`)}
+                    </SelectItem>
+                  ),
+                )}
               </SelectContent>
             </Select>
           </div>
@@ -385,11 +384,15 @@ export function EventFormDialog({
                   setValues((s) => ({ ...s, competition_id: v === "none" ? null : v }))
                 }
               >
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">{t("events.sinCompeticion")}</SelectItem>
                   {competitions?.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.nombre}</SelectItem>
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.nombre}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -404,9 +407,7 @@ export function EventFormDialog({
             (values.competition_id ? (
               <p className="rounded-md border border-border p-3 text-xxs text-muted-foreground">
                 {t("events.formatoDeLaCompeticion", {
-                  formato: t(
-                    `competitions.formatos.${competicionElegida?.formato ?? "ninguno"}`,
-                  ),
+                  formato: t(`competitions.formatos.${competicionElegida?.formato ?? "ninguno"}`),
                 })}
               </p>
             ) : (
@@ -421,7 +422,9 @@ export function EventFormDialog({
                     }))
                   }
                 >
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">{t("competitions.formatos.ninguno")}</SelectItem>
                     {FORMATOS.map((f) => (
@@ -477,11 +480,15 @@ export function EventFormDialog({
                         setValues((s) => ({ ...s, registration_id: null }));
                       }}
                     >
-                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="none">{t("events.sinCompeticion")}</SelectItem>
                         {officialCompetitions.map((c) => (
-                          <SelectItem key={c.id} value={c.id}>{c.nombre}</SelectItem>
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.nombre}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -516,11 +523,7 @@ export function EventFormDialog({
                         <SelectItem value="none">{t("events.sinCompeticion")}</SelectItem>
                         {filteredRegistrations.map((r) => (
                           <SelectItem key={r.id} value={r.id}>
-                            {[
-                              r.category_nombre,
-                              r.division_nombre,
-                              r.temporada,
-                            ]
+                            {[r.category_nombre, r.division_nombre, r.temporada]
                               .filter(Boolean)
                               .join(" · ")}
                           </SelectItem>
@@ -538,12 +541,13 @@ export function EventFormDialog({
                       </p>
                     )}
                   </div>
-
                 </div>
               )}
 
               <div className="flex items-center justify-between rounded-md border border-border p-3">
-                <Label htmlFor="es_local" className="cursor-pointer">{t("events.esLocal")}</Label>
+                <Label htmlFor="es_local" className="cursor-pointer">
+                  {t("events.esLocal")}
+                </Label>
                 <Switch
                   id="es_local"
                   checked={values.es_local}
@@ -579,14 +583,20 @@ export function EventFormDialog({
                     placeholder="3, 3, 2, 2, 2"
                   />
                   <p className="mt-1 text-xs text-muted-foreground">
-                    {t(values.competition_id ? "events.puntosPistaHintComp" : "events.puntosPistaHint")}
+                    {t(
+                      values.competition_id
+                        ? "events.puntosPistaHintComp"
+                        : "events.puntosPistaHint",
+                    )}
                   </p>
                 </div>
               )}
             </>
           )}
           <div className="flex items-center justify-between rounded-md border border-border p-3">
-            <Label htmlFor="req_conv" className="cursor-pointer">{t("events.requiereConvocatoria")}</Label>
+            <Label htmlFor="req_conv" className="cursor-pointer">
+              {t("events.requiereConvocatoria")}
+            </Label>
             <Switch
               id="req_conv"
               checked={values.requiere_convocatoria}

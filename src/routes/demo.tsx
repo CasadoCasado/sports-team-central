@@ -32,7 +32,8 @@ export const Route = createFileRoute("/demo")({
       { property: "og:title", content: "Prueba TeamUp sin crear cuenta" },
       {
         property: "og:description",
-        content: "Explora el calendario, las convocatorias, las encuestas y los logros con un equipo de ejemplo.",
+        content:
+          "Explora el calendario, las convocatorias, las encuestas y los logros con un equipo de ejemplo.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -44,10 +45,34 @@ export const Route = createFileRoute("/demo")({
 type TabId = "inicio" | "calendario" | "convocatorias" | "encuestas" | "logros";
 
 const DEMO_EVENTS = [
-  { day: "Lun 12", time: "19:30", title: "Entrenamiento técnico", place: "Club Norte · Pista 3", kind: "entrenamiento" },
-  { day: "Mié 14", time: "20:00", title: "Entrenamiento físico", place: "Club Norte · Pista 1", kind: "entrenamiento" },
-  { day: "Sáb 17", time: "10:00", title: "TeamUp Padel vs Racket Club", place: "Club Sur · 3 pistas", kind: "enfrentamiento" },
-  { day: "Dom 25", time: "09:00", title: "Torneo de primavera", place: "Ciudad Deportiva", kind: "torneo" },
+  {
+    day: "Lun 12",
+    time: "19:30",
+    title: "Entrenamiento técnico",
+    place: "Club Norte · Pista 3",
+    kind: "entrenamiento",
+  },
+  {
+    day: "Mié 14",
+    time: "20:00",
+    title: "Entrenamiento físico",
+    place: "Club Norte · Pista 1",
+    kind: "entrenamiento",
+  },
+  {
+    day: "Sáb 17",
+    time: "10:00",
+    title: "TeamUp Padel vs Racket Club",
+    place: "Club Sur · 3 pistas",
+    kind: "enfrentamiento",
+  },
+  {
+    day: "Dom 25",
+    time: "09:00",
+    title: "Torneo de primavera",
+    place: "Ciudad Deportiva",
+    kind: "torneo",
+  },
 ];
 
 const DEMO_SQUAD = [
@@ -94,7 +119,13 @@ function DemoPage() {
       <header className="sticky top-0 z-20 border-b border-border bg-background/85 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-2 px-4 sm:px-6">
           <Link to="/" className="flex min-w-0 items-center gap-3">
-            <img src={LOGO_URL} alt="TeamUp" className="size-8 shrink-0 object-contain" width={32} height={32} />
+            <img
+              src={LOGO_URL}
+              alt="TeamUp"
+              className="size-8 shrink-0 object-contain"
+              width={32}
+              height={32}
+            />
             {/* En un móvil, el nombre junto al selector de idioma y el botón de
                 registro no dejaba sitio a ninguno: debajo de `sm` basta el escudo. */}
             <span className="text-display hidden truncate text-lg font-extrabold uppercase tracking-tight sm:inline">
@@ -225,7 +256,9 @@ function DemoCalendario({ t }: { t: TFn }) {
       {DEMO_EVENTS.map((ev) => (
         <div key={ev.title} className="flex items-center gap-4 p-4">
           <div className="w-16 shrink-0 text-center">
-            <p className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">{ev.day}</p>
+            <p className="text-2xs font-bold uppercase tracking-widest text-muted-foreground">
+              {ev.day}
+            </p>
             <p className="text-display text-base font-black">{ev.time}</p>
           </div>
           <div className="min-w-0 flex-1">
@@ -238,8 +271,8 @@ function DemoCalendario({ t }: { t: TFn }) {
               ev.kind === "enfrentamiento"
                 ? "bg-primary/10 text-primary"
                 : ev.kind === "torneo"
-                ? "bg-ok/10 text-ok"
-                : "bg-muted text-muted-foreground",
+                  ? "bg-ok/10 text-ok"
+                  : "bg-muted text-muted-foreground",
             )}
           >
             {t(`demo.kind.${ev.kind}`)}
@@ -261,7 +294,9 @@ function DemoConvocatorias({ t }: { t: TFn }) {
       <h2 className="text-display text-sm font-bold uppercase tracking-[0.18em]">
         TeamUp Padel vs Racket Club
       </h2>
-      <p className="mt-1 text-sm text-muted-foreground">Sáb 17 · 10:00 · Club Sur · 3 {t("demo.courts")}</p>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Sáb 17 · 10:00 · Club Sur · 3 {t("demo.courts")}
+      </p>
       <ul className="mt-4 divide-y divide-border">
         {DEMO_SQUAD.map((p) => (
           <li key={p.name} className="flex items-center gap-3 py-3">
@@ -358,7 +393,9 @@ function DemoLogros({ t }: { t: TFn }) {
           {DEMO_LEADERBOARD.map((row, i) => (
             <li key={row.name} className="flex items-center gap-3 py-3">
               <span className="w-6 text-sm font-bold text-muted-foreground">{i + 1}</span>
-              <Trophy className={cn("size-4", i === 0 ? "text-primary" : "text-muted-foreground")} />
+              <Trophy
+                className={cn("size-4", i === 0 ? "text-primary" : "text-muted-foreground")}
+              />
               <span className="min-w-0 flex-1 truncate text-sm font-medium">{row.name}</span>
               <span className="text-xs text-muted-foreground">
                 {row.played} {t("achievements.playedShort")}

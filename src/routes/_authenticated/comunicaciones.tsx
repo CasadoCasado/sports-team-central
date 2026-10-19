@@ -758,7 +758,15 @@ function ChannelView({ channel, isManager }: { channel: Channel; isManager: bool
   }
 
   async function remove(id: string) {
-    if (!(await confirmar({ title: t("confirm.deleteMessageTitle"), description: t("confirm.noUndo"), confirmLabel: t("confirm.delete"), tone: "danger" }))) return;
+    if (
+      !(await confirmar({
+        title: t("confirm.deleteMessageTitle"),
+        description: t("confirm.noUndo"),
+        confirmLabel: t("confirm.delete"),
+        tone: "danger",
+      }))
+    )
+      return;
     try {
       await api.delete(`/chat-messages/${id}/`);
     } catch (err) {

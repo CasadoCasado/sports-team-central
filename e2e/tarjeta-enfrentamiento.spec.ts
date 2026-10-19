@@ -96,9 +96,9 @@ test.describe("Cabecera de un enfrentamiento", () => {
     await page.goto(`/eventos/${event.id}`);
 
     const cabecera = page.getByRole("article").first();
-    await expect(
-      cabecera.getByRole("heading", { name: "Entrenamiento de volea" }),
-    ).toBeVisible({ timeout: 20_000 });
+    await expect(cabecera.getByRole("heading", { name: "Entrenamiento de volea" })).toBeVisible({
+      timeout: 20_000,
+    });
     // El antetítulo es el tipo, no el título otra vez.
     await expect(cabecera.getByText("Entrenamiento", { exact: true })).toBeVisible();
     await expect(cabecera.getByText(/^vs$/i)).toHaveCount(0);

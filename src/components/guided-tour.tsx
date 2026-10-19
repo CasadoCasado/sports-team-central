@@ -79,13 +79,7 @@ export function restartGuidedTour() {
   window.dispatchEvent(new Event(TOUR_RESTART_EVENT));
 }
 
-export function GuidedTour({
-  open,
-  onFinish,
-}: {
-  open: boolean;
-  onFinish: () => void;
-}) {
+export function GuidedTour({ open, onFinish }: { open: boolean; onFinish: () => void }) {
   const { t } = useTranslation();
   const { data: profile } = useProfile();
   const { isManager, memberships } = useActiveTeam();
@@ -120,9 +114,7 @@ export function GuidedTour({
               {t("tour.stepOf", { current: index + 1, total: steps.length })}
             </span>
           </div>
-          <DialogTitle className="text-xl">
-            {t(`tour.${role}.${step.key}.title`)}
-          </DialogTitle>
+          <DialogTitle className="text-xl">{t(`tour.${role}.${step.key}.title`)}</DialogTitle>
           <DialogDescription className="text-base">
             {t(`tour.${role}.${step.key}.desc`)}
           </DialogDescription>
@@ -161,12 +153,7 @@ export function GuidedTour({
               </Button>
             )}
             {step.to && (
-              <Button
-                asChild
-                variant="outline"
-                className="min-h-11 flex-1"
-                onClick={onFinish}
-              >
+              <Button asChild variant="outline" className="min-h-11 flex-1" onClick={onFinish}>
                 <Link to={step.to}>{t("tour.goTo")}</Link>
               </Button>
             )}

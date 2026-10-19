@@ -67,7 +67,10 @@ test.describe("Menú de la cuenta", () => {
     await page.goto("/calendario");
     await abrirMenu(page);
 
-    await page.getByRole("link", { name: /^ayuda$/i }).last().click();
+    await page
+      .getByRole("link", { name: /^ayuda$/i })
+      .last()
+      .click();
     await expect(page).toHaveURL(/\/ayuda/);
     // Y el menú se ha cerrado al navegar.
     await expect(page.getByRole("button", { name: /^cerrar sesión$/i })).toHaveCount(0);

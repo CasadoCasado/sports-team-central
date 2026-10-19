@@ -9,9 +9,15 @@ export const Route = createFileRoute("/_authenticated/comunicaciones/unirse/$tok
   head: () => ({
     meta: [
       { title: "Unirse a un canal | TeamUp" },
-      { name: "description", content: "Acepta la invitación para entrar en un canal de comunicación del equipo." },
+      {
+        name: "description",
+        content: "Acepta la invitación para entrar en un canal de comunicación del equipo.",
+      },
       { property: "og:title", content: "Unirse a un canal | TeamUp" },
-      { property: "og:description", content: "Acepta la invitación para entrar en un canal de comunicación del equipo." },
+      {
+        property: "og:description",
+        content: "Acepta la invitación para entrar en un canal de comunicación del equipo.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],

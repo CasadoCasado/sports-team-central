@@ -19,9 +19,15 @@ export const Route = createFileRoute("/_authenticated/entrenamientos")({
   head: () => ({
     meta: [
       { title: "Entrenamientos | TeamUp" },
-      { name: "description", content: "Consulta los entrenamientos programados y apúntate a las sesiones de tu equipo." },
+      {
+        name: "description",
+        content: "Consulta los entrenamientos programados y apúntate a las sesiones de tu equipo.",
+      },
       { property: "og:title", content: "Entrenamientos | TeamUp" },
-      { property: "og:description", content: "Consulta los entrenamientos programados y apúntate a las sesiones de tu equipo." },
+      {
+        property: "og:description",
+        content: "Consulta los entrenamientos programados y apúntate a las sesiones de tu equipo.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -56,8 +62,7 @@ function Trainings() {
   const { data: responses } = useQuery({
     queryKey: ["training-responses", active?.team_id, eventIds.join(",")],
     enabled: eventIds.length > 0,
-    queryFn: () =>
-      api.get<EventResponse[]>("/event-responses/", { event_id__in: eventIds }),
+    queryFn: () => api.get<EventResponse[]>("/event-responses/", { event_id__in: eventIds }),
   });
 
   const countsByEvent = new Map<string, number>();
@@ -91,7 +96,6 @@ function Trainings() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-
   if (!active) return <EmptyTeamState />;
 
   const upcoming = (data ?? []).filter((e) => e.fecha_inicio >= now);
@@ -104,7 +108,9 @@ function Trainings() {
           <h1 className="text-display text-2xl font-black tracking-tight sm:text-3xl">
             {t("nav.entrenamientos")}
           </h1>
-          <div className="mt-1"><TeamPicker /></div>
+          <div className="mt-1">
+            <TeamPicker />
+          </div>
         </div>
         {isManager && (
           <Button
@@ -132,7 +138,10 @@ function Trainings() {
               /* El botón de apuntarse, debajo del entrenamiento mientras no
                  quepa al lado: compartiendo fila dejaba el título en «Entrena-
                  miento de smash…», que es justo lo que hay que leer. */
-              <div key={e.id} className="flex flex-col gap-3 p-4 hover:bg-card sm:flex-row sm:items-center sm:gap-4">
+              <div
+                key={e.id}
+                className="flex flex-col gap-3 p-4 hover:bg-card sm:flex-row sm:items-center sm:gap-4"
+              >
                 <Link
                   to="/eventos/$id"
                   params={{ id: e.id }}

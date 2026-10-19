@@ -13,4 +13,5 @@ export function leerPuntosPista(texto: string): number[] | null | undefined {
 }
 
 /** [3, 3, 2, 2, 2] → «3, 3, 2, 2, 2». */
-export const escribirPuntosPista = (puntos: number[] | null | undefined) => puntos?.join(", ") ?? "";
+export const escribirPuntosPista = (puntos: number[] | null | undefined) =>
+  puntos?.join(", ") ?? "";
