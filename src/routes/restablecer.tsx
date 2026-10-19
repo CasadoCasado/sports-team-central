@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useHydrated } from "@tanstack/react-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
@@ -31,6 +31,12 @@ function Restablecer() {
   const [errores, setErrores] = useState<string[]>([]);
   const [caducado, setCaducado] = useState(!uid || !token);
   const [guardando, setGuardando] = useState(false);
+  // Hasta hidratar, ni se escribe ni se envía. Lo escrito antes se veía en la
+  // caja pero no llegaba al estado («Mínimo 8 caracteres» con la contraseña a
+  // la vista), y pulsar enviaba el formulario a la manera del navegador:
+  // recargaba /restablecer sin `uid` ni `token` y daba el enlace por caducado.
+  // En un móvil lento se llega a hacer.
+  const hidratado = useHydrated();
 
   async function guardar(e: React.FormEvent) {
     e.preventDefault();
@@ -82,6 +88,7 @@ function Restablecer() {
               setErrores([]);
             }}
             autoComplete="new-password"
+            disabled={!hidratado}
           />
         </div>
         <div>
@@ -95,6 +102,7 @@ function Restablecer() {
               setErrores([]);
             }}
             autoComplete="new-password"
+            disabled={!hidratado}
           />
         </div>
         {errores.length > 0 && (
@@ -106,7 +114,7 @@ function Restablecer() {
         )}
         <Button
           type="submit"
-          disabled={guardando}
+          disabled={guardando || !hidratado}
           className="w-full bg-primary text-primary-foreground uppercase tracking-widest font-bold hover:opacity-90"
         >
           {t("restablecer.guardar")}
