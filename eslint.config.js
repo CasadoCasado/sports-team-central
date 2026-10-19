@@ -20,6 +20,13 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
+      // Las reglas del React Compiler que trajo eslint-plugin-react-hooks 7.
+      // Señalan cosas mejorables (estado que se fija dentro de un efecto,
+      // `Date.now()` al pintar), no fallos: avisan sin parar la CI mientras
+      // se van corrigiendo.
+      "react-hooks/set-state-in-effect": "warn",
+      "react-hooks/purity": "warn",
+      "react-hooks/refs": "warn",
       "no-restricted-imports": [
         "error",
         {
