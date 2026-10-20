@@ -1571,6 +1571,13 @@
     "editarTitulo": "Enfrentamiento entre otros equipos",
     "sinPuntosHint": "Si aún no se ha jugado, deja los puntos vacíos: no cuenta en la clasificación hasta que guardes el resultado."
   },
+  "descargarDatos": {
+    "titulo": "Mis datos",
+    "explica": "Descarga una copia de todo lo que TeamUp guarda de ti: tu cuenta y tu perfil, tus equipos, respuestas, estadísticas, mensajes, pagos y avisos, en un fichero JSON.",
+    "boton": "Descargar mis datos",
+    "preparando": "Preparando…",
+    "hecho": "Tus datos se han descargado."
+  },
   "borrarCuenta": {
     "titulo": "Borrar mi cuenta",
     "explica": "Se borra tu perfil y todo lo tuyo. Lo que es de tus equipos (partidos, resultados, mensajes) se queda, a nombre de «Usuario eliminado».",

@@ -1571,6 +1571,13 @@
     "editarTitulo": "Fixture between other teams",
     "sinPuntosHint": "If it hasn't been played yet, leave the points empty: it won't count in the table until you save the result."
   },
+  "descargarDatos": {
+    "titulo": "My data",
+    "explica": "Download a copy of everything TeamUp keeps about you: your account and profile, teams, answers, stats, messages, payments and notifications, as a JSON file.",
+    "boton": "Download my data",
+    "preparando": "Preparing…",
+    "hecho": "Your data has been downloaded."
+  },
   "borrarCuenta": {
     "titulo": "Delete my account",
     "explica": "Your profile and everything that is yours is deleted. What belongs to your teams (matches, results, messages) stays, under «Deleted user».",
