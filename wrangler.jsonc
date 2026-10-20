@@ -9,9 +9,10 @@
   //
   // «teamup», sin s, es el Worker de LA DEMO (teamup.<sub>.workers.dev), del
   // nombre de antes de Teamsup. No se cambia mientras la demo siga viva:
-  // cambiaría su dirección y los equipos que la usan perderían el enlace. El
-  // Worker de producción se llama «teamsup» y se despliega con su nombre en el
-  // comando de despliegue (`npx wrangler deploy --name teamsup`, ver la guía de
-  // B6). Al apagar la demo, aquí pasa a «teamsup».
+  // cambiaría su dirección y los equipos que la usan perderían el enlace.
+  // El Worker de producción, «teamsup», sale de este mismo repo: Workers Builds
+  // despliega con el nombre que tiene el Worker en el panel
+  // (WRANGLER_CI_OVERRIDE_NAME), no con este. Al apagar la demo, aquí pasa a
+  // «teamsup».
   "name": "teamup",
 }
