@@ -3,6 +3,7 @@ import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { RemoveScroll } from "react-remove-scroll";
 import { useIsAdmin } from "@/hooks/use-is-admin";
+import { FranjaVerificarEmail } from "@/components/verificar-email";
 import { UNDER_MAINTENANCE } from "@/lib/feature-flags";
 import { GuidedTour, useGuidedTour } from "@/components/guided-tour";
 import {
@@ -517,6 +518,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </header>
 
         <main className="flex-1 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:p-6 xl:p-8">
+          <FranjaVerificarEmail />
           <div className="animate-fade-in-up">{children}</div>
         </main>
       </div>

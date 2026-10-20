@@ -1571,6 +1571,26 @@
     "editarTitulo": "Fixture between other teams",
     "sinPuntosHint": "If it hasn't been played yet, leave the points empty: it won't count in the table until you save the result."
   },
+  "verificarEmail": {
+    "franja": "Confirm your email: we sent a link to {{email}}. Until then you won't get notifications by email.",
+    "reenviar": "Resend the link",
+    "reenviado": "We've sent you another link.",
+    "esperar": "We just sent it: wait a couple of minutes and check your spam folder too.",
+    "titulo": "Confirm email",
+    "comprobando": "Checking the link…",
+    "hecho": "Done: your email is confirmed. We'll email you the important things.",
+    "caducado": "The link has expired. Sign in to TeamUp and ask for another one from your profile.",
+    "noVale": "This link isn't valid. Open the one in the latest email we sent you, or ask for another one from your profile.",
+    "irAlPerfil": "Go to my profile",
+    "entrar": "Sign in to TeamUp"
+  },
+  "avisosCorreo": {
+    "titulo": "Email notifications",
+    "explica": "We only email you about important things: when you're called up, invited to a team, have a pending payment or become a team's owner.",
+    "activados": "We'll email you the important things.",
+    "desactivados": "You won't get notifications by email anymore.",
+    "sinConfirmar": "You won't get them until you confirm {{email}}."
+  },
   "descargarDatos": {
     "titulo": "My data",
     "explica": "Download a copy of everything TeamUp keeps about you: your account and profile, teams, answers, stats, messages, payments and notifications, as a JSON file.",

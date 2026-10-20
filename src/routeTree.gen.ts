@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as DemoRouteImport } from './routes/demo'
 import { Route as RecuperarRouteImport } from './routes/recuperar'
 import { Route as RestablecerRouteImport } from './routes/restablecer'
+import { Route as VerificarEmailRouteImport } from './routes/verificar-email'
 import { Route as AuthenticatedAyudaRouteImport } from './routes/_authenticated/ayuda'
 import { Route as AuthenticatedCalendarioRouteImport } from './routes/_authenticated/calendario'
 import { Route as AuthenticatedCompeticionesRouteImport } from './routes/_authenticated/competiciones'
@@ -68,6 +69,11 @@ const RecuperarRoute = RecuperarRouteImport.update({
 const RestablecerRoute = RestablecerRouteImport.update({
   id: '/restablecer',
   path: '/restablecer',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VerificarEmailRoute = VerificarEmailRouteImport.update({
+  id: '/verificar-email',
+  path: '/verificar-email',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAyudaRoute = AuthenticatedAyudaRouteImport.update({
@@ -212,6 +218,7 @@ export interface FileRoutesByFullPath {
   '/demo': typeof DemoRoute
   '/recuperar': typeof RecuperarRoute
   '/restablecer': typeof RestablecerRoute
+  '/verificar-email': typeof VerificarEmailRoute
   '/ayuda': typeof AuthenticatedAyudaRoute
   '/calendario': typeof AuthenticatedCalendarioRoute
   '/competiciones': typeof AuthenticatedCompeticionesRoute
@@ -244,6 +251,7 @@ export interface FileRoutesByTo {
   '/demo': typeof DemoRoute
   '/recuperar': typeof RecuperarRoute
   '/restablecer': typeof RestablecerRoute
+  '/verificar-email': typeof VerificarEmailRoute
   '/ayuda': typeof AuthenticatedAyudaRoute
   '/calendario': typeof AuthenticatedCalendarioRoute
   '/competiciones': typeof AuthenticatedCompeticionesRoute
@@ -278,6 +286,7 @@ export interface FileRoutesById {
   '/demo': typeof DemoRoute
   '/recuperar': typeof RecuperarRoute
   '/restablecer': typeof RestablecerRoute
+  '/verificar-email': typeof VerificarEmailRoute
   '/_authenticated/ayuda': typeof AuthenticatedAyudaRoute
   '/_authenticated/calendario': typeof AuthenticatedCalendarioRoute
   '/_authenticated/competiciones': typeof AuthenticatedCompeticionesRoute
@@ -312,6 +321,7 @@ export interface FileRouteTypes {
     | '/demo'
     | '/recuperar'
     | '/restablecer'
+    | '/verificar-email'
     | '/ayuda'
     | '/calendario'
     | '/competiciones'
@@ -344,6 +354,7 @@ export interface FileRouteTypes {
     | '/demo'
     | '/recuperar'
     | '/restablecer'
+    | '/verificar-email'
     | '/ayuda'
     | '/calendario'
     | '/competiciones'
@@ -377,6 +388,7 @@ export interface FileRouteTypes {
     | '/demo'
     | '/recuperar'
     | '/restablecer'
+    | '/verificar-email'
     | '/_authenticated/ayuda'
     | '/_authenticated/calendario'
     | '/_authenticated/competiciones'
@@ -411,6 +423,7 @@ export interface RootRouteChildren {
   DemoRoute: typeof DemoRoute
   RecuperarRoute: typeof RecuperarRoute
   RestablecerRoute: typeof RestablecerRoute
+  VerificarEmailRoute: typeof VerificarEmailRoute
   UnirseCodigoRoute: typeof UnirseCodigoRoute
 }
 
@@ -456,6 +469,13 @@ declare module '@tanstack/react-router' {
       path: '/restablecer'
       fullPath: '/restablecer'
       preLoaderRoute: typeof RestablecerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/verificar-email': {
+      id: '/verificar-email'
+      path: '/verificar-email'
+      fullPath: '/verificar-email'
+      preLoaderRoute: typeof VerificarEmailRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/ayuda': {
@@ -714,6 +734,7 @@ const rootRouteChildren: RootRouteChildren = {
   DemoRoute: DemoRoute,
   RecuperarRoute: RecuperarRoute,
   RestablecerRoute: RestablecerRoute,
+  VerificarEmailRoute: VerificarEmailRoute,
   UnirseCodigoRoute: UnirseCodigoRoute,
 }
 export const routeTree = rootRouteImport

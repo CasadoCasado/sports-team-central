@@ -1,8 +1,6 @@
-import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join } from "node:path";
-
 import { test, expect } from "@playwright/test";
 
+import { enlaceDe } from "./correos";
 import { API_URL, loginAs, PASSWORD, seedCaptainWithTeam } from "./session";
 
 /**
@@ -10,26 +8,6 @@ import { API_URL, loginAs, PASSWORD, seedCaptainWithTeam } from "./session";
  * correo y la contraseña nueva. En desarrollo los correos se guardan como
  * ficheros en backend/correos/ (ver EMAIL_BACKEND en settings).
  */
-const CORREOS = join(process.cwd(), "..", "backend", "correos");
-
-/** El enlace del último correo que ha recibido `email`. */
-function enlaceDe(email: string): string | null {
-  let ficheros: string[] = [];
-  try {
-    ficheros = readdirSync(CORREOS).map((f) => join(CORREOS, f));
-  } catch {
-    return null;
-  }
-  ficheros.sort((a, b) => statSync(b).mtimeMs - statSync(a).mtimeMs);
-  for (const f of ficheros) {
-    const texto = readFileSync(f, "utf8");
-    if (!texto.includes(`To: ${email}`)) continue;
-    const m = texto.match(/https?:\/\/\S+\/restablecer\?uid=\S+&token=\S+/);
-    if (m) return m[0];
-  }
-  return null;
-}
-
 test("quien olvida la contraseña la cambia con el enlace del correo y entra", async ({
   page,
   request,
@@ -54,7 +32,7 @@ test("quien olvida la contraseña la cambia con el enlace del correo y entra", a
 
   let enlace: string | null = null;
   await expect(async () => {
-    enlace = enlaceDe(session.email);
+    enlace = enlaceDe(session.email, /https?:\/\/\S+\/restablecer\?uid=\S+&token=\S+/);
     expect(enlace).not.toBeNull();
   }).toPass({ timeout: 10_000 });
   // El enlace apunta al frontend; se abre en el mismo que usan los tests.
@@ -101,7 +79,7 @@ test("al cambiar la contraseña, la sesión abierta en otro sitio se cierra", as
   await request.post(`${API_URL}/auth/password-reset/`, { data: { email: session.email } });
   let enlace: string | null = null;
   await expect(async () => {
-    enlace = enlaceDe(session.email);
+    enlace = enlaceDe(session.email, /https?:\/\/\S+\/restablecer\?uid=\S+&token=\S+/);
     expect(enlace).not.toBeNull();
   }).toPass({ timeout: 10_000 });
   const params = new URL(enlace!).searchParams;
