@@ -38,7 +38,7 @@ test("se registra, precarga la app y la abre sin red", async ({ page, context })
 
   await context.setOffline(true);
   await page.reload();
-  await expect(page).toHaveTitle(/TeamUp/);
+  await expect(page).toHaveTitle(/Teamsup/);
 });
 
 test("un aviso push se enseña con su texto y su enlace", async ({ page, context, baseURL }) => {
@@ -69,6 +69,6 @@ test("un aviso push se enseña con su texto y su enlace", async ({ page, context
       }),
     )
     .toEqual([
-      { title: "TeamUp", body: "Convocatoria del sábado", data: { url: "/convocatorias" } },
+      { title: "Teamsup", body: "Convocatoria del sábado", data: { url: "/convocatorias" } },
     ]);
 });

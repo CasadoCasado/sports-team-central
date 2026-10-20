@@ -13,7 +13,7 @@ import { loginAs, seedCaptainWithTeam } from "./session";
 
 async function logosCargados(page: Page) {
   return page.evaluate(() =>
-    Array.from(document.querySelectorAll<HTMLImageElement>('img[alt="TeamUp"]')).map((i) => ({
+    Array.from(document.querySelectorAll<HTMLImageElement>('img[alt="Teamsup"]')).map((i) => ({
       src: new URL(i.src).pathname,
       cargada: i.complete && i.naturalWidth > 0,
       natural: i.naturalWidth,

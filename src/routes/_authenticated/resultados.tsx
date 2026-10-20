@@ -11,12 +11,12 @@ import { EmptyTeamState } from "@/components/empty-team-state";
 export const Route = createFileRoute("/_authenticated/resultados")({
   head: () => ({
     meta: [
-      { title: "Resultados | TeamUp" },
+      { title: "Resultados | Teamsup" },
       {
         name: "description",
         content: "Registra y consulta los resultados por pista de cada enfrentamiento de pádel.",
       },
-      { property: "og:title", content: "Resultados | TeamUp" },
+      { property: "og:title", content: "Resultados | Teamsup" },
       {
         property: "og:description",
         content: "Registra y consulta los resultados por pista de cada enfrentamiento de pádel.",

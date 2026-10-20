@@ -26,7 +26,7 @@ export function PantallaAcceso({
           <Link to="/" className="mb-8 flex items-center gap-3">
             <img
               src={LOGO_URL}
-              alt="TeamUp"
+              alt="Teamsup"
               className="size-8 object-contain"
               width={32}
               height={32}

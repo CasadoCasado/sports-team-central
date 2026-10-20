@@ -38,11 +38,11 @@ test("entrando por la IP de red, la app no llama a localhost", async ({ page }) 
   const password = page.getByLabel(/^contraseña$/i);
   await expect(async () => {
     await email.click();
-    await email.pressSequentially("nadie@teamup.test", { delay: 5 });
+    await email.pressSequentially("nadie@teamsup.test", { delay: 5 });
     await password.click();
     await password.pressSequentially("loquesea123", { delay: 5 });
     await page.waitForTimeout(300);
-    await expect(email).toHaveValue("nadie@teamup.test", { timeout: 250 });
+    await expect(email).toHaveValue("nadie@teamsup.test", { timeout: 250 });
   }).toPass({ timeout: 30_000 });
 
   await page.getByRole("button", { name: /^iniciar sesión$/i }).click();

@@ -14,13 +14,13 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_authenticated/notificaciones")({
   head: () => ({
     meta: [
-      { title: "Notificaciones | TeamUp" },
+      { title: "Notificaciones | Teamsup" },
       {
         name: "description",
         content:
           "Todos los avisos de tu equipo: convocatorias, mensajes, encuestas y recordatorios.",
       },
-      { property: "og:title", content: "Notificaciones | TeamUp" },
+      { property: "og:title", content: "Notificaciones | Teamsup" },
       {
         property: "og:description",
         content:

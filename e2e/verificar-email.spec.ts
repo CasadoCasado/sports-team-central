@@ -49,5 +49,5 @@ test("la capitana confirma su email con el enlace y la franja se va", async ({ p
 test("un enlace tocado no confirma nada", async ({ page }) => {
   await page.goto("/verificar-email?token=no-vale");
   await expect(page.getByText(/este enlace no vale/i)).toBeVisible({ timeout: 20_000 });
-  await expect(page.getByRole("link", { name: /entrar en teamup/i })).toBeVisible();
+  await expect(page.getByRole("link", { name: /entrar en teamsup/i })).toBeVisible();
 });

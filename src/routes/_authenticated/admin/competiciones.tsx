@@ -31,7 +31,7 @@ export const Route = createFileRoute("/_authenticated/admin/competiciones")({
   component: AdminCompetitionsPage,
   head: () => ({
     meta: [
-      { title: "Administración de competiciones oficiales | TeamUp" },
+      { title: "Administración de competiciones oficiales | Teamsup" },
       {
         name: "description",
         content:

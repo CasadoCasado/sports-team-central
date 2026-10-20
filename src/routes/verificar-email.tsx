@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/verificar-email")({
   ssr: false,
   head: () => ({
-    meta: [{ title: "Confirmar email | TeamUp" }],
+    meta: [{ title: "Confirmar email | Teamsup" }],
   }),
   validateSearch: z.object({ token: z.string().optional() }),
   component: VerificarEmail,

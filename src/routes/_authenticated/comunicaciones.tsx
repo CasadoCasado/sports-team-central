@@ -55,12 +55,12 @@ import { confirmar } from "@/components/confirm-dialog";
 export const Route = createFileRoute("/_authenticated/comunicaciones")({
   head: () => ({
     meta: [
-      { title: "Comunicaciones | TeamUp" },
+      { title: "Comunicaciones | Teamsup" },
       {
         name: "description",
         content: "Chat del equipo con canales públicos y privados e invitaciones por enlace.",
       },
-      { property: "og:title", content: "Comunicaciones | TeamUp" },
+      { property: "og:title", content: "Comunicaciones | Teamsup" },
       {
         property: "og:description",
         content: "Chat del equipo con canales públicos y privados e invitaciones por enlace.",

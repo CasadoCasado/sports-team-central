@@ -4,6 +4,7 @@ import { createIsomorphicFn } from "@tanstack/react-start";
 import { getRequestHeader } from "@tanstack/react-start/server";
 
 import { CABECERA_NONCE } from "./lib/cabeceras";
+import { migrarClavesLocales } from "./lib/claves-locales";
 import { routeTree } from "./routeTree.gen";
 
 /**
@@ -15,6 +16,9 @@ const nonceDeLaPeticion = createIsomorphicFn()
   .client(() => undefined);
 
 export const getRouter = () => {
+  // Antes de que nada lea del navegador (tema, guía, barra…): las claves del
+  // nombre viejo pasan al nuevo. En el servidor no hace nada.
+  migrarClavesLocales();
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {

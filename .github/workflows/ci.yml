@@ -39,7 +39,7 @@ jobs:
         env:
           # La URL real de la API se pone en Cloudflare; aquí solo se
           # comprueba que compila.
-          TEAMUP_ALLOW_NO_API_URL: "1"
+          TEAMSUP_ALLOW_NO_API_URL: "1"
         run: npm run build
       - name: El service worker llega al despliegue
         # Cloudflare sirve .output/public. Si sw.js falta, o no precarga la

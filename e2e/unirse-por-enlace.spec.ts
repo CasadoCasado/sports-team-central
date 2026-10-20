@@ -54,7 +54,7 @@ test("la capitana manda el enlace por WhatsApp desde la tarjeta del equipo", asy
     page.getByRole("button", { name: /enviar por whatsapp/i }).click(),
   ]);
   const texto = new URL(wa.url()).searchParams.get("text") ?? "";
-  expect(texto).toContain("¡Únete a Equipo wa en TeamUp!");
+  expect(texto).toContain("¡Únete a Equipo wa en Teamsup!");
   expect(texto).toContain(`/unirse/${codigo}`);
 });
 

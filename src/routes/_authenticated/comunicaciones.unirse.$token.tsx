@@ -8,12 +8,12 @@ import { ApiError, api } from "@/lib/api";
 export const Route = createFileRoute("/_authenticated/comunicaciones/unirse/$token")({
   head: () => ({
     meta: [
-      { title: "Unirse a un canal | TeamUp" },
+      { title: "Unirse a un canal | Teamsup" },
       {
         name: "description",
         content: "Acepta la invitación para entrar en un canal de comunicación del equipo.",
       },
-      { property: "og:title", content: "Unirse a un canal | TeamUp" },
+      { property: "og:title", content: "Unirse a un canal | Teamsup" },
       {
         property: "og:description",
         content: "Acepta la invitación para entrar en un canal de comunicación del equipo.",

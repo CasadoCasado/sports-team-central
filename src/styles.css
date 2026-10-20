@@ -5,7 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 /* =============================================================
- * TEAMUP — Sports Management Design System
+ * TEAMSUP — Sports Management Design System
  * Blue #2563EB · Emerald #10B981 · Carbon #1F2937 · Outfit + Figtree
  * ============================================================= */
 
@@ -88,7 +88,7 @@
 :root {
   --radius: 0.75rem;
 
-  /* TeamUp — Blue / Emerald / Carbon */
+  /* Teamsup — Blue / Emerald / Carbon */
   --background: oklch(0.984 0.003 247); /* #F8FAFC */
   --foreground: oklch(0.279 0.041 260); /* #1F2937 carbon */
 

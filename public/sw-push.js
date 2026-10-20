@@ -1,10 +1,21 @@
-/* TeamUp: notificaciones push (lo importa sw.js) */
+/* Teamsup: notificaciones push (lo importa sw.js) */
 self.addEventListener("install", (event) => {
   self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    Promise.all([
+      self.clients.claim(),
+      // Las cachés de cuando la app se llamaba TeamUp (`teamup-pages`,
+      // `teamup-fonts`): ahora son `teamsup-…` y las viejas no se usan.
+      caches
+        .keys()
+        .then((nombres) =>
+          Promise.all(nombres.filter((n) => n.startsWith("teamup-")).map((n) => caches.delete(n))),
+        ),
+    ]),
+  );
 });
 
 self.addEventListener("push", (event) => {
@@ -12,10 +23,10 @@ self.addEventListener("push", (event) => {
   try {
     payload = event.data ? event.data.json() : {};
   } catch {
-    payload = { title: "TeamUp", body: event.data ? event.data.text() : "" };
+    payload = { title: "Teamsup", body: event.data ? event.data.text() : "" };
   }
 
-  const title = payload.title || "TeamUp";
+  const title = payload.title || "Teamsup";
   const options = {
     body: payload.body || "",
     icon: "/icon-512.png",

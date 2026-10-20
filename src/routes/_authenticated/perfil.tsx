@@ -36,13 +36,13 @@ import { AvisosPorCorreo } from "@/components/verificar-email";
 export const Route = createFileRoute("/_authenticated/perfil")({
   head: () => ({
     meta: [
-      { title: "Perfil | TeamUp" },
+      { title: "Perfil | Teamsup" },
       {
         name: "description",
         content:
           "Actualiza tus datos, recordatorios, notificaciones push y preferencias de la aplicación.",
       },
-      { property: "og:title", content: "Perfil | TeamUp" },
+      { property: "og:title", content: "Perfil | Teamsup" },
       {
         property: "og:description",
         content:

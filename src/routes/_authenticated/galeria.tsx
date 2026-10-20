@@ -17,12 +17,12 @@ import { traducirErrorDeImagen } from "@/lib/images";
 export const Route = createFileRoute("/_authenticated/galeria")({
   head: () => ({
     meta: [
-      { title: "Galería | TeamUp" },
+      { title: "Galería | Teamsup" },
       {
         name: "description",
         content: "Fotos y recuerdos compartidos por los miembros del equipo.",
       },
-      { property: "og:title", content: "Galería | TeamUp" },
+      { property: "og:title", content: "Galería | Teamsup" },
       {
         property: "og:description",
         content: "Fotos y recuerdos compartidos por los miembros del equipo.",

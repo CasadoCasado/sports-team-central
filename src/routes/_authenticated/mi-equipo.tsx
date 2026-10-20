@@ -56,13 +56,13 @@ export const Route = createFileRoute("/_authenticated/mi-equipo")({
   }),
   head: () => ({
     meta: [
-      { title: "Mi equipo | TeamUp" },
+      { title: "Mi equipo | Teamsup" },
       {
         name: "description",
         content:
           "Crea o gestiona tu equipo, controla inscripciones y solicitudes de nuevos jugadores.",
       },
-      { property: "og:title", content: "Mi equipo | TeamUp" },
+      { property: "og:title", content: "Mi equipo | Teamsup" },
       {
         property: "og:description",
         content:

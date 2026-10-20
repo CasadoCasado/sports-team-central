@@ -1,5 +1,5 @@
 /**
- * Registro guardado del service worker de TeamUp.
+ * Registro guardado del service worker de Teamsup.
  * Solo se registra en producción real: nunca en desarrollo ni dentro de un iframe.
  */
 const SW_URL = "/sw.js";

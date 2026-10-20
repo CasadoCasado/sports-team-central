@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
  */
 export const Route = createFileRoute("/restablecer")({
   head: () => ({
-    meta: [{ title: "Nueva contraseña | TeamUp" }],
+    meta: [{ title: "Nueva contraseña | Teamsup" }],
   }),
   validateSearch: z.object({ uid: z.string().optional(), token: z.string().optional() }),
   component: Restablecer,

@@ -25,13 +25,13 @@ import type { EventResponse, ResponseStatus, TeamEvent } from "@/lib/types";
 export const Route = createFileRoute("/_authenticated/convocatorias")({
   head: () => ({
     meta: [
-      { title: "Convocatorias | TeamUp" },
+      { title: "Convocatorias | Teamsup" },
       {
         name: "description",
         content:
           "Revisa tus convocatorias abiertas, apúntate o cancela tu participación en cada evento.",
       },
-      { property: "og:title", content: "Convocatorias | TeamUp" },
+      { property: "og:title", content: "Convocatorias | Teamsup" },
       {
         property: "og:description",
         content:

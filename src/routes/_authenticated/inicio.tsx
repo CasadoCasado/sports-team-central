@@ -28,13 +28,13 @@ import { CallupDetailDialog } from "@/components/callup-detail-dialog";
 export const Route = createFileRoute("/_authenticated/inicio")({
   head: () => ({
     meta: [
-      { title: "Inicio | TeamUp" },
+      { title: "Inicio | Teamsup" },
       {
         name: "description",
         content:
           "Resumen de tu equipo: próximos eventos, convocatorias pendientes y avisos importantes.",
       },
-      { property: "og:title", content: "Inicio | TeamUp" },
+      { property: "og:title", content: "Inicio | Teamsup" },
       {
         property: "og:description",
         content:
@@ -178,7 +178,7 @@ function Inicio() {
         <div className="hero-band flex flex-wrap items-center gap-4 px-5 py-6 sm:px-8">
           <img
             src={LOGO_URL}
-            alt="TeamUp"
+            alt="Teamsup"
             className="size-12 shrink-0 object-contain"
             width={48}
             height={48}
@@ -224,7 +224,7 @@ function Inicio() {
       <div className="hero-band flex flex-wrap items-center gap-4 px-5 py-6 sm:px-8 sm:py-8">
         <img
           src={LOGO_URL}
-          alt="TeamUp"
+          alt="Teamsup"
           className="size-12 shrink-0 object-contain sm:size-14"
           width={56}
           height={56}

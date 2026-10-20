@@ -23,13 +23,13 @@ import { BADGES } from "@/lib/achievements";
 export const Route = createFileRoute("/demo")({
   head: () => ({
     meta: [
-      { title: "Modo invitado | TeamUp" },
+      { title: "Modo invitado | Teamsup" },
       {
         name: "description",
         content:
-          "Prueba TeamUp sin crear cuenta: calendario, convocatorias, encuestas y logros con datos de ejemplo.",
+          "Prueba Teamsup sin crear cuenta: calendario, convocatorias, encuestas y logros con datos de ejemplo.",
       },
-      { property: "og:title", content: "Prueba TeamUp sin crear cuenta" },
+      { property: "og:title", content: "Prueba Teamsup sin crear cuenta" },
       {
         property: "og:description",
         content:
@@ -62,7 +62,7 @@ const DEMO_EVENTS = [
   {
     day: "Sáb 17",
     time: "10:00",
-    title: "TeamUp Padel vs Racket Club",
+    title: "Teamsup Padel vs Racket Club",
     place: "Club Sur · 3 pistas",
     kind: "enfrentamiento",
   },
@@ -121,7 +121,7 @@ function DemoPage() {
           <Link to="/" className="flex min-w-0 items-center gap-3">
             <img
               src={LOGO_URL}
-              alt="TeamUp"
+              alt="Teamsup"
               className="size-8 shrink-0 object-contain"
               width={32}
               height={32}
@@ -229,7 +229,7 @@ function DemoInicio({ t }: { t: TFn }) {
         <p className="text-2xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
           {t("demo.nextEvent")}
         </p>
-        <p className="text-display mt-2 text-lg font-black">TeamUp Padel vs Racket Club</p>
+        <p className="text-display mt-2 text-lg font-black">Teamsup Padel vs Racket Club</p>
         <p className="mt-1 text-sm text-muted-foreground">Sáb 17 · 10:00 · Club Sur</p>
       </div>
       <div className="surface-card p-5">
@@ -292,7 +292,7 @@ function DemoConvocatorias({ t }: { t: TFn }) {
   return (
     <section className="surface-card p-5">
       <h2 className="text-display text-sm font-bold uppercase tracking-[0.18em]">
-        TeamUp Padel vs Racket Club
+        Teamsup Padel vs Racket Club
       </h2>
       <p className="mt-1 text-sm text-muted-foreground">
         Sáb 17 · 10:00 · Club Sur · 3 {t("demo.courts")}

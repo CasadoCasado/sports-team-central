@@ -10,8 +10,9 @@
  */
 
 import i18n from "@/i18n";
+import { migrarClavesLocales } from "@/lib/claves-locales";
 
-const STORAGE_KEY = "teamup:auth";
+const STORAGE_KEY = "teamsup:auth";
 
 export type Tokens = { access: string; refresh: string };
 
@@ -85,6 +86,8 @@ function load(): Tokens | null {
   if (loaded) return tokens;
   loaded = true;
   if (typeof window === "undefined") return null;
+  // Lo primero que se lee del navegador: antes, las claves del nombre viejo.
+  migrarClavesLocales();
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     tokens = raw ? (JSON.parse(raw) as Tokens) : null;

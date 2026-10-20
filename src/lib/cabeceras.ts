@@ -16,7 +16,7 @@
  */
 
 /** La cabecera interna con la que `server.ts` le pasa el nonce al router. */
-export const CABECERA_NONCE = "x-teamup-nonce";
+export const CABECERA_NONCE = "x-teamsup-nonce";
 
 export function nuevoNonce(): string {
   const bytes = crypto.getRandomValues(new Uint8Array(16));

@@ -12,17 +12,17 @@ export const Route = createFileRoute("/_authenticated/ayuda")({
   }),
   head: () => ({
     meta: [
-      { title: "Ayuda | TeamUp" },
+      { title: "Ayuda | Teamsup" },
       {
         name: "description",
         content:
-          "Guía contextual de TeamUp: cómo usar Mi Equipo, Calendario, Convocatorias, Encuestas y el chat del equipo.",
+          "Guía contextual de Teamsup: cómo usar Mi Equipo, Calendario, Convocatorias, Encuestas y el chat del equipo.",
       },
-      { property: "og:title", content: "Ayuda | TeamUp" },
+      { property: "og:title", content: "Ayuda | Teamsup" },
       {
         property: "og:description",
         content:
-          "Guía contextual de TeamUp: cómo usar Mi Equipo, Calendario, Convocatorias, Encuestas y el chat del equipo.",
+          "Guía contextual de Teamsup: cómo usar Mi Equipo, Calendario, Convocatorias, Encuestas y el chat del equipo.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

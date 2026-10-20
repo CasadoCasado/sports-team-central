@@ -16,12 +16,12 @@ import { confirmar } from "@/components/confirm-dialog";
 export const Route = createFileRoute("/_authenticated/documentos")({
   head: () => ({
     meta: [
-      { title: "Documentos | TeamUp" },
+      { title: "Documentos | Teamsup" },
       {
         name: "description",
         content: "Comparte y consulta los documentos importantes del equipo en un solo lugar.",
       },
-      { property: "og:title", content: "Documentos | TeamUp" },
+      { property: "og:title", content: "Documentos | Teamsup" },
       {
         property: "og:description",
         content: "Comparte y consulta los documentos importantes del equipo en un solo lugar.",

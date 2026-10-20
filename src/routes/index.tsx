@@ -21,13 +21,13 @@ import { hasSession } from "@/lib/auth";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "TeamUp — Gestiona tu equipo de pádel" },
+      { title: "Teamsup — Gestiona tu equipo de pádel" },
       {
         name: "description",
         content:
           "Convocatorias, química, cuotas, resultados y chat para tu equipo de pádel, en una sola plataforma. Gratis para empezar.",
       },
-      { property: "og:title", content: "TeamUp — Tu equipo, sin caos de WhatsApp" },
+      { property: "og:title", content: "Teamsup — Tu equipo, sin caos de WhatsApp" },
       {
         property: "og:description",
         content:
@@ -102,33 +102,33 @@ const SHOTS = [
   {
     src: "/landing/inicio.jpg",
     cap: "Inicio",
-    alt: "Panel de inicio de TeamUp con el próximo partido, jugadores confirmados y balance de la temporada.",
+    alt: "Panel de inicio de Teamsup con el próximo partido, jugadores confirmados y balance de la temporada.",
   },
   {
     src: "/landing/convocatorias.jpg",
     cap: "Convocatorias",
-    alt: "Lista de convocatorias de TeamUp con el próximo partido del equipo.",
+    alt: "Lista de convocatorias de Teamsup con el próximo partido del equipo.",
   },
   {
     src: "/landing/quimica.jpg",
     cap: "Química",
-    alt: "Detalle de un partido en TeamUp con la convocatoria, los apuntados y el selector de química.",
+    alt: "Detalle de un partido en Teamsup con la convocatoria, los apuntados y el selector de química.",
     q: true,
   },
   {
     src: "/landing/estadisticas.jpg",
     cap: "Estadísticas",
-    alt: "Estadísticas de TeamUp: partidos jugados, porcentaje de victorias, racha y últimos resultados.",
+    alt: "Estadísticas de Teamsup: partidos jugados, porcentaje de victorias, racha y últimos resultados.",
   },
   {
     src: "/landing/competiciones.jpg",
     cap: "Competiciones",
-    alt: "Competiciones de TeamUp con la liga interna del equipo y su clasificación.",
+    alt: "Competiciones de Teamsup con la liga interna del equipo y su clasificación.",
   },
   {
     src: "/landing/logros.jpg",
     cap: "Logros",
-    alt: "Pantalla de logros de TeamUp con insignias y ranking del equipo.",
+    alt: "Pantalla de logros de Teamsup con insignias y ranking del equipo.",
   },
 ] as const;
 
@@ -214,12 +214,12 @@ function Landing() {
           <Link to="/" className="mr-auto flex items-center gap-2.5">
             <img
               src={LOGO_URL}
-              alt="TeamUp"
+              alt="Teamsup"
               width={36}
               height={36}
               className="size-9 shrink-0 rounded-xl object-contain"
             />
-            <span className="text-display text-xl font-extrabold tracking-tight">TeamUp</span>
+            <span className="text-display text-xl font-extrabold tracking-tight">Teamsup</span>
           </Link>
           <nav className="hidden items-center gap-7 text-sm font-semibold text-[var(--mut)] md:flex">
             <a href="#modulos" className="transition-colors hover:text-[var(--tx)]">
@@ -299,7 +299,7 @@ function Landing() {
               <div className="absolute inset-3 overflow-hidden rounded-[28px] bg-white">
                 <img
                   src="/landing/hero.jpg"
-                  alt="TeamUp en el móvil: inicio del equipo con próximos partidos y convocatorias"
+                  alt="Teamsup en el móvil: inicio del equipo con próximos partidos y convocatorias"
                   className="h-full w-full object-cover object-top"
                 />
               </div>
@@ -342,7 +342,7 @@ function Landing() {
       {/* MÓDULOS */}
       <section id="modulos" className="mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
         <SecHead eyebrow="Todo lo que hace" title="Un sitio para cada cosa del equipo">
-          Deja de saltar entre WhatsApp, notas y hojas de cálculo. TeamUp reúne la gestión, la
+          Deja de saltar entre WhatsApp, notas y hojas de cálculo. Teamsup reúne la gestión, la
           comunicación y la competición.
         </SecHead>
         <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -385,7 +385,7 @@ function Landing() {
       {/* PANTALLAS REALES */}
       <section id="pantallas" className="mx-auto max-w-6xl px-4 pb-20 sm:px-6 sm:pb-24">
         <SecHead eyebrow="Capturas reales de la app" title="Así se ve por dentro">
-          Nada de maquetas: pantallas reales de TeamUp, tomadas de un equipo con sus partidos, su
+          Nada de maquetas: pantallas reales de Teamsup, tomadas de un equipo con sus partidos, su
           química y su clasificación.
         </SecHead>
         <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -581,7 +581,7 @@ function Landing() {
 
       {/* COMPARATIVA */}
       <section className="mx-auto max-w-6xl px-4 pb-20 sm:px-6 sm:pb-24">
-        <SecHead eyebrow="Antes y después" title="TeamUp vs. el grupo de WhatsApp" />
+        <SecHead eyebrow="Antes y después" title="Teamsup vs. el grupo de WhatsApp" />
         <div className="mt-12 grid gap-4 md:grid-cols-2">
           <div className="glass rounded-[22px] p-7">
             <h4 className="text-display mb-4 text-xl font-extrabold">Solo con WhatsApp</h4>
@@ -600,7 +600,7 @@ function Landing() {
             </ul>
           </div>
           <div className="grad-bg rounded-[22px] p-7 text-white shadow-[0_30px_60px_-30px_var(--v)]">
-            <h4 className="text-display mb-4 text-xl font-extrabold">Con TeamUp</h4>
+            <h4 className="text-display mb-4 text-xl font-extrabold">Con Teamsup</h4>
             <ul className="flex flex-col gap-3 text-sm font-semibold">
               {[
                 "Una convocatoria y las plazas se llenan solas",
@@ -711,12 +711,12 @@ function Landing() {
             <div className="mb-3 flex items-center gap-2.5">
               <img
                 src={LOGO_URL}
-                alt="TeamUp"
+                alt="Teamsup"
                 width={36}
                 height={36}
                 className="size-9 shrink-0 rounded-xl object-contain"
               />
-              <span className="text-display text-xl font-extrabold tracking-tight">TeamUp</span>
+              <span className="text-display text-xl font-extrabold tracking-tight">Teamsup</span>
             </div>
             <p className="max-w-[30ch] text-sm leading-relaxed text-[var(--mut)]">
               La plataforma para gestionar tu equipo deportivo. Todo lo de «quién viene el sábado»,
@@ -737,7 +737,7 @@ function Landing() {
           />
         </div>
         <div className="mx-auto flex max-w-6xl flex-wrap justify-between gap-2 border-t border-[var(--bd)] px-4 py-5 text-xs text-[var(--mut)] sm:px-6">
-          <span>© 2026 TeamUp</span>
+          <span>© 2026 Teamsup</span>
           <span>Hecho para equipos amateur de pádel</span>
         </div>
       </footer>

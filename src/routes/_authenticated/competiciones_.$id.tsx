@@ -51,13 +51,13 @@ export const Route = createFileRoute("/_authenticated/competiciones_/$id")({
   }),
   head: () => ({
     meta: [
-      { title: "Competición | TeamUp" },
+      { title: "Competición | Teamsup" },
       {
         name: "description",
         content:
           "Clasificación y podio de una competición del equipo, con los entrenamientos que la alimentan.",
       },
-      { property: "og:title", content: "Competición | TeamUp" },
+      { property: "og:title", content: "Competición | Teamsup" },
       {
         property: "og:description",
         content:

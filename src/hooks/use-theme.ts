@@ -21,7 +21,7 @@ import { flushSync } from "react-dom";
 
 export type Tema = "light" | "dark" | "system";
 
-export const TEMA_KEY = "teamup:theme";
+export const TEMA_KEY = "teamsup:theme";
 
 const oyentes = new Set<() => void>();
 

@@ -17,7 +17,7 @@ import { Label } from "@/components/ui/label";
 export const Route = createFileRoute("/recuperar")({
   head: () => ({
     meta: [
-      { title: "Recuperar la contraseña | TeamUp" },
+      { title: "Recuperar la contraseña | Teamsup" },
       { name: "description", content: "Te mandamos un enlace para elegir una contraseña nueva." },
     ],
   }),

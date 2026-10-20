@@ -24,12 +24,12 @@ export const Route = createFileRoute("/unirse/$codigo")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Únete a tu equipo | TeamUp" },
+      { title: "Únete a tu equipo | Teamsup" },
       {
         name: "description",
-        content: "Te han invitado a un equipo en TeamUp. Crea tu cuenta y entra directamente.",
+        content: "Te han invitado a un equipo en Teamsup. Crea tu cuenta y entra directamente.",
       },
-      { property: "og:title", content: "Únete a tu equipo en TeamUp" },
+      { property: "og:title", content: "Únete a tu equipo en Teamsup" },
       {
         property: "og:description",
         content:
@@ -98,7 +98,7 @@ function JoinTeam() {
         <Link to="/" className="mb-8 flex items-center justify-center gap-3">
           <img
             src={LOGO_URL}
-            alt="TeamUp"
+            alt="Teamsup"
             className="size-8 object-contain"
             width={32}
             height={32}
