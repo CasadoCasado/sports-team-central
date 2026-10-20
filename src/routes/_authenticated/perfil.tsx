@@ -30,6 +30,7 @@ import { LADOS, ladoDe } from "@/lib/lado";
 import { MANOS, manoDe } from "@/lib/mano";
 import { ProvinciaPicker } from "@/components/ubicacion-picker";
 import { BorrarCuenta } from "@/components/borrar-cuenta";
+import { DescargarDatos } from "@/components/descargar-datos";
 
 export const Route = createFileRoute("/_authenticated/perfil")({
   head: () => ({
@@ -319,6 +320,7 @@ function Perfil() {
 
       <ReminderSettings />
       <PushSettings />
+      <DescargarDatos />
       <BorrarCuenta />
     </div>
   );
