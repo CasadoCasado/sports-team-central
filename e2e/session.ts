@@ -20,7 +20,7 @@ import {
 export const API_URL = process.env["E2E_API_URL"] ?? "http://localhost:8000/api";
 
 /** La misma clave que usa `src/lib/auth.ts` para guardar los tokens. */
-const STORAGE_KEY = "teamup:auth";
+const STORAGE_KEY = "teamsup:auth";
 
 export const PASSWORD = "Abrete-Sesamo-9";
 
@@ -107,7 +107,7 @@ export async function completeOnboarding(
 export async function loginAs(page: Page, session: Session) {
   const entries = [
     [STORAGE_KEY, JSON.stringify({ access: session.access, refresh: session.refresh })],
-    [`teamup:tour-done:${session.userId}`, "1"],
+    [`teamsup:tour-done:${session.userId}`, "1"],
   ] as const;
 
   await page.addInitScript((pairs: readonly (readonly [string, string])[]) => {

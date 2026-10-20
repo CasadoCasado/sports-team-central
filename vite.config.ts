@@ -35,21 +35,21 @@ import tsConfigPaths from "vite-tsconfig-paths";
  * convierte en un error de compilación.
  *
  * Para compilar en local sin definirla (probar el bundle de producción, por
- * ejemplo): `TEAMUP_ALLOW_NO_API_URL=1 npm run build`.
+ * ejemplo): `TEAMSUP_ALLOW_NO_API_URL=1 npm run build`.
  */
 function requireApiUrl(): Plugin {
   return {
-    name: "teamup:require-api-url",
+    name: "teamsup:require-api-url",
     apply: "build",
     config(_config, { mode }) {
       const env = loadEnv(mode, process.cwd(), "");
       const apiUrl = env["VITE_API_URL"] || process.env["VITE_API_URL"];
-      const optOut = env["TEAMUP_ALLOW_NO_API_URL"] || process.env["TEAMUP_ALLOW_NO_API_URL"];
+      const optOut = env["TEAMSUP_ALLOW_NO_API_URL"] || process.env["TEAMSUP_ALLOW_NO_API_URL"];
       if (apiUrl || optOut) return;
       throw new Error(
         "Falta VITE_API_URL: sin ella la app compilada no sabe a qué API llamar.\n" +
-          "  En el despliegue:  VITE_API_URL=https://teamup-api.onrender.com/api\n" +
-          "  Solo para probar:  TEAMUP_ALLOW_NO_API_URL=1 npm run build",
+          "  En el despliegue:  VITE_API_URL=https://api.teamsup.es/api\n" +
+          "  Solo para probar:  TEAMSUP_ALLOW_NO_API_URL=1 npm run build",
       );
     },
   };
@@ -80,7 +80,7 @@ function soloEnElCliente(plugins: PluginOption[]): Plugin[] {
 
 function comprobarCarpetaDelNavegador(): Plugin {
   return {
-    name: "teamup:carpeta-del-navegador",
+    name: "teamsup:carpeta-del-navegador",
     apply: "build",
     configResolved(config) {
       const real = config.environments["client"]?.build.outDir;
@@ -178,7 +178,7 @@ export default defineConfig(({ command, mode }) => ({
               urlPattern: ({ request }: { request: Request }) => request.mode === "navigate",
               handler: "NetworkFirst",
               options: {
-                cacheName: "teamup-pages",
+                cacheName: "teamsup-pages",
                 networkTimeoutSeconds: 4,
                 expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 * 24 },
               },
@@ -187,7 +187,7 @@ export default defineConfig(({ command, mode }) => ({
               urlPattern: ({ url }: { url: URL }) => url.origin === "https://fonts.gstatic.com",
               handler: "CacheFirst",
               options: {
-                cacheName: "teamup-fonts",
+                cacheName: "teamsup-fonts",
                 expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 365 },
               },
             },

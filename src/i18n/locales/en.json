@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "TeamUp",
+    "name": "Teamsup",
     "tagline": "The platform to run your sports team"
   },
   "nav": {
@@ -35,7 +35,7 @@
     "soltarBarra": "Collapse"
   },
   "auth": {
-    "welcome": "Welcome to TeamUp",
+    "welcome": "Welcome to Teamsup",
     "login": "Sign in",
     "signup": "Create account",
     "logout": "Sign out",
@@ -136,7 +136,7 @@
     "renewBody": "The current link will stop working and nobody else will be able to join with it. You'll need to send the new one.",
     "renewAction": "Change",
     "renewed": "New link ready",
-    "message": "Join {{team}} on TeamUp! Trainings, matches and call-ups, all in one place. Open this and you're in: {{url}}",
+    "message": "Join {{team}} on Teamsup! Trainings, matches and call-ups, all in one place. Open this and you're in: {{url}}",
     "invitedBy": "{{name}} invites you to",
     "invited": "You're invited to",
     "membersCount_one": "{{count}} member",
@@ -153,7 +153,7 @@
     "banner": "Once you sign up you'll join {{team}} straight away.",
     "bannerLogin": "Once you log in you'll join {{team}}.",
     "loading": "Loading invitation…",
-    "backHome": "Go to TeamUp"
+    "backHome": "Go to Teamsup"
   },
   "members": {
     "title": "Members",
@@ -303,7 +303,7 @@
   },
   "help": {
     "title": "Help",
-    "intro": "A quick guide to every TeamUp screen, with steps, real examples and shortcuts. Tap your avatar in the top right and choose Help to open the guide for the screen you're on.",
+    "intro": "A quick guide to every Teamsup screen, with steps, real examples and shortcuts. Tap your avatar in the top right and choose Help to open the guide for the screen you're on.",
     "steps": "How it works",
     "contextual": "Help for this screen"
   },
@@ -1074,7 +1074,7 @@
     "badge": "Guest mode",
     "notice": "You are viewing sample data. Nothing is saved.",
     "cta": "Create a free account",
-    "title": "Explore TeamUp with a sample team",
+    "title": "Explore Teamsup with a sample team",
     "subtitle": "Browse the main modules without signing up.",
     "nextEvent": "Next event",
     "confirmedPlayers": "Confirmed",
@@ -1101,7 +1101,7 @@
     "finish": "Get started",
     "goTo": "Go to section",
     "restart": "Replay guided tour",
-    "restartHint": "Review the TeamUp basics whenever you want.",
+    "restartHint": "Review the Teamsup basics whenever you want.",
     "title": "Guided tour",
     "manager": {
       "team": {
@@ -1122,7 +1122,7 @@
       },
       "results": {
         "title": "Record results",
-        "desc": "After the match enter the sets per court: TeamUp works out the winner and updates the stats."
+        "desc": "After the match enter the sets per court: Teamsup works out the winner and updates the stats."
       },
       "chat": {
         "title": "Keep everyone talking",
@@ -1579,10 +1579,10 @@
     "titulo": "Confirm email",
     "comprobando": "Checking the link…",
     "hecho": "Done: your email is confirmed. We'll email you the important things.",
-    "caducado": "The link has expired. Sign in to TeamUp and ask for another one from your profile.",
+    "caducado": "The link has expired. Sign in to Teamsup and ask for another one from your profile.",
     "noVale": "This link isn't valid. Open the one in the latest email we sent you, or ask for another one from your profile.",
     "irAlPerfil": "Go to my profile",
-    "entrar": "Sign in to TeamUp"
+    "entrar": "Sign in to Teamsup"
   },
   "avisosCorreo": {
     "titulo": "Email notifications",
@@ -1593,7 +1593,7 @@
   },
   "descargarDatos": {
     "titulo": "My data",
-    "explica": "Download a copy of everything TeamUp keeps about you: your account and profile, teams, answers, stats, messages, payments and notifications, as a JSON file.",
+    "explica": "Download a copy of everything Teamsup keeps about you: your account and profile, teams, answers, stats, messages, payments and notifications, as a JSON file.",
     "boton": "Download my data",
     "preparando": "Preparing…",
     "hecho": "Your data has been downloaded."

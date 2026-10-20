@@ -91,12 +91,12 @@ export type Origen = (typeof ORIGENES)[number];
 export const Route = createFileRoute("/_authenticated/eventos/$id")({
   head: () => ({
     meta: [
-      { title: "Detalle del evento | TeamUp" },
+      { title: "Detalle del evento | Teamsup" },
       {
         name: "description",
         content: "Información del evento, asistentes, convocados y resultados por pista.",
       },
-      { property: "og:title", content: "Detalle del evento | TeamUp" },
+      { property: "og:title", content: "Detalle del evento | Teamsup" },
       {
         property: "og:description",
         content: "Información del evento, asistentes, convocados y resultados por pista.",

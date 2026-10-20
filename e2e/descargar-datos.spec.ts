@@ -17,7 +17,7 @@ test("la capitana descarga sus datos desde el perfil", async ({ page, request })
   await page.getByRole("button", { name: /descargar mis datos/i }).click();
   const fichero = await descarga;
 
-  expect(fichero.suggestedFilename()).toMatch(/^teamup-mis-datos-\d{4}-\d{2}-\d{2}\.json$/);
+  expect(fichero.suggestedFilename()).toMatch(/^teamsup-mis-datos-\d{4}-\d{2}-\d{2}\.json$/);
   const datos = JSON.parse(await readFile(await fichero.path(), "utf8")) as {
     cuenta: { email: string };
     equipos_propios: { nombre: string }[];

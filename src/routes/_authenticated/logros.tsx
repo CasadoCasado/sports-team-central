@@ -14,16 +14,16 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_authenticated/logros")({
   head: () => ({
     meta: [
-      { title: "Logros | TeamUp" },
+      { title: "Logros | Teamsup" },
       {
         name: "description",
         content:
           "Insignias por asistencia, victorias y rachas: sigue tu progreso y el ranking de tu equipo.",
       },
-      { property: "og:title", content: "Logros | TeamUp" },
+      { property: "og:title", content: "Logros | Teamsup" },
       {
         property: "og:description",
-        content: "Insignias por asistencia, victorias y rachas de tu equipo en TeamUp.",
+        content: "Insignias por asistencia, victorias y rachas de tu equipo en Teamsup.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

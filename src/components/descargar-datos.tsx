@@ -19,7 +19,7 @@ function guardar(datos: unknown) {
   const url = URL.createObjectURL(blob);
   const enlace = document.createElement("a");
   enlace.href = url;
-  enlace.download = `teamup-mis-datos-${new Date().toISOString().slice(0, 10)}.json`;
+  enlace.download = `teamsup-mis-datos-${new Date().toISOString().slice(0, 10)}.json`;
   document.body.appendChild(enlace);
   enlace.click();
   enlace.remove();

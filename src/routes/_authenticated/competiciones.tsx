@@ -101,13 +101,13 @@ function getCompetitionStatus(
 export const Route = createFileRoute("/_authenticated/competiciones")({
   head: () => ({
     meta: [
-      { title: "Competiciones | TeamUp" },
+      { title: "Competiciones | Teamsup" },
       {
         name: "description",
         content:
           "Torneos, copas y amistosos de tu equipo con fechas de inicio, fin y estado actual.",
       },
-      { property: "og:title", content: "Competiciones | TeamUp" },
+      { property: "og:title", content: "Competiciones | Teamsup" },
       {
         property: "og:description",
         content:

@@ -34,17 +34,17 @@ const authSearchSchema = z.object({
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Iniciar sesión o crear cuenta | TeamUp" },
+      { title: "Iniciar sesión o crear cuenta | Teamsup" },
       {
         name: "description",
         content:
-          "Accede a TeamUp para gestionar tu equipo: convocatorias, entrenamientos, resultados y comunicación.",
+          "Accede a Teamsup para gestionar tu equipo: convocatorias, entrenamientos, resultados y comunicación.",
       },
-      { property: "og:title", content: "Iniciar sesión o crear cuenta | TeamUp" },
+      { property: "og:title", content: "Iniciar sesión o crear cuenta | Teamsup" },
       {
         property: "og:description",
         content:
-          "Accede a TeamUp para gestionar tu equipo: convocatorias, entrenamientos, resultados y comunicación.",
+          "Accede a Teamsup para gestionar tu equipo: convocatorias, entrenamientos, resultados y comunicación.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -191,7 +191,7 @@ function AuthPage() {
           <Link to="/" className="mb-8 flex items-center gap-3">
             <img
               src={LOGO_URL}
-              alt="TeamUp"
+              alt="Teamsup"
               className="size-8 object-contain"
               width={32}
               height={32}

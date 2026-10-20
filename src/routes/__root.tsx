@@ -110,13 +110,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, interactive-widget=resizes-content",
       },
-      { title: "TeamUp — Gestión de equipos deportivos" },
+      { title: "Teamsup — Gestión de equipos deportivos" },
       {
         name: "description",
         content:
           "Plataforma bilingüe para gestionar tu equipo deportivo: calendario, convocatorias, encuestas, chat, estadísticas y más.",
       },
-      { property: "og:title", content: "TeamUp — Gestión de equipos deportivos" },
+      { property: "og:title", content: "Teamsup — Gestión de equipos deportivos" },
       {
         property: "og:description",
         content:
@@ -127,7 +127,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "theme-color", content: "#2563EB" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
-      { name: "apple-mobile-web-app-title", content: "TeamUp" },
+      { name: "apple-mobile-web-app-title", content: "Teamsup" },
       { name: "mobile-web-app-capable", content: "yes" },
     ],
     links: [

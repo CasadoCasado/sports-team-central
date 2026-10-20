@@ -34,12 +34,12 @@ import { useQuimicas } from "@/hooks/use-quimica";
 export const Route = createFileRoute("/_authenticated/enfrentamientos")({
   head: () => ({
     meta: [
-      { title: "Enfrentamientos | TeamUp" },
+      { title: "Enfrentamientos | Teamsup" },
       {
         name: "description",
         content: "Organiza los enfrentamientos del equipo, pistas de pádel y jugadores convocados.",
       },
-      { property: "og:title", content: "Enfrentamientos | TeamUp" },
+      { property: "og:title", content: "Enfrentamientos | Teamsup" },
       {
         property: "og:description",
         content: "Organiza los enfrentamientos del equipo, pistas de pádel y jugadores convocados.",

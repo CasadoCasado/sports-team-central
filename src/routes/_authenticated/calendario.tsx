@@ -41,13 +41,13 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/_authenticated/calendario")({
   head: () => ({
     meta: [
-      { title: "Calendario | TeamUp" },
+      { title: "Calendario | Teamsup" },
       {
         name: "description",
         content:
           "Consulta entrenamientos, enfrentamientos y torneos del equipo en vista semanal o mensual.",
       },
-      { property: "og:title", content: "Calendario | TeamUp" },
+      { property: "og:title", content: "Calendario | Teamsup" },
       {
         property: "og:description",
         content:

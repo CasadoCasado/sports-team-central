@@ -44,7 +44,7 @@ import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 
-const CLAVE_FIJADA = "teamup:barra-fijada";
+const CLAVE_FIJADA = "teamsup:barra-fijada";
 
 type NavItem = {
   to: string;
@@ -251,7 +251,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           >
             <img
               src={LOGO_URL}
-              alt="TeamUp"
+              alt="Teamsup"
               className="size-9 shrink-0 object-contain"
               decoding="async"
               width={36}

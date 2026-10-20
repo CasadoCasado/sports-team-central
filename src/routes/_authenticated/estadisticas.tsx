@@ -25,13 +25,13 @@ import { LadoEquipo } from "@/components/lado-equipo";
 export const Route = createFileRoute("/_authenticated/estadisticas")({
   head: () => ({
     meta: [
-      { title: "Estadísticas | TeamUp" },
+      { title: "Estadísticas | Teamsup" },
       {
         name: "description",
         content:
           "Rendimiento del equipo y de cada jugador: partidos jugados, victorias y derrotas.",
       },
-      { property: "og:title", content: "Estadísticas | TeamUp" },
+      { property: "og:title", content: "Estadísticas | Teamsup" },
       {
         property: "og:description",
         content:

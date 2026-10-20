@@ -29,12 +29,12 @@ import { confirmar } from "@/components/confirm-dialog";
 export const Route = createFileRoute("/_authenticated/encuestas")({
   head: () => ({
     meta: [
-      { title: "Encuestas | TeamUp" },
+      { title: "Encuestas | Teamsup" },
       {
         name: "description",
         content: "Vota en las encuestas del equipo y consulta los resultados en tiempo real.",
       },
-      { property: "og:title", content: "Encuestas | TeamUp" },
+      { property: "og:title", content: "Encuestas | Teamsup" },
       {
         property: "og:description",
         content: "Vota en las encuestas del equipo y consulta los resultados en tiempo real.",

@@ -26,12 +26,12 @@ import { confirmar } from "@/components/confirm-dialog";
 export const Route = createFileRoute("/_authenticated/pagos")({
   head: () => ({
     meta: [
-      { title: "Pagos | TeamUp" },
+      { title: "Pagos | Teamsup" },
       {
         name: "description",
         content: "Controla las cuotas del equipo y el estado de pago de cada jugador.",
       },
-      { property: "og:title", content: "Pagos | TeamUp" },
+      { property: "og:title", content: "Pagos | Teamsup" },
       {
         property: "og:description",
         content: "Controla las cuotas del equipo y el estado de pago de cada jugador.",

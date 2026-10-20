@@ -18,12 +18,12 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/_authenticated/entrenamientos")({
   head: () => ({
     meta: [
-      { title: "Entrenamientos | TeamUp" },
+      { title: "Entrenamientos | Teamsup" },
       {
         name: "description",
         content: "Consulta los entrenamientos programados y apúntate a las sesiones de tu equipo.",
       },
-      { property: "og:title", content: "Entrenamientos | TeamUp" },
+      { property: "og:title", content: "Entrenamientos | Teamsup" },
       {
         property: "og:description",
         content: "Consulta los entrenamientos programados y apúntate a las sesiones de tu equipo.",

@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "TeamUp",
+    "name": "Teamsup",
     "tagline": "La plataforma para gestionar tu equipo deportivo"
   },
   "nav": {
@@ -35,7 +35,7 @@
     "soltarBarra": "Plegar"
   },
   "auth": {
-    "welcome": "Bienvenido a TeamUp",
+    "welcome": "Bienvenido a Teamsup",
     "login": "Iniciar sesión",
     "signup": "Crear cuenta",
     "logout": "Cerrar sesión",
@@ -136,7 +136,7 @@
     "renewBody": "El enlace de ahora dejará de funcionar y nadie más podrá entrar con él. Tendrás que mandar el nuevo.",
     "renewAction": "Cambiar",
     "renewed": "Enlace nuevo listo",
-    "message": "¡Únete a {{team}} en TeamUp! Entrenos, partidos y convocatorias, todo en un sitio. Entra aquí y ya estás dentro: {{url}}",
+    "message": "¡Únete a {{team}} en Teamsup! Entrenos, partidos y convocatorias, todo en un sitio. Entra aquí y ya estás dentro: {{url}}",
     "invitedBy": "{{name}} te invita a",
     "invited": "Te invitan a",
     "membersCount_one": "{{count}} miembro",
@@ -153,7 +153,7 @@
     "banner": "Al crear tu cuenta entrarás directamente en {{team}}.",
     "bannerLogin": "Al entrar te unirás a {{team}}.",
     "loading": "Cargando invitación…",
-    "backHome": "Ir a TeamUp"
+    "backHome": "Ir a Teamsup"
   },
   "members": {
     "title": "Miembros",
@@ -303,7 +303,7 @@
   },
   "help": {
     "title": "Ayuda",
-    "intro": "Guía rápida de cada pantalla de TeamUp, con pasos, ejemplos reales y accesos directos. Toca tu avatar, arriba a la derecha, y elige Ayuda para abrir la sección de la pantalla en la que estés.",
+    "intro": "Guía rápida de cada pantalla de Teamsup, con pasos, ejemplos reales y accesos directos. Toca tu avatar, arriba a la derecha, y elige Ayuda para abrir la sección de la pantalla en la que estés.",
     "steps": "Cómo funciona",
     "contextual": "Ayuda de esta pantalla"
   },
@@ -1074,7 +1074,7 @@
     "badge": "Modo invitado",
     "notice": "Estás viendo datos de ejemplo. Ninguna acción se guarda.",
     "cta": "Crear cuenta gratis",
-    "title": "Explora TeamUp con un equipo de ejemplo",
+    "title": "Explora Teamsup con un equipo de ejemplo",
     "subtitle": "Navega por los módulos principales sin registrarte.",
     "nextEvent": "Próximo evento",
     "confirmedPlayers": "Confirmados",
@@ -1101,7 +1101,7 @@
     "finish": "Empezar",
     "goTo": "Ir a la sección",
     "restart": "Ver tutorial guiado",
-    "restartHint": "Repasa los pasos básicos de TeamUp cuando quieras.",
+    "restartHint": "Repasa los pasos básicos de Teamsup cuando quieras.",
     "title": "Tutorial guiado",
     "manager": {
       "team": {
@@ -1122,7 +1122,7 @@
       },
       "results": {
         "title": "Registra resultados",
-        "desc": "Tras el enfrentamiento introduce los sets por pista: TeamUp calcula el ganador y actualiza las estadísticas."
+        "desc": "Tras el enfrentamiento introduce los sets por pista: Teamsup calcula el ganador y actualiza las estadísticas."
       },
       "chat": {
         "title": "Comunícate",
@@ -1579,10 +1579,10 @@
     "titulo": "Confirmar email",
     "comprobando": "Comprobando el enlace…",
     "hecho": "Listo: tu email está confirmado. Te avisaremos por correo de lo importante.",
-    "caducado": "El enlace ha caducado. Entra en TeamUp y pide otro desde tu perfil.",
+    "caducado": "El enlace ha caducado. Entra en Teamsup y pide otro desde tu perfil.",
     "noVale": "Este enlace no vale. Abre el del último correo que te hayamos mandado, o pide otro desde tu perfil.",
     "irAlPerfil": "Ir a mi perfil",
-    "entrar": "Entrar en TeamUp"
+    "entrar": "Entrar en Teamsup"
   },
   "avisosCorreo": {
     "titulo": "Avisos por correo",
@@ -1593,7 +1593,7 @@
   },
   "descargarDatos": {
     "titulo": "Mis datos",
-    "explica": "Descarga una copia de todo lo que TeamUp guarda de ti: tu cuenta y tu perfil, tus equipos, respuestas, estadísticas, mensajes, pagos y avisos, en un fichero JSON.",
+    "explica": "Descarga una copia de todo lo que Teamsup guarda de ti: tu cuenta y tu perfil, tus equipos, respuestas, estadísticas, mensajes, pagos y avisos, en un fichero JSON.",
     "boton": "Descargar mis datos",
     "preparando": "Preparando…",
     "hecho": "Tus datos se han descargado."

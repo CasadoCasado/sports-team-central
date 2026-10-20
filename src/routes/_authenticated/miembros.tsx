@@ -21,13 +21,13 @@ import { useActiveTeam } from "@/hooks/use-active-team";
 export const Route = createFileRoute("/_authenticated/miembros")({
   head: () => ({
     meta: [
-      { title: "Miembros | TeamUp" },
+      { title: "Miembros | Teamsup" },
       {
         name: "description",
         content:
           "Gestiona los jugadores del equipo, sus roles y las solicitudes de unión pendientes.",
       },
-      { property: "og:title", content: "Miembros | TeamUp" },
+      { property: "og:title", content: "Miembros | Teamsup" },
       {
         property: "og:description",
         content:

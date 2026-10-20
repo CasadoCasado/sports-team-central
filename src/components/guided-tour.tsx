@@ -45,7 +45,7 @@ const PLAYER_STEPS: TourStep[] = [
   { key: "alerts", icon: Bell, to: "/notificaciones" },
 ];
 
-const KEY_PREFIX = "teamup:tour-done:";
+const KEY_PREFIX = "teamsup:tour-done:";
 
 export function useGuidedTour() {
   const { user } = useSession();
@@ -73,7 +73,7 @@ export function useGuidedTour() {
   return { open, setOpen, finish, ready };
 }
 
-export const TOUR_RESTART_EVENT = "teamup:tour-restart";
+export const TOUR_RESTART_EVENT = "teamsup:tour-restart";
 
 export function restartGuidedTour() {
   window.dispatchEvent(new Event(TOUR_RESTART_EVENT));

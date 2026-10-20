@@ -35,7 +35,7 @@ import { CargandoPro } from "@/components/cargando-pro";
 import { parejaPro, type PropuestaPro, type TableroPro } from "@/lib/pro";
 import { PistasCerradas } from "@/components/pistas-cerradas";
 
-const CLAVE_MODO = "teamup:convocatoria-pro";
+const CLAVE_MODO = "teamsup:convocatoria-pro";
 
 /** Normal o PRO, recordado en este navegador. Por defecto, PRO. */
 export function useModoPro(): [boolean, (v: boolean) => void] {

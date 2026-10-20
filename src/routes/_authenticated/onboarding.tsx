@@ -11,15 +11,15 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/_authenticated/onboarding")({
   head: () => ({
     meta: [
-      { title: "Configura tu cuenta | TeamUp" },
+      { title: "Configura tu cuenta | Teamsup" },
       {
         name: "description",
-        content: "Completa tu perfil y elige si buscas equipo o quieres crear el tuyo en TeamUp.",
+        content: "Completa tu perfil y elige si buscas equipo o quieres crear el tuyo en Teamsup.",
       },
-      { property: "og:title", content: "Configura tu cuenta | TeamUp" },
+      { property: "og:title", content: "Configura tu cuenta | Teamsup" },
       {
         property: "og:description",
-        content: "Completa tu perfil y elige si buscas equipo o quieres crear el tuyo en TeamUp.",
+        content: "Completa tu perfil y elige si buscas equipo o quieres crear el tuyo en Teamsup.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
