@@ -13,8 +13,6 @@
  */
 import type { Breadcrumb, ErrorEvent } from "@sentry/react";
 
-import { reportLovableError } from "@/lib/lovable-error-reporting";
-
 type Sentry = typeof import("@/lib/sentry-carga");
 
 const DSN = import.meta.env.VITE_SENTRY_DSN as string | undefined;
@@ -89,6 +87,5 @@ export function iniciarErrores() {
 
 /** Un error que la web ha recogido ella misma (la pantalla de error, por ejemplo). */
 export function reportarError(error: unknown, contexto: Record<string, unknown> = {}) {
-  reportLovableError(error, contexto);
   void cargando?.then((sentry) => sentry?.captureException(error, { extra: contexto }));
 }
