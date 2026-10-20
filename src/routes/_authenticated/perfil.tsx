@@ -31,6 +31,7 @@ import { MANOS, manoDe } from "@/lib/mano";
 import { ProvinciaPicker } from "@/components/ubicacion-picker";
 import { BorrarCuenta } from "@/components/borrar-cuenta";
 import { DescargarDatos } from "@/components/descargar-datos";
+import { AvisosPorCorreo } from "@/components/verificar-email";
 
 export const Route = createFileRoute("/_authenticated/perfil")({
   head: () => ({
@@ -320,6 +321,7 @@ function Perfil() {
 
       <ReminderSettings />
       <PushSettings />
+      <AvisosPorCorreo />
       <DescargarDatos />
       <BorrarCuenta />
     </div>

@@ -35,6 +35,7 @@ export type Profile = {
   idioma: string;
   onboarding_completed: boolean;
   reminder_hours: number[];
+  avisos_por_correo: boolean;
 };
 
 export type AuthUser = {
@@ -42,6 +43,9 @@ export type AuthUser = {
   email: string;
   profile: Profile;
   is_admin: boolean;
+  email_verificado: boolean;
+  /** Si hay que pedirle que confirme su email (sin correo en el servidor, no). */
+  pedir_verificar_email: boolean;
 };
 
 export type AuthEvent = "SIGNED_IN" | "SIGNED_OUT" | "USER_UPDATED" | "TOKEN_REFRESHED";
@@ -243,6 +247,15 @@ export async function confirmPasswordReset(uid: string, token: string, password:
   cachedUser = null;
   emit("SIGNED_IN");
   return data;
+}
+
+/**
+ * Abre el enlace del correo de verificación. No necesita sesión: el enlace
+ * suele abrirse en el móvil, donde a lo mejor no se ha entrado.
+ */
+export async function verifyEmail(token: string) {
+  await post("/auth/verify-email/", { token });
+  if (cachedUser) invalidateUser();
 }
 
 export function signOut() {

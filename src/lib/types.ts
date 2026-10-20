@@ -55,6 +55,7 @@ export type FullProfile = Profile & {
   idioma: string;
   onboarding_completed: boolean;
   reminder_hours: number[];
+  avisos_por_correo: boolean;
 };
 
 export type Team = {

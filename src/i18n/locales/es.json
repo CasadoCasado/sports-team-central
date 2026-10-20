@@ -1571,6 +1571,26 @@
     "editarTitulo": "Enfrentamiento entre otros equipos",
     "sinPuntosHint": "Si aún no se ha jugado, deja los puntos vacíos: no cuenta en la clasificación hasta que guardes el resultado."
   },
+  "verificarEmail": {
+    "franja": "Confirma tu email: te hemos mandado un enlace a {{email}}. Mientras tanto no te llegan avisos por correo.",
+    "reenviar": "Reenviar el enlace",
+    "reenviado": "Te hemos mandado otro enlace.",
+    "esperar": "Te lo acabamos de mandar: espera un par de minutos y mira también en spam.",
+    "titulo": "Confirmar email",
+    "comprobando": "Comprobando el enlace…",
+    "hecho": "Listo: tu email está confirmado. Te avisaremos por correo de lo importante.",
+    "caducado": "El enlace ha caducado. Entra en TeamUp y pide otro desde tu perfil.",
+    "noVale": "Este enlace no vale. Abre el del último correo que te hayamos mandado, o pide otro desde tu perfil.",
+    "irAlPerfil": "Ir a mi perfil",
+    "entrar": "Entrar en TeamUp"
+  },
+  "avisosCorreo": {
+    "titulo": "Avisos por correo",
+    "explica": "Te escribimos solo para lo importante: cuando te convocan, te invitan a un equipo, tienes un pago pendiente o pasas a ser dueño de un equipo.",
+    "activados": "Te avisaremos por correo de lo importante.",
+    "desactivados": "Ya no te llegarán avisos por correo.",
+    "sinConfirmar": "No te llegarán hasta que confirmes {{email}}."
+  },
   "descargarDatos": {
     "titulo": "Mis datos",
     "explica": "Descarga una copia de todo lo que TeamUp guarda de ti: tu cuenta y tu perfil, tus equipos, respuestas, estadísticas, mensajes, pagos y avisos, en un fichero JSON.",
